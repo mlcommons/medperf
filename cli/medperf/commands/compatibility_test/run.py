@@ -28,7 +28,7 @@ class CompatibilityTestExecution:
         offline: bool = False,
         skip_data_preparation_step: bool = False,
         use_local_model_image: bool = False,
-        decryption_key_path: Path = None,
+        model_decryption_key: Path = None,
     ) -> (str, dict):
         """Execute a test workflow. Components of a complete workflow should be passed.
         When only the benchmark is provided, it implies the following workflow will be used:
@@ -86,7 +86,7 @@ class CompatibilityTestExecution:
             offline,
             skip_data_preparation_step,
             use_local_model_image,
-            decryption_key_file_path=decryption_key_path,
+            model_decryption_key=model_decryption_key,
         )
         test_exec.validate()
         test_exec.set_data_source()
@@ -119,7 +119,7 @@ class CompatibilityTestExecution:
         offline: bool = False,
         skip_data_preparation_step: bool = False,
         use_local_model_image: bool = False,
-        decryption_key_file_path: Path = None,
+        model_decryption_key: Path = None,
     ):
         self.benchmark_uid = benchmark
         self.data_prep = data_prep
@@ -143,7 +143,7 @@ class CompatibilityTestExecution:
         self.evaluator_cube = None
 
         # Decryption key is used for compatibility test of encrypted containers
-        self.decryption_key_file_path = decryption_key_file_path
+        self.model_decryption_key = model_decryption_key
 
         self.validator = CompatibilityTestParamsValidator(
             self.benchmark_uid,
@@ -201,7 +201,7 @@ class CompatibilityTestExecution:
             "Model",
             local_only=self.offline,
             use_local_model_image=self.use_local_model_image,
-            decryption_key_file_path=self.decryption_key_file_path,
+            decryption_key_file_path=self.model_decryption_key,
         )
 
         self.evaluator_cube = get_cube(

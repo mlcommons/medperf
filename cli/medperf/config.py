@@ -312,6 +312,7 @@ templates = {
 
 # Temporary paths to cleanup
 tmp_paths = []
+sensitive_tmp_paths = []
 
 # Data Import/Export config
 archive_config_filename = "config.yaml"

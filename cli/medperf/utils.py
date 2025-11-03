@@ -96,6 +96,9 @@ def cleanup():
     for path in config.tmp_paths:
         remove_path(path)
 
+    for path in config.sensitive_tmp_paths:
+        remove_path(path, sensitive=True)
+
     trash_folder = config.trash_folder
     if os.path.exists(trash_folder) and os.listdir(trash_folder):
         msg = "WARNING: Failed to premanently cleanup some files. Consider deleting"
@@ -589,10 +592,19 @@ def get_decryption_key_path(container_id):
     )
 
 
+def store_decryption_key(container_id, decryption_key_path):
+    target_path = get_decryption_key_path(container_id)
+    target_folder = os.path.dirname(target_path)
+    os.makedirs(target_folder, exist_ok=True)
+    shutil.copy(decryption_key_path, target_path)
+    return target_path
+
+
 def create_secure_tmp_folder():
     folder_name = generate_tmp_uid()
     folder_path = os.path.join(config.decrypted_files_folder, folder_name)
     os.makedirs(folder_path, mode=0o700)
+    config.sensitive_tmp_paths.append(folder_path)
     return folder_path
 
 
