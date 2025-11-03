@@ -22,5 +22,4 @@ urlpatterns = [
     path(
         "aggregators/training_associations/", views.AggregatorAssociationList.as_view()
     ),
-    path("cas/training_associations/", views.CAAssociationList.as_view()),
 ]
