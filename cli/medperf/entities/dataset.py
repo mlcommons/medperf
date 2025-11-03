@@ -1,7 +1,7 @@
 import os
 from medperf.commands.association.utils import get_user_associations
 import yaml
-from pydantic import Field, validator, ConfigDict
+from pydantic import Field, field_validator, ValidationInfo
 from typing import Optional, Union, List
 
 from medperf.utils import remove_path
@@ -26,14 +26,12 @@ class Dataset(Entity, DeployableSchema):
     location: Optional[str] = Field(None, max_length=20)
     input_data_hash: str
     generated_uid: str
-    data_preparation_mlcube: Union[int, str]
+    data_preparation_mlcube: Union[int, str] = Field(validate_default=True)
     split_seed: Optional[int] = None
     generated_metadata: dict = Field(..., alias="metadata")
     user_metadata: dict = Field(default_factory=dict)
     report: dict = Field(default_factory=dict)
     submitted_as_prepared: bool
-
-    model_config = ConfigDict(validate_by_name=True)
 
     @staticmethod
     def get_type():
@@ -55,9 +53,9 @@ class Dataset(Entity, DeployableSchema):
     def get_comms_uploader():
         return config.comms.upload_dataset
 
-    @validator("data_preparation_mlcube", pre=True, always=True)
-    def check_data_preparation_mlcube(cls, v, *, values, **kwargs):
-        if not isinstance(v, int) and not values["for_test"]:
+    @field_validator("data_preparation_mlcube", mode="before")
+    def check_data_preparation_mlcube(cls, v: int, info: ValidationInfo):
+        if not isinstance(v, int) and not info.data.get("for_test"):
             raise ValueError(
                 "data_preparation_mlcube must be an integer if not running a compatibility test"
             )

@@ -1,5 +1,13 @@
 from datetime import datetime
-from pydantic import BaseModel, Field, validator, HttpUrl, ValidationError
+from pydantic import (
+    BaseModel,
+    Field,
+    field_validator,
+    HttpUrl,
+    ValidationError,
+    ConfigDict,
+    ValidationInfo,
+)
 from typing import Optional
 from collections import defaultdict
 
@@ -11,7 +19,7 @@ from medperf.utils import format_errors_dict
 class MedperfSchema(BaseModel):
     for_test: bool = False
     id: Optional[int] = None
-    name: str = Field(..., max_length=64)
+    name: str = Field(..., max_length=64, validate_default=True)
     owner: Optional[int] = None
     is_valid: bool = True
     created_at: Optional[datetime] = None
@@ -42,7 +50,7 @@ class MedperfSchema(BaseModel):
         Returns:
             dict: filtered dictionary
         """
-        fields = self.__fields__
+        fields = self.__class__.model_fields
         valid_fields = []
         # Gather all the field names, both original an alias names
         for field_name, field_item in fields.items():
@@ -50,9 +58,16 @@ class MedperfSchema(BaseModel):
             valid_fields.append(field_item.alias)
         # Remove duplicates
         valid_fields = set(valid_fields)
-        model_dict = super().dict(*args, **kwargs)
+        model_dict = super().model_dump(*args, **kwargs)
         out_dict = {k: v for k, v in model_dict.items() if k in valid_fields}
         return out_dict
+
+    def model_dump(self, *args, **kwargs) -> dict:
+        """
+        Added method to have a similar API to Pydantic V2, which recommends using
+        .model_dump instead of .dict
+        """
+        return self.dict(*args, **kwargs)
 
     def todict(self) -> dict:
         """Dictionary containing both original and alias fields
@@ -70,22 +85,21 @@ class MedperfSchema(BaseModel):
                 og_dict[k] = str(v)
         return og_dict
 
-    @validator("*", pre=True)
+    @field_validator("*", mode="before")
     def empty_str_to_none(cls, v):
         if v == "":
             return None
         return v
 
-    @validator("name", pre=True, always=True)
-    def name_max_length(cls, v, *, values, **kwargs):
-        if not values["for_test"] and len(v) > 20:
+    @field_validator("name", mode="before")
+    def name_max_length(cls, v: str, info: ValidationInfo):
+        if not info.data.get("for_test") and len(v) > 20:
             raise ValueError("The name must have no more than 20 characters")
         return v
 
-    class Config:
-        allow_population_by_field_name = True
-        extra = "allow"
-        use_enum_values = True
+    model_config = ConfigDict(
+        populate_by_name=True, use_enum_values=True, extra="allow"
+    )
 
 
 class DeployableSchema(BaseModel):
@@ -94,9 +108,9 @@ class DeployableSchema(BaseModel):
 
 class ApprovableSchema(BaseModel):
     approved_at: Optional[datetime] = None
-    approval_status: Status = None
+    approval_status: Status = Field(None, validate_default=True)
 
-    @validator("approval_status", pre=True, always=True)
+    @field_validator("approval_status", mode="before")
     def default_status(cls, v):
         status = Status.PENDING
         if v is not None:

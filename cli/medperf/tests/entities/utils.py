@@ -174,7 +174,9 @@ def setup_execution_fs(ents, fs):
         setup_dset_fs([dataset_id], fs)
 
         try:
-            fs.create_file(execution_file, contents=yaml.dump(execution_contents.todict()))
+            fs.create_file(
+                execution_file, contents=yaml.dump(execution_contents.todict())
+            )
         except FileExistsError:
             pass
 

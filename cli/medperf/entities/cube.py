@@ -1,7 +1,7 @@
 import os
 from typing import List, Optional, Union
 from medperf.commands.association.utils import get_user_associations
-from pydantic import Field, ConfigDict
+from pydantic import Field
 
 from medperf.entities.interface import Entity
 from medperf.entities.schemas import DeployableSchema
@@ -35,8 +35,6 @@ class Cube(Entity, DeployableSchema):
     additional_files_tarball_hash: Optional[str] = Field(None, alias="tarball_hash")
     metadata: dict = Field(default_factory=dict)
     user_metadata: dict = Field(default_factory=dict)
-
-    model_config = ConfigDict(validate_by_name=True)
 
     @staticmethod
     def get_type():

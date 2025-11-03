@@ -1,6 +1,7 @@
 from typing import Optional
 from medperf.enums import Status
 from medperf.entities.benchmark import Benchmark
+from pydantic import Field
 
 
 class TestBenchmark(Benchmark):
@@ -11,4 +12,4 @@ class TestBenchmark(Benchmark):
     data_preparation_mlcube: int = 1
     reference_model_mlcube: int = 2
     data_evaluator_mlcube: int = 3
-    approval_status: Status = Status.APPROVED
+    approval_status: Status = Field(Status.APPROVED, validate_default=True)

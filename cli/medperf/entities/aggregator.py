@@ -1,5 +1,5 @@
 import os
-from pydantic import validator, Field
+from pydantic import field_validator, Field, ValidationInfo
 
 from medperf.entities.interface import Entity
 from medperf.entities.schemas import MedperfSchema
@@ -25,7 +25,7 @@ class Aggregator(Entity, MedperfSchema):
     """
 
     metadata: dict = Field(default_factory=dict)
-    config: dict
+    config: dict = Field(validate_default=True)
     aggregation_mlcube: int
 
     @staticmethod
@@ -48,8 +48,8 @@ class Aggregator(Entity, MedperfSchema):
     def get_comms_uploader():
         return config.comms.upload_aggregator
 
-    @validator("config", pre=True, always=True)
-    def check_config(cls, v, *, values, **kwargs):
+    @field_validator("config", mode="before")
+    def check_config(cls, v: dict, info: ValidationInfo):
         keys = set(v.keys())
         allowed_keys = {
             "address",

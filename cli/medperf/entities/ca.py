@@ -2,7 +2,7 @@ import json
 import os
 from medperf.entities.interface import Entity
 from medperf.entities.schemas import MedperfSchema
-from pydantic import validator, Field
+from pydantic import field_validator, Field, ValidationInfo
 import medperf.config as config
 from medperf.account_management import get_medperf_user_data
 
@@ -26,7 +26,7 @@ class CA(Entity, MedperfSchema):
     client_mlcube: int
     server_mlcube: int
     ca_mlcube: int
-    config: dict
+    config: dict = Field(validate_default=True)
 
     @staticmethod
     def get_type():
@@ -48,8 +48,8 @@ class CA(Entity, MedperfSchema):
     def get_comms_uploader():
         return config.comms.upload_ca
 
-    @validator("config", pre=True, always=True)
-    def check_config(cls, v, *, values, **kwargs):
+    @field_validator("config", mode="before")
+    def check_config(cls, v: dict, info: ValidationInfo):
         keys = set(v.keys())
         allowed_keys = {
             "address",
