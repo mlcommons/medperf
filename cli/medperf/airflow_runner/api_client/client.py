@@ -1,5 +1,6 @@
 from __future__ import annotations
 import os
+from airflow.sdk.api.client import BearerAuth as AirflowBearerAuth
 from typing import Optional
 from methodtools import lru_cache
 import time
@@ -14,7 +15,7 @@ implemented.
 """
 
 
-class BearerAuth(httpx.Auth):
+class BearerAuth(AirflowBearerAuth):
     def __init__(
         self,
         token: str,
@@ -32,16 +33,11 @@ class BearerAuth(httpx.Auth):
             expires_at = now + token_duration + leeway_seconds
 
         self.expires_at = expires_at
-        self.token = token
+        super().__init__(token=token)
 
     def is_valid(self):
         now = time.time()
         return now < self.expires_at
-
-    def auth_flow(self, request: httpx.Request):
-        if self.token:
-            request.headers["Authorization"] = "Bearer " + self.token
-        yield request
 
 
 class AirflowAPIClient(httpx.Client):

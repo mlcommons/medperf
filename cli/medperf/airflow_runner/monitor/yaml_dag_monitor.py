@@ -14,7 +14,7 @@ from typing import Any, Literal
 from collections import defaultdict
 from medperf.airflow_runner.api_client.client import AirflowAPIClient
 from medperf.airflow_runner.yaml_partial_parser import YamlPartialParser
-from medperf.airflow_runner.utils import DagRunState
+from airflow.utils.state import DagRunState
 
 
 class ReportSummary:

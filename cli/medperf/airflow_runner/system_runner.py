@@ -11,7 +11,7 @@ from .components.triggerer import AirflowTriggerer
 from .components.utils import validate_port
 from .monitor.yaml_dag_monitor import Summarizer
 from .yaml_partial_parser import YamlPartialParser
-from .utils import DagRunState
+from airflow.utils.state import DagRunState
 from .create_venv import create_airflow_venv_if_not_exists
 from typing import List, Union, TYPE_CHECKING
 import configparser
@@ -23,7 +23,7 @@ import asyncio
 import logging
 from medperf.airflow_runner.dags.constants import FINAL_ASSET, SUMMARIZER_ID
 from medperf import config
-
+import sys
 
 if TYPE_CHECKING:
     from .components.airflow_component import AirflowComponentRunner
@@ -42,11 +42,11 @@ class AirflowSystemRunner:
         project_name: str,
         port: Union[str, int] = 8080,
         postgres_port: Union[str, int] = 5432,
-        airflow_venv_dir: os.PathLike = config.airflow_venv_dir,
+        airflow_python_executable: os.PathLike = None,
         **extra_airflow_configs: dict,
     ):
         self.airflow_home = airflow_home
-        self._python_exec = os.path.join(airflow_venv_dir, "bin", "python")
+        self._python_exec = airflow_python_executable or sys.executable
         # TODO windows
         self.port = validate_port(port)
         self.dags_folder = dags_folder
@@ -83,7 +83,7 @@ class AirflowSystemRunner:
 
     def _initial_setup(self):
         logging.debug("Creating initial Airflow configuration")
-        a = subprocess.run(
+        config_create_process = subprocess.run(
             [self._python_exec, "-m", "airflow", "config", "list"],
             capture_output=True,
             env=self._run_env,
@@ -107,7 +107,7 @@ class AirflowSystemRunner:
             config.write(f)
 
     def init_airflow(self, force_venv_creation: bool = False):
-        create_airflow_venv_if_not_exists(force_creation=force_venv_creation)
+        # create_airflow_venv_if_not_exists(force_creation=force_venv_creation)
         os.makedirs(os.path.join(self.airflow_home, "logs"), exist_ok=True)
         self._initialize_components()
 
