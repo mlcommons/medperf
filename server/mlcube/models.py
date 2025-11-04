@@ -12,7 +12,7 @@ class MlCube(models.Model):
 
     name = models.CharField(max_length=20, unique=True)
     git_mlcube_url = models.CharField(max_length=256)
-    mlcube_hash = models.CharField(max_length=100)
+    mlcube_hash = models.JSONField()
     git_parameters_url = models.CharField(max_length=256, blank=True)
     parameters_hash = models.CharField(max_length=100, blank=True)
     image_tarball_url = models.CharField(max_length=256, blank=True)
