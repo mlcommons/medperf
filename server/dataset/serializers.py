@@ -3,21 +3,6 @@ from .models import Dataset
 from user.serializers import UserSerializer
 
 
-def validate_exactly_one_preparation(data: dict):
-    no_data_prep_provided = (
-        data.get("data_preparation_mlcube") is None
-        and data.get("data_preparation_workflow") is None
-    )
-    multiple_data_prep_provided = (
-        data.get("data_preparation_mlcube") is not None
-        and data.get("data_preparation_workflow") is not None
-    )
-    if no_data_prep_provided or multiple_data_prep_provided:
-        raise serializers.ValidationError(
-            "Exactly one of 'data_preparation_mlcube' or 'data_preparation_workflow' must be provided to register a Benchmark"
-        )
-
-
 class DatasetFullSerializer(serializers.ModelSerializer):
     """A private serializer. used for users who are permitted to see
     "sensitive" information. This serializer is also used for POST"""
@@ -27,9 +12,6 @@ class DatasetFullSerializer(serializers.ModelSerializer):
         fields = "__all__"
         read_only_fields = ["owner", "state"]
 
-    def validate(self, data):
-        validate_exactly_one_preparation(data)
-
 
 class DatasetPublicSerializer(serializers.ModelSerializer):
     """A restrictive serializer"""
@@ -37,9 +19,6 @@ class DatasetPublicSerializer(serializers.ModelSerializer):
     class Meta:
         model = Dataset
         exclude = ["owner", "report"]
-
-    def validate(self, data):
-        validate_exactly_one_preparation(data)
 
 
 class DatasetDetailSerializer(serializers.ModelSerializer):
@@ -91,7 +70,7 @@ class DatasetDetailSerializer(serializers.ModelSerializer):
                         "User cannot update non editable fields in Operation mode"
                     )
         self._validate_guid(data)
-        validate_exactly_one_preparation(data)
+
         return data
 
 
@@ -104,6 +83,3 @@ class DatasetWithOwnerInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Dataset
         fields = ["id", "owner"]
-
-    def validate(self, data):
-        validate_exactly_one_preparation(data)

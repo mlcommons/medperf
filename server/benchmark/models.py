@@ -1,6 +1,5 @@
 from django.db import models
 from django.contrib.auth import get_user_model
-from data_preparation_workflow.models import DataPrepWorkflow
 
 User = get_user_model()
 
@@ -33,11 +32,6 @@ class Benchmark(models.Model):
         "mlcube.MlCube",
         on_delete=models.PROTECT,
         related_name="data_preprocessor_mlcube",
-        null=True,
-        default=None,
-    )
-    data_preparation_workflow = models.ForeignKey(
-        DataPrepWorkflow, on_delete=models.PROTECT, default=None, null=True
     )
     reference_model_mlcube = models.ForeignKey(
         "mlcube.MlCube",
