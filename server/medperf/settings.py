@@ -105,7 +105,6 @@ INSTALLED_APPS = [
     "traindataset_association",
     "aggregator_association",
     "ca_association",
-    "data_preparation_workflow",
     "trainingevent",
     "rest_framework",
     "rest_framework.authtoken",
