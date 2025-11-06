@@ -103,9 +103,7 @@ def create_benchmark(api_server, benchmark_owner_token, admin_token):
         {
             "name": "chestxray_prep",
             "git_mlcube_url": (ASSETS_URL + "data_preparator/container_config.yaml"),
-            "mlcube_hash": {
-                "default": "173d593918abdde0e008dc4dbad12393e9b26cd27787570337f7ef4923946e31"
-            },
+            "mlcube_hash": "173d593918abdde0e008dc4dbad12393e9b26cd27787570337f7ef4923946e31",
             "git_parameters_url": (
                 ASSETS_URL + "data_preparator/workspace/parameters.yaml"
             ),
@@ -148,9 +146,7 @@ def create_benchmark(api_server, benchmark_owner_token, admin_token):
         {
             "name": "chestxray_cnn",
             "git_mlcube_url": (ASSETS_URL + "model_custom_cnn/container_config.yaml"),
-            "mlcube_hash": {
-                "default": "7ffb958bf83841b5f601a2538d004740216c336872c824a2fc3b9b346c6291dc"
-            },
+            "mlcube_hash": "7ffb958bf83841b5f601a2538d004740216c336872c824a2fc3b9b346c6291dc",
             "git_parameters_url": (
                 ASSETS_URL + "model_custom_cnn/workspace/parameters.yaml"
             ),
@@ -196,9 +192,7 @@ def create_benchmark(api_server, benchmark_owner_token, admin_token):
         {
             "name": "chestxray_metrics",
             "git_mlcube_url": (ASSETS_URL + "metrics/container_config.yaml"),
-            "mlcube_hash": {
-                "default": "1617c231a9a9cc596664222056e19718ef860552ab8cf99a97f52318e0d566f7"
-            },
+            "mlcube_hash": "1617c231a9a9cc596664222056e19718ef860552ab8cf99a97f52318e0d566f7",
             "git_parameters_url": (ASSETS_URL + "metrics/workspace/parameters.yaml"),
             "parameters_hash": "16cad451c54b801a5b50d999330465d7f68ab5f6d30a0674268d2d17c7f26b73",
             "image_tarball_url": "",
@@ -285,9 +279,7 @@ def create_model(api_server, model_owner_token, benchmark_owner_token, benchmark
         {
             "name": "chestxray_mobilenet",
             "git_mlcube_url": (ASSETS_URL + "model_mobilenetv2/container_config.yaml"),
-            "mlcube_hash": {
-                "default": "618ce7ef9f2b0dbdb0f361823aa4e2efc32e3ef9b29334466bd33eb3eca2aa02"
-            },
+            "mlcube_hash": "618ce7ef9f2b0dbdb0f361823aa4e2efc32e3ef9b29334466bd33eb3eca2aa02",
             "git_parameters_url": (
                 ASSETS_URL + "model_mobilenetv2/workspace/parameters.yaml"
             ),
