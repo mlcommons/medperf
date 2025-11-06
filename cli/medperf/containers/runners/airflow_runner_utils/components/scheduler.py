@@ -1,4 +1,6 @@
-from medperf.airflow_runner.components.airflow_component import AirflowComponentRunner
+from medperf.containers.runners.airflow_runner_utils.components.airflow_component import (
+    AirflowComponentRunner,
+)
 from pydantic import SecretStr
 from .utils import run_healthcheck
 

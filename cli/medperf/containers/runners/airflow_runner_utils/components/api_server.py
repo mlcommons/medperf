@@ -1,6 +1,10 @@
 from __future__ import annotations
-from medperf.airflow_runner.components.airflow_component import AirflowComponentRunner
-from medperf.airflow_runner.components.utils import validate_port
+from medperf.containers.runners.airflow_runner_utils.components.airflow_component import (
+    AirflowComponentRunner,
+)
+from medperf.containers.runners.airflow_runner_utils.components.utils import (
+    validate_port,
+)
 from typing import Union
 from .utils import run_healthcheck
 

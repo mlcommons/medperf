@@ -12,7 +12,6 @@ from .components.utils import validate_port
 from .monitor.yaml_dag_monitor import Summarizer
 from .yaml_partial_parser import YamlPartialParser
 from airflow.utils.state import DagRunState
-from .create_venv import create_airflow_venv_if_not_exists
 from typing import List, Union, TYPE_CHECKING
 import configparser
 import secrets
@@ -21,7 +20,10 @@ import json
 import logging
 import asyncio
 import logging
-from medperf.airflow_runner.dags.constants import FINAL_ASSET, SUMMARIZER_ID
+from medperf.containers.runners.airflow_runner_utils.dags.constants import (
+    FINAL_ASSET,
+    SUMMARIZER_ID,
+)
 from medperf import config
 import sys
 
