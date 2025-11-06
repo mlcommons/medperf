@@ -4,6 +4,7 @@ import os
 import yaml
 from .mlcube import MLCubeParser
 from .simple_container import SimpleContainerParser
+from .airflow_parser import AirflowParser
 
 
 def _is_mlcube_yaml_file(container_config: dict):
@@ -12,6 +13,10 @@ def _is_mlcube_yaml_file(container_config: dict):
     return "container_type" not in container_config and (
         "docker" in container_config or "singularity" in container_config
     )
+
+
+def _is_airflow_yaml_file(airflow_config: dict):
+    return "container_type" not in airflow_config and "steps" in airflow_config
 
 
 def load_parser(container_config_path: str) -> Parser:
@@ -36,6 +41,15 @@ def load_parser(container_config_path: str) -> Parser:
         container_config["workspace_path"] = workspace_path
         parser = MLCubeParser(
             container_config, allowed_runners=["docker", "singularity"]
+        )
+        parser.check_schema()
+        return parser
+
+    elif _is_airflow_yaml_file(container_config):
+        # TODO add modifications to use container hashes rather than tags for download
+        # TODO maybe change workspace dir and so on here? We need to think about this
+        parser = AirflowParser(
+            airflow_config=container_config, allowed_runners=["docker", "singularity"]
         )
         parser.check_schema()
         return parser
