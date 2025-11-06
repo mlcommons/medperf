@@ -110,7 +110,9 @@ def create_benchmark(api_server, benchmark_owner_token, admin_token):
             "parameters_hash": "1541e05437040745d2489e8d2cf14795d4839eecc15c1ac959c84f6b77c1a5df",
             "image_tarball_url": "",
             "image_tarball_hash": "",
-            "image_hash": "d941e09d160bba3cf5c09b48f490e3b9e891597341e560954ff7512478eaef22",
+            "image_hash": {
+                "default": "d941e09d160bba3cf5c09b48f490e3b9e891597341e560954ff7512478eaef22"
+            },
             "additional_files_tarball_url": "",
             "additional_files_tarball_hash": "",
             "metadata": {
@@ -156,7 +158,9 @@ def create_benchmark(api_server, benchmark_owner_token, admin_token):
                 "chestxray_tutorial/cnn_weights.tar.gz"
             ),
             "additional_files_tarball_hash": "bff003e244759c3d7c8b9784af0819c7f252da8626745671ccf7f46b8f19a0ca",
-            "image_hash": "877b8df79678215dfdcb63fe6bc1dab58e9c29113437c2c5627442551e3087c5",
+            "image_hash": {
+                "default": "877b8df79678215dfdcb63fe6bc1dab58e9c29113437c2c5627442551e3087c5"
+            },
             "image_tarball_url": "",
             "image_tarball_hash": "",
             "metadata": {
@@ -197,7 +201,9 @@ def create_benchmark(api_server, benchmark_owner_token, admin_token):
             "parameters_hash": "16cad451c54b801a5b50d999330465d7f68ab5f6d30a0674268d2d17c7f26b73",
             "image_tarball_url": "",
             "image_tarball_hash": "",
-            "image_hash": "c61b4079be59ba3bb31090bdf89f7f603023f77d28ca0475b5320efaa36866aa",
+            "image_hash": {
+                "default": "c61b4079be59ba3bb31090bdf89f7f603023f77d28ca0475b5320efaa36866aa"
+            },
             "additional_files_tarball_url": "",
             "additional_files_tarball_hash": "",
             "metadata": {
@@ -291,7 +297,9 @@ def create_model(api_server, model_owner_token, benchmark_owner_token, benchmark
             "additional_files_tarball_hash": "771f67bba92a11c83d16a522f0ba1018020ff758e2277d33f49056680c788892",
             "image_tarball_url": "",
             "image_tarball_hash": "",
-            "image_hash": "33d26c8e266be9fe072081fb157313bfa51778b2934ab64bd622c8f0cd52dfa1",
+            "image_hash": {
+                "default": "33d26c8e266be9fe072081fb157313bfa51778b2934ab64bd622c8f0cd52dfa1"
+            },
             "metadata": {
                 "digest": "f27deb052eafd48ad1e350ceef7b0b9600aef0ea3f8cba47baee2b1d17411a83"
             },
