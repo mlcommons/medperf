@@ -21,6 +21,7 @@ from medperf import config
 import semver
 from .runner import Runner
 import logging
+from typing import Dict
 
 
 class SingularityRunner(Runner):
@@ -48,20 +49,20 @@ class SingularityRunner(Runner):
 
     def download(
         self,
-        expected_image_hash,
+        hashes_dict: Dict[str, str],
         download_timeout: int = None,
         get_hash_timeout: int = None,
         alternative_image_hash: str = None,
-    ):
+    ) -> Dict[str, str]:
         if self.parser.container_type == "SingularityFile":
             return self._download_singularity_file(
-                expected_image_hash,
+                hashes_dict,
                 download_timeout,
                 get_hash_timeout,
             )
         else:
             return self._download_and_convert_docker_image(
-                expected_image_hash,
+                hashes_dict,
                 download_timeout,
                 get_hash_timeout,
                 alternative_image_hash,
@@ -69,25 +70,27 @@ class SingularityRunner(Runner):
 
     def _download_singularity_file(
         self,
-        expected_image_hash,
+        hashes_dict: Dict[str, str],
         download_timeout: int = None,
         get_hash_timeout: int = None,
     ):
         sif_url = self.parser.get_setup_args()
+        expected_image_hash = hashes_dict.get(sif_url)
         sif_image_path, computed_image_hash = resources.get_cube_image(
             sif_url, expected_image_hash
         )  # Hash checking happens in resources
         self.sif_image_path = sif_image_path
-        return computed_image_hash
+        return {sif_url: computed_image_hash}
 
     def _download_and_convert_docker_image(
         self,
-        expected_image_hash,
+        hashes_dict: Dict[str, str],
         download_timeout: int = None,
         get_hash_timeout: int = None,
         alternative_image_hash: str = None,
     ):
         docker_image = self.parser.get_setup_args()
+        expected_image_hash = hashes_dict.get(docker_image)
         computed_image_hash = get_docker_image_hash_from_dockerhub(
             docker_image, get_hash_timeout
         )
@@ -114,7 +117,7 @@ class SingularityRunner(Runner):
             run_command(command, timeout=download_timeout)
 
         self.sif_image_path = sif_image_file
-        return computed_image_hash
+        return {docker_image: computed_image_hash}
 
     def run(
         self,

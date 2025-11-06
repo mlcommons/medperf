@@ -8,6 +8,7 @@ from pydantic import (
     ConfigDict,
     ValidationInfo,
 )
+from pydantic_core import PydanticUndefined
 from typing import Optional
 from collections import defaultdict
 
@@ -86,9 +87,17 @@ class MedperfSchema(BaseModel):
         return og_dict
 
     @field_validator("*", mode="before")
-    def empty_str_to_none(cls, v):
+    @classmethod
+    def empty_str_to_none(cls, v, info: ValidationInfo):
         if v == "":
-            return None
+            current_attribute = cls.model_fields[info.field_name]
+            default_value = None
+            if current_attribute.default != PydanticUndefined:
+                default_value = current_attribute.default
+            elif current_attribute.default_factory is not None:
+                default_value = current_attribute.default_factory()
+            return default_value
+
         return v
 
     @field_validator("name", mode="before")

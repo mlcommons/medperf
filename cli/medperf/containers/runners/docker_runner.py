@@ -11,7 +11,7 @@ from .utils import (
 from .runner import Runner
 import logging
 from .docker_utils import craft_docker_run_command, get_docker_image_hash
-from pydantic import Field
+from typing import Dict
 
 
 class DockerRunner(Runner):
@@ -20,19 +20,20 @@ class DockerRunner(Runner):
 
     def download(
         self,
-        expected_image_hash,
+        hashes_dict: Dict[str, str],
         download_timeout: int = None,
         get_hash_timeout: int = None,
         alternative_image_hash: str = None,
-    ):
+    ) -> Dict[str, str]:
         docker_image = self.parser.get_setup_args()
+        expected_image_hash = hashes_dict.get(docker_image)
         command = ["docker", "pull", docker_image]
         run_command(command, timeout=download_timeout)
         computed_image_hash = get_docker_image_hash(docker_image, get_hash_timeout)
         check_docker_image_hash(
             computed_image_hash, expected_image_hash, alternative_image_hash
         )
-        return computed_image_hash
+        return {docker_image: computed_image_hash}
 
     def run(
         self,

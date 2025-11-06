@@ -30,7 +30,7 @@ class Cube(Entity, DeployableSchema):
     parameters_hash: Optional[str] = None
     image_tarball_url: Optional[str] = None
     image_tarball_hash: Optional[str] = None
-    image_hash: Optional[str] = None
+    image_hash: Optional[dict] = Field(default_factory=dict)
     additional_files_tarball_url: Optional[str] = Field(None, alias="tarball_url")
     additional_files_tarball_hash: Optional[str] = Field(None, alias="tarball_hash")
     metadata: dict = Field(default_factory=dict)
@@ -178,7 +178,7 @@ class Cube(Entity, DeployableSchema):
             alternative_image_hash = self.metadata.get("digest", None)
         try:
             self.image_hash = self.runner.download(
-                expected_image_hash=self.image_hash,
+                hashes_dict=self.image_hash,
                 download_timeout=config.mlcube_configure_timeout,
                 get_hash_timeout=config.mlcube_inspect_timeout,
                 alternative_image_hash=alternative_image_hash,

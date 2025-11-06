@@ -1,15 +1,16 @@
 from abc import ABC, abstractmethod
+from typing import Dict
 
 
 class Runner(ABC):
     @abstractmethod
     def download(
         self,
-        expected_image_hash: str,
+        hashes_dict: Dict[str, str],
         download_timeout: int = None,
         get_hash_timeout: int = None,
         alternative_image_hash: str = None,
-    ):
+    ) -> Dict[str, str]:
         pass
 
     @abstractmethod
