@@ -91,7 +91,7 @@ class MlCubePutTest(MlCubeTest):
             "parameters_hash": "newstring",
             "image_tarball_url": "new",
             "image_tarball_hash": "new",
-            "image_hash": "",
+            "image_hash": {},
             "additional_files_tarball_url": "newstring",
             "additional_files_tarball_hash": "newstring",
             "state": "OPERATION",
@@ -105,6 +105,9 @@ class MlCubePutTest(MlCubeTest):
         response = self.client.put(url, newtestmlcube, format="json")
 
         # Assert
+        print(f"{response.status_code=}")
+        print(f"{response.content=}")
+        print(f"{response.json()=}")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         for k, v in response.data.items():
             if k in newtestmlcube:
@@ -166,7 +169,7 @@ class MlCubePutTest(MlCubeTest):
             "name": "newtestmlcube",
             "mlcube_hash": "newstring",
             "parameters_hash": "newstring",
-            "image_hash": "newhash",
+            "image_hash": {"default": "newhash"},
             "additional_files_tarball_hash": "newstring",
             "state": "DEVELOPMENT",
             "metadata": {"newkey": "newvalue"},
@@ -196,7 +199,7 @@ class MlCubePutTest(MlCubeTest):
         newtestmlcube = {
             "image_tarball_url": "newurl",
             "image_tarball_hash": "new",
-            "image_hash": "",
+            "image_hash": {"default": ""},
         }
 
         url = self.url.format(testmlcube["id"])
@@ -396,7 +399,7 @@ class MlCubePutTest(MlCubeTest):
         )
         testmlcube = self.create_mlcube(testmlcube).data
 
-        put_body = {"image_hash": "", "image_tarball_url": "url"}
+        put_body = {"image_hash": {"default": ""}, "image_tarball_url": "url"}
         url = self.url.format(testmlcube["id"])
 
         # Act
@@ -536,7 +539,7 @@ class PermissionTest(MlCubeTest):
             "parameters_hash": "newstring",
             "image_tarball_url": "new",
             "image_tarball_hash": "new",
-            "image_hash": "",
+            "image_hash": {"default": ""},
             "additional_files_tarball_url": "newstring",
             "additional_files_tarball_hash": "newstring",
             "state": "OPERATION",

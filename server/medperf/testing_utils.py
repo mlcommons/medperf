@@ -63,7 +63,7 @@ def mock_mlcube(**kwargs):
         "parameters_hash": "string",
         "image_tarball_url": "",
         "image_tarball_hash": "",
-        "image_hash": "string",
+        "image_hash": {"default": "string"},
         "additional_files_tarball_url": "string",
         "additional_files_tarball_hash": "string",
         "state": "DEVELOPMENT",
