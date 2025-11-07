@@ -164,6 +164,7 @@ class AirflowSystemRunner:
                 [self._python_exec, "-m", "airflow", "db", "migrate"],
                 stdout=f,
                 stderr=f,
+                env=self._run_env,
             )
 
         if db_migrate.returncode != 0:
