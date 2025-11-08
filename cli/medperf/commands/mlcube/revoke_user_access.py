@@ -1,7 +1,7 @@
 from medperf import config
 from medperf.utils import approval_prompt, generate_container_key_redaction_record
 from medperf.exceptions import CleanExit
-from medperf.entities.encrypted_container_key import EncryptedContainerKey
+from medperf.entities.encrypted_container_key import EncryptedKey
 
 
 class RevokeUserAccess:
@@ -25,10 +25,10 @@ class RevokeUserAccess:
             raise CleanExit("Access revoking operation cancelled")
 
     def revoke_access(self):
-        key = EncryptedContainerKey.Get(self.key_id)
+        key = EncryptedKey.Get(self.key_id)
         redaction_record = generate_container_key_redaction_record(
             key.encrypted_key_base64
         )
         del key
         body = {"is_valid": False, "encrypted_key_base64": redaction_record}
-        config.comms.update_container_key(self.key_id, body)
+        config.comms.update_encrypted_key(self.key_id, body)

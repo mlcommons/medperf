@@ -1,7 +1,7 @@
 from django.urls import path
 from . import views
 
-app_name = "MLCubeKey"
+app_name = "EncryptedKey"
 
 urlpatterns = [
     path("", views.GetAllEncryptedKeys.as_view()),

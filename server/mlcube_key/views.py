@@ -2,7 +2,7 @@ from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework import status
 
-from .models import MlCubeKey
+from .models import EncryptedKey
 from .serializers import EncryptedKeySerializer, EncryptedKeyDetailSerializer
 from .permissions import IsAdmin, IsKeyOwner, IsContainersOwner
 from rest_framework.request import Request
@@ -19,8 +19,8 @@ class GetEncryptedKeyById(GenericAPIView):
 
     def get_object(self, pk):
         try:
-            return MlCubeKey.objects.get(pk=pk)
-        except MlCubeKey.DoesNotExist:
+            return EncryptedKey.objects.get(pk=pk)
+        except EncryptedKey.DoesNotExist:
             raise Http404
 
     def get(self, request, pk, format=None):
@@ -54,7 +54,7 @@ class GetAllEncryptedKeys(GenericAPIView):
         return super(self.__class__, self).get_permissions()
 
     def get(self, request, format=None):
-        encrypted_keys = MlCubeKey.objects.all()
+        encrypted_keys = EncryptedKey.objects.all()
         encrypted_keys = self.paginate_queryset(encrypted_keys)
         serializer = EncryptedKeySerializer(encrypted_keys, many=True)
         return self.get_paginated_response(serializer.data)

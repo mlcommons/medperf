@@ -4,7 +4,7 @@ from medperf.entities.ca import CA
 from medperf.utils import approval_prompt, get_decryption_key_path
 from medperf import config
 from medperf.exceptions import CleanExit, InvalidCertificateError
-from medperf.entities.encrypted_container_key import EncryptedContainerKey
+from medperf.entities.encrypted_container_key import EncryptedKey
 from medperf.encryption import AsymmetricEncryption
 from medperf.certificates import verify_certificate_authority, verify_certificate
 
@@ -42,7 +42,7 @@ class GrantAccess:
 
     def get_approval(self):
         msg = (
-            f"Please confirm that you wish to give *ALL* Data Owners "
+            f"Please confirm that you wish to give all Data Owners "
             f"registered in Benchmark (UID: {self.benchmark_id}) access to "
             f"the Model (UID: {self.model_id}).\n"
         )
@@ -60,10 +60,11 @@ class GrantAccess:
         certificates, cert_user_info = Certificate.get_benchmark_datasets_certificates(
             self.benchmark_id
         )
-        existing_keys = EncryptedContainerKey.get_user_keys()
+        existing_keys = EncryptedKey.get_container_keys(self.model_id)
         certificates_with_keys = [key["certificate"] for key in existing_keys]
+        del existing_keys
 
-        certificates_need_keys: list[Certificate] = list()
+        certificates_need_keys: list[Certificate] = []
 
         for cert in certificates:
             if cert.id not in certificates_with_keys:
@@ -87,12 +88,14 @@ class GrantAccess:
                 )
                 valid_certs.append(certificate)
             except InvalidCertificateError:
-                error_certs.append(certificate)
+                error_certs.append((certificate, expected_email))
 
         if error_certs:
             error_cert_msg = "The following certificates failed verification:\n"
-            for error_cert in error_certs:
-                error_cert_msg += f"{error_cert.name} (UID:{error_cert.id}, Owner: {error_cert.owner})\n"
+            for error_cert, expected_email in error_certs:
+                error_cert_msg += (
+                    f"\t(UID:{error_cert.id}, Expected Owner: {expected_email})\n"
+                )
             config.ui.print(error_cert_msg)
 
         self.certificates = valid_certs
@@ -111,7 +114,7 @@ class GrantAccess:
             encrypted_key_bytes = encryptor.encrypt(
                 certificate_content_bytes, container_key_bytes
             )
-            key_obj = EncryptedContainerKey(
+            key_obj = EncryptedKey(
                 encrypted_key_base64=base64.b64encode(encrypted_key_bytes).decode(),
                 name=f"Model {self.model_id} cert {certificate.id}",
                 certificate=certificate.id,
@@ -124,5 +127,5 @@ class GrantAccess:
 
     def upload(self, keys_objects):
         config.ui.print("Uploading Encrypted Keys")
-        EncryptedContainerKey.upload_many(keys_objects)
+        EncryptedKey.upload_many(keys_objects)
         del keys_objects

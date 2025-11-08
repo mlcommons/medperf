@@ -1,4 +1,9 @@
-from medperf.exceptions import ExecutionError, MedperfException
+from medperf.exceptions import (
+    DecryptionError,
+    EncryptionError,
+    ExecutionError,
+    MedperfException,
+)
 from medperf.utils import run_command
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import hashes
@@ -6,6 +11,8 @@ from cryptography.hazmat.primitives import serialization
 from cryptography import x509
 
 
+# exceptions, container_key vs encrypted key, uniqueness constraint,
+# check all sensitive variables and catching exceptions, config.tmp_paths and webui
 def check_gpg():
     gpg_check_command = ["gpg", "--version"]
     try:
@@ -28,8 +35,8 @@ def decrypt_gpg_file(encrypted_file_path, decryption_key_file, output_path):
     ]
     try:
         run_command(gpg_decrypt_command)
-    except ExecutionError:
-        raise MedperfException("File decryption failed")
+    except Exception as e:
+        raise DecryptionError(f"File decryption failed: {str(e)}")
 
 
 # asymmetric encryption/decryption
@@ -42,14 +49,20 @@ class AsymmetricEncryption:
         )
 
     def encrypt(self, certificate_bytes: bytes, data_bytes: bytes) -> bytes:
-        certificate_obj = x509.load_pem_x509_certificate(data=certificate_bytes)
-        public_key_obj = certificate_obj.public_key()
-        encrypted_data = public_key_obj.encrypt(data_bytes, padding=self.padding)
-        return encrypted_data
+        try:
+            certificate_obj = x509.load_pem_x509_certificate(data=certificate_bytes)
+            public_key_obj = certificate_obj.public_key()
+            encrypted_data = public_key_obj.encrypt(data_bytes, padding=self.padding)
+            return encrypted_data
+        except Exception as e:
+            raise EncryptionError(f"Data encryption failed: {str(e)}")
 
     def decrypt(self, private_key_bytes: bytes, encrypted_data_bytes: bytes) -> bytes:
-        private_key = serialization.load_pem_private_key(
-            data=private_key_bytes, password=None
-        )
-        data_bytes = private_key.decrypt(encrypted_data_bytes, padding=self.padding)
-        return data_bytes
+        try:
+            private_key = serialization.load_pem_private_key(
+                data=private_key_bytes, password=None
+            )
+            data_bytes = private_key.decrypt(encrypted_data_bytes, padding=self.padding)
+            return data_bytes
+        except Exception as e:
+            raise DecryptionError(f"Data decryption failed: {str(e)}")

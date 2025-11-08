@@ -1,6 +1,6 @@
 import base64
 from medperf.account_management import get_medperf_user_data
-from medperf.exceptions import InvalidArgumentError
+from medperf.exceptions import MedperfException
 from medperf.utils import get_pki_assets_path, approval_prompt
 import os
 from medperf import config
@@ -38,7 +38,7 @@ class SubmitCertificate:
         certificate_file_path = os.path.join(pki_assets_path, config.certificate_file)
 
         if not os.path.exists(certificate_file_path):
-            raise InvalidArgumentError(
+            raise MedperfException(
                 "No local certificate found. "
                 "Please run the 'medperf certificate get_client_certificate' "
                 "command to obtain a certificate before running the submit command."

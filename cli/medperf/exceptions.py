@@ -46,17 +46,21 @@ class InvalidContainerSpec(MedperfException):
     """Raised when container config file is invalid"""
 
 
-class MissingContainerKeyException(MedperfException):
-    """Raised when the Model Owner Container Key is missing"""
-
-
-class MissingPrivateKeyException(MedperfException):
-    """Raised when the execution of a Private Container fails due to a missing Private Key"""
+class PrivateContainerAccessError(MedperfException):
+    """Raised when the user has no access to a private container"""
 
 
 class DecryptionError(MedperfException):
-    """Raised when failing to decrypt a private container"""
+    """Raised when failing to decrypt data"""
+
+
+class EncryptionError(MedperfException):
+    """Raised when failing to encrypt data"""
 
 
 class InvalidCertificateError(MedperfException):
-    """Raised when a Certificate fails to validate"""
+    """Raised when a Certificate verification fails"""
+
+
+class InvalidCertificateAuthorityError(MedperfException):
+    """Raised when a CA verification fails"""

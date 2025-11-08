@@ -16,7 +16,7 @@ from medperf.utils import (
     remove_path,
     get_decryption_key_path,
 )
-from medperf.entities.encrypted_container_key import EncryptedContainerKey
+from medperf.entities.encrypted_container_key import EncryptedKey
 
 
 class Cube(Entity, DeployableSchema):
@@ -90,12 +90,15 @@ class Cube(Entity, DeployableSchema):
     @property
     def runner(self):
         if self._runner is None:
-            self._runner = load_runner(self.parser, self)
+            self._runner = load_runner(self.parser, self.path)
         return self._runner
 
     @property
     def local_id(self):
         return self.name
+
+    def is_encrypted(self):
+        return self.parser.is_container_encrypted()
 
     @staticmethod
     def remote_prefilter(filters: dict):
@@ -218,7 +221,7 @@ class Cube(Entity, DeployableSchema):
         destroy_key = True
         try:
             # setup decryption key if container is encrypted
-            if self.runner.parser.is_container_encrypted():
+            if self.is_encrypted():
                 decryption_key_file, destroy_key = self.get_user_decryption_key()
 
             # run
@@ -242,10 +245,10 @@ class Cube(Entity, DeployableSchema):
         if self.owner == user_id:
             key_file = get_decryption_key_path(self.id)
             if not os.path.exists(key_file):
-                raise InvalidEntityError("Key file doesn't exist")
+                raise InvalidEntityError("Container decryption key file doesn't exist")
             destroy_key = False
         else:
-            key = EncryptedContainerKey.get_user_key_for_model(self.id)
+            key = EncryptedKey.get_user_container_key(self.id)
             key_file = key.decrypt()
             del key
             destroy_key = True

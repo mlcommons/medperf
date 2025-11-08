@@ -1,7 +1,7 @@
 from __future__ import annotations
 import base64
 import pytest
-from medperf.entities.encrypted_container_key import EncryptedContainerKey
+from medperf.entities.encrypted_container_key import EncryptedKey
 from medperf.exceptions import MedperfException, DecryptionError
 from typing import TYPE_CHECKING
 from medperf.entities.cube import Cube
@@ -76,7 +76,7 @@ def _arrange_for_decryption_tests(
     private_key: rsa.RSAPrivateKey,
 ):
     # Arrange
-    encrypted_key_obj = EncryptedContainerKey(
+    encrypted_key_obj = EncryptedKey(
         name="TestCert",
         id=TEST_KEY_ID,
         owner=None,
@@ -123,7 +123,7 @@ def _arrange_for_decryption_tests(
 
 
 def test_generates_b64_key_from_bytes_key(mock_bytes_key: bytes, mock_b64_key: str):
-    encrypted_key = EncryptedContainerKey(
+    encrypted_key = EncryptedKey(
         name="TestCert",
         id=TEST_KEY_ID,
         owner=None,
@@ -137,7 +137,7 @@ def test_generates_b64_key_from_bytes_key(mock_bytes_key: bytes, mock_b64_key: s
 
 
 def test_generates_bytes_key_from_b64_key(mock_bytes_key: bytes, mock_b64_key: str):
-    encrypted_key = EncryptedContainerKey(
+    encrypted_key = EncryptedKey(
         name="TestCert",
         id=TEST_KEY_ID,
         owner=None,
@@ -150,7 +150,7 @@ def test_generates_bytes_key_from_b64_key(mock_bytes_key: bytes, mock_b64_key: s
 
 
 def test_accepts_both_bytes_and_b64_if_equal(mock_bytes_key, mock_b64_key):
-    encrypted_key = EncryptedContainerKey(
+    encrypted_key = EncryptedKey(
         name="TestCert",
         id=TEST_KEY_ID,
         owner=None,
@@ -174,7 +174,7 @@ def test_accepts_both_bytes_and_b64_if_equal(mock_bytes_key, mock_b64_key):
 
 def test_raises_error_if_key_mismatch(mock_bytes_key):
     with pytest.raises(MedperfException):
-        EncryptedContainerKey(
+        EncryptedKey(
             name="TestCert",
             id=TEST_KEY_ID,
             owner=None,
@@ -188,7 +188,7 @@ def test_raises_error_if_key_mismatch(mock_bytes_key):
 
 def test_raises_error_if_no_keys():
     with pytest.raises(MedperfException):
-        EncryptedContainerKey(
+        EncryptedKey(
             name="TestCert",
             id=TEST_KEY_ID,
             owner=None,

@@ -2,7 +2,11 @@ from medperf.entities.ca import CA
 from medperf.entities.cube import Cube
 from medperf.entities.certificate import Certificate
 from medperf import config
-from medperf.exceptions import MedperfException
+from medperf.exceptions import (
+    MedperfException,
+    InvalidCertificateError,
+    InvalidCertificateAuthorityError,
+)
 
 
 def get_client_cert(ca: CA, email: str, output_path: str):
@@ -44,7 +48,7 @@ def get_server_cert(ca: CA, address: str, output_path: str):
 def verify_certificate_authority(ca: CA):
     """Verifies the CA cert fingerprint and writes it to the MedPerf storage."""
     if ca.config["fingerprint"] != config.certificate_authority_fingerprint:
-        raise MedperfException(
+        raise InvalidCertificateAuthorityError(
             "Certificate authority fingerprint doesn't match the configured one"
         )
     ca.prepare_config()
@@ -54,7 +58,12 @@ def verify_certificate_authority(ca: CA):
     }
     mlcube = Cube.get(ca.ca_mlcube)
     mlcube.download_run_files()
-    mlcube.run(task="trust", mounts=mounts, disable_network=False)
+    try:
+        mlcube.run(task="trust", mounts=mounts, disable_network=False)
+    except MedperfException as e:
+        raise InvalidCertificateAuthorityError(
+            f"Failed to verify the certificate authority: {str(e)}"
+        )
 
 
 def verify_certificate(
@@ -68,4 +77,9 @@ def verify_certificate(
     cert_folder = certificate.prepare_certificate_file()
     mounts = {"pki_assets": cert_folder, "ca_config": ca.config_path}
     env = {"MEDPERF_INPUT_CN": expected_cn}
-    ca_container.run(task="verify_cert", mounts=mounts, env=env, disable_network=False)
+    try:
+        ca_container.run(
+            task="verify_cert", mounts=mounts, env=env, disable_network=False
+        )
+    except MedperfException as e:
+        raise InvalidCertificateError(f"Failed to verify the certificate: {str(e)}")

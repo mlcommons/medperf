@@ -33,7 +33,7 @@ from trainingevent.models import TrainingEvent
 from ca.models import CA
 from certificate.models import Certificate
 from certificate.serializers import CertificateDetailSerializer
-from mlcube_key.models import MlCubeKey
+from mlcube_key.models import EncryptedKey
 from mlcube_key.serializers import EncryptedKeyDetailSerializer
 
 
@@ -232,15 +232,15 @@ class CertificateList(GenericAPIView):
         return self.get_paginated_response(serializer.data)
 
 
-class MlCubeKeyList(GenericAPIView):
+class EncryptedKeyList(GenericAPIView):
     serializer_class = EncryptedKeyDetailSerializer
     queryset = ""
     filterset_fields = ("name", "owner", "is_valid", "certificate", "container")
 
     def get_object(self, pk):
         try:
-            return MlCubeKey.objects.filter(owner__id=pk)
-        except MlCubeKey.DoesNotExist:
+            return EncryptedKey.objects.filter(owner__id=pk)
+        except EncryptedKey.DoesNotExist:
             raise Http404
 
     def get(self, request, format=None):

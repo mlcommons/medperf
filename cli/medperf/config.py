@@ -231,10 +231,7 @@ image_path = "workspace/.image"
 private_key_file = "key.key"
 certificate_file = "crt.crt"
 ca_certificate_file = "root.crt"
-container_key_file = "container.key"  # Used for decrypting private containers
-encrypted_container_key_file = (
-    "encrypted_container.key"  # Used for decrypting private containers by other users
-)
+container_key_file = "container.key"
 
 # requests
 default_page_size = 32  # This number was chosen arbitrarily

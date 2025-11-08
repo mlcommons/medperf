@@ -190,7 +190,7 @@ def submit(
     If a URL is given without a source prefix, it will be treated as a direct download link.
 
     For private (encrypted) containers, the decryption key
-    should be provided. Otherwise, the model will not work on the data owners' side.
+    should be provided. Otherwise, the container will not work on the data owners' side.
     """
     mlcube_info = {
         "name": name,
@@ -263,16 +263,16 @@ def give_access(
         "-m",
         "--model-id",
         "--model_id",
-        help="Private Model Container for which access will be granted.",
+        help="Private Container for which access will be granted.",
     ),
     benchmark_id: int = typer.Option(
         ...,
         "-b",
         "--benchmark-id",
         "--benchmark_id",
-        help="Benchmark UID where the Private Container is associated. "
-        "All data owners registered to this benchmark and authorized to "
-        "the Certificate Authority (CA) will be granted access to the container.",
+        help="Benchmark UID to which the Private Container is associated. "
+        "All data owners registered to this benchmark and have "
+        "a valid certificate will be granted access to the container.",
     ),
     approval: bool = typer.Option(False, "-y", help="Skip approval step"),
 ):
@@ -301,9 +301,9 @@ def auto_give_access(
         "-b",
         "--benchmark-id",
         "--benchmark_id",
-        help="Benchmark UID where the Private Container is associated. "
-        "All data owners registered to this benchmark and authorized to "
-        "the Certificate Authority (CA) will be granted access to the container.",
+        help="Benchmark UID to which the Private Container is associated. "
+        "All data owners registered to this benchmark and have "
+        "a valid certificate will be granted access to the container.",
     ),
     interval: int = typer.Option(
         5,
@@ -311,37 +311,30 @@ def auto_give_access(
         "--interval",
         min=5,
         max=60,
-        help="Time in MINUTES to check for updates. Minimum 5 minutes, maximum 60 minutes "
+        help="Time in minutes to check for updates. Minimum 5 minutes, maximum 60 minutes "
         "(an hour). Defaults to 5 minutes if not provided.",
     ),
 ):
     """
     This command will run the 'give_access' command every 5 minutes indefinetely.
-    TO STOP THIS COMMAND, PLEASE USE THE CONTROL+C COMMAND IN THE TERMINAL THAT IS RUNNING THIS
-    OR, ALTERNATIVELY, SIMPLY CLOSE THE TERMINAL. The time interval for checking for new data
+    To stop this command, press CTRL+C. The time interval for checking for new data
     owners may be customized by using the -i flag.
     Allows all currently registered Data Owners in a given benchmark to access
-    a Private Container registered to the same benchmark, using the provided
-    Certificate Authority (CA) for authentication.
+    a Private Container registered to the same benchmark.
     The Private Container must have already been associated with both the CA and the
     benchmark for this to take effect.
     """
     interval_in_seconds = interval * 60
-    try:
-        while True:
-
-            try:
-                GrantAccess.run(
-                    benchmark_id=benchmark_id, model_id=model_id, approved=True
-                )
-            except (CleanExit, InvalidCertificateError) as e:
-                config.ui.print(str(e))
-            finally:
-                config.ui.print(f"Will check again in {interval} minutes...")
-                time.sleep(interval_in_seconds)
-    except KeyboardInterrupt:
-        config.ui.print("✅ Stopping at request of the user.")
-        raise
+    while True:
+        try:
+            GrantAccess.run(benchmark_id=benchmark_id, model_id=model_id, approved=True)
+        except (CleanExit, InvalidCertificateError) as e:
+            config.ui.print(str(e))
+        except KeyboardInterrupt:
+            config.ui.print("✅ Stopping at request of the user.")
+            raise
+        config.ui.print(f"Will check again in {interval} minutes...")
+        time.sleep(interval_in_seconds)
 
 
 @app.command("revoke_user_access")

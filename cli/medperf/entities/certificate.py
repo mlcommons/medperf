@@ -5,7 +5,6 @@ from medperf.account_management import get_medperf_user_data
 from medperf import config
 from medperf.exceptions import MedperfException
 from medperf.utils import generate_tmp_path
-from pydantic import validator
 import base64
 from typing import List, Tuple
 
@@ -18,14 +17,6 @@ class Certificate(Entity):
 
     certificate_content_base64: str
     ca: int
-
-    @validator("owner", pre=True, always=True)
-    def check_required_owner(cls, v, *, values, **kwargs):
-        if v is None:
-            raise ValueError(
-                "Internal error: The owner field is required for Certificate Entities "
-            )
-        return v
 
     @staticmethod
     def get_type():
@@ -66,7 +57,7 @@ class Certificate(Entity):
     ) -> Tuple[List[Certificate], dict[int, dict]]:
         # this api returns owners as dicts.
         cert_data_list = config.comms.get_benchmark_datasets_certificates(
-            benchmark_id=benchmark_id, filters={"is_valid": True}
+            benchmark_id=benchmark_id
         )
 
         # Transfer user info to another dict
@@ -81,12 +72,9 @@ class Certificate(Entity):
     @classmethod
     def get_user_certificate(cls):
         user_id = get_medperf_user_data()["id"]
-        user_certificates = Certificate.all(filters={"owner": user_id})
-        user_certificates = [
-            cert
-            for cert in user_certificates
-            if cert.ca == config.certificate_authority_id and cert.is_valid
-        ]
+        user_certificates = Certificate.all(
+            filters={"owner": user_id, "ca": config.certificate_authority_id}
+        )
         if len(user_certificates) == 0:
             return
 

@@ -1,10 +1,10 @@
 from rest_framework import serializers
-from .models import MlCubeKey
+from .models import EncryptedKey
 
 
 class EncryptedKeySerializer(serializers.ModelSerializer):
     class Meta:
-        model = MlCubeKey
+        model = EncryptedKey
         fields = "__all__"
         read_only_fields = ["owner"]
 
@@ -19,7 +19,7 @@ class EncryptedKeySerializer(serializers.ModelSerializer):
 
 class EncryptedKeyDetailSerializer(serializers.ModelSerializer):
     class Meta:
-        model = MlCubeKey
+        model = EncryptedKey
         fields = "__all__"
         read_only_fields = ["owner"]
 

@@ -1,6 +1,6 @@
 from rest_framework.permissions import BasePermission
 from mlcube.models import MlCube
-from .models import MlCubeKey
+from .models import EncryptedKey
 
 
 class IsAdmin(BasePermission):
@@ -11,8 +11,8 @@ class IsAdmin(BasePermission):
 class IsKeyOwner(BasePermission):
     def get_object(self, pk):
         try:
-            return MlCubeKey.objects.get(pk=pk)
-        except MlCubeKey.DoesNotExist:
+            return EncryptedKey.objects.get(pk=pk)
+        except EncryptedKey.DoesNotExist:
             return None
 
     def has_permission(self, request, view):
@@ -39,6 +39,8 @@ class IsContainersOwner(BasePermission):
         if isinstance(pks, int):
             pks = [pks]
         containers = self.get_containers_objects(pks)
+        if not containers.exists():
+            return False
         for container in containers:
             if container.owner.id != request.user.id:
                 return False

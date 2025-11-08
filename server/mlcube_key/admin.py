@@ -1,7 +1,7 @@
 from django.contrib import admin
-from .models import MlCubeKey
+from .models import EncryptedKey
 
 
-@admin.register(MlCubeKey)
-class MlCubeKeyAdmin(admin.ModelAdmin):
-    list_display = [field.name for field in MlCubeKey._meta.fields]
+@admin.register(EncryptedKey)
+class EncryptedKeyAdmin(admin.ModelAdmin):
+    list_display = [field.name for field in EncryptedKey._meta.fields]
