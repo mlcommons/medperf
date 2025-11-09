@@ -853,7 +853,7 @@ class REST(Comms):
         error_msg = "Could not update encrypted key"
         return self.__put(url, json=data, error_msg=error_msg)
 
-    def update_many_encrypted_keys(self, data: dict):
+    def update_many_encrypted_keys(self, data: list[dict]):
         url = f"{self.server_url}/encrypted_keys/bulk/"
         error_msg = "Could not update encrypted keys"
         return self.__put(url, json=data, error_msg=error_msg)

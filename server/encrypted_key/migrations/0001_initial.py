@@ -11,20 +11,23 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('ca', '0002_createmedperfca'),
+        ('mlcube', '0002_alter_mlcube_unique_together'),
+        ('certificate', '0001_initial'),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Certificate',
+            name='EncryptedKey',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=20, unique=True)),
                 ('is_valid', models.BooleanField(default=True)),
-                ('certificate_content_base64', models.TextField(unique=True)),
+                ('encrypted_key_base64', models.TextField()),
+                ('metadata', models.JSONField(blank=True, default=dict, null=True)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('modified_at', models.DateTimeField(auto_now=True)),
-                ('ca', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='ca.ca')),
+                ('certificate', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='certificate.certificate')),
+                ('container', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='mlcube.mlcube')),
                 ('owner', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to=settings.AUTH_USER_MODEL)),
             ],
             options={
@@ -32,7 +35,7 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.AddConstraint(
-            model_name='certificate',
-            constraint=models.UniqueConstraint(condition=models.Q(('is_valid', True)), fields=('owner', 'ca'), name='One_Certificate_Per_User_And_CA'),
+            model_name='encryptedkey',
+            constraint=models.UniqueConstraint(condition=models.Q(('is_valid', True)), fields=('certificate', 'container'), name='One_Key_Per_Certificate_And_Container'),
         ),
     ]

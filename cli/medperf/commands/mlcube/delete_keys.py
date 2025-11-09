@@ -26,14 +26,15 @@ class DeleteKeys:
 
     def revoke_access(self):
         keys = EncryptedKey.get_container_keys(self.container_id)
-        bodies = {
-            key.id: {
+        bodies = [
+            {
+                "id": key.id,
                 "is_valid": False,
                 "encrypted_key_base64": generate_container_key_redaction_record(
                     key.encrypted_key_base64
                 ),
             }
             for key in keys
-        }
+        ]
         del keys
         config.comms.update_many_encrypted_keys(bodies)

@@ -33,8 +33,8 @@ from trainingevent.models import TrainingEvent
 from ca.models import CA
 from certificate.models import Certificate
 from certificate.serializers import CertificateDetailSerializer
-from mlcube_key.models import EncryptedKey
-from mlcube_key.serializers import EncryptedKeyDetailSerializer
+from encrypted_key.models import EncryptedKey
+from encrypted_key.serializers import EncryptedKeyDetailSerializer
 
 
 class User(GenericAPIView):
