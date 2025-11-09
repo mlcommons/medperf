@@ -645,9 +645,7 @@ class REST(Comms):
 
     def upload_encrypted_key(self, key_dict) -> int:
         """Uploads a new Encrypted Key to the server."""
-        url = f"{self.server_url}/encrypted_keys/"
-        error_msg = "could not upload Encrypted Key"
-        return self.__post(url, json=key_dict, error_msg=error_msg)
+        return self.upload_many_encrypted_keys([key_dict])
 
     def upload_many_encrypted_keys(self, key_dict_list: list[dict]):
         """Uploads a list of Encrypted Keys"""
@@ -849,9 +847,7 @@ class REST(Comms):
         return self.__put(url, json=data, error_msg=error_msg)
 
     def update_encrypted_key(self, key_id: int, data: dict):
-        url = f"{self.server_url}/encrypted_keys/{key_id}/"
-        error_msg = "Could not update encrypted key"
-        return self.__put(url, json=data, error_msg=error_msg)
+        return self.update_many_encrypted_keys([{**data, "id": key_id}])
 
     def update_many_encrypted_keys(self, data: list[dict]):
         url = f"{self.server_url}/encrypted_keys/bulk/"

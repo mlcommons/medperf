@@ -1,3 +1,4 @@
+from django.db import IntegrityError
 from rest_framework import serializers
 from .models import Certificate
 from user.serializers import UserSerializer
@@ -8,6 +9,14 @@ class CertificateSerializer(serializers.ModelSerializer):
         model = Certificate
         fields = "__all__"
         read_only_fields = ["owner"]
+
+    def create(self, *args, **kwargs):
+        try:
+            return super().create(*args, **kwargs)
+        except IntegrityError as e:
+            raise serializers.ValidationError(
+                {"non_field_errors": [f"Database Integrity Error: {str(e)}"]}
+            )
 
 
 class CertificateWithOwnerInfoSerializer(serializers.ModelSerializer):

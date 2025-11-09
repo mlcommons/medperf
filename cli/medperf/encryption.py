@@ -11,7 +11,6 @@ from cryptography.hazmat.primitives import serialization
 from cryptography import x509
 
 
-# exceptions, container_key vs encrypted key, uniqueness constraint,
 # check all sensitive variables and catching exceptions, config.tmp_paths and webui
 # max_lengths
 def check_gpg():
