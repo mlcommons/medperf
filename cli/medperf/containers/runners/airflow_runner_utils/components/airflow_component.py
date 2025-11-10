@@ -36,17 +36,21 @@ class AirflowComponentRunner(ComponentRunner):
         }
 
     @property
+    def _run_env(self):
+        base_env = os.environ.copy()
+        base_env.update(**self._env_vars)
+        return base_env
+
+    @property
     @abstractmethod
     def initialize_command(self) -> List[str]:
         pass
 
     async def start_logic(self):
         actual_command = [self._python_exec, "-m", *self.initialize_command]
-        base_env = os.environ.copy()
-        base_env.update(**self._env_vars)
 
         logfile_path = os.path.join(self.airflow_home, "logs", self.logfile)
         self.run_command_with_logging(
-            command=actual_command, logfile_path=logfile_path, env=base_env
+            command=actual_command, logfile_path=logfile_path, env=self._run_env
         )
         await self.wait_for_start()

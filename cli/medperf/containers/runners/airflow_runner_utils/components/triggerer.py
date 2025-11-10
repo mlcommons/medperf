@@ -31,5 +31,6 @@ class AirflowTriggerer(AirflowComponentRunner):
                 "--local",
             ],
             capture_output=True,
+            env=self._run_env,
         )
         return has_triggerer_jobs.returncode == 0
