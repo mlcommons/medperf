@@ -1,7 +1,7 @@
 import secrets
 import os
 
-file = "./secret.txt"
+file = "./secret.bin"
 with open(file, "wb") as f:
     pass
 os.chmod(file, 0o700)

@@ -19,12 +19,12 @@ docker save -o my_arhive.tar docker_image:tag
 python generate_secret.py
 ```
 
-This will create the file `./secret.txt` containing a 32-bytes secret, ready to be used for encryption in the next step below.
+This will create the file `./secret.bin` containing a 32-bytes secret, ready to be used for encryption in the next step below.
 
 ### Encrypt
 
 ```bash
-gpg --batch --output my_encrypted_archive.gpg --symmetric --passphrase-file ./secret.txt ./my_arhive.tar
+gpg --batch --output my_encrypted_archive.gpg --symmetric --passphrase-file ./secret.bin ./my_arhive.tar
 ```
 
 Then, make sure you host `my_encrypted_archive.gpg` somewhere public, and proceed to register this container with MedPerf.

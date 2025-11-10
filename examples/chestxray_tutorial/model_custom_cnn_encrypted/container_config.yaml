@@ -1,5 +1,5 @@
 container_type: EncryptedDockerImage
-image: https://storage.googleapis.com/medperf-storage/chestxray_tutorial/chestxray-tutorial-cnn-encrypted.bin
+image: https://storage.googleapis.com/medperf-storage/chestxray_tutorial/private_cnn.gpg
 tasks:
   infer:
     input_volumes:
