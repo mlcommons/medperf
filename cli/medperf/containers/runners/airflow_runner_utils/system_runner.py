@@ -5,7 +5,7 @@ from .api_client.client import AirflowAPIClient
 from .components.api_server import AirflowApiServer
 from .components.airflow_component import AirflowComponentRunner
 from .components.dag_processor import AirflowDagProcessor
-from .components.db_postgres import PostgresDBDocker
+from .components.db_postgres_docker import PostgresDBDocker
 from .components.scheduler import AirflowScheduler
 from .components.triggerer import AirflowTriggerer
 from .components.utils import validate_port
