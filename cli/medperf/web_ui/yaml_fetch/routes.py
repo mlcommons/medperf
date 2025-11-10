@@ -38,7 +38,7 @@ def fetch_yaml(
         container = entity_class.get(entity_uid)
         json_content = getattr(container, field_to_fetch.value)
         content = yaml.safe_dump(json_content)
-        print(f"{content=}")
+        print(f'{content=}')
         return {"content": content}
     except requests.RequestException:
         raise HTTPException(status_code=400, detail="Failed to fetch YAML content")

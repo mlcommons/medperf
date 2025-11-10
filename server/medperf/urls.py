@@ -13,20 +13,15 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-
 from django.contrib import admin
 from django.urls import include, re_path, path
-from drf_spectacular.views import (
-    SpectacularAPIView,
-    SpectacularSwaggerView,
-    SpectacularRedocView,
-)
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 from django.conf import settings
 
 from utils.views import ServerAPIVersion
 
 API_VERSION = settings.SERVER_API_VERSION
-API_PREFIX = "api/" + API_VERSION + "/"
+API_PREFIX = 'api/' + API_VERSION + '/'
 
 urlpatterns = [
     path("schema/", SpectacularAPIView.as_view(api_version=API_VERSION), name="schema"),
@@ -34,46 +29,15 @@ urlpatterns = [
     re_path(r"^$", SpectacularRedocView.as_view(), name="redoc"),
     path("admin/", admin.site.urls, name="admin"),
     path("version", ServerAPIVersion.as_view(), name="get-version"),
-    path(
-        API_PREFIX,
-        include(
-            [
-                path(
-                    "benchmarks/",
-                    include("benchmark.urls", namespace=API_VERSION),
-                    name="benchmark",
-                ),
-                path(
-                    "mlcubes/",
-                    include("mlcube.urls", namespace=API_VERSION),
-                    name="mlcube",
-                ),
-                path(
-                    "datasets/",
-                    include("dataset.urls", namespace=API_VERSION),
-                    name="dataset",
-                ),
-                path(
-                    "results/",
-                    include("result.urls", namespace=API_VERSION),
-                    name="result",
-                ),
-                path(
-                    "users/", include("user.urls", namespace=API_VERSION), name="users"
-                ),
-                path("me/", include("utils.urls", namespace=API_VERSION), name="me"),
-                path(
-                    "training/",
-                    include("training.urls", namespace=API_VERSION),
-                    name="training",
-                ),
-                path(
-                    "aggregators/",
-                    include("aggregator.urls", namespace=API_VERSION),
-                    name="aggregator",
-                ),
-                path("cas/", include("ca.urls", namespace=API_VERSION), name="ca"),
-            ]
-        ),
-    ),
+    path(API_PREFIX, include([
+        path("benchmarks/", include("benchmark.urls", namespace=API_VERSION), name="benchmark"),
+        path("mlcubes/", include("mlcube.urls", namespace=API_VERSION), name="mlcube"),
+        path("datasets/", include("dataset.urls", namespace=API_VERSION), name="dataset"),
+        path("results/", include("result.urls", namespace=API_VERSION), name="result"),
+        path("users/", include("user.urls", namespace=API_VERSION), name="users"),
+        path("me/", include("utils.urls", namespace=API_VERSION), name="me"),
+        path("training/", include("training.urls", namespace=API_VERSION), name="training"),
+        path("aggregators/", include("aggregator.urls", namespace=API_VERSION), name="aggregator"),
+        path("cas/", include("ca.urls", namespace=API_VERSION), name="ca")
+    ])),
 ]

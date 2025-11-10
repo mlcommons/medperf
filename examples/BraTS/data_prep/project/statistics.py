@@ -9,7 +9,7 @@ def get_statistics(data_path: str) -> dict:
     """Computes statistics about the data. This statistics are uploaded
     to the Medperf platform under the data owner's approval. Include
     every statistic you consider useful for determining the nature of the
-    data, but keep in mind that we want to keep the data as private as
+    data, but keep in mind that we want to keep the data as private as 
     possible.
 
     Args:

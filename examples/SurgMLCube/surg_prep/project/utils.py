@@ -5,39 +5,39 @@ import json
 
 def get_file_basename(filename):
     """A util function to get the basename of a file without the extension.
-
+    
     Args:
         filename (str): The file name.
 
     Returns:
         str: The basename of the file without the extension.
-
+    
     """
     return os.path.basename(os.path.splitext(filename)[0])
 
 
 def get_file_extention(filename):
     """A util function to get the extension of a file.
-
+    
     Args:
         filename (str): The file name.
 
     Returns:
         str: The extension of the file.
-
+    
     """
     return os.path.splitext(filename)[1]
 
 
 def get_video_fps(filename):
     """A util function to get the FPS of a video file using ffmpeg.
-
+    
     Args:
         filename (str): The file name.
 
     Returns:
         int: The FPS of the video.
-
+    
     """
     cmd = f'ffmpeg -i {filename} 2>&1 | sed -n "s/.*, \(.*\) fp.*/\\1/p"'
     return round(
@@ -46,9 +46,9 @@ def get_video_fps(filename):
 
 
 class LabelsParser:
-    """This class contains static methods for parsing .txt, .csv, and .json labels files. Expected file
+    """This class contains static methods for parsing .txt, .csv, and .json labels files. Expected file 
     structures are described in the docstrings of each format parser function. All parsers return a list
-    of M values, where M is the total number of frames of the associated original video file without any
+    of M values, where M is the total number of frames of the associated original video file without any 
     frame sampling and trimming (using the FPS information). A value of this list is either an integer
     corresponding to the label index in the labels names list, or None if the label is missing.
     """
@@ -61,7 +61,7 @@ class LabelsParser:
 
         Returns:
             float: The corresponding number of seconds.
-
+        
         """
         hrs, min, sec = time_str.split(":")
         hrs = int(hrs)
@@ -78,7 +78,7 @@ class LabelsParser:
 
         Returns:
             List[int]: The corresponding list of frame_ids.
-
+        
         """
         mapping = lambda time_str: round(fps * LabelsParser.time_str_to_sec(time_str))
         return list(map(mapping, time_strs))
@@ -92,10 +92,10 @@ class LabelsParser:
 
         Returns:
             str: The delimiter used in the file.
-
+        
         Raises:
             AssertionError: if the file structure is not supported.
-
+        
         """
         with open(file) as f:
             reader = csv.reader(f)
@@ -114,7 +114,7 @@ class LabelsParser:
 
     def parse_csv_txt_labels(csv_txt_file, fps, labels_names):
         """Parses a .csv or a .txt labels file. It expects the following file structure:
-
+        
         <column-name><delimiter><column-name>
         <timestamp><delimiter><label_name>
         <timestamp><delimiter><label_name>
@@ -126,8 +126,8 @@ class LabelsParser:
             <timestamp> can be a timestamp of form 'hh:mm:ss.ss' or a single frame_id integer,
             <delimiter> can be "," or "\\t",
             <label_name> is the label name.
-
-
+            
+    
         Args:
             csv_txt_file (str): The file name.
             fps (int): the FPS of the associated video.
@@ -135,10 +135,10 @@ class LabelsParser:
 
         Returns:
             List[int|None]: The parsed labels (Described in the class docstring)
-
+        
         Raises:
             AssertionError: if the file structure is not supported.
-
+        
         Warns:
             if an unexpected label name is encountered.
         """
@@ -193,7 +193,7 @@ class LabelsParser:
                                 'name': <name of the label>
                     }
             }
-
+    
         Args:
             json_file (str): The file name.
             fps (int): the FPS of the associated video.
@@ -201,13 +201,13 @@ class LabelsParser:
 
         Returns:
             List[int|None]: The parsed labels (Described in the class docstring)
-
+        
         Raises:
             AssertionError: if the file structure is not supported.
-
+        
         Warns:
             if an unexpected label name is encountered.
-
+        
         """
 
         with open(json_file) as f:

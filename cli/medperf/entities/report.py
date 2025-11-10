@@ -73,9 +73,7 @@ class TestReport(Entity):
         return super().all(unregistered=True, filters={})
 
     @classmethod
-    def get(
-        cls, uid: str, local_only: bool = False, valid_only: bool = True
-    ) -> "TestReport":
+    def get(cls, uid: str, local_only: bool = False, valid_only: bool = True) -> "TestReport":
         """Gets an instance of the TestReport. ignores local_only inherited flag as TestReport is always a local entity.
         Args:
             uid (str): Report Unique Identifier

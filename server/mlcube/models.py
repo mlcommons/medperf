@@ -38,7 +38,7 @@ class MlCube(models.Model):
                 "image_hash",
                 "additional_files_tarball_hash",
                 "container_config",
-                "parameters_config",
+                "parameters_config"
             ),
         )
         verbose_name_plural = "MlCubes"

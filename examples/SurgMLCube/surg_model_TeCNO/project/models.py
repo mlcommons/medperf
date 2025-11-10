@@ -1,7 +1,7 @@
 """Multi-stage temporal convolutional network model architecture
-as described in TeCNO paper: https://doi.org/10.1007/978-3-030-59716-0_33 .
-
-Script Author: Armine Vardazaryan"""
+   as described in TeCNO paper: https://doi.org/10.1007/978-3-030-59716-0_33 .
+   
+   Script Author: Armine Vardazaryan"""
 
 import tensorflow as tf
 
@@ -34,7 +34,7 @@ class SingleStageModel(tf.keras.models.Model):
         self.conv_1x1 = tf.keras.layers.Conv1D(num_f_maps, 1, padding="causal")
 
         self.layers_list = [
-            DilatedResidualLayer(2**i, num_f_maps) for i in range(num_layers)
+            DilatedResidualLayer(2 ** i, num_f_maps) for i in range(num_layers)
         ]
         self.conv_out_classes = tf.keras.layers.Conv1D(num_classes, 1, padding="causal")
 

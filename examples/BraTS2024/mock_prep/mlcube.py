@@ -1,5 +1,4 @@
 """MLCube handler file"""
-
 import typer
 import yaml
 from prepare import prepare_dataset

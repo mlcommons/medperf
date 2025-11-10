@@ -77,6 +77,7 @@ def resize_map(data):
 
 
 def backbone_dataset(data_root, batch_size):
+
     """Creates a Tensorflow dataset for each video.
 
     Args:
@@ -100,7 +101,7 @@ def backbone_dataset(data_root, batch_size):
                                     ├── some_video_name.csv
                                     ├── other_video_name.csv
                                     └ ...
-
+        
         batch_size (int): The batch size.
 
     Returns:

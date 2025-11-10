@@ -16,7 +16,7 @@ class BenchmarkModelList(GenericAPIView):
     permission_classes = [IsAdmin | IsBenchmarkOwner | IsMlCubeOwner]
     serializer_class = BenchmarkModelListSerializer
     queryset = ""
-    filterset_fields = ("model_mlcube", "benchmark", "initiated_by", "priority")
+    filterset_fields = ('model_mlcube', 'benchmark', 'initiated_by', 'priority')
 
     def post(self, request, format=None):
         """

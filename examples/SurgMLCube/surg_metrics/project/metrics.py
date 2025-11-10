@@ -14,7 +14,7 @@ from sklearn.metrics import (
 
 class MetricsClass:
     """Class wrapper for calculating the supported metrics
-
+    
     Args:
         num_classes (int): The number of classes in the dataset
 
@@ -26,7 +26,7 @@ class MetricsClass:
     def f1_score(self, labels, preds):
         """Calculates the F1-score metric using scikit-learn library
         with macro-averaging across classes.
-
+    
         Args:
             labels (1D-array[int]): The ground-truth labels
             preds (1D-array[int]): The predictions
@@ -41,7 +41,7 @@ class MetricsClass:
     def precision(self, labels, preds):
         """Calculates the Precision metric using scikit-learn library
         with macro-averaging across classes.
-
+    
         Args:
             labels (1D-array[int]): The ground-truth labels
             preds (1D-array[int]): The predictions
@@ -56,7 +56,7 @@ class MetricsClass:
     def jaccard(self, labels, preds):
         """Calculates the Jaccard-score metric using scikit-learn library
         with macro-averaging across classes.
-
+    
         Args:
             labels (1D-array[int]): The ground-truth labels
             preds (1D-array[int]): The predictions
@@ -71,7 +71,7 @@ class MetricsClass:
     def recall(self, labels, preds):
         """Calculates the Recall metric using scikit-learn library
         with macro-averaging across classes.
-
+    
         Args:
             labels (1D-array[int]): The ground-truth labels
             preds (1D-array[int]): The predictions
@@ -85,7 +85,7 @@ class MetricsClass:
 
     def accuracy(self, labels, preds):
         """Calculates the Accuracy metric using scikit-learn library
-
+    
         Args:
             labels (1D-array[int]): The ground-truth labels
             preds (1D-array[int]): The predictions
@@ -98,7 +98,7 @@ class MetricsClass:
 
 class Evaluation:
     """Class wrapper for calculating the supported metrics
-
+    
     For each supported metric in the configuration file:
         - the overall metric value across the videos is calculated
         - the video-level mean and standard deviation of the metric

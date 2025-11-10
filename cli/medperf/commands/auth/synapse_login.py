@@ -25,6 +25,4 @@ class SynapseLogin:
         try:
             syn.login(authToken=access_token)
         except SynapseAuthenticationError as err:
-            raise CommunicationAuthenticationError(
-                "Invalid Synapse credentials"
-            ) from err
+            raise CommunicationAuthenticationError("Invalid Synapse credentials") from err

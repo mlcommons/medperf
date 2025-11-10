@@ -22,6 +22,7 @@ def exec_python(cmd: str) -> None:
     """
     splitted_cmd = cmd.split()
     subprocess.run(splitted_cmd, cwd=".", check=True)
+    
 
 
 @app.command("evaluate")

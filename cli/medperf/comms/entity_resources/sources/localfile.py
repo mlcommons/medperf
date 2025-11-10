@@ -26,6 +26,6 @@ class LocalFileSource(BaseSource):
         shutil.copy2(resource_identifier, output_path)
 
     def read_content(self, resource_identifier: str) -> bytes:
-        with open(resource_identifier, "rb") as f:
+        with open(resource_identifier, 'rb') as f:
             content = f.read()
         return content

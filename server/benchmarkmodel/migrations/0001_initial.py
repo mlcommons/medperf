@@ -10,64 +10,28 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ("benchmark", "0001_initial"),
-        ("mlcube", "0001_initial"),
+        ('benchmark', '0001_initial'),
+        ('mlcube', '0001_initial'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name="BenchmarkModel",
+            name='BenchmarkModel',
             fields=[
-                (
-                    "id",
-                    models.BigAutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
-                ("metadata", models.JSONField()),
-                (
-                    "approval_status",
-                    models.CharField(
-                        choices=[
-                            ("PENDING", "PENDING"),
-                            ("APPROVED", "APPROVED"),
-                            ("REJECTED", "REJECTED"),
-                        ],
-                        default="PENDING",
-                        max_length=100,
-                    ),
-                ),
-                ("approved_at", models.DateTimeField(blank=True, null=True)),
-                ("created_at", models.DateTimeField(auto_now_add=True)),
-                ("modified_at", models.DateTimeField(auto_now=True)),
-                ("priority", models.IntegerField(default=0)),
-                (
-                    "benchmark",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE,
-                        to="benchmark.benchmark",
-                    ),
-                ),
-                (
-                    "initiated_by",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.PROTECT,
-                        to=settings.AUTH_USER_MODEL,
-                    ),
-                ),
-                (
-                    "model_mlcube",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.PROTECT, to="mlcube.mlcube"
-                    ),
-                ),
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('metadata', models.JSONField()),
+                ('approval_status', models.CharField(choices=[('PENDING', 'PENDING'), ('APPROVED', 'APPROVED'), ('REJECTED', 'REJECTED')], default='PENDING', max_length=100)),
+                ('approved_at', models.DateTimeField(blank=True, null=True)),
+                ('created_at', models.DateTimeField(auto_now_add=True)),
+                ('modified_at', models.DateTimeField(auto_now=True)),
+                ('priority', models.IntegerField(default=0)),
+                ('benchmark', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='benchmark.benchmark')),
+                ('initiated_by', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to=settings.AUTH_USER_MODEL)),
+                ('model_mlcube', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='mlcube.mlcube')),
             ],
             options={
-                "ordering": ["-priority"],
+                'ordering': ['-priority'],
             },
         ),
     ]

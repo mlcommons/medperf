@@ -137,12 +137,8 @@ class BenchmarkPutTest(BenchmarkTest):
         new_data_preproc_mlcube = self.mock_mlcube(
             name="new prep", container_config={"new prep": "new prep"}
         )
-        new_ref_mlcube = self.mock_mlcube(
-            name="new ref", container_config={"new ref": "new ref"}
-        )
-        new_eval_mlcube = self.mock_mlcube(
-            name="new eval", container_config={"new eval": "new eval"}
-        )
+        new_ref_mlcube = self.mock_mlcube(name="new ref", container_config={"new ref": "new ref"})
+        new_eval_mlcube = self.mock_mlcube(name="new eval", container_config={"new eval": "new eval"})
         new_prep_id = self.create_mlcube(new_data_preproc_mlcube).data["id"]
         new_ref_id = self.create_mlcube(new_ref_mlcube).data["id"]
         new_eval_id = self.create_mlcube(new_eval_mlcube).data["id"]
@@ -234,12 +230,8 @@ class BenchmarkPutTest(BenchmarkTest):
         new_data_preproc_mlcube = self.mock_mlcube(
             name="new prep", container_config={"new prep": "new prep"}
         )
-        new_ref_mlcube = self.mock_mlcube(
-            name="new ref", container_config={"new ref": "new ref"}
-        )
-        new_eval_mlcube = self.mock_mlcube(
-            name="new eval", container_config={"new eval": "new eval"}
-        )
+        new_ref_mlcube = self.mock_mlcube(name="new ref", container_config={"new ref": "new ref"})
+        new_eval_mlcube = self.mock_mlcube(name="new eval", container_config={"new eval": "new eval"})
         new_prep_id = self.create_mlcube(new_data_preproc_mlcube).data["id"]
         new_ref_id = self.create_mlcube(new_ref_mlcube).data["id"]
         new_eval_id = self.create_mlcube(new_eval_mlcube).data["id"]
@@ -322,18 +314,9 @@ class BenchmarkPutTest(BenchmarkTest):
             self.eval_mlcube_owner,
             self.bmk_owner,
             target_approval_status="PENDING",
-            prep_mlcube_kwargs={
-                "name": "newprep",
-                "container_config": {"newprephash": "newprephash"},
-            },
-            ref_mlcube_kwargs={
-                "name": "newref",
-                "container_config": {"newrefhash": "newrefhash"},
-            },
-            eval_mlcube_kwargs={
-                "name": "neweval",
-                "container_config": {"newevalhash": "newevalhash"},
-            },
+            prep_mlcube_kwargs={"name": "newprep", "container_config": {"newprephash": "newprephash"}},
+            ref_mlcube_kwargs={"name": "newref", "container_config": {"newrefhash": "newrefhash"}},
+            eval_mlcube_kwargs={"name": "neweval", "container_config": {"newevalhash": "newevalhash"}},
             state="DEVELOPMENT",
             name="newname",
         )
@@ -577,12 +560,8 @@ class PermissionTest(BenchmarkTest):
         new_data_preproc_mlcube = self.mock_mlcube(
             name="new prep", container_config={"new prep": "new prep"}
         )
-        new_ref_mlcube = self.mock_mlcube(
-            name="new ref", container_config={"new ref": "new ref"}
-        )
-        new_eval_mlcube = self.mock_mlcube(
-            name="new eval", container_config={"new eval": "new eval"}
-        )
+        new_ref_mlcube = self.mock_mlcube(name="new ref", container_config={"new ref": "new ref"})
+        new_eval_mlcube = self.mock_mlcube(name="new eval", container_config={"new eval": "new eval"})
         new_prep_id = self.create_mlcube(new_data_preproc_mlcube).data["id"]
         new_ref_id = self.create_mlcube(new_ref_mlcube).data["id"]
         new_eval_id = self.create_mlcube(new_eval_mlcube).data["id"]

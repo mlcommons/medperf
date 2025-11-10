@@ -65,7 +65,7 @@ class MlCubeDetailSerializer(serializers.ModelSerializer):
                 "image_tarball_url",
                 "additional_files_tarball_url",
                 "container_config",
-                "parameters_config",
+                "parameters_config"
             ]
             for k, v in data.items():
                 if k not in editable_fields:

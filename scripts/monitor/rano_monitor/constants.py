@@ -8,7 +8,8 @@ DSET_HELP = (
     + "If a path is passed, it will look at that path instead"
 )
 DSET_LOC_HELP = (
-    "Location of the dataset. " + "If not provided defaults to Medperf storage search"
+    "Location of the dataset. "
+    + "If not provided defaults to Medperf storage search"
 )
 MLCUBE_HELP = "The Data Preparation MLCube UID used to create the data"
 STAGES_HELP = (
@@ -23,9 +24,7 @@ BRAINMASK_BAK = ".brainMask_fused.nii.gz"
 REVIEW_FILENAME = "review_cases.tar.gz"
 REVIEWED_FILENAME = "reviewed_cases.tar.gz"
 REVIEW_COMMAND = "itksnap"
-REVIEW_CMD_HELP = (
-    f"path or name of the command that launches itksnap. Defaults to '{REVIEW_COMMAND}'"
-)
+REVIEW_CMD_HELP = f"path or name of the command that launches itksnap. Defaults to '{REVIEW_COMMAND}'"
 MANUAL_REVIEW_STAGE = 5
 DONE_STAGE = 8
 LISTITEM_MAX_LEN = 30

@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("dataset", "0002_dataset_report"),
+        ('dataset', '0002_dataset_report'),
     ]
 
     operations = [
         migrations.AddField(
-            model_name="dataset",
-            name="submitted_as_prepared",
+            model_name='dataset',
+            name='submitted_as_prepared',
             field=models.BooleanField(default=False),
             preserve_default=False,
         ),

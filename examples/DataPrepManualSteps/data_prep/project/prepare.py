@@ -112,9 +112,9 @@ def transform_row(row: pd.Series):
         except:
             row["status"] = -4
             row["status_name"] = "LABEL_ERROR"
-            row["comment"] = (
-                'Could not transform label. Check labels are either YES or NO and label name is "test_passed"'
-            )
+            row[
+                "comment"
+            ] = 'Could not transform label. Check labels are either YES or NO and label name is "test_passed"'
         print(row["status"])
 
     if abs(row["status"]) == 5:
@@ -127,9 +127,9 @@ def transform_row(row: pd.Series):
             row["verified"] = 0
             row["status"] = -5
             row["status_name"] = "UNVERIFIED_ERROR"
-            row["comment"] = (
-                'Ensure the sample looks correct, and manually change the "verified" flag to 1 if so'
-            )
+            row[
+                "comment"
+            ] = 'Ensure the sample looks correct, and manually change the "verified" flag to 1 if so'
         print(row["status"])
 
     return row

@@ -134,7 +134,7 @@ def submit(
         "-m",
         help="Container Config file. Preferably a local file in your computer. "
         "May optionally be a remote file. See the description above. "
-        "Its contents will be uploaded to the MedPerf server.",
+        "Its contents will be uploaded to the MedPerf server."
     ),
     parameters_file: str = typer.Option(
         "",
@@ -142,7 +142,7 @@ def submit(
         "-p",
         help="Local parameters file. Preferably a local file in your computer. "
         "May optionally be a remote file. See the description above. "
-        "Its contents will be uploaded to the MedPerf server.",
+        "Its contents will be uploaded to the MedPerf server."
     ),
     additional_file: str = typer.Option(
         "",
@@ -187,11 +187,8 @@ def submit(
         "additional_files_tarball_hash": additional_hash,
         "state": "OPERATION" if operational else "DEVELOPMENT",
     }
-    SubmitCube.run(
-        mlcube_info,
-        container_config=container_config_file,
-        parameters_config=parameters_file,
-    )
+    SubmitCube.run(mlcube_info, container_config=container_config_file,
+                   parameters_config=parameters_file)
     config.ui.print("✅ Done!")
 
 

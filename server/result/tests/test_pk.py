@@ -316,18 +316,9 @@ class PermissionTest(ResultsTest):
             self.ref_mlcube_owner,
             self.eval_mlcube_owner,
             self.bmk_owner,
-            prep_mlcube_kwargs={
-                "name": "newprep",
-                "container_config": {"newprephash": "newprephash"},
-            },
-            ref_mlcube_kwargs={
-                "name": "newref",
-                "container_config": {"newrefhash": "newrefhash"},
-            },
-            eval_mlcube_kwargs={
-                "name": "neweval",
-                "container_config": {"newevalhash": "newevalhash"},
-            },
+            prep_mlcube_kwargs={"name": "newprep", "container_config": {"newprephash": "newprephash"}},
+            ref_mlcube_kwargs={"name": "newref", "container_config": {"newrefhash": "newrefhash"}},
+            eval_mlcube_kwargs={"name": "neweval", "container_config": {"newevalhash": "newevalhash"}},
             name="newbmk",
         )
         self.set_credentials(self.data_owner)

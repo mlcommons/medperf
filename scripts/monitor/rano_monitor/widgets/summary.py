@@ -1,11 +1,6 @@
 import os
 import pandas as pd
-from rano_monitor.constants import (
-    REVIEW_FILENAME,
-    REVIEWED_FILENAME,
-    MANUAL_REVIEW_STAGE,
-    DONE_STAGE,
-)
+from rano_monitor.constants import REVIEW_FILENAME, REVIEWED_FILENAME, MANUAL_REVIEW_STAGE, DONE_STAGE
 from rano_monitor.messages import InvalidSubjectsUpdated
 from rano_monitor.messages import ReportUpdated
 from rano_monitor.messages import AnnotationsLoaded
@@ -72,8 +67,8 @@ class Summary(Static):
             status_percents["DONE"] = 0.0
 
         abs_status = display_report_df["status"].abs()
-        is_beyond_manual_review = abs_status >= MANUAL_REVIEW_STAGE
-        is_not_done = abs_status < DONE_STAGE
+        is_beyond_manual_review = (abs_status >= MANUAL_REVIEW_STAGE)
+        is_not_done = (abs_status < DONE_STAGE)
         package_btns.display = any(is_beyond_manual_review & is_not_done)
 
         widgets = []

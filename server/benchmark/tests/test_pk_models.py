@@ -33,14 +33,10 @@ class BenchmarkTest(MedPerfTest):
             prep_mlcube_owner, ref_mlcube_owner, eval_mlcube_owner, bmk_owner
         )
         mlcube1 = self.mock_mlcube(
-            name="mlcube1",
-            container_config={"mlcube1hash": "mlcube1hash"},
-            state="OPERATION",
+            name="mlcube1", container_config={"mlcube1hash": "mlcube1hash"}, state="OPERATION"
         )
         mlcube2 = self.mock_mlcube(
-            name="mlcube2",
-            container_config={"mlcube2hash": "mlcube2hash"},
-            state="OPERATION",
+            name="mlcube2", container_config={"mlcube2hash": "mlcube2hash"}, state="OPERATION"
         )
         self.set_credentials(mlcube1_owner)
         mlcube1 = self.create_mlcube(mlcube1).data

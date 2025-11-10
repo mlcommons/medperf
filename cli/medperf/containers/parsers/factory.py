@@ -13,16 +13,18 @@ def _is_mlcube_yaml_file(container_config: dict):
     )
 
 
-def load_parser(
-    container_config: dict, container_files_base_path: os.PathLike
-) -> Parser:
+def load_parser(container_config: dict, container_files_base_path: os.PathLike) -> Parser:
     if container_config is None:
-        raise InvalidContainerSpec(f"Empty container config file: {container_config}")
+        raise InvalidContainerSpec(
+            f"Empty container config file: {container_config}"
+        )
 
     if _is_mlcube_yaml_file(container_config):
         # add workspace_path to the container configuration dict
         # this is necessary given how mlcube used to parse the file
-        workspace_path = os.path.join(container_files_base_path, "workspace")
+        workspace_path = os.path.join(
+            container_files_base_path, "workspace"
+        )
         container_config["workspace_path"] = workspace_path
         parser = MLCubeParser(
             container_config, allowed_runners=["docker", "singularity"]

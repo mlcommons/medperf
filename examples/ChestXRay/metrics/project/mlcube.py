@@ -1,5 +1,4 @@
 """MLCube handler file"""
-
 import os
 import typer
 import yaml

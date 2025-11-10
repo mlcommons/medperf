@@ -17,6 +17,7 @@ def generate_statistics(data_path, labels_path, out_path):
             "num_val_cases": num_val_cases,
         }
 
+
     # write statistics
     with open(out_path, "w") as f:
         yaml.safe_dump(statistics, f)

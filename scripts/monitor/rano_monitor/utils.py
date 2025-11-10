@@ -47,7 +47,9 @@ def run_editor(t1c, flair, t2, t1, seg, label, cmd):
     Popen(review_cmd.split(), shell=False, stdout=DEVNULL, stderr=DEVNULL)
 
 
-def review_tumor(subject: str, data_path: str, labels_path: str, review_cmd: str):
+def review_tumor(
+    subject: str, data_path: str, labels_path: str, review_cmd: str
+):
     (
         t1c_file,
         t1n_file,
@@ -257,7 +259,9 @@ def package_brain_masks(tar, row, data_path, labels_path):
     rawscan_path = os.path.join("review_cases", id, tp, "raw_scans")
     rawscans = get_brain_review_paths(row.name, labels_path)[:-1]
     for rawscan in rawscans:
-        rawscan_target_path = os.path.join(rawscan_path, os.path.basename(rawscan))
+        rawscan_target_path = os.path.join(
+            rawscan_path, os.path.basename(rawscan)
+        )
         tar.add(rawscan, rawscan_target_path)
 
 

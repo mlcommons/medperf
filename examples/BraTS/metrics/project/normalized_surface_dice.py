@@ -1,4 +1,4 @@
-"""Adapted from https://github.com/mlcommons/GaNDLF/blob/master/GANDLF/metrics/segmentation.py"""
+""" Adapted from https://github.com/mlcommons/GaNDLF/blob/master/GANDLF/metrics/segmentation.py"""
 
 import SimpleITK as sitk
 

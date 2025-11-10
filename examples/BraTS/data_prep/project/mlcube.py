@@ -69,13 +69,13 @@ def statistics(
     """Computes statistics about the data. This statistics are uploaded
     to the Medperf platform under the data owner's approval. Include
     every statistic you consider useful for determining the nature of the
-    data, but keep in mind that we want to keep the data as private as
+    data, but keep in mind that we want to keep the data as private as 
     possible.
 
     Args:
         data_path (str): Location of the prepared data. Required for Medperf Data Preparation MLCubes.
         params_file (str): Location of the parameters.yaml file. Required for Medperf Data Preparation MLCubes.
-        output_path (str): File to store the statistics. Must be statistics.yaml. Required for Medperf Data Preparation MLCubes.
+        output_path (str): File to store the statistics. Must be statistics.yaml. Required for Medperf Data Preparation MLCubes. 
     """
     cmd = f"python3 statistics.py --data_path={data_path} --out_file={output_path}"
     exec_python(cmd)
