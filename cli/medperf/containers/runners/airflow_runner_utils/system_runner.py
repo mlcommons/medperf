@@ -12,23 +12,18 @@ from .components.utils import validate_port
 from .monitor.yaml_dag_monitor import Summarizer
 from .yaml_partial_parser import YamlPartialParser
 from airflow.utils.state import DagRunState
-from typing import List, Union, TYPE_CHECKING
 import configparser
 import secrets
 from pydantic import SecretStr
 import json
 import logging
 import asyncio
-import logging
 from medperf.containers.runners.airflow_runner_utils.dags.constants import (
     FINAL_ASSET,
     SUMMARIZER_ID,
 )
 from medperf import config
 import sys
-
-if TYPE_CHECKING:
-    from .components.airflow_component import AirflowComponentRunner
 
 
 class AirflowSystemRunner:
@@ -91,6 +86,9 @@ class AirflowSystemRunner:
             env=self._run_env,
         )
         config = configparser.ConfigParser()
+        logging.debug(
+            f"Airflow process creation stdout:\n{config_create_process.stdout}"
+        )
         with open(self.airflow_config_file, "r") as f:
             config.read_file(f)
         config["core"].update(
@@ -197,6 +195,7 @@ class AirflowSystemRunner:
             text=True,
             env=self._run_env,
         )
+        logging.debug(f"User deletion stdout:\n{delete_previous_user.stdout}")
         logging.debug("Creating new admin user")
         create_new_user = subprocess.run(
             [
@@ -222,6 +221,7 @@ class AirflowSystemRunner:
             text=True,
             env=self._run_env,
         )
+        logging.debug(f"Admin creation stdout:\n{create_new_user.stdout}")
 
     def _create_pools(self):
         logging.debug("Creating pools")
@@ -255,9 +255,7 @@ class AirflowSystemRunner:
         msg = [
             f"MedPerf has started executing the Data Pipeline {self.project_name} via Airflow."
         ]
-        msg.append(
-            f"Execution will continue until the pipeline successfully completes."
-        )
+        msg.append("Execution will continue until the pipeline successfully completes.")
         msg.append(
             f"The Airflow UI is available at the following link: {self._complete_link}."
         )

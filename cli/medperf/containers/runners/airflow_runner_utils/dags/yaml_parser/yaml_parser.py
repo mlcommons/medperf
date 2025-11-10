@@ -82,7 +82,7 @@ class YamlParser:
                 next_fields.extend(default_fields)
             return next_fields
 
-    def _update_next_id_in_expanded_step(
+    def _update_next_id_in_expanded_step(  # noqa: C901
         self, current_step, id_to_partition_to_partition_id
     ):
         next_field = deepcopy(current_step.get("next"))
@@ -143,7 +143,7 @@ class YamlParser:
         if potential_id in mapped_steps:
             raise ValueError(f"ID {original_id} has been used more than one time!")
 
-    def _create_expanded_steps(
+    def _create_expanded_steps(  # noqa: C901
         self, raw_steps: list[dict[str, Any]], subject_partitions: list[str]
     ):
         step_id_to_expanded_step = {}

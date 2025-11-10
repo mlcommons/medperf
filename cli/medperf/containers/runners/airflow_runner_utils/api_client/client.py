@@ -10,7 +10,7 @@ from pydantic import SecretStr
 """
 The AirflowAPIClient defined in this Module if structured similarly to the internal
 Client class used by Airflow (i.e airflow.sdk.api.client.Client), but simplified
-so that only methods necessary for the Airflow <> MedPerf integration are 
+so that only methods necessary for the Airflow <> MedPerf integration are
 implemented.
 """
 

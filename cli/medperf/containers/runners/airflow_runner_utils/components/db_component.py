@@ -3,7 +3,7 @@ from abc import abstractmethod
 
 
 class DatabaseComponent(ComponentRunner):
-    
+
     @property
     @abstractmethod
     def connection_string(self):

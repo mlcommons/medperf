@@ -12,7 +12,7 @@ def validate_port(port: Union[int, str]) -> str:
         is_valid_port = False
 
     if not is_valid_port:
-        raise ValueError(f'Port value sent ({port}) is not a valid port!')
+        raise ValueError(f"Port value sent ({port}) is not a valid port!")
 
     return str(port)
 
@@ -23,6 +23,7 @@ def run_healthcheck(healthcheck_url: str) -> bool:
         return response.status_code == HTTPStatus.OK
     except requests.exceptions.RequestException:
         return False
-    
+
+
 def generate_random_password(nbytes: int = 16) -> SecretStr:
     return SecretStr(secrets.token_urlsafe(nbytes))

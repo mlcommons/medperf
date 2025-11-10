@@ -2,7 +2,6 @@ from medperf.containers.runners.airflow_runner_utils.components.airflow_componen
     AirflowComponentRunner,
 )
 import subprocess
-import sys
 
 
 class AirflowTriggerer(AirflowComponentRunner):

@@ -1,7 +1,6 @@
 from __future__ import annotations
 from .operator_builder import OperatorBuilder
 from abc import abstractmethod
-from copy import deepcopy
 
 
 class ContainerOperatorBuilder(OperatorBuilder):

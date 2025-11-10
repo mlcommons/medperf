@@ -33,7 +33,7 @@ class OperatorBuilder(ABC):
         if limit is None:
             self.pool_info = None
         else:
-            self.pool_info = f'{self.raw_id}_pool'
+            self.pool_info = f"{self.raw_id}_pool"
 
         self.partition = kwargs.get("partition")
         self.tags = [self.raw_id, self.display_name]
@@ -100,10 +100,11 @@ class OperatorBuilder(ABC):
             # OperatorFromYAML runs as defind by the YAML File.
             # A PythonSensorOperator then waits for any of the defind conditions to be True and
             # forwards the True condition to the PythonBranchOperator, which then branches accordingly.
-            # The Sensor and Branch Operators are defined here, so we can adapt the input arguments of the first operator accordingly
-            # (ie make it go into sensor that goes into branch which then goes into other operators from the YAML file)
-            # Empty operators are used between the branch operator and next operator from YAML to simplify breaking DAG cycles, if any
-            # are present. If DAG cycles are not present, the Empty operators do not interfere with DAG execution.
+            # The Sensor and Branch Operators are defined here, so we can adapt the input arguments of the first operator
+            # accordingly (ie make it go into sensor that goes into branch which then goes into other operators from the
+            # YAML file). Empty operators are used between the branch operator and next operator from YAML to simplify
+            # breaking DAG cycles, if any are present. If DAG cycles are not present, the Empty operators do not
+            # interfere with DAG execution.
             from .branch_from_sensor_operator_builder import (
                 BranchFromSensorOperatorBuilder,
             )

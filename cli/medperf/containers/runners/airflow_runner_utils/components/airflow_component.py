@@ -1,5 +1,4 @@
 import os
-import sys
 from abc import abstractmethod
 from typing import List
 from .component import ComponentRunner
