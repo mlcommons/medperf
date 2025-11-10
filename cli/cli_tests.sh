@@ -392,11 +392,11 @@ echo "\n"
 echo "====================================="
 echo "Running model3 association (with singularity)"
 echo "====================================="
-# # this will run two types of singularity containers:
-# #   1) an already built singularity image (model 3)
-# #   2) a docker image to be converted (metrics)
-# print_eval medperf --platform singularity container associate -m $MODEL3_UID -b $BMK_UID -y
-# checkFailed "Model3 association failed"
+# this will run two types of singularity containers:
+#   1) an already built singularity image (model 3)
+#   2) a docker image to be converted (metrics)
+print_eval medperf --platform singularity container associate -m $MODEL3_UID -b $BMK_UID -y
+checkFailed "Model3 association failed"
 ##########################################################
 
 echo "\n"
