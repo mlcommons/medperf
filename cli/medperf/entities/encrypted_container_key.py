@@ -74,16 +74,13 @@ class EncryptedKey(MedperfSchema):
         encrypted_key_bytes = base64.b64decode(self.encrypted_key_base64)
         private_key_bytes = load_user_private_key()
         if private_key_bytes is None:
-            del encrypted_key_bytes
             raise DecryptionError("Missing Private Key")
         decrypted_key_bytes = AsymmetricEncryption().decrypt(
             private_key_bytes, encrypted_key_bytes
         )
-        del private_key_bytes
         secure_write_to_file(
             output_path, decrypted_key_bytes, binary=True, exec_permission=True
         )
-        del decrypted_key_bytes
         return output_path
 
     def display_dict(self):

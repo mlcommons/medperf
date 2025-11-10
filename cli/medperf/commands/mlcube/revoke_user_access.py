@@ -29,6 +29,5 @@ class RevokeUserAccess:
         redaction_record = generate_container_key_redaction_record(
             key.encrypted_key_base64
         )
-        del key
         body = {"is_valid": False, "encrypted_key_base64": redaction_record}
         config.comms.update_encrypted_key(self.key_id, body)

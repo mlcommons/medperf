@@ -62,7 +62,6 @@ class GrantAccess:
         )
         existing_keys = EncryptedKey.get_container_keys(self.model_id)
         certificates_with_keys = [key["certificate"] for key in existing_keys]
-        del existing_keys
 
         certificates_need_keys: list[Certificate] = []
 
@@ -120,12 +119,9 @@ class GrantAccess:
                 certificate=certificate.id,
                 container=self.model_id,
             )
-            del encrypted_key_bytes
             keys_objects.append(key_obj)
-        del container_key_bytes
         return keys_objects
 
     def upload(self, keys_objects):
         config.ui.print("Uploading Encrypted Keys")
         EncryptedKey.upload_many(keys_objects)
-        del keys_objects

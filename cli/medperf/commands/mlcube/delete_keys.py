@@ -36,5 +36,4 @@ class DeleteKeys:
             }
             for key in keys
         ]
-        del keys
         config.comms.update_many_encrypted_keys(bodies)

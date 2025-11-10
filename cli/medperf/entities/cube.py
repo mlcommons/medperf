@@ -250,7 +250,6 @@ class Cube(Entity, DeployableSchema):
         else:
             key = EncryptedKey.get_user_container_key(self.id)
             key_file = key.decrypt()
-            del key
             destroy_key = True
 
         return key_file, destroy_key
