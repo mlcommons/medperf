@@ -28,20 +28,17 @@ def activate(profile: str):
 
 @app.command("create")
 @clean_except
-@configurable
 def create(
-    ctx: typer.Context,
     name: str = typer.Option(..., "--name", "-n", help="Profile's name"),
 ):
-    """Creates a new profile for managing and customizing configuration"""
-    args = ctx.params
-    args.pop("name")
+    """Creates a new profile for managing and customizing configuration
+    The profile settings will be identical to those of the current activated profile"""
     config_p = read_config()
 
     if name in config_p:
         raise InvalidArgumentError("A profile with the same name already exists")
 
-    config_p[name] = args
+    config_p[name] = config_p.active_profile
     write_config(config_p)
 
 
