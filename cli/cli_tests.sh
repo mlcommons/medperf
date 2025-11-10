@@ -127,10 +127,10 @@ MODEL2_UID=$(medperf container ls | grep model2 | head -n 1 | tr -s ' ' | cut -d
 echo "MODEL2_UID=$MODEL2_UID"
 
 # Container with singularity section
-# print_eval medperf --platform singularity container submit --name model3 -m $MODEL_WITH_SINGULARITY -p $MODEL3_PARAMS -a $MODEL_ADD --operational
-# checkFailed "Model3 submission failed"
-# MODEL3_UID=$(medperf container ls | grep model3 | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
-# echo "MODEL3_UID=$MODEL3_UID"
+print_eval medperf --platform singularity container submit --name model3 -m $MODEL_WITH_SINGULARITY -p $MODEL3_PARAMS -a $MODEL_ADD --operational
+checkFailed "Model3 submission failed"
+MODEL3_UID=$(medperf container ls | grep model3 | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+echo "MODEL3_UID=$MODEL3_UID"
 
 print_eval medperf container submit --name model-fail -m $FAILING_MODEL_MLCUBE -p $MODEL4_PARAMS -a $MODEL_ADD --operational
 checkFailed "failing model submission failed"
@@ -389,9 +389,9 @@ checkFailed "Model2 association failed"
 echo "\n"
 
 ##########################################################
-# echo "====================================="
-# echo "Running model3 association (with singularity)"
-# echo "====================================="
+echo "====================================="
+echo "Running model3 association (with singularity)"
+echo "====================================="
 # # this will run two types of singularity containers:
 # #   1) an already built singularity image (model 3)
 # #   2) a docker image to be converted (metrics)
@@ -459,8 +459,8 @@ echo "Approve model2,3,F, associations"
 echo "====================================="
 print_eval medperf association approve -b $BMK_UID -m $MODEL2_UID
 checkFailed "Model2 association approval failed"
-# print_eval medperf association approve -b $BMK_UID -m $MODEL3_UID
-# checkFailed "Model3 association approval failed"
+print_eval medperf association approve -b $BMK_UID -m $MODEL3_UID
+checkFailed "Model3 association approval failed"
 print_eval medperf association approve -b $BMK_UID -m $FAILING_MODEL_UID
 checkFailed "failing model association approval failed"
 print_eval medperf association approve -b $BMK_UID -m $MODEL_LOG_NONE_UID
@@ -502,11 +502,11 @@ checkFailed "testdata profile activation failed"
 echo "\n"
 
 ##########################################################
-# echo "====================================="
-# echo "Running model3 (with singularity)"
-# echo "====================================="
-# print_eval medperf --platform=singularity run -b $BMK_UID -d $DSET_A_UID -m $MODEL3_UID -y
-# checkFailed "Model3 run failed"
+echo "====================================="
+echo "Running model3 (with singularity)"
+echo "====================================="
+print_eval medperf --platform=singularity run -b $BMK_UID -d $DSET_A_UID -m $MODEL3_UID -y
+checkFailed "Model3 run failed"
 ##########################################################
 
 echo "\n"
