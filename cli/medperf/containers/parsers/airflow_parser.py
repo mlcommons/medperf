@@ -10,9 +10,12 @@ class AirflowParser(Parser):
     in the `airflow_runner` directory.
     """
 
-    def __init__(self, airflow_config: dict, allowed_runners: list):
+    def __init__(
+        self, airflow_config: dict, allowed_runners: list, config_file_path: str
+    ):
         self.airflow_config = airflow_config
         self.allowed_runners = allowed_runners
+        self.config_file_path = config_file_path
 
         # The following variables are set when calling check_schema for the first time
         self._steps = []

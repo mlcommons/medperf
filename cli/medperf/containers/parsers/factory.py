@@ -49,7 +49,9 @@ def load_parser(container_config_path: str) -> Parser:
         # TODO add modifications to use container hashes rather than tags for download
         # TODO maybe change workspace dir and so on here? We need to think about this
         parser = AirflowParser(
-            airflow_config=container_config, allowed_runners=["docker", "singularity"]
+            airflow_config=container_config,
+            allowed_runners=["docker", "singularity"],
+            config_file_path=container_config_path,
         )
         parser.check_schema()
         return parser
