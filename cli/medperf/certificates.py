@@ -45,9 +45,11 @@ def get_server_cert(ca: CA, address: str, output_path: str):
     )
 
 
-def verify_certificate_authority(ca: CA):
+def verify_certificate_authority(ca: CA, expected_fingerprint=None):
     """Verifies the CA cert fingerprint and writes it to the MedPerf storage."""
-    if ca.config["fingerprint"] != config.certificate_authority_fingerprint:
+    if expected_fingerprint is None:
+        expected_fingerprint = config.certificate_authority_fingerprint
+    if ca.config["fingerprint"] != expected_fingerprint:
         raise InvalidCertificateAuthorityError(
             "Certificate authority fingerprint doesn't match the configured one"
         )
@@ -83,3 +85,8 @@ def verify_certificate(
         )
     except MedperfException as e:
         raise InvalidCertificateError(f"Failed to verify the certificate: {str(e)}")
+
+
+def verify_certificate_authority_by_id(ca_id: int, expected_fingerprint: str):
+    ca = CA.get(ca_id)
+    verify_certificate_authority(ca, expected_fingerprint)
