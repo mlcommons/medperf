@@ -70,7 +70,6 @@ class EncryptedKey(MedperfSchema):
 
     def decrypt(self):
         output_path = get_decryption_key_path(self.container)
-        config.sensitive_tmp_paths.append(output_path)
         encrypted_key_bytes = base64.b64decode(self.encrypted_key_base64)
         private_key_bytes = load_user_private_key()
         if private_key_bytes is None:

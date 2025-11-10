@@ -600,7 +600,7 @@ def store_decryption_key(container_id, decryption_key_path):
     return target_path
 
 
-def create_secure_tmp_folder():
+def create_folder_for_decryption():
     folder_name = generate_tmp_uid()
     folder_path = os.path.join(config.decrypted_files_folder, folder_name)
     os.makedirs(folder_path, mode=0o700)

@@ -11,7 +11,6 @@ from cryptography.hazmat.primitives import serialization
 from cryptography import x509
 
 
-# check all sensitive variables and catching exceptions, config.tmp_paths and webui
 # max_lengths
 def check_gpg():
     gpg_check_command = ["gpg", "--version"]
