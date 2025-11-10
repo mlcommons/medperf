@@ -1,3 +1,4 @@
+from copy import deepcopy
 import typer
 
 from medperf import config
@@ -39,7 +40,7 @@ def create(
     if name in config_p:
         raise InvalidArgumentError("A profile with the same name already exists")
 
-    config_p[name] = config_p.active_profile
+    config_p[name] = deepcopy(config_p.active_profile)  # Deepcopy to avoid yaml anchors
     write_config(config_p)
 
 
