@@ -8,7 +8,7 @@ This script can only be invoked from its parent folder, that's because it
 executes Django code to set admin permissions for a test user."""
 
 import argparse
-from seed_utils import Server, set_user_as_admin, create_benchmark, create_model, create_private_model
+from seed_utils import Server, set_user_as_admin, create_benchmark, create_model
 from auth_provider_token import auth_provider_token
 from pathlib import Path
 import json
@@ -43,10 +43,6 @@ def seed(args):
     # create model
     model_owner_token = get_token("testmo@example.com")
     create_model(api_server, model_owner_token, benchmark_owner_token, benchmark)
-
-    # create private model
-    private_model_owner_token = get_token("testpo@example.com")
-    create_private_model(api_server, private_model_owner_token, benchmark_owner_token, benchmark)
 
 
 if __name__ == "__main__":

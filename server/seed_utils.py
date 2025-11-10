@@ -1,4 +1,3 @@
-from __future__ import annotations
 from pathlib import Path
 import sys
 import requests
@@ -353,100 +352,6 @@ def create_model(api_server, model_owner_token, benchmark_owner_token, benchmark
     print(
         "Model MlCube Id:",
         model_executor1_mlcube,
-        "associated to Benchmark Id:",
-        benchmark,
-        "is marked",
-        model_executor1_in_benchmark_status,
-        "(by Benchmark Owner)",
-    )
-
-
-def create_private_model(api_server: Server, private_model_owner_token, benchmark_owner_token, benchmark):
-    print("##########################MODEL OWNER - PRIVATE MODEL##########################")
-    # Model Owner Interaction - Creating a Private Model
-
-    # Create a model mlcube by Model Owner
-    private_model_executor1_mlcube = api_server.request(
-        "/mlcubes/",
-        "POST",
-        private_model_owner_token,
-        {
-            "name": "chestxray_cnn_priv",
-            # TODO update URL to main repo once this is pushed there
-            "git_mlcube_url": (
-                "https://raw.githubusercontent.com/RodriguesRBruno/medperf/"
-                "d005d8405159e14dc34f04c22fcf24dd67e0aa6e/examples/"
-                "chestxray_tutorial/model_custom_cnn_encrypted/container_config.yaml"),
-            "mlcube_hash": "5072a12d1eacdcc4489a026a266537f81bbf33e4adb191a43bdcb0ade09da5a6",
-            "git_parameters_url": (
-                ASSETS_URL + "model_custom_cnn/workspace/parameters.yaml"
-            ),
-            "parameters_hash": "af0aed4735b5075c198f8b49b3afbf7a0d7eaaaaa2a2b914d5931f0bee51d3f6",
-            "additional_files_tarball_url": (
-                "https://storage.googleapis.com/medperf-storage/"
-                "chestxray_tutorial/cnn_weights.tar.gz"
-            ),
-            "additional_files_tarball_hash": "bff003e244759c3d7c8b9784af0819c7f252da8626745671ccf7f46b8f19a0ca",
-            "image_hash": "c1684112ccc4e50e58e173d86a333ad93b6f95b71ffbd9634e1d2c51eaf55719",
-            "image_tarball_url": "",
-            "image_tarball_hash": "",
-        },
-        "id",
-    )
-    print("Private Model MLCube Created(by Private Model Owner). ID:", private_model_executor1_mlcube)
-
-    # Update state of the Model MLCube to OPERATION
-    private_model_executor1_mlcube_state = api_server.request(
-        "/mlcubes/" + str(private_model_executor1_mlcube) + "/",
-        "PUT",
-        private_model_owner_token,
-        {"state": "OPERATION"},
-        "state",
-    )
-    print(
-        "Model MlCube state updated to",
-        private_model_executor1_mlcube_state,
-        "by Private Model Owner",
-    )
-
-    # Associate the model-executor1 mlcube to the created benchmark by model owner user
-    private_model_executor1_in_benchmark = api_server.request(
-        "/mlcubes/benchmarks/",
-        "POST",
-        private_model_owner_token,
-        {
-            "model_mlcube": private_model_executor1_mlcube,
-            "benchmark": benchmark,
-            "metadata": {"key1": "value1", "key2": "value2"},
-        },
-        "approval_status",
-    )
-
-    print(
-        "Model MlCube Id:",
-        private_model_executor1_mlcube,
-        "associated to Benchmark Id:",
-        benchmark,
-        "(by Private Model Owner) which is in",
-        private_model_executor1_in_benchmark,
-        "state",
-    )
-
-    # Mark the model-executor1 association with created benchmark as approved by benchmark owner
-    model_executor1_in_benchmark_status = api_server.request(
-        "/mlcubes/"
-        + str(private_model_executor1_mlcube)
-        + "/benchmarks/"
-        + str(benchmark)
-        + "/",
-        "PUT",
-        benchmark_owner_token,
-        {"approval_status": "APPROVED"},
-        "approval_status",
-    )
-    print(
-        "Model MlCube Id:",
-        private_model_executor1_mlcube,
         "associated to Benchmark Id:",
         benchmark,
         "is marked",

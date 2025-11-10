@@ -86,6 +86,7 @@ fi
 ########################## Setup #########################
 ##########################################################
 ASSETS_URL="https://raw.githubusercontent.com/hasan7n/mockcube/63454ef4bb96f1879a549e2131ab6361a702e8e1"
+CHESTXRAY_ASSETS_URL="https://raw.githubusercontent.com/RodriguesRBruno/medperf/4afaf31537cb3a7b56b3e9eae50f15a1c3af6087/examples/chestxray_tutorial"
 
 # datasets
 DSET_A_URL="$ASSETS_URL/assets/datasets/dataset_a.tar.gz"
@@ -112,6 +113,11 @@ MODEL4_PARAMS="$ASSETS_URL/model-cpu/workspace/parameters4.yaml"
 
 MODEL_LOG_NONE_PARAMS="$ASSETS_URL/model-debug-logging/mlcube/workspace/parameters_none.yaml"
 MODEL_LOG_DEBUG_PARAMS="$ASSETS_URL/model-debug-logging/mlcube/workspace/parameters_debug.yaml"
+
+# chestxray tutorial models
+CHESTXRAY_ENCRYPTED_MODEL="$CHESTXRAY_ASSETS_URL/model_custom_cnn_encrypted/container_config.yaml"
+CHESTXRAY_ENCRYPTED_MODEL_PARAMS="$CHESTXRAY_ASSETS_URL/model_custom_cnn_encrypted/workspace/parameters.yaml"
+CHESTXRAY_ENCRYPTED_MODEL_ADD="https://storage.googleapis.com/medperf-storage/chestxray_tutorial/cnn_weights.tar.gz"
 
 # metrics cubes
 METRIC_MLCUBE="$ASSETS_URL/metrics/container_config.yaml"
