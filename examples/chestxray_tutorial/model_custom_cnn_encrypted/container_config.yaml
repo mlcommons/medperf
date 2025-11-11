@@ -1,4 +1,4 @@
-container_type: EncryptedDockerImage
+container_type: EncryptedDockerArchive
 image: https://storage.googleapis.com/medperf-storage/chestxray_tutorial/private_cnn.gpg
 tasks:
   infer:
