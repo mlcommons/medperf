@@ -593,9 +593,11 @@ def get_webui_properties():
 
 
 def get_decryption_key_path(container_id):
-    return os.path.join(
+    path = os.path.join(
         config.container_keys_dir, str(container_id), config.container_key_file
     )
+    path = sanitize_path(path)
+    return path
 
 
 def store_decryption_key(container_id, decryption_key_path):
