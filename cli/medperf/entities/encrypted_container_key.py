@@ -1,5 +1,6 @@
 from __future__ import annotations
 import base64
+import logging
 from medperf.entities.schemas import MedperfSchema
 from medperf import config
 from medperf.exceptions import (
@@ -69,7 +70,9 @@ class EncryptedKey(MedperfSchema):
         return updated_body
 
     def decrypt(self):
+        logging.debug("Decrypting key.")
         output_path = get_decryption_key_path(self.container)
+        logging.debug(f"Output path: {output_path}")
         encrypted_key_bytes = base64.b64decode(self.encrypted_key_base64)
         private_key_bytes = load_user_private_key()
         if private_key_bytes is None:

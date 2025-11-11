@@ -60,7 +60,7 @@ class CA(Entity, MedperfSchema):
         }
         if keys != allowed_keys:
             raise ValueError(
-                "config must contain these exact 5 keys:\n"
+                "CA config must contain these exact 5 keys:\n"
                 "address, port, fingerprint, client_provisioner, server_provisioner"
             )
         return v

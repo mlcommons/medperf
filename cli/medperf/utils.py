@@ -57,6 +57,7 @@ def remove_path(path, sensitive=False):
     # in folders owned by medperf
 
     if not os.path.exists(path):
+        logging.debug(f"{path} was to be removed, but not found.")
         return
     logging.info(f"Removing clutter path: {path}")
 
@@ -526,7 +527,10 @@ class spawn_and_kill:
 
 
 def run_command(cmd, timeout=None, output_logs=None):
-    with spawn_and_kill(shlex.join(cmd), timeout=timeout) as proc_wrapper:
+    logging.debug(f"Command as list, to be run: {cmd}")
+    command_as_str = shlex.join(cmd)
+    logging.debug(f"Running command: {command_as_str}")
+    with spawn_and_kill(command_as_str, timeout=timeout) as proc_wrapper:
         proc = proc_wrapper.proc
         proc_out = combine_proc_sp_text(proc)
 
@@ -543,8 +547,10 @@ def run_command(cmd, timeout=None, output_logs=None):
 def get_pki_assets_path(common_name: str, ca_id: int):
     # Base64 encoding is used just to avoid special characters used in emails
     # and server domains/ipaddresses.
+    logging.debug(f"Getting pki assets path for {common_name}")
     cn_encoded = base64.b64encode(common_name.encode("utf-8")).decode("utf-8")
     cn_encoded = cn_encoded.rstrip("=")
+    logging.debug(f"common name base64encoded: {cn_encoded}")
     return os.path.join(config.pki_assets, cn_encoded, str(ca_id))
 
 
@@ -593,10 +599,14 @@ def get_decryption_key_path(container_id):
 
 
 def store_decryption_key(container_id, decryption_key_path):
+    logging.debug(
+        f"Storing decryption key {decryption_key_path} for container {container_id}"
+    )
     target_path = get_decryption_key_path(container_id)
     target_folder = os.path.dirname(target_path)
     os.makedirs(target_folder, exist_ok=True)
     shutil.copy(decryption_key_path, target_path)
+    logging.debug(f"Decryption key stored at {target_path}")
     return target_path
 
 
@@ -608,7 +618,7 @@ def create_folder_for_decryption():
     return folder_path
 
 
-def secure_write_to_file(file_path, content, exec_permission=False):
+def secure_write_to_file(file_path, content: bytes, exec_permission=False):
     permission_mode = 0o700 if exec_permission else 0o600
     with open(file_path, "wb") as f:
         pass

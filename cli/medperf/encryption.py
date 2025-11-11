@@ -9,10 +9,13 @@ from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives import serialization
 from cryptography import x509
+import logging
 
 
 def check_gpg():
+    logging.debug("Checking if GPG is available")
     gpg_check_command = ["gpg", "--version"]
+    logging.debug("Running GPG check command")
     try:
         run_command(gpg_check_command)
     except ExecutionError:
@@ -21,6 +24,11 @@ def check_gpg():
 
 # GPG symmetric decryption
 def decrypt_gpg_file(encrypted_file_path, decryption_key_file, output_path):
+    logging.debug("Decrypting a GPG file")
+    logging.debug(f"Encrypted file path: {encrypted_file_path}")
+    logging.debug(f"Output path: {output_path}")
+    logging.debug(f"Decryption key file path: {decryption_key_file}")
+
     gpg_decrypt_command = [
         "gpg",
         "--batch",
@@ -32,6 +40,7 @@ def decrypt_gpg_file(encrypted_file_path, decryption_key_file, output_path):
         encrypted_file_path,
     ]
     try:
+        logging.debug("Running GPG decrypt command")
         run_command(gpg_decrypt_command)
     except Exception as e:
         raise DecryptionError(f"File decryption failed: {str(e)}")
@@ -47,6 +56,7 @@ class AsymmetricEncryption:
         )
 
     def encrypt(self, certificate_bytes: bytes, data_bytes: bytes) -> bytes:
+        logging.debug("Performing Asymmetric Encryption")
         try:
             certificate_obj = x509.load_pem_x509_certificate(data=certificate_bytes)
             public_key_obj = certificate_obj.public_key()
@@ -56,6 +66,7 @@ class AsymmetricEncryption:
             raise EncryptionError(f"Data encryption failed: {str(e)}")
 
     def decrypt(self, private_key_bytes: bytes, encrypted_data_bytes: bytes) -> bytes:
+        logging.debug("Performing Asymmetric Decryption")
         try:
             private_key = serialization.load_pem_private_key(
                 data=private_key_bytes, password=None

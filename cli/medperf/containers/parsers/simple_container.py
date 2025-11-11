@@ -1,6 +1,7 @@
 from medperf.containers.parsers.parser import Parser
 from medperf.exceptions import InvalidContainerSpec
 from medperf.enums import ContainerTypes
+import logging
 
 
 class SimpleContainerParser(Parser):
@@ -28,12 +29,14 @@ class SimpleContainerParser(Parser):
                         "Container config task volumes should have a 'type' and 'mount_path' fields."
                     )
                 if volume["type"] not in ["file", "directory"]:
+                    logging.debug(f"Volume type for task {task}: {volume['type']}")
                     raise InvalidContainerSpec(
                         "Mount type should be either a file or a directory."
                     )
 
     def check_task_schema(self, task: str) -> str:
         tasks = self.container_config["tasks"]
+        logging.debug(f"Available tasks: {tasks}")
         if task not in tasks:
             raise InvalidContainerSpec(f"Task {task} is not found in container config.")
 
@@ -46,6 +49,7 @@ class SimpleContainerParser(Parser):
         output_volumes = []
 
         if "input_volumes" in task_info:
+            logging.debug("Setting input volumes")
             for key in task_info["input_volumes"]:
                 host_path = medperf_mounts[key]
                 input_volumes.append(
@@ -53,6 +57,7 @@ class SimpleContainerParser(Parser):
                 )
 
         if "output_volumes" in task_info:
+            logging.debug("Setting output volumes")
             for key in task_info["output_volumes"]:
                 host_path = medperf_mounts[key]
                 output_volumes.append(
@@ -62,7 +67,9 @@ class SimpleContainerParser(Parser):
 
     def get_run_args(self, task: str, medperf_mounts: dict):
         task_info = self.container_config["tasks"][task]
-        return task_info.get("run_args", {})
+        run_args = task_info.get("run_args", {})
+        logging.debug(f"run args: {run_args}")
+        return run_args
 
     def is_report_specified(self):
         try:

@@ -4,6 +4,7 @@ import medperf.config as config
 from medperf.entities.cube import Cube
 from medperf.exceptions import InvalidArgumentError
 from medperf.utils import remove_path, store_decryption_key
+import logging
 
 
 class SubmitCube:
@@ -72,5 +73,7 @@ class SubmitCube:
 
     def store_decryption_key(self):
         if self.decryption_key is None:
+            logging.debug("Decryption key not provided")
             return
+        logging.debug(f"Decryption key provided: {self.decryption_key}")
         store_decryption_key(self.cube.id, self.decryption_key)

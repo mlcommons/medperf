@@ -37,12 +37,14 @@ class DockerRunner(Runner):
         alternative_image_hash: str = None,
     ):
         if self.parser.is_docker_archive():
+            logging.debug("Downloading Docker archive")
             return self._download_docker_archive(
                 expected_image_hash,
                 download_timeout,
                 get_hash_timeout,
             )
         else:
+            logging.debug("Downloading Docker image")
             return self._download_docker_image(
                 expected_image_hash,
                 download_timeout,
@@ -59,6 +61,7 @@ class DockerRunner(Runner):
     ):
         docker_image = self.parser.get_setup_args()
         command = ["docker", "pull", docker_image]
+        logging.debug("Running pull command")
         run_command(command, timeout=download_timeout)
         computed_image_hash = get_docker_image_hash(docker_image, get_hash_timeout)
         check_docker_image_hash(
@@ -120,6 +123,8 @@ class DockerRunner(Runner):
             self._run_image(run_args, timeout, output_logs)
 
     def _run_image(self, run_args, timeout, output_logs):
+        logging.debug("Running unencrypted image")
+
         # Set Image
         image = self.parser.get_setup_args()
 
@@ -127,6 +132,7 @@ class DockerRunner(Runner):
         self._invoke_run(image, run_args, timeout, output_logs)
 
     def _run_archive(self, run_args, timeout, output_logs):
+        logging.debug("Running unencrypted archive")
         if self.image_archive_path is None:
             raise MedperfException("Internal error: run was called before download.")
 
@@ -143,6 +149,7 @@ class DockerRunner(Runner):
     def _run_encrypted_archive(
         self, run_args, timeout, output_logs, container_decryption_key_file
     ):
+        logging.debug("Running encrypted archive")
         if self.image_archive_path is None:
             raise MedperfException("Internal error: run was called before download.")
 
@@ -185,5 +192,5 @@ class DockerRunner(Runner):
 
         # Run
         command = craft_docker_run_command(run_args)
-        logging.debug(f"Running command: {command}")
+        logging.debug("Running docker container")
         run_command(command, timeout, output_logs)

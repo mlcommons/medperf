@@ -7,6 +7,7 @@ from medperf.exceptions import MedperfException
 from medperf.utils import generate_tmp_path
 import base64
 from typing import List, Tuple
+import logging
 
 
 class Certificate(Entity):
@@ -44,8 +45,10 @@ class Certificate(Entity):
 
     def prepare_certificate_file(self):
         cert_folder = generate_tmp_path()
+        logging.debug(f"Writing certificate to folder: {cert_folder}")
         os.makedirs(cert_folder, exist_ok=True)
         cert_file = os.path.join(cert_folder, config.certificate_file)
+        logging.debug(f"Writing certificate to file: {cert_file}")
         certificate_content_bytes = base64.b64decode(self.certificate_content_base64)
         with open(cert_file, "wb") as f:
             f.write(certificate_content_bytes)

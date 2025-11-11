@@ -46,6 +46,8 @@ class SingularityRunner(Runner):
             and self.version >= semver.VersionInfo(major=3, minor=10)
         )
         apptainer = self.runtime == "apptainer"
+        logging.debug(f"Is apptainer: {apptainer}")
+        logging.debug(f"Is singularity 3.10: {singularity_310}")
         # This function will be run when there is a necessity to use --nvccli (i.e. when
         # the user wishes to isolate certain GPUs). So maybe it's valuable to print a warning
         # to show the user the limitations of nvccli:
@@ -60,12 +62,14 @@ class SingularityRunner(Runner):
         alternative_image_hash: str = None,
     ):
         if self.parser.is_docker_archive() or self.parser.is_singularity_file():
+            logging.debug("Downloading image file")
             return self._download_image_file(
                 expected_image_hash,
                 download_timeout,
                 get_hash_timeout,
             )
         else:
+            logging.debug("Docker image: checking without download.")
             # No download; conversion happens during run
             return self._check_docker_image(
                 expected_image_hash,
@@ -162,6 +166,7 @@ class SingularityRunner(Runner):
             self._run_docker_image(run_args, timeout, output_logs)
 
     def _run_singularity_file(self, run_args, timeout, output_logs):
+        logging.debug("Running unencrypted singularity file")
         if self.image_file_path is None:
             raise MedperfException("Internal error: Run is called before download.")
 
@@ -169,6 +174,7 @@ class SingularityRunner(Runner):
         self._invoke_run(self.image_file_path, run_args, timeout, output_logs)
 
     def _run_docker_archive(self, run_args, timeout, output_logs):
+        logging.debug("Running unencrypted docker archive")
         if self.image_file_path is None:
             raise MedperfException("Internal error: Run is called before download.")
 
@@ -189,6 +195,7 @@ class SingularityRunner(Runner):
         self._invoke_run(sif_image_file, run_args, timeout, output_logs)
 
     def _run_docker_image(self, run_args, timeout, output_logs):
+        logging.debug("Running unencrypted docker image")
         docker_image = self.parser.get_setup_args()
 
         sif_image_folder = os.path.join(
@@ -209,6 +216,7 @@ class SingularityRunner(Runner):
     def _run_encrypted_singularity_file(
         self, run_args, timeout, output_logs, container_decryption_key_file
     ):
+        logging.debug("Running encrypted singularity file")
         if self.image_file_path is None:
             raise MedperfException("Internal error: Run is called before download.")
 
@@ -233,6 +241,7 @@ class SingularityRunner(Runner):
     def _run_encrypted_docker_archive(
         self, run_args, timeout, output_logs, container_decryption_key_file
     ):
+        logging.debug("Running encrypted docker archive")
         if self.image_file_path is None:
             raise MedperfException("Internal error: Run is called before download.")
 
@@ -276,5 +285,5 @@ class SingularityRunner(Runner):
 
         # Run
         command = craft_singularity_run_command(run_args, self.executable)
-        logging.debug(f"Running command: {command}")
+        logging.debug("Running singulairty container")
         run_command(command, timeout, output_logs)

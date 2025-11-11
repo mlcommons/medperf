@@ -3,6 +3,7 @@ from medperf.exceptions import CleanExit
 from medperf.utils import approval_prompt, get_pki_assets_path, remove_path
 from medperf import config
 from medperf.entities.certificate import Certificate
+import logging
 
 
 class DeleteCertificate:
@@ -20,6 +21,7 @@ class DeleteCertificate:
         # Invalidate server certificate object
         cert = Certificate.get_user_certificate()
         if cert is not None:
+            logging.debug("Found a remote certificate. Invalidating the certificate.")
             body = {"is_valid": False}
             config.comms.update_certificate(cert.id, body)
 

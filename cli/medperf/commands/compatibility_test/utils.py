@@ -114,10 +114,12 @@ def get_cube(
     cube = Cube.get(uid, local_only=local_only)
 
     if decryption_key_file_path is not None:
+        logging.debug(f"Model decryption key is provided: {decryption_key_file_path}")
         decryption_key_path = store_decryption_key(uid, decryption_key_file_path)
         config.sensitive_tmp_paths.append(decryption_key_path)
 
     if not use_local_model_image:
+        logging.debug("Downloading container run files")
         cube.download_run_files()
     config.ui.print(f"> Container '{name}' download complete")
     return cube

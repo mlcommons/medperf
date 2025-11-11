@@ -17,6 +17,7 @@ from medperf.utils import (
     get_decryption_key_path,
 )
 from medperf.entities.encrypted_container_key import EncryptedKey
+import logging
 
 
 class Cube(Entity, DeployableSchema):
@@ -241,17 +242,25 @@ class Cube(Entity, DeployableSchema):
                 remove_path(decryption_key_file, sensitive=True)
 
     def get_user_decryption_key(self):
+        logging.debug("Container is encrypted. Getting Decryption key.")
         user_id = get_medperf_user_data()["id"]
         if self.owner == user_id:
+            logging.debug("User is the owner of the container. Getting local key path.")
             key_file = get_decryption_key_path(self.id)
             if not os.path.exists(key_file):
                 raise InvalidEntityError("Container decryption key file doesn't exist")
             destroy_key = False
         else:
+            logging.debug(
+                "User is not the owner of the container. Getting encrypted key from server."
+            )
             key = EncryptedKey.get_user_container_key(self.id)
             key_file = key.decrypt()
             destroy_key = True
 
+        logging.debug(
+            f"Decryption key path: {key_file}. To be destroyed: {destroy_key}"
+        )
         return key_file, destroy_key
 
     def is_report_specified(self):

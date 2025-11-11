@@ -7,6 +7,7 @@ from medperf.exceptions import CleanExit, InvalidCertificateError
 from medperf.entities.encrypted_container_key import EncryptedKey
 from medperf.encryption import AsymmetricEncryption
 from medperf.certificates import verify_certificate_authority, verify_certificate
+import logging
 
 
 class GrantAccess:
@@ -69,6 +70,11 @@ class GrantAccess:
             if cert.id not in certificates_with_keys:
                 certificates_need_keys.append(cert)
 
+        logging.debug(f"Available Certificates: {[cert.id for cert in certificates]}")
+        logging.debug(f"Certificates already have access: {certificates_with_keys}")
+        logging.debug(
+            f"Certificates that need access: {[cert.id for cert in certificates_need_keys]}"
+        )
         if not certificates_need_keys:
             raise CleanExit("No users in need of keys were found.")
 
@@ -87,6 +93,7 @@ class GrantAccess:
                 )
                 valid_certs.append(certificate)
             except InvalidCertificateError:
+                logging.debug(f"Invalid Certificate: {certificate.id}")
                 error_certs.append((certificate, expected_email))
 
         if error_certs:

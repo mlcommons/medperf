@@ -2,6 +2,7 @@ from medperf import config
 from medperf.utils import approval_prompt, generate_container_key_redaction_record
 from medperf.exceptions import CleanExit
 from medperf.entities.encrypted_container_key import EncryptedKey
+import logging
 
 
 class DeleteKeys:
@@ -36,4 +37,5 @@ class DeleteKeys:
             }
             for key in keys
         ]
+        logging.debug(f"Keys to delete: {[body['id'] for body in bodies]}")
         config.comms.update_many_encrypted_keys(bodies)
