@@ -8,7 +8,7 @@ from medperf.entities.schemas import DeployableSchema
 from medperf.exceptions import InvalidEntityError
 import medperf.config as config
 from medperf.comms.entity_resources import resources
-from medperf.account_management import get_medperf_user_data
+from medperf.account_management import get_medperf_user_data, is_user_logged_in
 from medperf.containers.runners import load_runner
 from medperf.containers.parsers import load_parser
 from medperf.utils import (
@@ -223,7 +223,7 @@ class Cube(Entity, DeployableSchema):
         try:
             # setup decryption key if container is encrypted
             if self.is_encrypted():
-                decryption_key_file, destroy_key = self.get_user_decryption_key()
+                decryption_key_file, destroy_key = self.__get_decryption_key()
 
             # run
             self.runner.run(
@@ -241,27 +241,41 @@ class Cube(Entity, DeployableSchema):
             if decryption_key_file and destroy_key:
                 remove_path(decryption_key_file, sensitive=True)
 
-    def get_user_decryption_key(self):
+    def __get_decryption_key(self):
         logging.debug("Container is encrypted. Getting Decryption key.")
-        user_id = get_medperf_user_data()["id"]
-        if self.owner == user_id:
-            logging.debug("User is the owner of the container. Getting local key path.")
-            key_file = get_decryption_key_path(self.id)
-            if not os.path.exists(key_file):
-                raise InvalidEntityError("Container decryption key file doesn't exist")
+
+        if not is_user_logged_in():
+            logging.debug("User is not logged in. Getting local key path.")
             destroy_key = False
+            key_file = self.__get_decryption_key_from_filesystem()
         else:
-            logging.debug(
-                "User is not the owner of the container. Getting encrypted key from server."
-            )
-            key = EncryptedKey.get_user_container_key(self.id)
-            key_file = key.decrypt()
-            destroy_key = True
+            user_id = get_medperf_user_data()["id"]
+            if self.owner == user_id:
+                logging.debug("User is the owner. Getting local key path.")
+                destroy_key = False
+                key_file = self.__get_decryption_key_from_filesystem()
+            else:
+                logging.debug(
+                    "User is not the owner. Getting encrypted key from server."
+                )
+                destroy_key = True
+                key_file = self.__get_decryption_key_from_server()
 
         logging.debug(
             f"Decryption key path: {key_file}. To be destroyed: {destroy_key}"
         )
         return key_file, destroy_key
+
+    def __get_decryption_key_from_filesystem(self):
+        key_file = get_decryption_key_path(self.identifier)
+        if not os.path.exists(key_file):
+            raise InvalidEntityError("Container decryption key file doesn't exist")
+        return key_file
+
+    def __get_decryption_key_from_server(self):
+        key = EncryptedKey.get_user_container_key(self.id)
+        key_file = key.decrypt()
+        return key_file
 
     def is_report_specified(self):
         return self.parser.is_report_specified()
