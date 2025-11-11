@@ -44,7 +44,7 @@ class IsAssociatedModelOwner(BasePermission):
 
         latest_models_assocs_status = (
             BenchmarkModel.objects.all()
-            .filter(benchmark__id=pk, model__id=OuterRef("id"))
+            .filter(benchmark__id=pk, model_mlcube__id=OuterRef("id"))
             .order_by("-created_at")[:1]
             .values("approval_status")
         )
