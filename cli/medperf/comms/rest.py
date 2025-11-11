@@ -912,7 +912,7 @@ class REST(Comms):
         Returns:
             dict: dictionary with the contents of each result in the specified benchmark
         """
-        url = f"{self.server_url}/training/{training_exp_id}/datasets"
+        url = f"{self.server_url}/training/{training_exp_id}/datasets/"
         error_msg = "Could not get training experiment datasets associations"
         return self.__get_list(url, filters=filters, error_msg=error_msg)
 
@@ -927,7 +927,7 @@ class REST(Comms):
         Returns:
             list[int]: List of benchmark model associations
         """
-        url = f"{self.server_url}/benchmarks/{benchmark_uid}/models"
+        url = f"{self.server_url}/benchmarks/{benchmark_uid}/models/"
         error_msg = "Could not get benchmark models associations"
         return self.__get_list(url, filters=filters, error_msg=error_msg)
 
@@ -965,6 +965,14 @@ class REST(Comms):
         self, benchmark_id: int, filters=dict()
     ) -> List[dict]:
         """Retrieves certificates of Data Owners associated with a given benchmark"""
-        url = f"{self.server_url}/benchmarks/{benchmark_id}/datasets_certificates"
+        url = f"{self.server_url}/benchmarks/{benchmark_id}/datasets_certificates/"
         error_msg = f"Could not retrieve certificates from Benchmark {benchmark_id}"
+        return self.__get_list(url=url, filters=filters, error_msg=error_msg)
+
+    def get_certificate_encrypted_keys(
+        self, certificate_id: int, filters=dict()
+    ) -> List[dict]:
+        """Retrieves encrypted keys associated with a certificate"""
+        url = f"{self.server_url}/certificates/{certificate_id}/encrypted_keys/"
+        error_msg = f"Could not retrieve encrypted keys of certificate {certificate_id}"
         return self.__get_list(url=url, filters=filters, error_msg=error_msg)

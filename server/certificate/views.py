@@ -16,7 +16,8 @@ from drf_spectacular.utils import extend_schema
 from dataset.models import Dataset
 from benchmark.models import Benchmark
 from django.db.models import OuterRef, Subquery
-
+from encrypted_key.serializers import EncryptedKeySerializer
+from encrypted_key.models import EncryptedKey
 
 if TYPE_CHECKING:
     from rest_framework.request import Request
@@ -120,4 +121,28 @@ class CertificatesFromBenchmark(GenericAPIView):
         certificates = self.paginate_queryset(certificates)
         serializer = CertificateWithOwnerInfoSerializer(certificates, many=True)
 
+        return self.get_paginated_response(serializer.data)
+
+
+class CertificateEncryptedKeys(GenericAPIView):
+    serializer_class = EncryptedKeySerializer
+    queryset = ""
+    filterset_fields = ("name", "owner", "is_valid", "certificate", "container")
+    permission_classes = [IsAdmin | IsCertificateOwner]
+
+    def get_object(self, pk):
+        try:
+            return Certificate.objects.get(pk=pk)
+        except EncryptedKey.DoesNotExist:
+            raise Http404
+
+    def get(self, request, pk, format=None):
+        """
+        Retrieve all keys associated with a certificate
+        """
+        certificate = self.get_object(pk)
+        keys = certificate.encryptedkey_set.all()
+        keys = self.filter_queryset(keys)
+        keys = self.paginate_queryset(keys)
+        serializer = EncryptedKeySerializer(keys, many=True)
         return self.get_paginated_response(serializer.data)

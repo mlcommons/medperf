@@ -7,4 +7,5 @@ app_name = "certificate"
 urlpatterns = [
     path("", views.CertificateList.as_view()),
     path("<int:pk>/", views.CertificateDetail.as_view()),
+    path("<int:pk>/encrypted_keys/", views.CertificateEncryptedKeys.as_view()),
 ]
