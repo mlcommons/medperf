@@ -50,8 +50,10 @@ class EncryptedKey(MedperfSchema):
         user_cert = user_cert_info["user_cert_object"]
 
         # Get model key
-        filters = {"container": container_id, "certificate": user_cert.id}
-        keys = config.comms.get_user_encrypted_keys(filters=filters)
+        filters = {"container": container_id}
+        keys = config.comms.get_certificate_encrypted_keys(
+            user_cert.id, filters=filters
+        )
         if len(keys) == 0:
             raise PrivateContainerAccessError(
                 f"You don't have access to the container {container_id}"

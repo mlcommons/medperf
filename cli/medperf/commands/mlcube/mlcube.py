@@ -390,4 +390,3 @@ def check_access(
     Check if you have access to a model.
     """
     CheckAccess.run(model_id)
-    config.ui.print("✅ Done!")
