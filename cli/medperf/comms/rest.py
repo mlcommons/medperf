@@ -402,6 +402,26 @@ class REST(Comms):
         error_msg = "Could not retrieve training events"
         return self.__get_list(url, filters=filters, error_msg=error_msg)
 
+    def get_certificates(self, filters=dict()) -> List[dict]:
+        """Retrieves all certificates
+
+        Returns:
+            List[dict]: List of certificates
+        """
+        url = f"{self.server_url}/certificates/"
+        error_msg = "Could not retrieve certificates"
+        return self.__get_list(url, filters=filters, error_msg=error_msg)
+
+    def get_encrypted_keys(self, filters=dict()) -> List[dict]:
+        """Retrieves all encrypted keys
+
+        Returns:
+            List[dict]: List of encrypted keys
+        """
+        url = f"{self.server_url}/encrypted_keys/"
+        error_msg = "Could not retrieve encrypted keys"
+        return self.__get_list(url, filters=filters, error_msg=error_msg)
+
     # get user list
     def get_user_cubes(self, filters=dict()) -> List[dict]:
         """Retrieves metadata from all cubes registered by the user
