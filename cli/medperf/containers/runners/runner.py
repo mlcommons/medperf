@@ -26,3 +26,8 @@ class Runner(ABC):
         disable_network: bool = True,
     ):
         pass
+
+    @property
+    def is_workflow(self):
+        """Can be overriden for workflow runners"""
+        return False

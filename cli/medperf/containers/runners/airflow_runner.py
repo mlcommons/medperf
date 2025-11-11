@@ -9,6 +9,14 @@ import os
 import shutil
 from medperf.containers.parsers.airflow_parser import AirflowParser
 from medperf.account_management import get_medperf_user_data
+from .utils import (
+    run_command,
+    check_docker_image_hash,
+)
+from medperf.comms.entity_resources import resources
+from .runner import Runner
+import logging
+from .docker_utils import get_docker_image_hash
 
 
 class AirflowRunner(Runner):
@@ -23,7 +31,7 @@ class AirflowRunner(Runner):
     ):
         self.parser = airflow_config_parser
         self.container_dir = container_files_base_path
-        self.workflow_name = workflow_name  # TODO this needs validation!
+        self.workflow_name = workflow_name
 
     def download(
         self,
@@ -33,8 +41,29 @@ class AirflowRunner(Runner):
         alternative_image_hash: str = None,
         container_base_dir: str = None,
     ) -> Dict[str, str]:
-        # TODO implement image downloads too
-        pass
+        # TODO currently no support for singularity user environment
+        # converting a docker image to singularity
+        for container in self.parser.containers:
+            if container.platform == "docker":
+                expected_image_hash = hashes_dict.get(container.image)
+                command = ["docker", "pull", container.image]
+                run_command(command, timeout=download_timeout)
+                computed_image_hash = get_docker_image_hash(
+                    container.image, get_hash_timeout
+                )
+                check_docker_image_hash(
+                    computed_image_hash, expected_image_hash, alternative_image_hash
+                )
+                hashes_dict[container.image] = computed_image_hash
+            elif container.platform == "singularity":
+                expected_image_hash = hashes_dict.get(container.image)
+                sif_image_path, computed_image_hash = resources.get_cube_image(
+                    container.image, expected_image_hash
+                )  # Hash checking happens in resources
+                self.sif_image_path = sif_image_path
+                hashes_dict[container.image] = computed_image_hash
+
+        return hashes_dict
 
     def run(
         self,
@@ -89,3 +118,7 @@ class AirflowRunner(Runner):
         os.makedirs(additional_files_path, exist_ok=True)
         moved_yaml_file_path = os.path.join(additional_files_path, yaml_file_name)
         shutil.copy2(self.parser.config_file_path, moved_yaml_file_path)
+
+    @property
+    def is_workflow(self):
+        return True

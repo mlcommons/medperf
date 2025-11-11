@@ -1,6 +1,31 @@
-from typing import Dict, Union
+from typing import Dict, Union, Literal, Set
 from medperf.exceptions import InvalidContainerSpec
 from medperf.containers.parsers.parser import Parser
+
+
+class ContainerForAirflow:
+
+    def __init__(self, image: str, platform: Literal["docker", "singularity"]):
+        self._image = image
+        if platform not in ["docker", "singularity"]:
+            raise InvalidContainerSpec(f"Container type {platform} is not supported!")
+        self._platform = platform
+
+    @property
+    def image(self):
+        return self._image
+
+    @property
+    def platform(self):
+        return self._platform
+
+    def __eq__(self, other):
+        if not isinstance(other, ContainerForAirflow):
+            return False
+        return self._image == other._image and self._platform == other._platform
+
+    def __hash__(self):
+        return hash((self._image, self._platform))
 
 
 class AirflowParser(Parser):
@@ -21,8 +46,8 @@ class AirflowParser(Parser):
         self._steps = []
         self.pools = None
         self.step_ids = []
-        self.container_ids = (
-            []
+        self.containers: Set[ContainerForAirflow] = (
+            set()
         )  # TODO currently assumes only images on some registry, does not support files
 
     def check_schema(self) -> str:
@@ -53,7 +78,9 @@ class AirflowParser(Parser):
 
             container_image = self._verify_container(step, error_msg_list=error_msgs)
             if container_image is not None:
-                self.container_ids.append(container_image)
+                self.containers.add(  # TODO add support for singularity containers
+                    ContainerForAirflow(image=container_image, platform="docker")
+                )
 
             if "limit" in step.keys():
                 tmp_pools.update(self._create_pool_info(step))
