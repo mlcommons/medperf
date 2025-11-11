@@ -19,7 +19,7 @@ from .docker_utils import (
     delete_images,
 )
 from medperf.encryption import decrypt_gpg_file, check_gpg
-from medperf.utils import remove_path, run_command, create_folder_for_decryption
+from medperf.utils import remove_path, run_command, tmp_file_path_for_decryption
 
 
 class DockerRunner(Runner):
@@ -162,7 +162,7 @@ class DockerRunner(Runner):
                 "Internal error: Container should be automatically deleted after run"
             )
 
-        decrypted_archive_path = create_folder_for_decryption()
+        decrypted_archive_path = tmp_file_path_for_decryption()
         repo_tags_list = []
         try:
             # decrypt archive

@@ -1,6 +1,6 @@
 from medperf.comms.entity_resources import resources
 from medperf.exceptions import InvalidArgumentError, MedperfException
-from medperf.utils import remove_path, run_command, create_folder_for_decryption
+from medperf.utils import remove_path, run_command, tmp_file_path_for_decryption
 from .utils import (
     check_allowed_run_args,
     add_medperf_run_args,
@@ -225,7 +225,7 @@ class SingularityRunner(Runner):
                 "Container is encrypted but decryption key is not provided"
             )
 
-        decrypted_sif_file = create_folder_for_decryption()
+        decrypted_sif_file = tmp_file_path_for_decryption()
         try:
             # decrypt file
             decrypt_gpg_file(
@@ -253,7 +253,7 @@ class SingularityRunner(Runner):
             self.container_files_base_path, config.image_path
         )
         sif_image_file = os.path.join(sif_image_folder, f"{self.image_file_hash}.sif")
-        decrypted_archive_file = create_folder_for_decryption()
+        decrypted_archive_file = tmp_file_path_for_decryption()
         try:
             # decrypt file
             decrypt_gpg_file(
