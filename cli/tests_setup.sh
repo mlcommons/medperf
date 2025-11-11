@@ -86,7 +86,7 @@ fi
 ########################## Setup #########################
 ##########################################################
 ASSETS_URL="https://raw.githubusercontent.com/hasan7n/mockcube/63454ef4bb96f1879a549e2131ab6361a702e8e1"
-CHESTXRAY_ASSETS_URL="https://raw.githubusercontent.com/RodriguesRBruno/medperf/4afaf31537cb3a7b56b3e9eae50f15a1c3af6087/examples/chestxray_tutorial"
+CHESTXRAY_ASSETS_URL="https://raw.githubusercontent.com/RodriguesRBruno/medperf/0f1113bca1c2eef6a3c40b83032a9982b008effd/examples/chestxray_tutorial"
 
 # datasets
 DSET_A_URL="$ASSETS_URL/assets/datasets/dataset_a.tar.gz"
