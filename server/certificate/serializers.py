@@ -13,9 +13,9 @@ class CertificateSerializer(serializers.ModelSerializer):
     def create(self, *args, **kwargs):
         try:
             return super().create(*args, **kwargs)
-        except IntegrityError as e:
+        except IntegrityError:
             raise serializers.ValidationError(
-                {"non_field_errors": [f"Database Integrity Error: {str(e)}"]}
+                {"non_field_errors": ["Database Integrity Error"]}
             )
 
 

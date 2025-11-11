@@ -20,9 +20,9 @@ class EncryptedKeySerializer(serializers.ModelSerializer):
     def create(self, *args, **kwargs):
         try:
             return super().create(*args, **kwargs)
-        except IntegrityError as e:
+        except IntegrityError:
             raise serializers.ValidationError(
-                {"non_field_errors": [f"Database Integrity Error: {str(e)}"]}
+                {"non_field_errors": ["Database Integrity Error"]}
             )
 
 
@@ -64,9 +64,9 @@ class CreateEncryptedKeyListSerializer(serializers.ListSerializer):
         try:
             with transaction.atomic():
                 return EncryptedKey.objects.bulk_create(objects)
-        except IntegrityError as e:
+        except IntegrityError:
             raise serializers.ValidationError(
-                {"non_field_errors": [f"Database Integrity Error: {str(e)}"]}
+                {"non_field_errors": ["Database Integrity Error"]}
             )
 
 
@@ -89,7 +89,7 @@ class UpdateEncryptedKeyListSerializer(serializers.ListSerializer):
                 return EncryptedKey.objects.bulk_update(
                     instance_mapping.values(), ["is_valid", "encrypted_key_base64"]
                 )
-        except IntegrityError as e:
+        except IntegrityError:
             raise serializers.ValidationError(
-                {"non_field_errors": [f"Database Integrity Error: {str(e)}"]}
+                {"non_field_errors": ["Database Integrity Error"]}
             )
