@@ -82,9 +82,7 @@ class EncryptedKey(MedperfSchema):
         decrypted_key_bytes = AsymmetricEncryption().decrypt(
             private_key_bytes, encrypted_key_bytes
         )
-        secure_write_to_file(
-            output_path, decrypted_key_bytes, binary=True, exec_permission=True
-        )
+        secure_write_to_file(output_path, decrypted_key_bytes, exec_permission=True)
         return output_path
 
     def display_dict(self):
