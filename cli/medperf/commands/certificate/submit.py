@@ -18,9 +18,9 @@ class SubmitCertificate:
 
         submission.prepare()
         with ui.interactive():
-            ui.text = "Submitting Certificate to MedPerf"
+            ui.text = "Verifying Certificate"
             submission.verify_user_certificate()
-            updated_certificate_body = submission.submit()
+        updated_certificate_body = submission.submit()
         ui.print("Certificate uploaded")
         submission.write(updated_certificate_body)
 
@@ -62,7 +62,7 @@ class SubmitCertificate:
         msg += "that belong to benchmarks your datasets are part of.\n"
         msg += "Do you wish to proceed? [Y/n]"
 
-        approved = approved or approval_prompt(msg)
+        approved = self.approved or approval_prompt(msg)
 
         if not approved:
             config.ui.print("Certificate submission cancelled.")
