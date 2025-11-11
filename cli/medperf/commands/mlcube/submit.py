@@ -16,10 +16,11 @@ class SubmitCube:
         """
         ui = config.ui
         submission = cls(submit_info, decryption_key)
-        submission.validate()
         with ui.interactive():
             ui.text = "Validating Container can be downloaded"
-            submission.download()
+            submission.download_config_files()
+            submission.validate()
+            submission.download_run_files()
             ui.text = "Submitting Container to MedPerf"
             updated_cube_dict = submission.upload()
             submission.to_permanent_path(updated_cube_dict)
@@ -34,6 +35,9 @@ class SubmitCube:
         self.decryption_key = decryption_key
         config.tmp_paths.append(self.cube.path)
 
+    def download_config_files(self):
+        self.cube.download_config_files()
+
     def validate(self):
         if self.cube.is_encrypted() and not self.decryption_key:
             raise InvalidArgumentError(
@@ -45,8 +49,7 @@ class SubmitCube:
                 "Container is not encrypted, but a decryption key is provided"
             )
 
-    def download(self):
-        self.cube.download_config_files()
+    def download_run_files(self):
         self.cube.download_run_files()
 
     def upload(self):
