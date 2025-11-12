@@ -45,7 +45,7 @@
                 <input
                     name="container_file"
                     class="form-control"
-                    type="file"
+                    type="text"
                     id="container-file"
                     placeholder="{{ placeholders.register_container_manifest_file }}"
                     {% if task_running %} disabled {% endif %}
@@ -53,6 +53,14 @@
                     value="{{ task_formData.get('container_file', '') }}"
                     {% endif %}
                 >
+                <div class="input-group-append">
+                    <button
+                        type="button"
+                        class="btn btn-outline-secondary"
+                        id="browse-container-btn"
+                        {% if task_running %} disabled {% endif %}   
+                    >Browse</button>
+                </div>
                 <i
                     class="tooltip-info input-group-text fa fa-info-circle fs-4"
                     data-bs-toggle="tooltip"
@@ -67,7 +75,7 @@
                 <input
                     name="parameters_file"
                     class="form-control"
-                    type="file"
+                    type="text"
                     id="parameters-file"
                     placeholder="{{ placeholders.register_container_parameters_file }}"
                     {% if task_running %} disabled {% endif %}
@@ -75,6 +83,14 @@
                     value="{{ task_formData.get('parameters_file', '') }}"
                     {% endif %}
                 >
+                <div class="input-group-append">
+                    <button
+                        type="button"
+                        class="btn btn-outline-secondary"
+                        id="browse-parameters-btn"
+                        {% if task_running %} disabled {% endif %}   
+                    >Browse</button>
+                </div>
                 <i
                     class="tooltip-info input-group-text fa fa-info-circle fs-4"
                     data-bs-toggle="tooltip"

@@ -30,11 +30,11 @@ async function registerContainer(registerButton){
 }
 
 function checkContainerFormValidity() {
-    const containerFile = $("#container-file")[0].files;
+    const containerPath = $("#container-file").val().trim();
 
     const isValid = Boolean(
         $("#name").val().trim() &&
-        containerFile.length > 0
+        containerPath.length > 0
     );
     $("#register-container-btn").prop("disabled", !isValid);
 }
@@ -44,8 +44,8 @@ $(document).ready(() => {
         showConfirmModal(e.currentTarget, registerContainer, "register this container?");
     });
 
-    $("#container-register-form input").on("keyup keydown change", checkContainerFormValidity);
-
+    $("#container-register-form input").on("keyup", checkContainerFormValidity);
+    
     $("#browse-container-btn").on("click", () => {
         browseWithFiles = true;
         browseFolderHandler("container-file");
