@@ -4,6 +4,7 @@ from typing import Optional
 from medperf.utils import generate_tmp_path, get_file_hash
 from .sources import supported_sources
 from medperf.exceptions import InvalidArgumentError, InvalidEntityError
+import yaml
 
 
 def __parse_resource(resource: str):
@@ -89,3 +90,8 @@ def download_resource(
     to_permanent_path(tmp_output_path, output_path)
 
     return calculated_hash
+
+
+def load_yaml_content(yaml_path: os.PathLike):
+    with open(yaml_path, "r") as f:
+        return yaml.safe_load(f)
