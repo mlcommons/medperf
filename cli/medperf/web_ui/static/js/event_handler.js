@@ -5,6 +5,7 @@ function create_p(msg){
 }
 
 function scrollToElement(selector){
+    // .stop(true) to avoid scroll lagging during multiple scrolls
     $("html, body").stop(true).animate({
         scrollTop: $(selector).offset().top
     }, 1000);
