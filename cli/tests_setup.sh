@@ -163,6 +163,9 @@ echo "Downloading Metrics Containers"
 METRIC_MLCUBE=$(downloadToTestDirectory $METRIC_MLCUBE metrics)
 METRIC_PARAMS=$(downloadToTestDirectory $METRIC_PARAMS metrics)
 
+echo "Download Prep Training MLCube"
+PREP_TRAINING_MLCUBE=$(downloadToTestDirectory $PREP_TRAINING_MLCUBE testfl)
+
 # test users credentials
 MODELOWNER="testmo@example.com"
 DATAOWNER="testdo@example.com"
