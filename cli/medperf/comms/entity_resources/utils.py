@@ -27,12 +27,9 @@ def __parse_resource(resource: str) -> Tuple[type[BaseSource], str]:
     """
 
     for source_class in supported_sources:
-        try:
-            resource_identifier = source_class.validate_resource(resource)
-            if resource_identifier:
-                return source_class, resource_identifier
-        except (AttributeError, TypeError):
-            continue
+        resource_identifier = source_class.validate_resource(resource)
+        if resource_identifier:
+            return source_class, resource_identifier
 
     # In this case the input format is not compatible with any source
     msg = f"""Invalid resource input: {resource}. A Resource must be a url, a local file or
@@ -111,3 +108,7 @@ def load_yaml_content(resource_path: str) -> Dict[str, Any]:
         yaml_dict = {}
 
     return yaml_dict
+
+
+if __name__ == '__main__':
+    __parse_resource('https://storage.googleapis.com/medperf-storage/testfl/mlcube.yaml')

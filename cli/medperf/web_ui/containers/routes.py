@@ -1,4 +1,5 @@
 import logging
+import yaml
 
 from fastapi import APIRouter, Depends, Form, File, UploadFile
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -120,9 +121,20 @@ def register_container(
 ):
     initialize_state_task(request, task_name="container_registration")
 
+    container_config_bytes = container_file.file.read()
+    parameters_config_bytes = parameters_file.file.read()
+
+    container_config = yaml.safe_load(container_config_bytes)
+    if parameters_config_bytes:
+        parameters_config = yaml.safe_load(parameters_config_bytes)
+    else:
+        parameters_config = {}
+
     return_response = {"status": "", "error": "", "container_id": None}
     container_info = {
         "name": name,
+        "container_config": container_config,
+        "parameters_config": parameters_config,
         "image_tarball_url": "",
         "image_tarball_hash": "",
         "additional_files_tarball_url": additional_file,
@@ -131,9 +143,7 @@ def register_container(
     }
     container_id = None
     try:
-        container_id = SubmitCube.run(container_info,
-                                      container_config=container_file.file,
-                                      parameters_config=parameters_file.file)
+        container_id = SubmitCube.run(container_info)
         return_response["status"] = "success"
         return_response["container_id"] = container_id
         notification_message = "Container successfully registered"
