@@ -12,7 +12,8 @@ from fastapi.staticfiles import StaticFiles
 from medperf import config
 
 from medperf.decorators import clean_except
-from medperf.web_ui.common import custom_exception_handler, print_webui_props
+from medperf.web_ui.common import custom_exception_handler
+from medperf.utils import print_webui_props
 from medperf.web_ui.datasets import router as datasets_router
 from medperf.web_ui.benchmarks.routes import router as benchmarks_router
 from medperf.web_ui.containers.routes import router as containers_router

@@ -2,7 +2,9 @@ from fastapi import Query, Request, Form, APIRouter, status, Security
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 from medperf.web_ui.auth import security_token, AUTH_COOKIE_NAME
-from medperf.web_ui.common import print_webui_props, templates, api_key_cookie
+from medperf.web_ui.common import templates, api_key_cookie
+from medperf.utils import print_webui_props
+
 from urllib.parse import urlparse
 
 router = APIRouter()
