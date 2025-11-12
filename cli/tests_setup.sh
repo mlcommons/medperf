@@ -79,6 +79,18 @@ checkSucceeded() {
   checkFailed "$1"
 }
 
+downloadToTestDirectory() {
+  FILE_LINK=$1
+  SUBDIRECTORY=$2
+  FILE_NAME=$(basename "$FILE_LINK")
+  FULL_DIRECTORY="$DIRECTORY/$SUBDIRECTORY"
+  FULL_FILE_PATH="$FULL_DIRECTORY/$FILE_NAME"
+
+  wget -nc -P $FULL_DIRECTORY $FILE_LINK
+
+  echo $FULL_FILE_PATH
+}
+
 if ${FRESH}; then
   clean
 fi
@@ -126,9 +138,30 @@ METRIC_MLCUBE="$ASSETS_URL/metrics/container_config.yaml"
 METRIC_PARAMS="$ASSETS_URL/metrics/workspace/parameters.yaml"
 
 # FL cubes
-TRAIN_MLCUBE="https://raw.githubusercontent.com/hasan7n/medperf/19c80d88deaad27b353d1cb9bc180757534027aa/examples/fl/fl/mlcube/mlcube.yaml"
+TRAIN_MLCUBE="$(dirname $(dirname $(realpath "$0")))/examples/fl/fl/mlcube/mlcube.yaml"
 TRAIN_WEIGHTS="https://storage.googleapis.com/medperf-storage/testfl/init_weights_miccai.tar.gz"
-FLADMIN_MLCUBE="https://raw.githubusercontent.com/hasan7n/medperf/bc431ffe6c3b761b28674816e6f26511e8b27042/examples/fl/fl_admin/mlcube/mlcube.yaml"
+FLADMIN_MLCUBE="$(dirname $(dirname $(realpath "$0")))/examples/fl/fl_admin/mlcube/mlcube.yaml"
+
+# Download files to local test storage. 
+# Override variables so the local files are used in tests.
+echo "Downloading Model Containers"
+FAILING_MODEL_MLCUBE=$(downloadToTestDirectory $FAILING_MODEL_MLCUBE model-bug)
+MODEL_WITH_SINGULARITY=$(downloadToTestDirectory $MODEL_WITH_SINGULARITY model-cpu)
+MODEL_MLCUBE=$(downloadToTestDirectory $MODEL_MLCUBE model-cpu)
+MODEL_LOG_MLCUBE=$(downloadToTestDirectory $MODEL_LOG_MLCUBE model-debug-logging)
+
+MODEL1_PARAMS=$(downloadToTestDirectory $MODEL1_PARAMS model-cpu)
+MODEL2_PARAMS=$(downloadToTestDirectory $MODEL2_PARAMS model-cpu)
+MODEL3_PARAMS=$(downloadToTestDirectory $MODEL3_PARAMS model-cpu)
+MODEL4_PARAMS=$(downloadToTestDirectory $MODEL4_PARAMS model-cpu)
+
+
+MODEL_LOG_NONE_PARAMS=$(downloadToTestDirectory $MODEL_LOG_NONE_PARAMS model-debug-logging)
+MODEL_LOG_DEBUG_PARAMS=$(downloadToTestDirectory $MODEL_LOG_DEBUG_PARAMS model-debug-logging)
+
+echo "Downloading Metrics Containers"
+METRIC_MLCUBE=$(downloadToTestDirectory $METRIC_MLCUBE metrics)
+METRIC_PARAMS=$(downloadToTestDirectory $METRIC_PARAMS metrics)
 
 # test users credentials
 MODELOWNER="testmo@example.com"
