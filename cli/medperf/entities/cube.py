@@ -131,16 +131,16 @@ class Cube(Entity, DeployableSchema):
 
     def download_mlcube(self):
         os.makedirs(self.path, exist_ok=True)
-        with open(self.cube_path, 'w') as f:
+        with open(self.cube_path, "w") as f:
             yaml.safe_dump(self.container_config, f)
 
     def download_parameters(self):
         if self.parameters_config is None:
             return
 
-        parameter_dir = os.path.normpath(os.path.join(self.params_path, '..'))
+        parameter_dir = os.path.normpath(os.path.join(self.params_path, ".."))
         os.makedirs(parameter_dir, exist_ok=True)
-        with open(self.params_path, 'w') as f:
+        with open(self.params_path, "w") as f:
             yaml.safe_dump(self.parameters_config, f)
 
     def download_additional(self):
@@ -169,15 +169,11 @@ class Cube(Entity, DeployableSchema):
         except InvalidEntityError as e:
             raise InvalidEntityError(f"Container {self.name} additional files: {e}")
 
-        alternative_image_hash = None
-        if self.metadata is not None:
-            alternative_image_hash = self.metadata.get("id", None)
         try:
             self.image_hash = self.runner.download(
                 expected_image_hash=self.image_hash,
                 download_timeout=config.mlcube_configure_timeout,
                 get_hash_timeout=config.mlcube_inspect_timeout,
-                alternative_image_hash=alternative_image_hash,
             )
         except InvalidEntityError as e:
             raise InvalidEntityError(f"Container {self.name} image: {e}")

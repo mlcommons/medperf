@@ -51,7 +51,6 @@ class SingularityRunner(Runner):
         expected_image_hash,
         download_timeout: int = None,
         get_hash_timeout: int = None,
-        alternative_image_hash: str = None,
     ):
         if self.parser.container_type == "SingularityFile":
             return self._download_singularity_file(
@@ -64,7 +63,6 @@ class SingularityRunner(Runner):
                 expected_image_hash,
                 download_timeout,
                 get_hash_timeout,
-                alternative_image_hash,
             )
 
     def _download_singularity_file(
@@ -85,15 +83,12 @@ class SingularityRunner(Runner):
         expected_image_hash,
         download_timeout: int = None,
         get_hash_timeout: int = None,
-        alternative_image_hash: str = None,
     ):
         docker_image = self.parser.get_setup_args()
         computed_image_hash = get_docker_image_hash_from_dockerhub(
             docker_image, get_hash_timeout
         )
-        check_docker_image_hash(
-            computed_image_hash, expected_image_hash, alternative_image_hash
-        )
+        check_docker_image_hash(computed_image_hash, expected_image_hash)
 
         sif_image_folder = os.path.join(
             self.container_files_base_path, config.image_path

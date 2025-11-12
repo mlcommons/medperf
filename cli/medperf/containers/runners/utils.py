@@ -104,20 +104,8 @@ def add_medperf_tmp_folder(output_volumes, tmp_folder):
     )
 
 
-def check_docker_image_hash(
-    computed_image_hash, expected_image_hash=None, alternative_image_hash=None
-):
+def check_docker_image_hash(computed_image_hash, expected_image_hash=None):
     if expected_image_hash and expected_image_hash != computed_image_hash:
-        # try with digest if possible
-        # This fixes an issue with newer docker versions where inspect returns
-        # the digest instead of the image ID. The cleaner fix will require changing how
-        # we define the image hash.
-        if alternative_image_hash is None:
-            raise InvalidContainerSpec(
-                f"Hash mismatch. Expected {expected_image_hash}, found {computed_image_hash}."
-            )
-        if alternative_image_hash != computed_image_hash:
-            raise InvalidContainerSpec(
-                f"Hash mismatch. Expected {expected_image_hash} or"
-                f" {alternative_image_hash}, found {computed_image_hash}."
-            )
+        raise InvalidContainerSpec(
+            f"Hash mismatch. Expected {expected_image_hash}, found {computed_image_hash}."
+        )

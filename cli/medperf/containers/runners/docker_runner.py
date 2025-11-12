@@ -10,7 +10,11 @@ from .utils import (
 )
 from .runner import Runner
 import logging
-from .docker_utils import craft_docker_run_command, get_docker_image_hash, generate_unique_image_name
+from .docker_utils import (
+    craft_docker_run_command,
+    get_docker_image_hash,
+    generate_unique_image_name,
+)
 
 
 class DockerRunner(Runner):
@@ -22,19 +26,19 @@ class DockerRunner(Runner):
         expected_image_hash,
         download_timeout: int = None,
         get_hash_timeout: int = None,
-        alternative_image_hash: str = None,
     ):
         docker_image = self.parser.get_setup_args()
 
-        unique_docker_image_name = generate_unique_image_name(image_name_with_tag=docker_image,
-                                                              image_hash=expected_image_hash)
+        unique_docker_image_name = generate_unique_image_name(
+            image_name_with_tag=docker_image, image_hash=expected_image_hash
+        )
 
         command = ["docker", "pull", unique_docker_image_name]
         run_command(command, timeout=download_timeout)
-        computed_image_hash = get_docker_image_hash(unique_docker_image_name, get_hash_timeout)
-        check_docker_image_hash(
-            computed_image_hash, expected_image_hash, alternative_image_hash
+        computed_image_hash = get_docker_image_hash(
+            unique_docker_image_name, get_hash_timeout
         )
+        check_docker_image_hash(computed_image_hash, expected_image_hash)
         return computed_image_hash
 
     def run(

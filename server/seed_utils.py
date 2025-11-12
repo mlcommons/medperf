@@ -16,7 +16,7 @@ ASSETS_URL = (
 
 
 def _load_asset_content(file_relative_url: str):
-    asset_url = f'{ASSETS_URL}/{file_relative_url}'
+    asset_url = f"{ASSETS_URL}/{file_relative_url}"
 
     response = requests.get(asset_url)
     content = yaml.safe_load(response.content)
@@ -25,11 +25,11 @@ def _load_asset_content(file_relative_url: str):
 
 
 def load_container_config(dirname: str):
-    return _load_asset_content(f'{dirname}/container_config.yaml')
+    return _load_asset_content(f"{dirname}/container_config.yaml")
 
 
 def load_parameters_config(dirname: str):
-    return _load_asset_content(f'{dirname}/workspace/parameters.yaml')
+    return _load_asset_content(f"{dirname}/workspace/parameters.yaml")
 
 
 class Server:
@@ -114,8 +114,8 @@ def set_user_as_admin(api_server, access_token):
 def create_benchmark(api_server, benchmark_owner_token, admin_token):
     print("##########################BENCHMARK OWNER##########################")
 
-    data_prep_config = load_container_config('data_preparator')
-    data_prep_params = load_parameters_config('data_preparator')
+    data_prep_config = load_container_config("data_preparator")
+    data_prep_params = load_parameters_config("data_preparator")
     # Create a Data preprocessor MLCube by Benchmark Owner
     data_preprocessor_mlcube = api_server.request(
         "/mlcubes/",
@@ -123,16 +123,14 @@ def create_benchmark(api_server, benchmark_owner_token, admin_token):
         benchmark_owner_token,
         {
             "name": "chestxray_prep",
-            'container_config': data_prep_config,
-            'parameters_config': data_prep_params,
+            "container_config": data_prep_config,
+            "parameters_config": data_prep_params,
             "image_tarball_url": "",
             "image_tarball_hash": "",
             "image_hash": "sha256:f8697dc1c646395ad1ac54b8c0373195dbcfde0c4ef5913d4330a5fe481ae9a4",
             "additional_files_tarball_url": "",
             "additional_files_tarball_hash": "",
-            "metadata": {
-                "id": "sha256:d941e09d160bba3cf5c09b48f490e3b9e891597341e560954ff7512478eaef22"
-            },
+            "metadata": {},
         },
         "id",
     )
@@ -155,8 +153,8 @@ def create_benchmark(api_server, benchmark_owner_token, admin_token):
         "by Benchmark Owner",
     )
 
-    model_cnn_container_config = load_container_config('model_custom_cnn')
-    model_cnn_parameters_config = load_parameters_config('model_custom_cnn')
+    model_cnn_container_config = load_container_config("model_custom_cnn")
+    model_cnn_parameters_config = load_parameters_config("model_custom_cnn")
     # Create a reference model executor mlcube by Benchmark Owner
     reference_model_executor_mlcube = api_server.request(
         "/mlcubes/",
@@ -164,8 +162,8 @@ def create_benchmark(api_server, benchmark_owner_token, admin_token):
         benchmark_owner_token,
         {
             "name": "chestxray_cnn",
-            'container_config': model_cnn_container_config,
-            'parameters_config': model_cnn_parameters_config,
+            "container_config": model_cnn_container_config,
+            "parameters_config": model_cnn_parameters_config,
             "additional_files_tarball_url": (
                 "https://storage.googleapis.com/medperf-storage/"
                 "chestxray_tutorial/cnn_weights.tar.gz"
@@ -174,9 +172,7 @@ def create_benchmark(api_server, benchmark_owner_token, admin_token):
             "image_hash": "sha256:a1bdddce05b9d156df359dd570de8031fdd1ea5a858f755139bed4a95fad19d1",
             "image_tarball_url": "",
             "image_tarball_hash": "",
-            "metadata": {
-                "id": "sha256:877b8df79678215dfdcb63fe6bc1dab58e9c29113437c2c5627442551e3087c5"
-            },
+            "metadata": {},
         },
         "id",
     )
@@ -199,8 +195,8 @@ def create_benchmark(api_server, benchmark_owner_token, admin_token):
         "by Benchmark Owner",
     )
 
-    evaluator_container_config = load_container_config('metrics')
-    evaluator_parameters_config = load_parameters_config('metrics')
+    evaluator_container_config = load_container_config("metrics")
+    evaluator_parameters_config = load_parameters_config("metrics")
     # Create a Data evalutor MLCube by Benchmark Owner
     data_evaluator_mlcube = api_server.request(
         "/mlcubes/",
@@ -208,16 +204,14 @@ def create_benchmark(api_server, benchmark_owner_token, admin_token):
         benchmark_owner_token,
         {
             "name": "chestxray_metrics",
-            'container_config': evaluator_container_config,
-            'parameters_config': evaluator_parameters_config,
+            "container_config": evaluator_container_config,
+            "parameters_config": evaluator_parameters_config,
             "image_tarball_url": "",
             "image_tarball_hash": "",
             "image_hash": "sha256:d33904c1104d0a3df314f29c603901a8584fec01e58b90d7ae54c8d74d32986c",
             "additional_files_tarball_url": "",
             "additional_files_tarball_hash": "",
-            "metadata": {
-                "id": "sha256:c61b4079be59ba3bb31090bdf89f7f603023f77d28ca0475b5320efaa36866aa"
-            },
+            "metadata": {},
         },
         "id",
     )
@@ -286,8 +280,8 @@ def create_model(api_server, model_owner_token, benchmark_owner_token, benchmark
     print("##########################MODEL OWNER##########################")
     # Model Owner Interaction
 
-    mobilenet_container_config = load_container_config('model_mobilenetv2')
-    mobilenet_parameters_config = load_parameters_config('model_mobilenetv2')
+    mobilenet_container_config = load_container_config("model_mobilenetv2")
+    mobilenet_parameters_config = load_parameters_config("model_mobilenetv2")
 
     # Create a model mlcube by Model Owner
     model_executor1_mlcube = api_server.request(
@@ -296,8 +290,8 @@ def create_model(api_server, model_owner_token, benchmark_owner_token, benchmark
         model_owner_token,
         {
             "name": "chestxray_mobilenet",
-            'container_config': mobilenet_container_config,
-            'parameters_config': mobilenet_parameters_config,
+            "container_config": mobilenet_container_config,
+            "parameters_config": mobilenet_parameters_config,
             "additional_files_tarball_url": (
                 "https://storage.googleapis.com/medperf-storage/"
                 "chestxray_tutorial/mobilenetv2_weights.tar.gz"
@@ -306,9 +300,7 @@ def create_model(api_server, model_owner_token, benchmark_owner_token, benchmark
             "image_tarball_url": "",
             "image_tarball_hash": "",
             "image_hash": "sha256:f27deb052eafd48ad1e350ceef7b0b9600aef0ea3f8cba47baee2b1d17411a83",
-            "metadata": {
-                "id": "sha256:33d26c8e266be9fe072081fb157313bfa51778b2934ab64bd622c8f0cd52dfa1"
-            },
+            "metadata": {},
         },
         "id",
     )
