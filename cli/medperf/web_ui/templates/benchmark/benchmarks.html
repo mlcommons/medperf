@@ -10,14 +10,14 @@
 <div class="container">
     <div class="row text-center">
         <div class="col-12">
-            <a class="btn btn-primary my-4" href="/benchmarks/register/ui">
+            <a class="btn btn-primary my-4" href="/benchmarks/register/ui" data-testid="reg-bmk-btn">
                 Register a New Benchmark
             </a>
         </div>
     </div>
     <div class="row mt-5">
         <div class="col-12">
-            <h1 class="mt-4 text-center">Benchmarks</h1>
+            <h1 class="mt-4 text-center" data-testid="page-header">Benchmarks</h1>
             <div class="form-check form-switch d-flex flex-column align-items-center">
                 <input
                     class="form-check-input fs-5"
@@ -36,7 +36,7 @@
 </div>
 <div class="container mt-5">
     <!-- Benchmark Cards -->
-    <div class="row">
+    <div class="row" data-testid="cards-container">
         {% if benchmarks %}
         {% for benchmark in benchmarks %}
         <div class="col-md-4 mb-4">
@@ -44,7 +44,7 @@
         </div>
         {% endfor %}
         {% else %}
-        <h3 class="col-12 text-center mt-5">
+        <h3 class="col-12 text-center mt-5" data-testid="no-bmks-msg">
             No benchmarks yet
         </h3>
         {% endif %}
