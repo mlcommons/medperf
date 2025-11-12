@@ -69,16 +69,3 @@ class DirectLinkSource(BaseSource):
                 attempt += 1
 
         raise CommunicationRetrievalError(f"Could not download {resource_identifier}")
-
-    def read_content(self, resource_identifier):
-        """Assumes the content can fit into memory; otherwise, use download."""
-        with requests.get(resource_identifier) as res:
-            if res.status_code != 200:
-                log_response_error(res)
-                msg = (
-                    "There was a problem retrieving the specified file at "
-                    + resource_identifier
-                )
-                raise CommunicationRetrievalError(msg)
-            content = res.content
-        return content

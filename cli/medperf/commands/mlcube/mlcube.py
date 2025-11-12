@@ -25,7 +25,7 @@ def run_test(
         None, "--parameters_file_path", help="path to container parameters file"
     ),
     additional_files_path: str = typer.Option(
-        None, "--additional_files_path", help="path to container additional files"
+        None, "--additional_files_path", help="path to ciontainer additional files"
     ),
     output_logs: str = typer.Option(
         None, "--output_logs", "-o", help="where to store stdout"
@@ -134,7 +134,7 @@ def submit(
         "-m",
         help="Container Config file. Preferably a local file in your computer. "
         "May optionally be a remote file. See the description above. "
-        "Its contents will be uploaded to the MedPerf server."
+        "Its contents will be uploaded to the MedPerf server.",
     ),
     parameters_file: str = typer.Option(
         "",
@@ -142,7 +142,7 @@ def submit(
         "-p",
         help="Local parameters file. Preferably a local file in your computer. "
         "May optionally be a remote file. See the description above. "
-        "Its contents will be uploaded to the MedPerf server."
+        "Its contents will be uploaded to the MedPerf server.",
     ),
     additional_file: str = typer.Option(
         "",
@@ -162,8 +162,8 @@ def submit(
 ):
     """Submits a new container to the platform.\n
     The following assets:\n
-        - additional-file\n
-        - image-file\n
+        - additional_file\n
+        - image_file\n
     are expected to be given in the following format: <source_prefix:resource_identifier>
     where `source_prefix` instructs the client how to download the resource, and `resource_identifier`
     is the identifier used to download the asset. The following are supported:\n
@@ -187,8 +187,11 @@ def submit(
         "additional_files_tarball_hash": additional_hash,
         "state": "OPERATION" if operational else "DEVELOPMENT",
     }
-    SubmitCube.run(mlcube_info, container_config=container_config_file,
-                   parameters_config=parameters_file)
+    SubmitCube.run(
+        mlcube_info,
+        container_config=container_config_file,
+        parameters_config=parameters_file,
+    )
     config.ui.print("✅ Done!")
 
 

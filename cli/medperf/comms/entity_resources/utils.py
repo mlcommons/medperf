@@ -1,17 +1,12 @@
-from __future__ import annotations
 import os
 import logging
-from typing import Any, Dict, Optional, TYPE_CHECKING, Tuple
+from typing import Optional
 from medperf.utils import generate_tmp_path, get_file_hash
 from .sources import supported_sources
 from medperf.exceptions import InvalidArgumentError, InvalidEntityError
-import yaml
-
-if TYPE_CHECKING:
-    from .sources import BaseSource
 
 
-def __parse_resource(resource: str) -> Tuple[type[BaseSource], str]:
+def __parse_resource(resource: str):
     """Parses a resource string and returns its identifier and the source class
     it can be downloaded from.
     The function iterates over all supported sources and checks which one accepts
@@ -32,7 +27,7 @@ def __parse_resource(resource: str) -> Tuple[type[BaseSource], str]:
             return source_class, resource_identifier
 
     # In this case the input format is not compatible with any source
-    msg = f"""Invalid resource input: {resource}. A Resource must be a url, a local file or
+    msg = f"""Invalid resource input: {resource}. A Resource must be a url or
     in the following format: '<source_prefix>:<resource_identifier>'. Run
     `medperf container submit --help` for more details."""
     raise InvalidArgumentError(msg)
@@ -94,21 +89,3 @@ def download_resource(
     to_permanent_path(tmp_output_path, output_path)
 
     return calculated_hash
-
-
-def load_yaml_content(resource_path: str) -> Dict[str, Any]:
-    source_class, resource_id = __parse_resource(resource_path)
-    source_instance = source_class()
-
-    source_instance.authenticate()
-    content = source_instance.read_content(resource_identifier=resource_id)
-
-    yaml_dict = yaml.safe_load(content)
-    if yaml_dict is None:
-        yaml_dict = {}
-
-    return yaml_dict
-
-
-if __name__ == '__main__':
-    __parse_resource('https://storage.googleapis.com/medperf-storage/testfl/mlcube.yaml')
