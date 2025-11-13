@@ -76,12 +76,6 @@ class MedperfSchema(BaseModel):
             return None
         return v
 
-    @validator("name", pre=True, always=True)
-    def name_max_length(cls, v, *, values, **kwargs):
-        if not values["for_test"] and len(v) > 128:
-            raise ValueError("The name must have no more than 128 characters")
-        return v
-
     class Config:
         allow_population_by_field_name = True
         extra = "allow"
