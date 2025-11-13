@@ -154,7 +154,7 @@ echo "\n"
 echo "====================================="
 echo "Do manual step of the preparation"
 echo "====================================="
-print_eval "sed -i '' 's/0$/1/' $MEDPERF_STORAGE/data/$SERVER_STORAGE_ID/$DSET_A_UID/data/data.csv"
+print_eval "sed -i 's/0$/1/' $MEDPERF_STORAGE/data/$SERVER_STORAGE_ID/$DSET_A_UID/data/data.csv"
 checkFailed "manual step failed"
 ##########################################################
 
