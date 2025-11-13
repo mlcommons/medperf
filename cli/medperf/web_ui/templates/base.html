@@ -2,26 +2,16 @@
 
 {% import 'macros/modal_macros.html' as modal_macros %}
 
-{% set task_running = request.app.state.task["running"] %}
-{% set notifications = request.app.state.notifications %}
-
-{% for notification in request.app.state.new_notifications %}
-    {% set _ = notifications.append(notification) %}
-    {% set _ = request.app.state.new_notifications.remove(notification) %}
-{% endfor %}
-
-{% set unread_notifications = [] %}
-{% if notifications %}
-    {% for notification in notifications %}
-        {% if not notification["read"] %}
-            {% set _ = unread_notifications.append(notification) %}
-        {% endif %}
-    {% endfor %}
-{% endif %}
-
-{% set unread_notifications = unread_notifications | length %}
-{% set task_formData = request.app.state.task["formData"] %}
+{% set task_running = request.app.state.task.running %}
 {% set logged_in = request.app.state.logged_in %}
+
+
+{% set notifications = request.app.state.notifications %}
+{% set unread_notifications = request.app.state.unread_count %}
+
+{% if task_running %}
+    {% set task_formData = request.app.state.task.formData %}
+{% endif %}
 
 <!DOCTYPE html>
 <html>
@@ -39,18 +29,19 @@
     {% block extra_css %} {% endblock extra_css %}
     <script>
         window.notifications = {{ notifications | tojson }};
+        window.maxLogMessages = Number("{{ request.app.state.MAXLOGMESSAGES }}");
+        window.evSource = null;
     </script>
     {% if task_running %}
+    {# Save running task id a global variable #}
     <script>
-        // Save running task id and previous events in global variables
-        window.runningTaskId = "{{ request.app.state.task['id'] }}";
-        window.previousEvents = {{ request.app.state.task["logs"] | tojson }};
+        window.runningTaskId = "{{ request.app.state.task.id }}";
     </script>
     {% endif %}
 </head>
 <body>
     {% include "partials/navbar.html" %}
-    <div class="">
+    <div class="page-wrap mt-5">
         <div class="main-content">
             {% block content %}{% endblock %}
         </div>
@@ -82,7 +73,7 @@
     ) }}
 
     <div id="toast-container" class="position-fixed top-0 start-50 translate-middle-x mt-3 z-3"></div>
-
+    {% include "partials/footer.html" %}
     <!-- jQuery and Bootstrap JS -->
     <script src="{{ url_for('static', path='js/jquery-3.6.0.min.js') }}"></script>
     <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script> -->
@@ -96,15 +87,8 @@
     <script src="{{ url_for('static', path='js/prism-yaml-1.23.0.min.js') }}"></script>
     <script src="{{ url_for('static', path='js/notifications.js') }}"></script>
     <script src="{{ url_for('static', path='js/common.js') }}"></script>
-    <script>
-        $(document).ready(() => {
-            $("#logout-btn").on("click", (e) => {
-                showConfirmModal(e.currentTarget, logout, "logout?");
-            });
-        });
-    </script>
     {% if task_running %}
-    <script>
+    <script data-testid="notifications-script">
         getNotifications();
         // Fetch notifications every 5 seconds
         setInterval(getNotifications, 5000);

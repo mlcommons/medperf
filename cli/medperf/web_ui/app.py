@@ -13,6 +13,7 @@ from medperf import config
 
 from medperf.decorators import clean_except
 from medperf.web_ui.common import custom_exception_handler
+from medperf.utils import print_webui_props
 from medperf.web_ui.datasets import router as datasets_router
 from medperf.web_ui.benchmarks.routes import router as benchmarks_router
 from medperf.web_ui.containers.routes import router as containers_router
@@ -23,6 +24,7 @@ from medperf.web_ui.events import router as events_router
 from medperf.web_ui.medperf_login import router as medperf_login
 from medperf.web_ui.profiles import router as profiles_router
 from medperf.web_ui.auth import wrap_openapi, NotAuthenticatedException, security_token
+from medperf.web_ui.schemas import WebUITask
 
 web_app = FastAPI()
 
@@ -47,32 +49,16 @@ web_app.openapi = wrap_openapi(web_app)
 
 @web_app.on_event("startup")
 def startup_event():
-    # Initialize state variales for:
-    # Showing logs/prompts
-    # Checking if a CLI function is running
-    # Notify user about a finished or a running task / pending prompt-confirmation
-    web_app.state.task = {
-        "id": "",
-        "name": "",
-        "running": False,
-        "logs": [],
-        "formData": {},
-    }
-    web_app.state.old_tasks = []
+    web_app.state.task = WebUITask()
+    web_app.state.old_tasks = []  # List of [schemas.WebUITask]
     web_app.state.task_running = False
-    # Will be shown in the notifications tab in the navbar
+    web_app.state.MAXLOGMESSAGES = config.webui_max_log_messages
+
+    # List of [schemas.Notification] will appear in the notifications tab
     web_app.state.notifications = []
-    # notifications to be sent will be in state.new_notifications. unpon sending, they'll be moved to state.notifications
+
+    # List of [schemas.Notification] that will be sent to the user as (popups)
     web_app.state.new_notifications = []
-    # A notifications will be a list of dictionaries as follows:
-    # {
-    # "id": "Unique id for each notification",
-    # "message": "Task X is finished / Failed to do task X",
-    # "type": "success/error/info(for prompt)".
-    # "url": "to navigate to the finished task page",
-    # "read": bool,
-    # "time": "timestamp"
-    # }
 
     # continue setup logging
     host_props = {**web_app.state.host_props, "security_token": security_token}
@@ -80,12 +66,9 @@ def startup_event():
         yaml.safe_dump(host_props, f)
 
     # print security token to CLI (avoid logging to file)
-    print("=" * 40)
-    print()
-    print("Use security token to view the web-UI:")
-    print(security_token)
-    print()
-    print("=" * 40)
+    host = host_props["host"]
+    port = host_props["port"]
+    print_webui_props(host, port, security_token)
 
     loglevel = config.loglevel.upper()
     logging.getLogger().setLevel(loglevel)

@@ -8,7 +8,7 @@
 {% block title %}Import Dataset{% endblock %}
 
 {% block content %}
-{% set dataset_import_running = (task_running and request.app.state.task["name"] == "dataset_import") %}
+{% set dataset_import_running = (task_running and request.app.state.task.name == "dataset_import") %}
 <div class="container">
     <h1 class="text-center">Import Dataset</h1>
 
@@ -150,7 +150,7 @@
 <script src="{{ url_for('static', path='js/datasets/dataset_import.js') }}"></script>
 <script src="{{ url_for('static', path='js/folder_browsing.js') }}"></script>
 
-{% if task_running and request.app.state.task["name"] == "dataset_import" and task_formData.get("dataset_id", "") == dataset.id|string %}
+{% if task_running and request.app.state.task.name == "dataset_import" and task_formData.get("dataset_id", "") == dataset.id|string %}
 <script>
     $(document).ready(() => {
         resumeRunningTask(

@@ -5,10 +5,10 @@
 {% block title %}Medperf Login{% endblock %}
 
 {% block content %}
-{% set login_running = (task_running and request.app.state.task["name"] == "medperf_login") %}
+{% set login_running = (task_running and request.app.state.task.name == "medperf_login") %}
 <div class="container min-vh-100 justify-content-center align-items-center">
     <div class="row mt-5">
-        {% if redirect %}
+        {% if redirected %}
         <div class="col-12">
             <div class="alert alert-danger text-center" role="alert">
                 You are not logged in
@@ -41,18 +41,8 @@
                     >Login</button>
                 </div>
             </form>
-            <div id="login-response" class="mt-5 text-center hidden-element">
-                <p id="link-text" class="fs-5 fw-bold hidden-element">Please go to the following link to complete your login request:</p>
-                <a id="link" href="" class="fs-5" target="_blank"></a>
-                <p id="code-text" class="fs-5 fw-bold mt-5 hidden-element">Make sure that you will be presented with the following code:</p>
-                <p id="code" class="fs-2 fw-bold"></p>
-                <p id="warning" class="fs-5 fw-bold text-danger hidden-element">
-                    Keep this page open until you complete your login request.
-                    <br>
-                    The page will refresh on its own once you complete the request.
-                    <br>
-                    If you wish to stop the login request anyway, press Ctrl+C in the CLI.
-                </p>
+            <div class="text-center">
+                {% include "partials/text_content_container.html" %}
             </div>
         </div>
     </div>
@@ -60,12 +50,14 @@
 {% endblock content %}
 
 {% block extra_js %}
+<script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
 <script src="{{ url_for('static', path='js/medperf_auth.js') }}"></script>
-{% if task_running and request.app.state.task["name"] == "medperf_login"  %}
+{% if task_running and request.app.state.task.name == "medperf_login"  %}
 <script>
     $(document).ready(() => {
-        resumeLogin(
+        resumeRunningTask(
             "#medperf-login-btn",
+            null,
             onMedperfLoginSuccess
         );
     });

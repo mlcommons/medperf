@@ -22,6 +22,7 @@ from medperf.web_ui.common import (
     templates,
     sort_associations_display,
     check_user_ui,
+    get_container_type,
 )
 
 from medperf.commands.association.approval import Approval
@@ -75,15 +76,22 @@ def benchmark_detail_ui(
     datasets = {}
     models = {}
     results = []
+    dataset_assoc_pending = False
+    model_assoc_pending = False
     current_user_is_benchmark_owner = benchmark.owner == get_medperf_user_data()["id"]
     if current_user_is_benchmark_owner:
         datasets_associations = Benchmark.get_datasets_associations(
             benchmark_uid=benchmark_id
         )
+        dataset_assoc_pending = any(
+            [i["approval_status"] == "PENDING" for i in datasets_associations]
+        )
         models_associations = Benchmark.get_models_associations(
             benchmark_uid=benchmark_id
         )
-
+        model_assoc_pending = any(
+            [i["approval_status"] == "PENDING" for i in models_associations]
+        )
         datasets_associations = sort_associations_display(datasets_associations)
         models_associations = sort_associations_display(models_associations)
 
@@ -124,6 +132,8 @@ def benchmark_detail_ui(
             "models": models,
             "current_user_is_benchmark_owner": current_user_is_benchmark_owner,
             "results": results,
+            "dataset_assoc_pending": dataset_assoc_pending,
+            "model_assoc_pending": model_assoc_pending,
         },
     )
 
@@ -134,8 +144,33 @@ def create_benchmark_ui(
     current_user: bool = Depends(check_user_ui),
 ):
 
+    my_user_id = get_medperf_user_data()["id"]
+    filters = {"owner": my_user_id}
+
+    my_containers = Cube.all(
+        filters=filters,
+    )
+
+    containers = []
+
+    for container in my_containers:
+        container_obj = {
+            "id": container.id,
+            "name": container.name,
+            "type": get_container_type(container),
+        }
+        containers.append(container_obj)
+    data_prep_containers = [i for i in containers if i["type"] == "data-prep-container"]
+    reference_containers = [i for i in containers if i["type"] == "reference-container"]
+    metrics_containers = [i for i in containers if i["type"] == "metrics-container"]
     return templates.TemplateResponse(
-        "benchmark/register_benchmark.html", {"request": request}
+        "benchmark/register_benchmark.html",
+        {
+            "request": request,
+            "data_prep_containers": data_prep_containers,
+            "reference_containers": reference_containers,
+            "metrics_containers": metrics_containers,
+        },
     )
 
 
@@ -262,7 +297,7 @@ def approve(
         notification_message = "Association successfully approved"
     except Exception as exp:
         return_response["status"] = "failed"
-        return_response["status"] = str(exp)
+        return_response["error"] = str(exp)
         notification_message = "Failed to approve association"
         logger.exception(exp)
 
@@ -298,7 +333,7 @@ def reject(
         notification_message = "Association successfully rejected"
     except Exception as exp:
         return_response["status"] = "failed"
-        return_response["status"] = str(exp)
+        return_response["error"] = str(exp)
         notification_message = "Failed to reject association"
         logger.exception(exp)
 

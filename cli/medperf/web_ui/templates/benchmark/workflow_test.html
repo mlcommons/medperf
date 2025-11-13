@@ -8,7 +8,7 @@
 {% block title %}Benchmark Workflow Test{% endblock %}
 
 {% block content %}
-{% set benchmark_workflow_test_running = (task_running and request.app.state.task["name"] == "benchmark_workflow_test") %}
+{% set benchmark_workflow_test_running = (task_running and request.app.state.task.name == "benchmark_workflow_test") %}
 <div class="container">
     <h1 class="text-center">Test your Benchmark Workflow</h1>
     <form class="my-5" id="workflow-test-form">
@@ -183,7 +183,7 @@
         ),
         modal_footer=True,
         close_button='<button type="button" class="btn btn-danger" onclick="reloadPage()">Cancel</button>',
-        success_button='button type="button" class="btn btn-success" onclick="showRegisterBenchmark()" data-bs-dismiss="modal">Continue to benchmark registration</button>'
+        success_button='<button type="button" class="btn btn-success" onclick="showRegisterBenchmark()" data-bs-dismiss="modal">Continue to benchmark registration</button>'
     
     ) }}
 
@@ -206,7 +206,7 @@
 <script src="{{ url_for('static', path='js/benchmarks/benchmark_workflow_test.js') }}"></script>
 <script src="{{ url_for('static', path='js/folder_browsing.js') }}"></script>
 
-{% if task_running and request.app.state.task["name"] == "benchmark_workflow_test" %}
+{% if task_running and request.app.state.task.name == "benchmark_workflow_test" %}
 <script>
     $(document).ready(() => {
         resumeRunningTask(

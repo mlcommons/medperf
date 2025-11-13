@@ -25,13 +25,6 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: '3.9'
-    
-    - name: Setup Chrome
-      run: |
-        sudo apt-get install -y wget
-        wget -O chrome.deb https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_126.0.6478.126-1_amd64.deb
-        sudo apt update && sudo apt install ./chrome.deb -y --allow-downgrades
-        rm chrome.deb
 
     - name: Install dependencies
       working-directory: .

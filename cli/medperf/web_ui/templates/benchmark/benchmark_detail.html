@@ -25,13 +25,10 @@
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h5 class="card-title mb-0">Details</h5>
             <span class="badge {% if entity.state == 'OPERATION' %}badge-state-operational{% else %}badge-state-development{% endif %}">
-                {{ entity.state }}
-            </span>
-            <span class="badge {% if entity.approval_status == 'APPROVED' %}badge-approval-approved{% elif entity.approval_status == 'PENDING' %}badge-approval-pending{% else %}badge-approval-rejected{% endif %}">
-                {{ entity.approval_status }}
+                {% if entity.state == 'OPERATION' %} OPERATIONAL {% else %} {{ entity.state }} {% endif %}
             </span>
             <span class="badge {% if entity.is_valid %}badge-valid{% else %}badge-invalid{% endif %}">
-                {% if entity.is_valid %}Valid{% else %}Invalid{% endif %}
+                {% if entity.is_valid %}VALID{% else %}INVALID{% endif %}
             </span>
         </div>
         <div class="card mb-3">
@@ -59,7 +56,6 @@
                     <strong>Reference Dataset Tarball:</strong> 
                     <a href="{{ entity.demo_dataset_tarball_url }}" class="text-primary" target="_blank">Click to Download the File</a>
                 </p>
-                <p class="card-text text-muted small">{{ entity.demo_dataset_tarball_hash }}</p>
             </div>
         </div>
         <div class="card">
@@ -184,9 +180,21 @@
 
 {% if current_user_is_benchmark_owner %}
 
+{% set dataset_assoc_len = datasets_associations|length %}
+{% set models_assoc_len = models_associations|length %}
+{% set results_len = results|length %}
+
 <div id="datasets-associations-title" class="d-flex flex-row my-5 border border-secondary rounded p-3 justify-content-between">
-    <h4>Datasets Associations</h3>
-    <span class="text-muted lh-lg">(Click to expand/collapse)</span>
+    <h4>
+        Datasets Associations
+        <span class="fs-6 ms-2 badge rounded-pill badge-notification bg-secondary">
+            {{ dataset_assoc_len }}
+        </span>
+        {% if dataset_assoc_pending %}
+        <span class="ms-2 fst-italic fs-6 text-muted">You have pending associations</span>
+        {% endif %}
+    </h4>
+    <span class="text-muted lh-lg me-3 fs-5"><i class="fas fa-caret-down bmk-detail-toggle"></i></span>
 </div>
 <div id="datasets-associations" style="display: none;">
     {% for assoc in datasets_associations %}
@@ -194,8 +202,16 @@
     {% endfor %}
 </div>
 <div id="models-associations-title" class="d-flex flex-row my-5 border border-secondary rounded p-3 justify-content-between">
-    <h4>Models Associations</h3>
-    <span class="text-muted lh-lg">(Click to expand/collapse)</span>
+    <h4>
+        Models Associations
+        <span class="fs-6 ms-2 badge rounded-pill badge-notification bg-secondary">
+            {{ models_assoc_len }}
+        </span>
+        {% if model_assoc_pending %}
+        <span class="ms-2 fst-italic fs-6 text-muted">You have pending associations</span>
+        {% endif %}
+    </h4>
+    <span class="text-muted lh-lg me-3 fs-5"><i class="fas fa-caret-down bmk-detail-toggle"></i></span>
 </div>
 <div id="models-associations" style="display: none;">
     {% for assoc in models_associations %}
@@ -203,8 +219,13 @@
     {% endfor %}
 </div>
 <div id="benchmark-results-title" class="d-flex flex-row my-5 border border-secondary rounded p-3 justify-content-between">
-    <h4>Results</h3>
-    <span class="text-muted lh-lg">(Click to expand/collapse)</span>
+    <h4>
+        Results
+        <span class="fs-6 ms-2 badge rounded-pill badge-notification bg-secondary">
+            {{ results_len }}
+        </span>
+    </h4>
+    <span class="text-muted lh-lg me-3 fs-5"><i class="fas fa-caret-down bmk-detail-toggle"></i></span>
 </div>
 <div id="benchmark-results" style="display: none;">
     {% for result in results %}

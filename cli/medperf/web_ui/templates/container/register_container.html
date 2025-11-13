@@ -8,7 +8,7 @@
 {% block title %}Register Container{% endblock %}
 
 {% block content %}
-{% set container_register_running = (task_running and request.app.state.task["name"] == "container_registration") %}
+{% set container_register_running = (task_running and request.app.state.task.name == "container_registration") %}
 <div class="container mt-5">
     <h1 class="text-center">Register a New Container</h1>
     <div class="text-center fs-5 mt-4">
@@ -30,6 +30,7 @@
                     value="{{ task_formData.get('name', '') }}"
                     disabled
                     {% endif %}
+                    maxlength="128"
                 >
                 <i
                     class="tooltip-info input-group-text fa fa-info-circle fs-4"
@@ -132,7 +133,7 @@
 <script src="{{ url_for('static', path='js/containers/container_register.js') }}"></script>
 <script src="{{ url_for('static', path='js/folder_browsing.js') }}"></script>
 
-{% if task_running and request.app.state.task["name"] == "container_registration" %}
+{% if task_running and request.app.state.task.name == "container_registration" %}
 <script>
     $(document).ready(() => {
         resumeRunningTask(

@@ -13,7 +13,7 @@
         <div class="col-12 mt-5">
             <h4 class="text-center">
                 Current Profile: 
-                <strong> {{ profiles.active_profile_name.title() }}</strong>
+                <strong data-testid="current-profile">{{ profiles.active_profile_name.title() }}</strong>
             </h4>
             <form id="profiles-form" class="mt-5">
                 <div class="form-group my-5">
@@ -33,7 +33,7 @@
                     </select>
                 </div>
                 <div class="text-center mt-5">
-                    <button type="button" class="btn btn-primary mx-3" id="activate-profile-btn">Activate Profile</button>
+                    <button type="button" class="btn btn-primary mx-3" id="activate-profile-btn" disabled>Activate Profile</button>
                     <button type="button" class="btn btn-secondary mx-3" id="view-profile-btn">View Profile</button>
                 </div>
             </form>
