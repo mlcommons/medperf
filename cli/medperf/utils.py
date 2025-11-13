@@ -563,7 +563,8 @@ def get_webui_properties():
 
 
 def load_yaml_content(yaml_filepath: os.PathLike) -> Dict[str, Any]:
-    with open(yaml_filepath, 'r') as f:
+    clean_path = sanitize_path(yaml_filepath)
+    with open(clean_path, "r") as f:
         content = yaml.safe_load(f)
 
     if content is None:
