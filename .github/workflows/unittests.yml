@@ -36,7 +36,7 @@ jobs:
         # Ignore E231, as it is raising warnings with auto-generated code.
         flake8 . --count --max-complexity=10 --max-line-length=127 --ignore F821,W503,E231 --statistics --exclude=examples/,"*/migrations/*",cli/medperf/templates/
     - name: Test with pytest
-      working-directory: ./cli
+      working-directory: ./cli/medperf/tests
       run: |
         pytest
     - name: Set server environment vars

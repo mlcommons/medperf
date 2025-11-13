@@ -5,17 +5,18 @@ from yaspin import yaspin
 import typer
 
 from medperf.ui.cli import CLI
+from medperf.web_ui.schemas import Event, EventsManager
 
 
 class WebUI(CLI):
     def __init__(self):
         super().__init__()
-        self.events: Queue[dict] = Queue()
         self.responses: Queue[dict] = Queue()
         self.is_interactive = False
         self.spinner = yaspin(color="green")
         self.task_id = None
         self.request = None
+        self.events_manager = EventsManager()
 
     def print(self, msg: str = ""):
         """Display a message on the command line
@@ -50,16 +51,14 @@ class WebUI(CLI):
         else:
             typer.echo(msg)
 
-        if type == "print" and self.is_interactive:
-            return
-
         self.set_event(
-            {
-                "type": type,
-                "message": msg,
-                "interactive": self.is_interactive,
-                "end": False,
-            }
+            Event(
+                task_id=self.task_id,
+                type=type,
+                message=msg,
+                interactive=self.is_interactive,
+                end=False,
+            )
         )
 
     def start_interactive(self):
@@ -108,12 +107,13 @@ class WebUI(CLI):
         #     self.print(msg)
 
         self.set_event(
-            {
-                "type": "text",
-                "message": msg,
-                "interactive": self.is_interactive,
-                "end": False,
-            }
+            Event(
+                task_id=self.task_id,
+                type="text",
+                message=msg,
+                interactive=self.is_interactive,
+                end=False,
+            )
         )
         self.spinner.text = msg  # TODO
 
@@ -128,12 +128,13 @@ class WebUI(CLI):
         """
         msg = msg.replace(" [Y/n]", "")
         self.set_event(
-            {
-                "type": "prompt",
-                "message": msg,
-                "interactive": self.is_interactive,
-                "end": False,
-            }
+            Event(
+                task_id=self.task_id,
+                type="prompt",
+                message=msg,
+                interactive=self.is_interactive,
+                end=False,
+            )
         )
         add_notification(
             self.request,
@@ -146,7 +147,7 @@ class WebUI(CLI):
         return "n"
 
     def hidden_prompt(self, msg: str) -> str:
-        """Displays a prompt to the user and waits for an aswer. User input is not displayed
+        """Displays a prompt to the user and waits for an answer. User input is not displayed
 
         Args:
             msg (str): message to use for the prompt
@@ -178,12 +179,11 @@ class WebUI(CLI):
     def print_code(self, msg: str):
         self._print(msg, "code")
 
-    def set_event(self, event):
-        event["task_id"] = self.task_id
-        self.events.put(event)
+    def set_event(self, event: Event):
+        self.events_manager.process_event(event)
 
-    def get_event(self):
-        return self.events.get()
+    def get_event(self, timeout=None):
+        return self.events_manager.dequeue_event(timeout=timeout)
 
     def set_response(self, event):
         self.responses.put(event)
@@ -192,22 +192,34 @@ class WebUI(CLI):
         return self.responses.get()
 
     def end_task(self, response=None):
-        self.set_event(
-            {
-                "type": "highlight",
-                "message": "",
-                "interactive": self.is_interactive,
-                "end": True,
-                "response": response,
-            }
+        self.events_manager.stop_buffering()
+
+        self.events_manager.enqueue_event(
+            Event(
+                task_id=self.task_id,
+                type="highlight",
+                message="",
+                interactive=self.is_interactive,
+                end=True,
+                response=response,
+            )
         )
         self.unset_task_id()
+        self.unset_request()
+
+    def start_task(self, task_id: str, request):
+        self.set_task_id(task_id)
+        self.set_request(request)
+        self.events_manager.start_buffering()
 
     def set_task_id(self, task_id):
         self.task_id = task_id
 
     def set_request(self, request):
         self.request = request
+
+    def unset_request(self):
+        self.request = None
 
     def unset_task_id(self):
         self.task_id = None

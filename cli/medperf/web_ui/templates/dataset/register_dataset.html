@@ -8,7 +8,7 @@
 {% block title %}Register Dataset{% endblock %}
 
 {% block content %}
-{% set dataset_register_running = (task_running and request.app.state.task["name"] == "dataset_registration") %}
+{% set dataset_register_running = (task_running and request.app.state.task.name == "dataset_registration") %}
 <div class="container">
     <h1 class="text-center">Register a New Dataset</h1>
     <form class="my-5" id="dataset-register-form">
@@ -39,6 +39,7 @@
                     {% if dataset_register_running %}
                     value="{{ task_formData.get('name', '') }}"
                     {% endif %}
+                    maxlength="128"
                 >
                 <i
                     class="tooltip-info input-group-text fa fa-info-circle fs-4"
@@ -57,6 +58,7 @@
                     class="form-control"
                     placeholder="{{ placeholders.register_dataset_description }}"
                     {% if task_running %} disabled {% endif %}
+                    maxlength="256"
                 >{% if dataset_register_running %} {{ task_formData.get('description', '') }} {% endif %}</textarea>
                 <i
                     class="tooltip-info input-group-text fa fa-info-circle fs-4"
@@ -79,6 +81,7 @@
                     {% if dataset_register_running %}
                     value="{{ task_formData.get('location', '') }}"
                     {% endif %}
+                    maxlength="128"
                 >
                 <i
                     class="tooltip-info input-group-text fa fa-info-circle fs-4"
@@ -178,7 +181,7 @@
 <script src="{{ url_for('static', path='js/datasets/dataset_register.js') }}"></script>
 <script src="{{ url_for('static', path='js/folder_browsing.js') }}"></script>
 
-{% if task_running and request.app.state.task["name"] == "dataset_registration" %}
+{% if task_running and request.app.state.task.name == "dataset_registration" %}
 <script>
     $(document).ready(() => {
         resumeRunningTask(
