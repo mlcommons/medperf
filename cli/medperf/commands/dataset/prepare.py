@@ -142,6 +142,7 @@ class DataPreparation:
             "This may take some time."
         )
         self.cube = Cube.get(self.dataset.data_preparation_mlcube)
+        self.cube.download_parameters()
         self.cube.download_run_files()
         self.ui.print("> Preparation container download complete")
 

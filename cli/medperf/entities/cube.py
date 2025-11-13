@@ -135,9 +135,6 @@ class Cube(Entity, DeployableSchema):
             yaml.safe_dump(self.container_config, f)
 
     def download_parameters(self):
-        if self.parameters_config is None:
-            return
-
         parameter_dir = os.path.normpath(os.path.join(self.params_path, ".."))
         os.makedirs(parameter_dir, exist_ok=True)
         with open(self.params_path, "w") as f:
