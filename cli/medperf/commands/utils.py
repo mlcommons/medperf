@@ -1,7 +1,15 @@
 from medperf.certificates import verify_certificate_authority_by_id
+from medperf.config_management import read_config, write_config
 
 
-def validate_profile_args(args, current_profile_args):
+def set_profile_args(args):
+    config_p = read_config()
+    __validate_profile_args(args, config_p.active_profile)
+    config_p.active_profile.update(args)
+    write_config(config_p)
+
+
+def __validate_profile_args(args, current_profile_args):
     __validate_ca_args(args, current_profile_args)
 
 
