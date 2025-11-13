@@ -52,7 +52,7 @@ def startup_event():
     web_app.state.task = WebUITask()
     web_app.state.old_tasks = []  # List of [schemas.WebUITask]
     web_app.state.task_running = False
-    web_app.state.MAXLOGMESSAGES = config.MAXLOGMESSAGES
+    web_app.state.MAXLOGMESSAGES = config.webui_max_log_messages
 
     # List of [schemas.Notification] will appear in the notifications tab
     web_app.state.notifications = []

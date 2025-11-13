@@ -231,7 +231,13 @@ logs_backup_count = 100
 cleanup = True
 ui = "CLI"
 webui = "WEBUI"
-MAXLOGMESSAGES = 200  # Maximum number of messages that will appear in LogPanel in WebUI
+
+# WebUI-related config
+webui_max_log_messages = 200  # Max nb of messages that will appear in LogPanel in WebUI
+webui_max_chunk_age = 2.0  # Max 2 seconds as age of a chunk
+webui_max_chunk_length = 20  # Max 20 events in a chunk
+webui_max_chunk_size = 64 * 1024  # Max 64 Bytes as chunk size
+
 
 default_profile_name = "default"
 testauth_profile_name = "testauth"
