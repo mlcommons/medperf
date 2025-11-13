@@ -1,5 +1,4 @@
 import logging
-import yaml
 
 from fastapi import APIRouter, Depends, Form
 from fastapi.responses import HTMLResponse, JSONResponse
