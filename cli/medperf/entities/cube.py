@@ -130,15 +130,21 @@ class Cube(Entity, DeployableSchema):
         return cube
 
     def download_mlcube(self):
+        if os.path.exists(self.cube_path):
+            return
+
         os.makedirs(self.path, exist_ok=True)
         with open(self.cube_path, "w") as f:
-            yaml.safe_dump(self.container_config, f)
+            yaml.safe_dump(self.container_config, f, sort_keys=False)
 
     def download_parameters(self):
+        if os.path.exists(self.params_path):
+            return
+
         parameter_dir = os.path.normpath(os.path.join(self.params_path, ".."))
         os.makedirs(parameter_dir, exist_ok=True)
         with open(self.params_path, "w") as f:
-            yaml.safe_dump(self.parameters_config, f)
+            yaml.safe_dump(self.parameters_config, f, sort_keys=False)
 
     def download_additional(self):
         url = self.additional_files_tarball_url
