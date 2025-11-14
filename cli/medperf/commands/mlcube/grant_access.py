@@ -1,7 +1,11 @@
 import base64
 from medperf.entities.certificate import Certificate
 from medperf.entities.ca import CA
-from medperf.utils import approval_prompt, get_decryption_key_path
+from medperf.utils import (
+    approval_prompt,
+    get_decryption_key_path,
+    validate_and_normalize_emails,
+)
 from medperf import config
 from medperf.exceptions import CleanExit, InvalidCertificateError
 from medperf.entities.encrypted_container_key import EncryptedKey
@@ -17,16 +21,21 @@ class GrantAccess:
         benchmark_id: int,
         model_id: int,
         approved: bool = False,
+        allowed_emails: list = None,
     ):
         """
         Registers encrypted access keys in the MedPerf server for all
         Data Owners registered to the Benchmark from benchmark_id and
         authorized by the Certificate Authority from ca_id.
+
+        allowed_emails: a string containing space-separated list of emails
         """
-        grantaccess = cls(benchmark_id, model_id, approved)
+        grantaccess = cls(benchmark_id, model_id, approved, allowed_emails)
         grantaccess.get_approval()
+        grantaccess.validate_allowed_emails()
         grantaccess.verify_certificate_authority()
         grantaccess.prepare_certificates_list()
+        grantaccess.filter_certificates()
         grantaccess.verify_certificates()
         keys = grantaccess.generate_encrypted_keys_list()
         grantaccess.upload(keys)
@@ -36,10 +45,12 @@ class GrantAccess:
         benchmark_id: int,
         model_id: int,
         approved: bool = False,
+        allowed_emails: list = None,
     ):
         self.benchmark_id = benchmark_id
         self.model_id = model_id
         self.approved = approved
+        self.allowed_emails = allowed_emails
 
     def get_approval(self):
         msg = (
@@ -50,6 +61,10 @@ class GrantAccess:
 
         if not self.approved and not approval_prompt(msg):
             raise CleanExit("Access granting operation cancelled")
+
+    def validate_allowed_emails(self):
+        if self.allowed_emails is not None:
+            self.allowed_emails = validate_and_normalize_emails(self.allowed_emails)
 
     def verify_certificate_authority(self):
         config.ui.print("Verifying Certificate Authority")
@@ -81,6 +96,21 @@ class GrantAccess:
         self.certificates = certificates_need_keys
         self.cert_user_info = cert_user_info
 
+    def filter_certificates(self):
+        if self.allowed_emails is None:
+            return
+        logging.debug("Filtering certificates based on allowed emails list")
+        filtered_certificates = []
+        for certificate in self.certificates:
+            email = self.cert_user_info[certificate.id]["email"]
+            if email in self.allowed_emails:
+                filtered_certificates.append(certificate)
+
+        logging.debug(
+            f"Certificates after filtering: {[cert.id for cert in filtered_certificates]}"
+        )
+        self.certificates = filtered_certificates
+
     def verify_certificates(self):
         error_certs = []
         valid_certs = []
@@ -107,6 +137,9 @@ class GrantAccess:
         self.certificates = valid_certs
 
     def generate_encrypted_keys_list(self):
+        if len(self.certificates) == 0:
+            raise CleanExit("No users with valid certificates need keys.")
+
         encryptor = AsymmetricEncryption()
         keys_objects = []
         container_key_file = get_decryption_key_path(self.model_id)

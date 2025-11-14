@@ -23,6 +23,7 @@ from git import Repo, GitCommandError
 import medperf.config as config
 from medperf.exceptions import CleanExit, ExecutionError, InvalidArgumentError
 import shlex
+from email_validator import validate_email, EmailNotValidError
 
 
 def get_file_hash(path: str) -> str:
@@ -644,3 +645,13 @@ def generate_container_key_redaction_record(encrypted_key_base64: str):
     sha = hashlib.sha256()
     sha.update(base64.b64decode(encrypted_key_base64))
     return sha.hexdigest()
+
+
+def validate_and_normalize_emails(emails: list[str]):
+    emails = [email.lower().strip() for email in emails if email.strip()]
+    for email in emails:
+        try:
+            validate_email(email, check_deliverability=False)
+        except EmailNotValidError as e:
+            raise InvalidArgumentError(str(e))
+    return emails

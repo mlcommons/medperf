@@ -275,6 +275,12 @@ def give_access(
         "a valid certificate will be granted access to the container.",
     ),
     approval: bool = typer.Option(False, "-y", help="Skip approval step"),
+    allowed_emails: str = typer.Option(
+        None,
+        "-a",
+        "--allowed_emails",
+        help="Space-separated list of emails",
+    ),
 ):
     """
     Allows all currently registered Data Owners in a given benchmark to access
@@ -282,7 +288,12 @@ def give_access(
     The Private Container must have already been associated with the
     benchmark for this to take effect.
     """
-    GrantAccess.run(benchmark_id=benchmark_id, model_id=model_id, approved=approval)
+    GrantAccess.run(
+        benchmark_id=benchmark_id,
+        model_id=model_id,
+        approved=approval,
+        allowed_emails=allowed_emails,
+    )
     config.ui.print("✅ Done!")
 
 
@@ -314,6 +325,12 @@ def auto_give_access(
         help="Time in minutes to check for updates. Minimum 5 minutes, maximum 60 minutes "
         "(an hour). Defaults to 5 minutes if not provided.",
     ),
+    allowed_emails: str = typer.Option(
+        None,
+        "-a",
+        "--allowed_emails",
+        help="Space-separated list of emails",
+    ),
 ):
     """
     This command will run the 'give_access' command every 5 minutes indefinetely.
@@ -327,7 +344,12 @@ def auto_give_access(
     interval_in_seconds = interval * 60
     while True:
         try:
-            GrantAccess.run(benchmark_id=benchmark_id, model_id=model_id, approved=True)
+            GrantAccess.run(
+                benchmark_id=benchmark_id,
+                model_id=model_id,
+                approved=True,
+                allowed_emails=allowed_emails,
+            )
         except (CleanExit, InvalidCertificateError) as e:
             config.ui.print(str(e))
         except KeyboardInterrupt:

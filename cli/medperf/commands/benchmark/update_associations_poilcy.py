@@ -3,8 +3,7 @@ import os
 import medperf.config as config
 from medperf.enums import AutoApprovalMode
 from medperf.exceptions import InvalidArgumentError, MedperfException
-from medperf.utils import sanitize_path
-from email_validator import validate_email, EmailNotValidError
+from medperf.utils import sanitize_path, validate_and_normalize_emails
 
 
 class UpdateAssociationsPolicy:
@@ -107,20 +106,11 @@ class UpdateAssociationsPolicy:
         elif self.model_emails is not None:
             self.model_emails = self.model_emails.strip().split(" ")
 
-    def __validate_emails(self, emails: list[str]):
-        emails = [email.lower().strip() for email in emails if email.strip()]
-        for email in emails:
-            try:
-                validate_email(email, check_deliverability=False)
-            except EmailNotValidError as e:
-                raise InvalidArgumentError(str(e))
-        return emails
-
     def validate_emails(self):
         if self.dataset_emails is not None:
-            self.dataset_emails = self.__validate_emails(self.dataset_emails)
+            self.dataset_emails = validate_and_normalize_emails(self.dataset_emails)
         if self.model_emails is not None:
-            self.model_emails = self.__validate_emails(self.model_emails)
+            self.model_emails = validate_and_normalize_emails(self.model_emails)
 
     def update(self):
         if all(
