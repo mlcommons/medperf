@@ -79,7 +79,7 @@ def remove_path(path, sensitive=False):
 def move_to_trash(path, sensitive=False):
     trash_folder = config.trash_folder
     unique_path = os.path.join(trash_folder, generate_tmp_uid())
-    os.makedirs(unique_path)
+    os.makedirs(unique_path, mode=0o700)
     shutil.move(path, unique_path)
     if sensitive:
         msg = "WARNING: Failed to premanently delete a sensitive file!"
