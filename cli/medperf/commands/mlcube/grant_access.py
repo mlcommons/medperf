@@ -1,4 +1,5 @@
 import base64
+import uuid
 from medperf.entities.certificate import Certificate
 from medperf.entities.ca import CA
 from medperf.utils import (
@@ -155,7 +156,7 @@ class GrantAccess:
             )
             key_obj = EncryptedKey(
                 encrypted_key_base64=base64.b64encode(encrypted_key_bytes).decode(),
-                name=f"Model {self.model_id} cert {certificate.id}",
+                name=f"M{self.model_id}C{certificate.id}_" + uuid.uuid4().hex,
                 certificate=certificate.id,
                 container=self.model_id,
             )
