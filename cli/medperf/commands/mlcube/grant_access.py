@@ -154,9 +154,10 @@ class GrantAccess:
             encrypted_key_bytes = encryptor.encrypt(
                 certificate_content_bytes, container_key_bytes
             )
+            key_name = f"M{self.model_id}C{certificate.id}_" + uuid.uuid4().hex
             key_obj = EncryptedKey(
                 encrypted_key_base64=base64.b64encode(encrypted_key_bytes).decode(),
-                name=f"M{self.model_id}C{certificate.id}_" + uuid.uuid4().hex,
+                name=key_name,
                 certificate=certificate.id,
                 container=self.model_id,
             )

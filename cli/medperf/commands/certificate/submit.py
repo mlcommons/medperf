@@ -47,7 +47,7 @@ class SubmitCertificate:
         with open(certificate_file_path, "rb") as f:
             certificate_content = f.read()
         cert_content_base64 = base64.b64encode(certificate_content).decode("utf-8")
-        name = self.__generate_name(certificate_content)
+        name = self.__generate_name()
         self.certificate = Certificate(
             name=name,
             ca=self.ca_id,
