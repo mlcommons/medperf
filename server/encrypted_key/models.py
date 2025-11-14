@@ -8,11 +8,11 @@ User = get_user_model()
 
 class EncryptedKey(models.Model):
     owner = models.ForeignKey(User, on_delete=models.PROTECT)
-    name = models.CharField(max_length=20, unique=True)
+    name = models.CharField(max_length=128, unique=True)
     certificate = models.ForeignKey(Certificate, on_delete=models.PROTECT)
     container = models.ForeignKey(MlCube, on_delete=models.CASCADE)
     is_valid = models.BooleanField(default=True)
-    encrypted_key_base64 = models.TextField(null=False)
+    encrypted_key_base64 = models.TextField()
     metadata = models.JSONField(default=dict, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)

@@ -6,10 +6,10 @@ User = get_user_model()
 
 class Certificate(models.Model):
     owner = models.ForeignKey(User, on_delete=models.PROTECT)
-    name = models.CharField(max_length=20, unique=True)
+    name = models.CharField(max_length=128, unique=True)
     is_valid = models.BooleanField(default=True)
     ca = models.ForeignKey("ca.CA", on_delete=models.PROTECT)
-    certificate_content_base64 = models.TextField(unique=True)
+    certificate_content_base64 = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
 
