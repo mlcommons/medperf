@@ -142,7 +142,7 @@ echo "\n"
 echo "============================================="
 echo "Submitting the certificate"
 echo "============================================="
-print_eval medperf certificate submit_client_certificate --name TestCert -y
+print_eval medperf certificate submit_client_certificate -y
 checkFailed "Failed to submit Data Owner Certificate"
 ##########################################################
 
