@@ -44,7 +44,6 @@ def get_server_certificate(
 @app.command("submit_client_certificate")
 @clean_except
 def submit_client_certificate(
-    name: str = typer.Option(..., "--name", "-n", help="Name of the Certificate"),
     approval: bool = typer.Option(False, "-y", help="Skip approval step"),
 ):
     """
@@ -52,7 +51,7 @@ def submit_client_certificate(
     If you are a data owner associated with a benchmark, note that after uploading a certificate,
     your e-mail will be publicly available to model owners associated with the benchmark
     """
-    SubmitCertificate.run(name=name, approved=approval)
+    SubmitCertificate.run(approved=approval)
     config.ui.print("✅ Done!")
 
 
