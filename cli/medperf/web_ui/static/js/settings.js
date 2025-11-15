@@ -74,26 +74,60 @@ function editProfile(editProfileBtn) {
     );
 }
 
+function editCertificate(editCertBtn) {
+    const formData = new FormData($("#edit-certs-form")[0]);
+
+    disableElements("#edit-certs-form input, #edit-certs-form select, #edit-certs-form button");
+
+    ajaxRequest(
+        "/settings/edit_certificate",
+        "POST",
+        formData,
+        (response) => {
+            if (response.status === "success"){
+                showReloadModal("Certificate Settings Edited Successfully");
+                timer(3);
+            }
+            else {
+                showErrorModal("Failed to Edit Certificate Settings", response);
+            }
+        },
+        "Error editing certificate settings:"
+    );
+}
+
 function checkForProfileEditChanges() {
     const gpusVal = $('#gpus').val();
     const platformVal = $('#platform').val();
 
-    const gpusChanged = gpusVal !== window.defaultGpus;
-    const platformChanged = platformVal !== window.defaultPlatform;
+    const gpusChanged = gpusVal !== window.currentSettings.defaultGpus;
+    const platformChanged = platformVal !== window.currentSettings.defaultPlatform;
 
-    $('#apply-changes-btn').prop('disabled', !(gpusChanged || platformChanged));
+    $('#apply-profile-changes-btn').prop('disabled', !(gpusChanged || platformChanged));
 }
 
 function checkProfileMatch() {
     const selectedProfile = $('#profile').val();
 
-    if (selectedProfile === window.activeProfile) {
+    if (selectedProfile === window.currentSettings.activeProfile) {
         $('#edit-config-container').show();
+        $('#edit-certs-container').show();
         $('#activate-profile-btn').prop('disabled', true);
     } else {
         $('#edit-config-container').hide();
+        $('#edit-certs-container').hide();
         $('#activate-profile-btn').prop('disabled', false);
     }
+}
+
+function checkForCertificateEditChanges() {
+    const caVal = $('#ca').val();
+    const fingerprintVal = $('#fingerprint').val().trim();
+
+    const caChanged = caVal !== window.currentSettings.defaultCA;
+    const fingerprintChanged = fingerprintVal !== window.currentSettings.defaultFingerprint;
+
+    $('#apply-cert-changes-btn').prop('disabled', !(caChanged || fingerprintChanged));
 }
 
 $(document).ready(() => {
@@ -105,14 +139,20 @@ $(document).ready(() => {
         showConfirmModal(e.currentTarget, viewProfile, "view this profile?");
     });
 
-    $("#apply-changes-btn").on("click", (e) => {
+    $("#apply-profile-changes-btn").on("click", (e) => {
         showConfirmModal(e.currentTarget, editProfile, "edit this profile?");
+    });
+
+    $("#apply-cert-changes-btn").on("click", (e) => {
+        showConfirmModal(e.currentTarget, editCertificate, "modify certificate settings?");
     });
 
     $('#profile').on('change', checkProfileMatch);
     $('#gpus, #platform').on('input', checkForProfileEditChanges);
+    $('#ca, #fingerprint').on('input', checkForCertificateEditChanges);
 
     // Run initial state checks
     checkProfileMatch();
     checkForProfileEditChanges();
+    checkForCertificateEditChanges();
 });

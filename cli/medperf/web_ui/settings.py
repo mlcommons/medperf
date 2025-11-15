@@ -1,8 +1,10 @@
 from fastapi import Form, APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 
+from medperf.entities.ca import CA
 from medperf import config
 from medperf.config_management.config_management import read_config, write_config
+from medperf.commands.utils import set_profile_args
 from medperf.exceptions import InvalidArgumentError
 from medperf.utils import make_pretty_dict
 from medperf.web_ui.common import check_user_api, check_user_ui, templates
@@ -17,14 +19,22 @@ router = APIRouter()
 @router.get("/", response_class=HTMLResponse)
 def profiles_ui(request: Request, current_user: bool = Depends(check_user_ui)):
 
-    profiles = read_config()
+    config_p = read_config()
+    cas = CA.all()
+    cas = {c.id: c.name for c in cas}
+    default_ca = config_p.active_profile["certificate_authority_id"]
+    default_fingerprint = config_p.active_profile["certificate_authority_fingerprint"]
+
     return templates.TemplateResponse(
         "settings.html",
         {
             "request": request,
-            "profiles": profiles,
+            "profiles": config_p,
             "default_gpus": config.gpus if config.gpus else "0",
             "default_platform": config.platform,
+            "cas": cas,
+            "default_ca": default_ca,
+            "default_fingerprint": default_fingerprint,
         },
     )
 
@@ -54,11 +64,16 @@ def edit_profile(
         platform = config.platform
     if gpus is None:
         gpus = config.gpus
-    config_p = read_config()
-    config_p.active_profile.update({"gpus": gpus, "platform": platform})
-    write_config(config_p)
-    initialize(for_webui=True)
-    return {"status": "success", "error": ""}
+
+    try:
+        config_p = read_config()
+        profile_config = config_p.active_profile.copy()
+        profile_config.update({"gpus": gpus, "platform": platform})
+        set_profile_args(profile_config)
+        initialize(for_webui=True)
+        return {"status": "success", "error": ""}
+    except Exception as e:
+        return {"status": "failed", "error": str(e)}
 
 
 @router.post("/view_profile", response_class=JSONResponse)
@@ -86,3 +101,30 @@ def view_profile(
         logger.exception(exp)
 
     return return_response
+
+
+@router.post("/edit_certificate", response_class=JSONResponse)
+def edit_certificate(
+    ca: int = Form(None),
+    fingerprint: str = Form(None),
+    current_user: bool = Depends(check_user_api),
+):
+    if ca is None:
+        ca = config.certificate_authority_id
+    if fingerprint is None:
+        fingerprint = config.certificate_authority_fingerprint
+
+    try:
+        config_p = read_config()
+        profile_config = config_p.active_profile.copy()
+        profile_config.update(
+            {
+                "certificate_authority_id": ca,
+                "certificate_authority_fingerprint": fingerprint,
+            }
+        )
+        initialize(for_webui=True)
+        set_profile_args(profile_config)
+        return {"status": "success", "error": ""}
+    except Exception as e:
+        return {"status": "failed", "error": str(e)}

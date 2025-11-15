@@ -6,9 +6,12 @@
 
 {% block content %}
 <div class="container">
-    <div class="row mt-5">
-        <div class="col-12 mt-5">
+    <div class="row mt-3">
+        <div class="col-12">
             <h1 class="text-center">Settings</h1>
+        </div>
+        <div class="col-12 mt-4">
+            <h4 class="text-end col-sm-3">Profile Settings</h4>
         </div>
         <div class="col-12 mt-5">
             <h4 class="text-center">
@@ -55,9 +58,50 @@
                     </div>
                 </div>
                 <div class="text-center mt-4">
-                    <button type="button" id="apply-changes-btn" class="btn btn-primary" disabled>Apply Changes</button>
+                    <button type="button" id="apply-profile-changes-btn" class="btn btn-primary" disabled>Apply Changes</button>
                 </div>
             </form>   
+        </div>
+    </div>
+</div>
+
+<div id="edit-certs-container" class="container hidden-element">
+    <div class="row mt-3">
+        <div class="col-12 mt-4">
+            <h4 class="text-end col-sm-3">Certificate Settings</h4>
+        </div>
+        <div class="col-12 mt-5">
+            <h4 class="text-center">
+                Selected Certificate Authority (CA): 
+                <strong data-testid="current-ca">{{ cas.get(default_ca, None) }}</strong>
+            </h4>
+            <form id="edit-certs-form">
+                <div class="row mb-4">
+                    <label for="ca" class="col-sm-3 col-form-label h5 text-end">Select CA</label>
+                    <div class="col-sm-6">
+                        <select name="ca" id="ca" class="form-select">
+                            <option value="" disabled>Select CA</option>
+                            {% for ca in cas %}
+                            <option
+                                value="{{ ca }}"
+                                {% if ca == default_ca %}
+                                selected
+                                {% endif %}
+                            >{{ cas[ca] }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="row mb-4">
+                    <label for="fingerprint" class="col-sm-3 col-form-label h5 text-end">Fingerprint</label>
+                    <div class="col-sm-6">
+                        <input type="text" id="fingerprint" name="fingerprint" class="form-control" value="{{ default_fingerprint }}">
+                    </div>
+                </div>
+                <div class="text-center mt-4">
+                    <button type="button" id="apply-cert-changes-btn" class="btn btn-primary" disabled>Apply Changes</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -75,9 +119,13 @@
 {% block extra_js %}
 <script>
     // Save some global variables to be accessible by js scripts
-    window.defaultGpus = "{{ default_gpus }}";
-    window.defaultPlatform = "{{ default_platform }}";
-    window.activeProfile = "{{ profiles.active_profile_name }}";
+    window.currentSettings = {
+        activeProfile: "{{ profiles.active_profile_name }}",
+        defaultGpus: "{{ default_gpus }}",
+        defaultPlatform: "{{ default_platform }}",
+        defaultCA: "{{ default_ca }}",
+        defaultFingerprint: "{{ default_fingerprint }}"
+    };
 </script>
 <script src="/static/js/settings.js"></script>
 {% endblock extra_js %}
