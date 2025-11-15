@@ -31,10 +31,13 @@ async function registerContainer(registerButton){
 
 function checkContainerFormValidity() {
     const containerPath = $("#container-file").val().trim();
+    const isEncrypted = $("input[name='model_encrypted']:checked").val();
+    const decryptionPath = $("#decryption-file").val().trim();
 
     const isValid = Boolean(
         $("#name").val().trim() &&
-        containerPath.length > 0
+        containerPath.length > 0 &&
+        (isEncrypted === "true" ? decryptionPath.length > 0 : isEncrypted === "false")
     );
     $("#register-container-btn").prop("disabled", !isValid);
 }
@@ -44,20 +47,19 @@ $(document).ready(() => {
         showConfirmModal(e.currentTarget, registerContainer, "register this container?");
     });
 
-    $("#container-register-form input").on("keyup", checkContainerFormValidity);
+    $("#container-register-form input").on("keyup change", checkContainerFormValidity);
     
-    $("#browse-container-btn").on("click", () => {
+    $("#browse-decryption-btn").on("click", () => {
         browseWithFiles = true;
-        browseFolderHandler("container-file");
+        browseFolderHandler("decryption-file");
     });
-
-    $("#browse-parameters-btn").on("click", () => {
-        browseWithFiles = true;
-        browseFolderHandler("parameters-file");
-    });
-
-    $("#browse-additional-btn").on("click", () => {
-        browseWithFiles = true;
-        browseFolderHandler("additional-file");
+    $("input[name='model_encrypted']").on("change", () => {
+        if($("#with-encryption").is(":checked")){
+            $("#decryption-file-container").show();
+        }
+        else{
+            $("#decryption-file-container").hide();
+            $("#decryption-file").val("");
+        }
     });
 });

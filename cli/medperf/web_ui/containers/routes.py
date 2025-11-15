@@ -116,6 +116,8 @@ def register_container(
     container_file: str = Form(...),
     parameters_file: str = Form(""),
     additional_file: str = Form(""),
+    model_encrypted: bool = Form(...),
+    decryption_file: str = Form(None),
     current_user: bool = Depends(check_user_api),
 ):
     initialize_state_task(request, task_name="container_registration")
@@ -134,7 +136,7 @@ def register_container(
     }
     container_id = None
     try:
-        container_id = SubmitCube.run(container_info)
+        container_id = SubmitCube.run(container_info, decryption_key=decryption_file)
         return_response["status"] = "success"
         return_response["container_id"] = container_id
         notification_message = "Container successfully registered"
