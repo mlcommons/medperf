@@ -1,4 +1,4 @@
-{# ./cli/medperf/web_ui/templates/profiles.html #}
+{# ./cli/medperf/web_ui/templates/settings.html #}
 
 {% extends "base.html" %}
 
@@ -15,22 +15,24 @@
                 Current Profile: 
                 <strong data-testid="current-profile">{{ profiles.active_profile_name.title() }}</strong>
             </h4>
-            <form id="profiles-form" class="mt-5">
-                <div class="form-group my-5">
-                    <label for="profile" class="form-label h4">
+            <form id="profiles-form">
+                <div class="row">
+                    <label for="profile" class="h5 col-form-label col-sm-3 text-end">
                         Select Profile
                     </label>
-                    <select name="profile" id="profile" class="form-select">
-                        <option value="" disabled>Select Profile</option>
-                        {% for profile in profiles %}
-                        <option
-                            value="{{ profile }}"
-                            {% if profile == profiles.active_profile_name %}
-                            selected
-                            {% endif %}
-                        >{{ profile.title() }}</option>
-                        {% endfor %}
-                    </select>
+                    <div class="col-sm-6">
+                        <select name="profile" id="profile" class="form-select">
+                            <option value="" disabled>Select Profile</option>
+                            {% for profile in profiles %}
+                            <option
+                                value="{{ profile }}"
+                                {% if profile == profiles.active_profile_name %}
+                                selected
+                                {% endif %}
+                            >{{ profile.title() }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
                 </div>
                 <div class="text-center mt-5">
                     <button type="button" class="btn btn-primary mx-3" id="activate-profile-btn" disabled>Activate Profile</button>
@@ -41,13 +43,13 @@
         <div id="edit-config-container" class="mt-5" style="display: none;">
             <form id="edit-config-form" class="mt-5">
                 <div class="row mb-4">
-                    <label for="gpus" class="col-sm-2 col-form-label h5 text-end">GPUs</label>
+                    <label for="gpus" class="col-sm-3 col-form-label h5 text-end">GPUs</label>
                     <div class="col-sm-6">
                         <input type="text" id="gpus" name="gpus" class="form-control" value="{{ default_gpus }}">
                     </div>
                 </div>
                 <div class="row mb-4">
-                    <label for="platform" class="col-sm-2 col-form-label h5 text-end">Platform</label>
+                    <label for="platform" class="col-sm-3 col-form-label h5 text-end">Platform</label>
                     <div class="col-sm-6">
                         <input type="text" id="platform" name="platform" class="form-control" value="{{ default_platform }}">
                     </div>
@@ -77,5 +79,5 @@
     window.defaultPlatform = "{{ default_platform }}";
     window.activeProfile = "{{ profiles.active_profile_name }}";
 </script>
-<script src="/static/js/profiles.js"></script>
+<script src="/static/js/settings.js"></script>
 {% endblock extra_js %}

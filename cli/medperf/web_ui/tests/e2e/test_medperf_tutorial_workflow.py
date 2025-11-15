@@ -52,7 +52,7 @@ def test_security_page_url(driver, sec_token):
 @pytest.mark.dependency(name="activate_profile", depends=["security_test_url"])
 def test_activate_local_profiile(driver):
     page = SettingsPage(driver)
-    page.open(BASE_URL.format("/profiles"))
+    page.open(BASE_URL.format("/settings"))
 
     current_profile = page.get_text(page.CURRENT_PROFILE)
     if current_profile == tests_config.LOCAL_PROFILE:

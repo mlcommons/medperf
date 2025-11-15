@@ -19,7 +19,7 @@ def profiles_ui(request: Request, current_user: bool = Depends(check_user_ui)):
 
     profiles = read_config()
     return templates.TemplateResponse(
-        "profiles.html",
+        "settings.html",
         {
             "request": request,
             "profiles": profiles,
@@ -29,7 +29,7 @@ def profiles_ui(request: Request, current_user: bool = Depends(check_user_ui)):
     )
 
 
-@router.post("/activate", response_class=JSONResponse)
+@router.post("/activate_profile", response_class=JSONResponse)
 def activate_profile(
     profile: str = Form(...), current_user: bool = Depends(check_user_api)
 ):
@@ -44,7 +44,7 @@ def activate_profile(
     return {"status": "success", "error": ""}
 
 
-@router.post("/edit", response_class=JSONResponse)
+@router.post("/edit_profile", response_class=JSONResponse)
 def edit_profile(
     gpus: str = Form(None),
     platform: str = Form(None),
@@ -61,7 +61,7 @@ def edit_profile(
     return {"status": "success", "error": ""}
 
 
-@router.post("/view", response_class=JSONResponse)
+@router.post("/view_profile", response_class=JSONResponse)
 def view_profile(
     profile: str = Form(...), current_user: bool = Depends(check_user_api)
 ):

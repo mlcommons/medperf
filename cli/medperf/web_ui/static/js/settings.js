@@ -7,7 +7,7 @@ function activateProfile(activateProfileBtn) {
     disableElements("#profiles-form select, #profiles-form button");
     disableElements("#edit-config-form input, #edit-config-form button");
     ajaxRequest(
-        "/profiles/activate",
+        "/settings/activate_profile",
         "POST",
         formData,
         (response) => {
@@ -29,7 +29,7 @@ function viewProfile(viewProfileBtn){
     disableElements("#profiles-form select, #profiles-form button");
 
     ajaxRequest(
-        "/profiles/view",
+        "/settings/view_profile",
         "POST",
         formData,
         (response) => {
@@ -58,7 +58,7 @@ function editProfile(editProfileBtn) {
     disableElements("#edit-config-form input, #edit-config-form button");
 
     ajaxRequest(
-        "/profiles/edit",
+        "/settings/edit_profile",
         "POST",
         formData,
         (response) => {
@@ -74,7 +74,7 @@ function editProfile(editProfileBtn) {
     );
 }
 
-function checkForEditChanges() {
+function checkForProfileEditChanges() {
     const gpusVal = $('#gpus').val();
     const platformVal = $('#platform').val();
 
@@ -110,9 +110,9 @@ $(document).ready(() => {
     });
 
     $('#profile').on('change', checkProfileMatch);
-    $('#gpus, #platform').on('input', checkForEditChanges);
+    $('#gpus, #platform').on('input', checkForProfileEditChanges);
 
     // Run initial state checks
     checkProfileMatch();
-    checkForEditChanges();
+    checkForProfileEditChanges();
 });
