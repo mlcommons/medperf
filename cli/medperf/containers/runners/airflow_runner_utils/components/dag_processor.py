@@ -2,9 +2,16 @@ from medperf.containers.runners.airflow_runner_utils.components.airflow_componen
     AirflowComponentRunner,
 )
 import subprocess
+from .utils import build_mounts_dict
 
 
 class AirflowDagProcessor(AirflowComponentRunner):
+
+    def __init__(self, mounts: dict, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        formatted_mounts = build_mounts_dict(mounts)
+        self._env_vars.update(**formatted_mounts)
+
     @property
     def logfile(self):
         return "processor.log"

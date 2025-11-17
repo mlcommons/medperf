@@ -6,7 +6,6 @@ from medperf.containers.runners.airflow_runner_utils.system_runner import (
 from pathlib import Path
 from .airflow_runner_utils.dags import constants
 import os
-import shutil
 from medperf.containers.parsers.airflow_parser import AirflowParser
 from medperf.account_management import get_medperf_user_data
 from .utils import (
@@ -76,48 +75,34 @@ class AirflowRunner(Runner):
         ports: list = [],
         disable_network: bool = True,
     ):
-        # TODO properly implement MedPerf mounts similar to other use cases
-        # For now, assume medperf_mounts has the form of
-        # medperf_mounts = {
-        #     'workspace_dir': 'path/to/local/workspace',
-        #     'input_data_dir': 'path/to/local/input/data/dir',
-        #     'data_dir': 'path/to/local/output/data/dir'
-        # }
-
-        workspace_dir = medperf_mounts["workspace_dir"]
-        input_data_dir = medperf_mounts["input_data_dir"]
-        data_dir = medperf_mounts["data_dir"]
-
-        for necessary_dir in [workspace_dir, input_data_dir, data_dir]:
-            os.makedirs(necessary_dir, exist_ok=True)
 
         email = get_medperf_user_data()["email"]
         username = email.split("@", maxsplit=1)[0]
 
         airflow_home = os.path.join(self.container_dir, "airflow_home")
         additional_files_path = medperf_mounts["additional_files"]
-        self._copy_yaml_dag_to_additional_files(additional_files_path)
+        self._symlink_yaml_dag_to_additional_files(additional_files_path)
 
         with AirflowSystemRunner(
             airflow_home=airflow_home,
             user=username,
             dags_folder=self._DAGS_FOLDER,
-            workspace_dir=workspace_dir,
-            data_dir=data_dir,
-            input_data_dir=input_data_dir,
             yaml_dags_dir=additional_files_path,
+            mounts=medperf_mounts,
             project_name=self.workflow_name,
             yaml_parser=self.parser,
         ) as system_runner:
             system_runner.init_airflow()
             system_runner.wait_for_dag()
 
-    def _copy_yaml_dag_to_additional_files(self, additional_files_path: str):
-        # TODO also needs to move the auxiliary python files; or maybe they'll be part of additional files?
+    def _symlink_yaml_dag_to_additional_files(self, additional_files_path: str):
         yaml_file_name = os.path.basename(self.parser.config_file_path)
         os.makedirs(additional_files_path, exist_ok=True)
-        moved_yaml_file_path = os.path.join(additional_files_path, yaml_file_name)
-        shutil.copy2(self.parser.config_file_path, moved_yaml_file_path)
+        symlinked_yaml_file_path = os.path.join(additional_files_path, yaml_file_name)
+        try:
+            os.symlink(self.parser.config_file_path, symlinked_yaml_file_path)
+        except FileExistsError:
+            pass
 
     @property
     def is_workflow(self):

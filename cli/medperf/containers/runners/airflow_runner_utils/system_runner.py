@@ -13,6 +13,7 @@ from .monitor.yaml_dag_monitor import Summarizer
 from .yaml_partial_parser import YamlPartialParser
 from airflow.utils.state import DagRunState
 import configparser
+from typing import Union, List
 import secrets
 from pydantic import SecretStr
 import json
@@ -32,9 +33,7 @@ class AirflowSystemRunner:
         airflow_home: os.PathLike,
         user: str,
         dags_folder: os.PathLike,
-        workspace_dir: os.PathLike,
-        data_dir: os.PathLike,
-        input_data_dir: os.PathLike,
+        mounts: dict[str, os.PathLike],
         yaml_dags_dir: os.PathLike,
         project_name: str,
         port: Union[str, int] = 8080,
@@ -48,9 +47,7 @@ class AirflowSystemRunner:
         self.port = validate_port(port)
         self.dags_folder = dags_folder
         self.extra_configs = extra_airflow_configs
-        self.workspace_dir = workspace_dir
-        self.data_dir = data_dir
-        self.input_data_dir = input_data_dir
+        self.mounts = mounts
         self.yaml_parser = YamlPartialParser(yaml_file_dir=yaml_dags_dir)
         self.user = user
         self._password = SecretStr(secrets.token_urlsafe(16))
@@ -132,16 +129,13 @@ class AirflowSystemRunner:
         common_args = {
             "python_executable": self._python_exec,
             "airflow_home": self.airflow_home,
-            "container_type": "docker",  # TODO when integrating with MedPerf, get from config
-            "workspace_dir": self.workspace_dir,
-            "data_dir": self.data_dir,
-            "input_data_dir": self.input_data_dir,
+            "container_type": config.platform,
             "yaml_dags_dir": self.yaml_parser.yaml_dir_path,
             "dags_folder": self.dags_folder,
         }
 
         self.db = PostgresDBDocker(
-            project_name=self.project_name,  # TODO when integerating with MedPerf, use singularity version if config says so
+            project_name=self.project_name,  # TODO Check platform to instantiate singularity version, when singularity version is implementated
             root_dir=self.airflow_home,
             postgres_user="airflow",
             postgres_db="airflow",
@@ -149,9 +143,9 @@ class AirflowSystemRunner:
         )
         self.api_server = AirflowApiServer(**common_args, port=self.port)
         self.scheduler = AirflowScheduler(
-            **common_args, user=self.user, password=self._password
+            **common_args, user=self.user, password=self._password, mounts=self.mounts
         )
-        self.dag_processor = AirflowDagProcessor(**common_args)
+        self.dag_processor = AirflowDagProcessor(**common_args, mounts=self.mounts)
         self.triggerer = AirflowTriggerer(**common_args)
 
     def _start_airflow_db(self):
@@ -282,7 +276,8 @@ class AirflowSystemRunner:
         ) as airflow_client:
             try:
                 summarizer = Summarizer(
-                    yaml_parser=self.yaml_parser, report_directory=self.workspace_dir
+                    yaml_parser=self.yaml_parser,
+                    report_directory=self.mounts["output_path"],
                 )
                 summarizer_task = asyncio.create_task(
                     summarizer.summarize_every_x_seconds(

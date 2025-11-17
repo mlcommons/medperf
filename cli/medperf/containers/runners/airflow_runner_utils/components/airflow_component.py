@@ -11,9 +11,6 @@ class AirflowComponentRunner(ComponentRunner):
         python_executable: str,
         airflow_home: str,
         container_type: str,
-        workspace_dir: os.PathLike,
-        data_dir: os.PathLike,
-        input_data_dir: os.PathLike,
         yaml_dags_dir: str,
         dags_folder: os.PathLike,
     ):
@@ -23,12 +20,6 @@ class AirflowComponentRunner(ComponentRunner):
         self.airflow_home = airflow_home
         self._env_vars = {
             "AIRFLOW_HOME": airflow_home,
-            "WORKSPACE_DIR": workspace_dir,
-            "DATA_DIR": data_dir,
-            "INPUT_DATA_DIR": input_data_dir,
-            "AIRFLOW_INPUT_DATA_DIR": input_data_dir,
-            "AIRFLOW_DATA_DIR": data_dir,
-            "AIRFLOW_WORKSPACE_DIR": workspace_dir,
             "PYTHONPATH": f"{dags_folder}:{user_dags_folder}:{yaml_dags_dir}",
             "YAML_DAGS_DIR": yaml_dags_dir,
             "CONTAINER_TYPE": container_type,

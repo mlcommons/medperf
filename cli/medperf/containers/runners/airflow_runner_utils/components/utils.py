@@ -27,3 +27,10 @@ def run_healthcheck(healthcheck_url: str) -> bool:
 
 def generate_random_password(nbytes: int = 16) -> SecretStr:
     return SecretStr(secrets.token_urlsafe(nbytes))
+
+
+def build_mounts_dict(mounts: dict[str, str]):
+    formatted_dict = {
+        f"host_{mount_name}": host_path for mount_name, host_path in mounts.items()
+    }
+    return formatted_dict
