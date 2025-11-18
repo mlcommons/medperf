@@ -298,9 +298,8 @@ class AirflowSystemRunner:
                 summarizer.summarize(airflow_client)
 
         config.ui.print(
-            "Pipeline Execution finished. Please press Enter to close Airflow..."
+            "Pipeline Execution finished. Airflow will now be closed and MedPerf will proceed."
         )
-        input()
 
     def _check_completed_asset(self, airflow_client: AirflowAPIClient) -> bool:
         """Checks if the final asset that marks pipeline completion has been updated"""
