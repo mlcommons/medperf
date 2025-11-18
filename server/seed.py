@@ -8,7 +8,13 @@ This script can only be invoked from its parent folder, that's because it
 executes Django code to set admin permissions for a test user."""
 
 import argparse
-from seed_utils import Server, set_user_as_admin, create_benchmark, create_model
+from seed_utils import (
+    Server,
+    set_user_as_admin,
+    create_benchmark,
+    create_model,
+    create_workflow_benchmark,
+)
 from auth_provider_token import auth_provider_token
 from pathlib import Path
 import json
@@ -37,7 +43,12 @@ def seed(args):
         return
     # create benchmark
     benchmark_owner_token = get_token("testbo@example.com")
-    benchmark = create_benchmark(api_server, benchmark_owner_token, admin_token)
+    if args.workflow:
+        benchmark = create_workflow_benchmark(
+            api_server, benchmark_owner_token, admin_token
+        )
+    else:
+        benchmark = create_benchmark(api_server, benchmark_owner_token, admin_token)
     if args.demo == "model":
         return
     # create model
@@ -79,6 +90,12 @@ if __name__ == "__main__":
         type=str,
         help="Path to local tokens file",
         default=default_tokens_file,
+    )
+    parser.add_argument(
+        "-w",
+        "--workflow",
+        action="store_true",
+        help="Use an Airflow workflow instead of a container for Data Preparation",
     )
     args = parser.parse_args()
     if args.cert.lower() == "none":

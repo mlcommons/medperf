@@ -273,6 +273,195 @@ def create_benchmark(api_server, benchmark_owner_token, admin_token):
     return benchmark
 
 
+def create_workflow_benchmark(api_server, benchmark_owner_token, admin_token):
+    print("##########################BENCHMARK OWNER##########################")
+
+    DATA_PREP_ASSETS_WORKFLOW_URL = (
+        "https://raw.githubusercontent.com/RodriguesRBruno/medperf/"
+        "41c7082bf5093de8ba287683a41365860ee71d18/examples/"
+        "chestxray_tutorial/"
+    )
+    # Create a Data preprocessor MLCube by Benchmark Owner
+    data_preprocessor_mlcube = api_server.request(
+        "/mlcubes/",
+        "POST",
+        benchmark_owner_token,
+        {
+            "name": "chestxray_wprep",
+            "git_mlcube_url": (
+                DATA_PREP_ASSETS_WORKFLOW_URL + "data_preparator_workflow/workflow.yaml"
+            ),
+            "mlcube_hash": "9b65373a0cae9b2cbbd5027a3d692f2ed080e6f15c0ff5d45e9d92517409651d",
+            "git_parameters_url": (
+                DATA_PREP_ASSETS_WORKFLOW_URL
+                + "data_preparator/workspace/parameters.yaml"
+            ),
+            "parameters_hash": "1541e05437040745d2489e8d2cf14795d4839eecc15c1ac959c84f6b77c1a5df",
+            "image_tarball_url": "",
+            "image_tarball_hash": "",
+            "image_hash": {
+                "mlcommons/chestxray-tutorial-prep:0.0.1": "d941e09d160bba3cf5c09b48f490e3b9e891597341e560954ff7512478eaef22"
+            },
+            "additional_files_tarball_url": "",
+            "additional_files_tarball_hash": "",
+            "metadata": {
+                "digest": "f8697dc1c646395ad1ac54b8c0373195dbcfde0c4ef5913d4330a5fe481ae9a4"
+            },
+        },
+        "id",
+    )
+    print(
+        "Data Preprocessor MLCube Created(by Benchmark Owner). ID:",
+        data_preprocessor_mlcube,
+    )
+
+    # Update state of the Data preprocessor MLCube to OPERATION
+    data_preprocessor_mlcube_state = api_server.request(
+        "/mlcubes/" + str(data_preprocessor_mlcube) + "/",
+        "PUT",
+        benchmark_owner_token,
+        {"state": "OPERATION"},
+        "state",
+    )
+    print(
+        "Data Preprocessor MlCube state updated to",
+        data_preprocessor_mlcube_state,
+        "by Benchmark Owner",
+    )
+
+    # Create a reference model executor mlcube by Benchmark Owner
+    reference_model_executor_mlcube = api_server.request(
+        "/mlcubes/",
+        "POST",
+        benchmark_owner_token,
+        {
+            "name": "chestxray_cnn",
+            "git_mlcube_url": (ASSETS_URL + "model_custom_cnn/container_config.yaml"),
+            "mlcube_hash": "7ffb958bf83841b5f601a2538d004740216c336872c824a2fc3b9b346c6291dc",
+            "git_parameters_url": (
+                ASSETS_URL + "model_custom_cnn/workspace/parameters.yaml"
+            ),
+            "parameters_hash": "af0aed4735b5075c198f8b49b3afbf7a0d7eaaaaa2a2b914d5931f0bee51d3f6",
+            "additional_files_tarball_url": (
+                "https://storage.googleapis.com/medperf-storage/"
+                "chestxray_tutorial/cnn_weights.tar.gz"
+            ),
+            "additional_files_tarball_hash": "bff003e244759c3d7c8b9784af0819c7f252da8626745671ccf7f46b8f19a0ca",
+            "image_hash": {
+                "default": "877b8df79678215dfdcb63fe6bc1dab58e9c29113437c2c5627442551e3087c5"
+            },
+            "image_tarball_url": "",
+            "image_tarball_hash": "",
+            "metadata": {
+                "digest": "a1bdddce05b9d156df359dd570de8031fdd1ea5a858f755139bed4a95fad19d1"
+            },
+        },
+        "id",
+    )
+    print(
+        "Reference Model Executor MlCube Created(by Benchmark Owner). ID:",
+        reference_model_executor_mlcube,
+    )
+
+    # Update state of the Reference Model Executor MLCube to OPERATION
+    reference_model_executor_mlcube_state = api_server.request(
+        "/mlcubes/" + str(reference_model_executor_mlcube) + "/",
+        "PUT",
+        benchmark_owner_token,
+        {"state": "OPERATION"},
+        "state",
+    )
+    print(
+        "Reference Model Executor MlCube state updated to",
+        reference_model_executor_mlcube_state,
+        "by Benchmark Owner",
+    )
+
+    # Create a Data evalutor MLCube by Benchmark Owner
+    data_evaluator_mlcube = api_server.request(
+        "/mlcubes/",
+        "POST",
+        benchmark_owner_token,
+        {
+            "name": "chestxray_metrics",
+            "git_mlcube_url": (ASSETS_URL + "metrics/container_config.yaml"),
+            "mlcube_hash": "1617c231a9a9cc596664222056e19718ef860552ab8cf99a97f52318e0d566f7",
+            "git_parameters_url": (ASSETS_URL + "metrics/workspace/parameters.yaml"),
+            "parameters_hash": "16cad451c54b801a5b50d999330465d7f68ab5f6d30a0674268d2d17c7f26b73",
+            "image_tarball_url": "",
+            "image_tarball_hash": "",
+            "image_hash": {
+                "default": "c61b4079be59ba3bb31090bdf89f7f603023f77d28ca0475b5320efaa36866aa"
+            },
+            "additional_files_tarball_url": "",
+            "additional_files_tarball_hash": "",
+            "metadata": {
+                "digest": "d33904c1104d0a3df314f29c603901a8584fec01e58b90d7ae54c8d74d32986c"
+            },
+        },
+        "id",
+    )
+    print(
+        "Data Evaluator MlCube Created(by Benchmark Owner). ID:",
+        data_evaluator_mlcube,
+    )
+
+    # Update state of the Data Evaluator MLCube to OPERATION
+    data_evaluator_mlcube_state = api_server.request(
+        "/mlcubes/" + str(data_evaluator_mlcube) + "/",
+        "PUT",
+        benchmark_owner_token,
+        {"state": "OPERATION"},
+        "state",
+    )
+    print(
+        "Data Evaluator MlCube state updated to",
+        data_evaluator_mlcube_state,
+        "by Benchmark Owner",
+    )
+
+    # Create a new benchmark by Benchmark owner
+    benchmark = api_server.request(
+        "/benchmarks/",
+        "POST",
+        benchmark_owner_token,
+        {
+            "name": "chestxray",
+            "description": "benchmark-sample",
+            "docs_url": "",
+            "demo_dataset_tarball_url": "https://storage.googleapis.com/medperf-storage/chestxray_tutorial/demo_data.tar.gz",
+            "demo_dataset_tarball_hash": "71faabd59139bee698010a0ae3a69e16d97bc4f2dde799d9e187b94ff9157c00",
+            "demo_dataset_generated_uid": "730d2474d8f22340d9da89fa2eb925fcb95683e0",
+            "data_preparation_mlcube": data_preprocessor_mlcube,
+            "reference_model_mlcube": reference_model_executor_mlcube,
+            "data_evaluator_mlcube": data_evaluator_mlcube,
+        },
+        "id",
+    )
+    print("Benchmark Created(by Benchmark Owner). ID:", benchmark)
+
+    # Update the benchmark state to OPERATION
+    benchmark_state = api_server.request(
+        "/benchmarks/" + str(benchmark) + "/",
+        "PUT",
+        benchmark_owner_token,
+        {"state": "OPERATION"},
+        "state",
+    )
+    print("Benchmark state updated to", benchmark_state, "by Benchmark owner")
+
+    # Mark the benchmark to be APPROVED
+    benchmark_status = api_server.request(
+        "/benchmarks/" + str(benchmark) + "/",
+        "PUT",
+        admin_token,
+        {"approval_status": "APPROVED"},
+        "approval_status",
+    )
+    print("Benchmark Id:", benchmark, "is marked", benchmark_status, "(by Admin)")
+    return benchmark
+
+
 def create_model(api_server, model_owner_token, benchmark_owner_token, benchmark):
     print("##########################MODEL OWNER##########################")
     # Model Owner Interaction
