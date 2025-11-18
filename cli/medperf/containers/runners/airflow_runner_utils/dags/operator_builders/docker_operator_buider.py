@@ -25,7 +25,7 @@ class DockerOperatorBuilder(ContainerOperatorBuilder):
             mounts=self.mounts,
             task_id=self.operator_id,
             task_display_name=self.display_name,
-            # auto_remove="success",
+            auto_remove="success",
             mount_tmp_dir=False,
             outlets=self.outlets,
         )
