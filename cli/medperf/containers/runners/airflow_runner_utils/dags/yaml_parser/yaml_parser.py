@@ -213,8 +213,10 @@ class YamlParser:
                 if not this_step_inlets:
                     this_step_inlets = [step_id]
                 step["inlets"] = this_step_inlets
+                step["base_inlet"] = step_id
             else:
                 step["inlets"] = []
+                step["base_inlet"] = None
 
         expanded_steps = list(step_id_to_expanded_step.values())
         return expanded_steps
