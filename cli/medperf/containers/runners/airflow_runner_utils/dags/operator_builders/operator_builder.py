@@ -1,7 +1,10 @@
 from __future__ import annotations
 from airflow.sdk import Asset, BaseOperator
 from abc import ABC, abstractmethod
-from constants import ALWAYS_CONDITION, FINAL_ASSET
+from medperf.containers.runners.airflow_runner_utils.dags.constants import (
+    ALWAYS_CONDITION,
+    FINAL_ASSET,
+)
 
 
 class OperatorBuilder(ABC):
