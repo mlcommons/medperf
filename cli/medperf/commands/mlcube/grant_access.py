@@ -79,7 +79,7 @@ class GrantAccess:
             self.benchmark_id
         )
         existing_keys = EncryptedKey.get_container_keys(self.model_id)
-        certificates_with_keys = [key["certificate"] for key in existing_keys]
+        certificates_with_keys = [key.certificate for key in existing_keys]
 
         certificates_need_keys: list[Certificate] = []
 
