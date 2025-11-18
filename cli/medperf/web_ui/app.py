@@ -10,7 +10,6 @@ from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from medperf import config
-from medperf.init import initialize
 from medperf.decorators import clean_except
 from medperf.web_ui.common import custom_exception_handler
 from medperf.utils import print_webui_props

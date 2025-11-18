@@ -78,7 +78,7 @@ def get_docker_hash(
             raise
         print(
             f"An error happened when attempting to get registry data from "
-            f"Container {container_id}. Will try again {MAX_TRIES-current_try} times..."
+            f"Container {container_id}. Will try again {MAX_TRIES - current_try} times..."
         )
         return get_docker_hash(
             docker_client=docker_client,
