@@ -6,6 +6,9 @@ function activateProfile(activateProfileBtn) {
     
     disableElements("#profiles-form select, #profiles-form button");
     disableElements("#edit-config-form input, #edit-config-form button");
+    disableElements("#edit-certs-form input, #edit-certs-form select, #edit-certs-form button");
+    disableElements("#user-certificate button");
+    
     ajaxRequest(
         "/settings/activate_profile",
         "POST",
@@ -55,7 +58,10 @@ function viewProfile(viewProfileBtn){
 function editProfile(editProfileBtn) {
     const formData = new FormData($("#edit-config-form")[0]);
 
+    disableElements("#profiles-form select, #profiles-form button");
     disableElements("#edit-config-form input, #edit-config-form button");
+    disableElements("#edit-certs-form input, #edit-certs-form select, #edit-certs-form button");
+    disableElements("#user-certificate button");
 
     ajaxRequest(
         "/settings/edit_profile",
@@ -77,7 +83,10 @@ function editProfile(editProfileBtn) {
 function editCertificate(editCertBtn) {
     const formData = new FormData($("#edit-certs-form")[0]);
 
+    disableElements("#profiles-form select, #profiles-form button");
+    disableElements("#edit-config-form input, #edit-config-form button");
     disableElements("#edit-certs-form input, #edit-certs-form select, #edit-certs-form button");
+    disableElements("#user-certificate button");
 
     ajaxRequest(
         "/settings/edit_certificate",
@@ -94,6 +103,93 @@ function editCertificate(editCertBtn) {
         },
         "Error editing certificate settings:"
     );
+}
+
+function onGetCertSuccess(response){
+    if (response.status === "success"){
+        showReloadModal("Certificate Generated Successfully");
+        timer(3);
+    }
+    else {
+        showErrorModal("Failed to Generate Certificate", response);
+    }
+}
+
+function onDeleteCertSuccess(response){
+    if (response.status === "success"){
+        showReloadModal("Certificate Deleted Successfully");
+        timer(3);
+    }
+    else {
+        showErrorModal("Failed to Delete Certificate", response);
+    }
+}
+
+function onSubmitCertSuccess(response){
+    if (response.status === "success"){
+        showReloadModal("Certificate Submitted Successfully");
+        timer(3);
+    }
+    else {
+        showErrorModal("Failed to Submit Certificate", response);
+    }
+}
+
+async function getCertificate(getCertBtn){
+    disableElements("#profiles-form select, #profiles-form button");
+    disableElements("#edit-config-form input, #edit-config-form button");
+    disableElements("#edit-certs-form input, #edit-certs-form select, #edit-certs-form button");
+    disableElements("#certificate-status button");
+
+    ajaxRequest(
+        "/settings/get_certificate",
+        "POST",
+        null,
+        onGetCertSuccess,
+        "Error generating certificate:"
+    );
+
+    showPanel(`Generating Client Certificate...`);
+    window.runningTaskId = await getTaskId();
+    streamEvents(logPanel, stagesList, currentStageElement);
+}
+
+async function deleteCertificate(deleteCertBtn){
+    disableElements("#profiles-form select, #profiles-form button");
+    disableElements("#edit-config-form input, #edit-config-form button");
+    disableElements("#edit-certs-form input, #edit-certs-form select, #edit-certs-form button");
+    disableElements("#certificate-status button");
+
+    ajaxRequest(
+        "/settings/delete_certificate",
+        "POST",
+        null,
+        onDeleteCertSuccess,
+        "Error deleting certificate:"
+    );
+
+    showPanel(`Deleting Client Certificate...`);
+    window.runningTaskId = await getTaskId();
+    streamEvents(logPanel, stagesList, currentStageElement);
+}
+
+async function submitCertificate(submitCertBtn){
+    disableElements("#profiles-form select, #profiles-form button");
+    disableElements("#edit-config-form input, #edit-config-form button");
+    disableElements("#edit-certs-form input, #edit-certs-form select, #edit-certs-form button");
+    disableElements("#certificate-status button");
+
+    ajaxRequest(
+        "/settings/submit_certificate",
+        "POST",
+        null,
+        onSubmitCertSuccess,
+        "Error submitting certificate:"
+    );
+
+    showPanel(`Submitting Client Certificate...`);
+    window.runningTaskId = await getTaskId();
+    streamEvents(logPanel, stagesList, currentStageElement);
 }
 
 function checkForProfileEditChanges() {
@@ -145,6 +241,18 @@ $(document).ready(() => {
 
     $("#apply-cert-changes-btn").on("click", (e) => {
         showConfirmModal(e.currentTarget, editCertificate, "modify certificate settings?");
+    });
+
+    $("#get-cert-btn").on("click", (e) => {
+        showConfirmModal(e.currentTarget, getCertificate, "generate a new certificate?");
+    });
+
+    $("#delete-cert-btn").on("click", (e) => {
+        showConfirmModal(e.currentTarget, deleteCertificate, "delete the certificate?");
+    });
+
+    $("#submit-cert-btn").on("click", (e) => {
+        showConfirmModal(e.currentTarget, submitCertificate, "submit the certificate?");
     });
 
     $('#profile').on('change', checkProfileMatch);

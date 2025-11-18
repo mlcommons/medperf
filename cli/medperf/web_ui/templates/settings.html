@@ -2,6 +2,8 @@
 
 {% extends "base.html" %}
 
+{% import "constants/tooltips.html" as tooltips %}
+
 {% block title %}Settings{% endblock %}
 
 {% block content %}
@@ -106,6 +108,64 @@
     </div>
 </div>
 
+<div id="user-certificate" class="container">
+    <div class="row my-5">
+        <div id="certificate-status" class="col-12 my-5 text-center">
+            {% if certificate_status["no_certs_found"] %}
+            <h5>No Certificate Found</h5>
+            <button
+                id="get-cert-btn"
+                class="btn btn-dark mt-3"
+                {% if task_running %}disabled{% endif %}
+                data-bs-toggle="tooltip"
+                data-bs-placement="top"
+                data-bs-title="{{ tooltips.get_client_certificate_btn }}"
+                >Get User Certificate
+            </button>
+            {% else %}
+            <h5>Certificate Exists</h5>
+            {% if certificate_status["should_be_submitted"] %}
+            <p class="fs-5">
+                <strong>Status:</strong> 
+                <span class="badge bg-warning">local</span>
+            </p>
+            <button
+                id="submit-cert-btn"
+                class="btn btn-primary mt-3"
+                {% if task_running %}disabled{% endif %}
+                data-bs-toggle="tooltip"
+                data-bs-placement="top"
+                data-bs-title="{{ tooltips.submit_certificate_btn }}"
+                >Submit Certificate
+            </button>
+            {% elif certificate_status["should_be_invalidated"] %}
+            <p class="fs-5">
+                <strong>Status:</strong> 
+                <span class="badge bg-danger">invalid</span>
+            </p>
+            <button
+                id="delete-cert-btn"
+                class="btn btn-danger mt-3"
+                {% if task_running %}disabled{% endif %}
+                data-bs-toggle="tooltip"
+                data-bs-placement="top"
+                data-bs-title="{{ tooltips.invalidate_certificate_btn }}"
+                >Invalidate Certificate
+            </button>
+            {% else %}
+            <p class="fs-5">
+                <strong>Status:</strong> 
+                <span class="badge bg-success">valid</span>
+            </p>
+            {% endif %}
+            {% endif %}
+        </div>
+    </div>
+    {% include "partials/panel_container.html" %}
+    {% include "partials/text_content_container.html" %}
+    {% include "partials/prompt_container.html" %}
+</div>
+
 {{ modal_macros.add_modal(
     modal_id="view-profile-modal",
     modal_class="modal-lg",
@@ -117,6 +177,7 @@
 {% endblock content %}
 
 {% block extra_js %}
+<script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
 <script>
     // Save some global variables to be accessible by js scripts
     window.currentSettings = {
@@ -128,4 +189,37 @@
     };
 </script>
 <script src="/static/js/settings.js"></script>
+{% if task_running %}
+{% if request.app.state.task.name == "get_client_certificate" %}
+<script>
+    $(document).ready(() => {
+        resumeRunningTask(
+            "#get-cert-btn",
+            null,
+            onGetCertSuccess
+        );
+    });
+</script>
+{% elif request.app.state.task.name == "delete_client_certificate" %}
+<script>
+    $(document).ready(() => {
+        resumeRunningTask(
+            "#delete-cert-btn",
+            null,
+            onDeleteCertSuccess
+        );
+    });
+</script>
+{% elif request.app.state.task.name == "submit_client_certificate" %}
+<script>
+    $(document).ready(() => {
+        resumeRunningTask(
+            "#submit-cert-btn",
+            null,
+            onSubmitCertSuccess
+        );
+    });
+</script>
+{% endif %}
+{% endif %}
 {% endblock extra_js %}

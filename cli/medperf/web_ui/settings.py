@@ -1,14 +1,25 @@
 from fastapi import Form, APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 
-from medperf.entities.ca import CA
 from medperf import config
-from medperf.config_management.config_management import read_config, write_config
+from medperf.commands.certificate.client_certificate import GetUserCertificate
+from medperf.commands.certificate.delete_client_certificate import DeleteCertificate
+from medperf.commands.certificate.submit import SubmitCertificate
+from medperf.commands.certificate.utils import current_user_certificate_status
 from medperf.commands.utils import set_profile_args
+from medperf.config_management.config_management import read_config, write_config
+from medperf.entities.ca import CA
 from medperf.exceptions import InvalidArgumentError
 from medperf.utils import make_pretty_dict
-from medperf.web_ui.common import check_user_api, check_user_ui, templates
 from medperf.init import initialize
+from medperf.web_ui.common import (
+    add_notification,
+    check_user_api,
+    check_user_ui,
+    initialize_state_task,
+    reset_state_task,
+    templates,
+)
 import logging
 
 logger = logging.getLogger(__name__)
@@ -17,13 +28,15 @@ router = APIRouter()
 
 
 @router.get("/", response_class=HTMLResponse)
-def profiles_ui(request: Request, current_user: bool = Depends(check_user_ui)):
+def settings_ui(request: Request, current_user: bool = Depends(check_user_ui)):
 
     config_p = read_config()
     cas = CA.all()
     cas = {c.id: c.name for c in cas}
     default_ca = config_p.active_profile["certificate_authority_id"]
     default_fingerprint = config_p.active_profile["certificate_authority_fingerprint"]
+
+    certificate_status = current_user_certificate_status()
 
     return templates.TemplateResponse(
         "settings.html",
@@ -35,6 +48,7 @@ def profiles_ui(request: Request, current_user: bool = Depends(check_user_ui)):
             "cas": cas,
             "default_ca": default_ca,
             "default_fingerprint": default_fingerprint,
+            "certificate_status": certificate_status,
         },
     )
 
@@ -72,8 +86,9 @@ def edit_profile(
         set_profile_args(profile_config)
         initialize(for_webui=True)
         return {"status": "success", "error": ""}
-    except Exception as e:
-        return {"status": "failed", "error": str(e)}
+    except Exception as exp:
+        logger.exception(exp)
+        return {"status": "failed", "error": str(exp)}
 
 
 @router.post("/view_profile", response_class=JSONResponse)
@@ -126,5 +141,91 @@ def edit_certificate(
         initialize(for_webui=True)
         set_profile_args(profile_config)
         return {"status": "success", "error": ""}
-    except Exception as e:
-        return {"status": "failed", "error": str(e)}
+    except Exception as exp:
+        logger.exception(exp)
+        return {"status": "failed", "error": str(exp)}
+
+
+@router.post("/get_certificate", response_class=JSONResponse)
+def get_certificate(
+    request: Request,
+    current_user: bool = Depends(check_user_api),
+):
+    initialize_state_task(request, task_name="get_client_certificate")
+    return_response = {"status": "", "error": ""}
+
+    try:
+        GetUserCertificate.run()
+        return_response["status"] = "success"
+        notification_message = "Certificate generated"
+    except Exception as exp:
+        return_response["status"] = "failed"
+        return_response["error"] = str(exp)
+        notification_message = "Failed to generate certificate"
+        logger.exception(exp)
+
+    config.ui.end_task(return_response)
+    reset_state_task(request)
+    add_notification(
+        request,
+        message=notification_message,
+        return_response=return_response,
+    )
+    return return_response
+
+
+@router.post("/delete_certificate", response_class=JSONResponse)
+def delete_certificate(
+    request: Request,
+    current_user: bool = Depends(check_user_api),
+):
+    initialize_state_task(request, task_name="delete_client_certificate")
+    return_response = {"status": "", "error": ""}
+
+    try:
+        DeleteCertificate.run()
+        return_response["status"] = "success"
+        notification_message = "Certificate deleted"
+    except Exception as exp:
+        return_response["status"] = "failed"
+        return_response["error"] = str(exp)
+        notification_message = "Failed to delete certificate"
+        logger.exception(exp)
+
+    config.ui.end_task(return_response)
+    reset_state_task(request)
+    add_notification(
+        request,
+        message=notification_message,
+        return_response=return_response,
+    )
+    return return_response
+
+
+@router.post("/submit_certificate", response_class=JSONResponse)
+def submit_certificate(
+    request: Request,
+    current_user: bool = Depends(check_user_api),
+):
+    initialize_state_task(request, task_name="submit_client_certificate")
+    return_response = {"status": "", "error": ""}
+
+    try:
+        # TODO: don't pass name, it will be auto-generated
+        SubmitCertificate.run(name="auto-generated")
+        return_response["status"] = "success"
+        notification_message = "Certificate submitted"
+    except Exception as exp:
+        return_response["status"] = "failed"
+        return_response["error"] = str(exp)
+        notification_message = "Failed to submit certificate"
+        logger.exception(exp)
+
+    config.ui.end_task(return_response)
+    reset_state_task(request)
+    add_notification(
+        request,
+        message=notification_message,
+        return_response=return_response,
+    )
+    return return_response
