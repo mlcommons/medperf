@@ -25,11 +25,11 @@ class ReportSummary:
 
     def __init__(
         self,
-        report_directory: str,
+        report_file: str,
         execution_status: Literal["running", "failure", "done"],
         progress_dict: dict[str, Any] = None,
     ):
-        self.report_summary_file = os.path.join(report_directory, "report_summary.yaml")
+        self.report_file = report_file
         self.execution_status = execution_status
         self.progress_dict = progress_dict if progress_dict is not None else {}
 
@@ -41,8 +41,11 @@ class ReportSummary:
         return report_dict
 
     def write_yaml(self):
+        if self.report_file is None:
+            return
+
         report_dict = self.to_dict()
-        with open(self.report_summary_file, "w") as f:
+        with open(self.report_file, "w") as f:
             yaml.dump(
                 report_dict,
                 f,
@@ -52,9 +55,9 @@ class ReportSummary:
 
 class Summarizer:
 
-    def __init__(self, yaml_parser: YamlPartialParser, report_directory: os.PathLike):
+    def __init__(self, yaml_parser: YamlPartialParser, report_file: os.PathLike):
         self.step_ids = yaml_parser.step_ids
-        self.report_directory = report_directory
+        self.report_file = report_file
 
     @staticmethod
     def _get_dag_id_to_dag_dict(client: AirflowAPIClient) -> dict[str, dict[str, Any]]:
@@ -149,7 +152,7 @@ class Summarizer:
             execution_status = "running"
 
         report_summary = ReportSummary(
-            report_directory=self.report_directory,
+            report_file=self.report_file,
             execution_status=execution_status,
             progress_dict=summary_dict,
         )
@@ -159,6 +162,9 @@ class Summarizer:
         self,
         airflow_client: AirflowAPIClient,
     ):
+        if self.report_file is None:
+            return
+
         all_dags = self._get_dag_id_to_dag_dict(airflow_client)
         most_recent_dag_runs = self._get_most_recent_dag_runs(all_dags, airflow_client)
         report_summary = self._get_report_summary(all_dags, most_recent_dag_runs)

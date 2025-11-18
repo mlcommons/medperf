@@ -89,6 +89,10 @@ class Cube(Entity, DeployableSchema):
         return self._runner
 
     @property
+    def is_workflow(self) -> bool:
+        return self.runner.is_workflow
+
+    @property
     def local_id(self):
         return self.name
 

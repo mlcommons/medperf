@@ -277,7 +277,7 @@ class AirflowSystemRunner:
             try:
                 summarizer = Summarizer(
                     yaml_parser=self.yaml_parser,
-                    report_directory=self.mounts["output_path"],
+                    report_file=self.mounts.get("report_file"),
                 )
                 summarizer_task = asyncio.create_task(
                     summarizer.summarize_every_x_seconds(

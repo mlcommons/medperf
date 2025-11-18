@@ -92,9 +92,10 @@ class DataPreparation:
             with preparation.ui.interactive():
                 preparation.run_prepare()
 
-        with preparation.ui.interactive():
-            preparation.run_sanity_check()
-            preparation.run_statistics()
+        if not preparation.is_workflow:
+            with preparation.ui.interactive():
+                preparation.run_sanity_check()
+                preparation.run_statistics()
 
         preparation.mark_dataset_as_ready()
 
@@ -117,6 +118,10 @@ class DataPreparation:
         self.report_specified = None
         self.metadata_specified = None
         self._lock = Lock()
+
+    @property
+    def is_workflow(self):
+        return self.cube.is_workflow
 
     def should_run_prepare(self):
         return not self.dataset.submitted_as_prepared and not self.dataset.is_ready()
@@ -177,6 +182,9 @@ class DataPreparation:
 
         if self.report_specified:
             prepare_mounts["report_file"] = self.report_path
+
+        if self.cube.is_workflow:
+            prepare_mounts["statistics_file"] = self.out_statistics_path
 
         self.ui.text = "Running preparation step..."
         try:

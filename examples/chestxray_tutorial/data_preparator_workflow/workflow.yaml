@@ -1,0 +1,65 @@
+steps:
+  - id: prepare
+    type: container
+    image: mlcommons/chestxray-tutorial-prep:0.0.1
+    command: python3 /project/prepare.py
+    mounts:
+      input_volumes:
+        data_path:
+          mount_path: /mlcommons/volumes/raw_data
+          type: directory
+        labels_path:
+          mount_path: /mlcommons/volumes/raw_labels
+          type: directory
+        parameters_file:
+          mount_path: /mlcommons/volumes/parameters/parameters_file.yaml
+          type: file
+      output_volumes:
+        output_path:
+          mount_path: /mlcommons/volumes/data
+          type: directory
+        output_labels_path:
+          mount_path: /mlcommons/volumes/labels
+          type: directory
+    next: sanity_check
+    on_error: do_something
+
+  - id: sanity_check
+    type: container
+    image: mlcommons/chestxray-tutorial-prep:0.0.1
+    command: python3 /project/sanity_check.py
+    mounts:
+      input_volumes:
+        data_path:
+          mount_path: /mlcommons/volumes/data
+          type: directory
+        labels_path:
+          mount_path: /mlcommons/volumes/labels
+          type: directory
+        parameters_file:
+          mount_path: /mlcommons/volumes/parameters/parameters_file.yaml
+          type: file
+    next: statistics
+    on_error: do_something
+
+  - id: statistics
+    type: container
+    image: mlcommons/chestxray-tutorial-prep:0.0.1
+    command: python3 /project/statistics.py
+    mounts:
+      input_volumes:
+        data_path:
+          mount_path: /mlcommons/volumes/data
+          type: directory
+        labels_path:
+          mount_path: /mlcommons/volumes/labels
+          type: directory
+        parameters_file:
+          mount_path: /mlcommons/volumes/parameters/parameters_file.yaml
+          type: file
+      output_volumes:
+        output_path:
+          mount_path: /mlcommons/volumes/statistics/statistics.yaml
+          type: file
+    next: null
+    on_error: do_something

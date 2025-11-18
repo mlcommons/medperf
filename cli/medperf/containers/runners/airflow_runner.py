@@ -83,6 +83,12 @@ class AirflowRunner(Runner):
         additional_files_path = medperf_mounts["additional_files"]
         self._symlink_yaml_dag_to_additional_files(additional_files_path)
 
+        logging.debug(
+            f"Starting Airflow runner with the following airflow home directory: {airflow_home}."
+        )
+        logging.debug(
+            f"Airflow execution based on the following YAML file: {self.parser.config_file_path}"
+        )
         with AirflowSystemRunner(
             airflow_home=airflow_home,
             user=username,
@@ -100,9 +106,10 @@ class AirflowRunner(Runner):
         os.makedirs(additional_files_path, exist_ok=True)
         symlinked_yaml_file_path = os.path.join(additional_files_path, yaml_file_name)
         try:
-            os.symlink(self.parser.config_file_path, symlinked_yaml_file_path)
-        except FileExistsError:
+            os.unlink(symlinked_yaml_file_path)
+        except FileNotFoundError:
             pass
+        os.symlink(self.parser.config_file_path, symlinked_yaml_file_path)
 
     @property
     def is_workflow(self):
