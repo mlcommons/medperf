@@ -653,5 +653,6 @@ def validate_and_normalize_emails(emails: list[str]):
         try:
             validate_email(email, check_deliverability=False)
         except EmailNotValidError as e:
+            logging.debug(f"Invalid email: |{email}|")
             raise InvalidArgumentError(str(e))
     return emails

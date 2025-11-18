@@ -22,7 +22,7 @@ class GrantAccess:
         benchmark_id: int,
         model_id: int,
         approved: bool = False,
-        allowed_emails: list = None,
+        allowed_emails: str = None,
     ):
         """
         Registers encrypted access keys in the MedPerf server for all
@@ -65,6 +65,7 @@ class GrantAccess:
 
     def validate_allowed_emails(self):
         if self.allowed_emails is not None:
+            self.allowed_emails = self.allowed_emails.strip().split(" ")
             self.allowed_emails = validate_and_normalize_emails(self.allowed_emails)
 
     def verify_certificate_authority(self):
