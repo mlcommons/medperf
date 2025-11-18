@@ -1,6 +1,6 @@
 from medperf import config
 from medperf.entities.certificate import Certificate
-from medperf.utils import get_pki_assets_path
+from medperf.utils import get_pki_assets_path, remove_path
 from medperf.account_management import get_medperf_user_data
 import os
 import base64
@@ -35,8 +35,19 @@ def current_user_certificate_status():
     email = get_medperf_user_data()["email"]
     local_cert_folder = get_pki_assets_path(email, config.certificate_authority_id)
 
+    # Get local certificate and key paths
+    private_key_path = os.path.join(local_cert_folder, config.private_key_file)
+    certificate_path = os.path.join(local_cert_folder, config.certificate_file)
+
+    # Check existence of local certificate and key paths
+    private_key_exists = os.path.exists(private_key_path)
+    certificate_exists = os.path.exists(certificate_path)
+
     # Check
-    exists_locally = os.path.exists(local_cert_folder)
+    exists_locally = private_key_exists and certificate_exists
+    certificate_corrupted = (private_key_exists and not certificate_exists) or (
+        certificate_exists and not private_key_exists
+    )
     submitted = user_cert_object is not None
 
     no_certs_found = False
@@ -44,7 +55,11 @@ def current_user_certificate_status():
     should_be_invalidated = False
     no_action_required = False
 
-    if not submitted and not exists_locally:
+    if not submitted and certificate_corrupted:
+        logging.debug("local certificate is corrupted")
+        remove_path(local_cert_folder, sensitive=True)
+        no_certs_found = True
+    elif not submitted and not exists_locally:
         logging.debug("No remote or local certificate")
         no_certs_found = True
     elif not submitted and exists_locally:
