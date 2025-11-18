@@ -622,14 +622,24 @@ def store_decryption_key(container_id, decryption_key_path):
     return target_path
 
 
-def tmp_file_path_for_decryption():
-    """Generates a temporary file path to act as the output path for decryption"""
+def _tmp_path_for_decryption(base_path: str):
+    """Generates a temporary file path as the output path for decryption"""
     folder_name = generate_tmp_uid()
-    folder_path = os.path.join(config.decrypted_files_folder, folder_name)
+    folder_path = os.path.join(base_path, folder_name)
     os.makedirs(folder_path, mode=0o700)
     config.sensitive_tmp_paths.append(folder_path)
     file_path = os.path.join(folder_path, generate_tmp_uid())
     return file_path
+
+
+def tmp_path_for_file_decryption():
+    """Generates a temporary file path as the output path for file decryption"""
+    return _tmp_path_for_decryption(base_path=config.decrypted_files_folder)
+
+
+def tmp_path_for_key_decryption():
+    """Generates a temporary file path as the output path for encrypted key decryption"""
+    return _tmp_path_for_decryption(base_path=config.container_keys_dir)
 
 
 def secure_write_to_file(file_path, content: bytes, exec_permission=False):

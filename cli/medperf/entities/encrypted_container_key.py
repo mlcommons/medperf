@@ -13,7 +13,7 @@ from medperf.commands.certificate.utils import (
     load_user_private_key,
 )
 from medperf.encryption import AsymmetricEncryption
-from medperf.utils import get_decryption_key_path, secure_write_to_file
+from medperf.utils import tmp_path_for_key_decryption, secure_write_to_file
 from typing import List
 
 
@@ -73,7 +73,7 @@ class EncryptedKey(MedperfSchema):
 
     def decrypt(self):
         logging.debug("Decrypting key.")
-        output_path = get_decryption_key_path(self.container)
+        output_path = tmp_path_for_key_decryption(self.container)
         logging.debug(f"Output path: {output_path}")
         encrypted_key_bytes = base64.b64decode(self.encrypted_key_base64)
         private_key_bytes = load_user_private_key()
