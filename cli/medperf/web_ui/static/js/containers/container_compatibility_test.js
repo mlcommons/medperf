@@ -1,7 +1,7 @@
 function onContainerCompatibilityTestSuccess(response){
     markAllStagesAsComplete();
     if(response.status === "success"){
-        $("next-modal-title").html("Container Compatibility Test Successful");
+        $("#next-modal-title").html("Model Compatibility Test Successful");
         const nextModal = new bootstrap.Modal('#next-modal', {
             keyboard: false,
             backdrop: "static"
@@ -32,7 +32,7 @@ async function runContainerCompatibilityTest(runCompTestButton){
 
     showPanel(`Running Compatibility Test...`);
     window.runningTaskId = await getTaskId();
-    getEvents(logPanel, stagesList, currentStageElement);
+    streamEvents(logPanel, stagesList, currentStageElement);
 }
 
 function checkCompTestFormValidity() {
@@ -45,6 +45,10 @@ function checkCompTestFormValidity() {
     );
 
     runTestButton.prop("disabled", !isValid);
+}
+
+function showRegisterContainer(){
+    window.location.href = "/containers/register/ui";
 }
 
 $(document).ready(() => {

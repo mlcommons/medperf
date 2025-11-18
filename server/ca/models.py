@@ -6,7 +6,7 @@ User = get_user_model()
 
 class CA(models.Model):
     owner = models.ForeignKey(User, on_delete=models.PROTECT)
-    name = models.CharField(max_length=20, unique=True)
+    name = models.CharField(max_length=128, unique=True)
     config = models.JSONField()
     client_mlcube = models.ForeignKey(
         "mlcube.MlCube", on_delete=models.PROTECT, related_name="ca_client"

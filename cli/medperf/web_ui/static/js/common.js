@@ -169,11 +169,7 @@ function respondToPrompt(value){
         data: { is_approved: value },
     });
     window.isPromptReceived = false;
-    getEvents(logPanel, stagesList, currentStageElement).then((last_log) => {
-        if (typeof window.onPromptComplete === "function") {
-            window.onPromptComplete(last_log);
-        }
-    });
+    streamEvents(logPanel, stagesList, currentStageElement);
 }
 
 function resumeRunningTask(buttonSelector, panelTitle, callback){
@@ -192,15 +188,8 @@ function resumeRunningTask(buttonSelector, panelTitle, callback){
         showPanel(panelTitle);
     }
 
-    currentStageElement = processPreviousEvents(logPanel, stagesList, currentStageElement);
-    window.onPromptComplete = (last_log) => {
-        callback(last_log.response);
-    };
-    if(!window.isPromptReceived){
-        getEvents(logPanel, stagesList, currentStageElement).then(last_log => {
-            callback(last_log.response);
-        });
-    }
+    window.onPromptComplete = callback;
+    streamEvents(logPanel, stagesList, currentStageElement, true);
 }
 
 function reloadPage(){
@@ -216,14 +205,14 @@ function getEntities(switchElement){
 function onLogoutSuccess(response){
     if(response.status === "success"){
         showReloadModal("Successfully Logged Out");
-        timer(3, url="/medperf_login");
+        timer(1, url="/medperf_login");
     }
     else{
         showErrorModal("Logout Failed", response);
     }
 }
 
-function logout(){
+async function logout(){
     ajaxRequest(
         "/logout",
         "POST",
@@ -231,10 +220,13 @@ function logout(){
         onLogoutSuccess,
         "Error logging out:"
     )
+    window.runningTaskId = await getTaskId();
 }
 
 let currentStageElement = null, logPanel, stagesList;
 window.isPromptReceived = false;
+window.onPromptComplete = null;
+const logNodes = [];
 
 $(document).ready(() => {
     applyDateFormatting();
@@ -242,7 +234,6 @@ $(document).ready(() => {
     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
     const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
     
-    window.onPromptComplete = null;
     window.notifications.forEach(notification => {
         addNotification(notification);
     });
@@ -274,12 +265,16 @@ $(document).ready(() => {
             $("#loading-indicator").hide();
             $("#yaml-code").show();
             $("#hide-yaml").show();
-        }).fail(function() {
-            $("#yaml-code").text("Failed to load content");
+        }).fail(function(e) {
+            $("#yaml-code").text(e.responseJSON.detail);
             $("#loading-indicator").hide();
             $("#yaml-code").show();
             $("#hide-yaml").show();
         });
+    });
+
+    $("#logout-btn").on("click", (e) => {
+        showConfirmModal(e.currentTarget, logout, "logout?");
     });
 
     $("form").on("submit", (e) => {

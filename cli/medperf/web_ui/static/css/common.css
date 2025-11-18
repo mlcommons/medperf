@@ -1,3 +1,18 @@
+:root {
+    --footer-h: 160px;
+}
+html, body {
+    height: 100%;
+}
+
+.page-wrap {
+    min-height: calc(100vh - var(--footer-h));
+    box-sizing: border-box;
+}
+
+footer.site-footer {
+    height: var(--footer-h);
+}
 
 .badge-state-operational {
     background-color: lightgreen;
@@ -362,6 +377,14 @@ label[for="switch"] {
 
 #datasets-associations-title, #models-associations-title, #benchmark-results-title{
     cursor: pointer;
+}
+
+.bmk-detail-toggle {
+    transition: transform 0.3s ease;
+}
+
+.bmk-detail-toggle.rotated {
+    transform: rotate(180deg);
 }
 
 @keyframes spin {

@@ -545,6 +545,18 @@ def sanitize_path(path: str) -> str:
     return resolved_path
 
 
+def print_webui_props(host, port, security_token):
+    print("=" * 40)
+    print()
+    print("Open your browser to:")
+    print(f"\033[1mhttp://{host}:{port}/security_check?token={security_token}\033[0m")
+    print()
+    print("Or use security token to view the web-UI:")
+    print("\033[1m" + security_token + "\033[0m")
+    print()
+    print("=" * 40)
+
+
 def get_webui_properties():
     if not os.path.exists(config.webui_host_props):
         raise CleanExit("Web UI properties file could not be found.")
@@ -553,13 +565,10 @@ def get_webui_properties():
         props = yaml.safe_load(f)
 
     # print security token to CLI (avoid logging to file)
-    print("=" * 40)
-    print()
-    print("Use security token to view the web-UI:")
-    print(props["security_token"])
-    print()
-    print("=" * 40)
-    print(f"URL: http://{props['host']}:{props['port']}")
+    host = props["host"]
+    port = props["port"]
+    security_token = props["security_token"]
+    print_webui_props(host, port, security_token)
 
 
 def load_yaml_content(yaml_filepath: os.PathLike) -> Dict[str, Any]:

@@ -173,15 +173,6 @@ print_eval medperf benchmark submit --name bmk --description bmk --demo-url $DEM
 checkFailed "Benchmark submission failed"
 BMK_UID=$(medperf benchmark ls | grep bmk | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 echo "BMK_UID=$BMK_UID"
-
-# Approve benchmark
-echo $ADMIN
-echo $MOCK_TOKENS_FILE
-ADMIN_TOKEN=$(jq -r --arg ADMIN $ADMIN '.[$ADMIN]' $MOCK_TOKENS_FILE)
-echo $ADMIN_TOKEN
-checkFailed "Retrieving admin token failed"
-print_eval "curl -sk -X PUT $SERVER_URL$VERSION_PREFIX/benchmarks/$BMK_UID/ -d '{\"approval_status\": \"APPROVED\"}' -H 'Content-Type: application/json' -H 'Authorization: Bearer $ADMIN_TOKEN' --fail-with-body"
-checkFailed "Benchmark approval failed"
 ##########################################################
 
 echo "\n"

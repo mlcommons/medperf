@@ -30,7 +30,7 @@ async function prepareDataset(prepareButton) {
 
     window.runningTaskId = await getTaskId();
     showPanel(`Preparing Dataset...`);
-    getEvents(logPanel, stagesList, currentStageElement);
+    streamEvents(logPanel, stagesList, currentStageElement);
 }
 
 function onDatasetSetOperationSuccess(response){
@@ -63,7 +63,7 @@ async function setDatasetToOperation(setOperationButton){
     );
 
     window.runningTaskId = await getTaskId();
-    getEvents(logPanel, stagesList, currentStageElement);
+    streamEvents(logPanel, stagesList, currentStageElement);
 }
 
 function onDatasetAssociationRequestSuccess(response){
@@ -100,7 +100,7 @@ async function requestDatasetAssociation(requestAssociationButton){
 
     showPanel(`Requesting Association...`);
     window.runningTaskId = await getTaskId();
-    getEvents(logPanel, stagesList, currentStageElement);
+    streamEvents(logPanel, stagesList, currentStageElement);
 }
 
 function onDatasetBenchmarkExecutionSuccess(response){
@@ -158,7 +158,7 @@ async function runBenchmarkExecution(executeBenchmarkButton){
         
     showPanel(`Running Benchmark Execution...`);
     window.runningTaskId = await getTaskId();
-    getEvents(logPanel, stagesList, currentStageElement);
+    streamEvents(logPanel, stagesList, currentStageElement);
 }
 
 function onResultSubmitSuccess(response){
@@ -195,7 +195,7 @@ async function submitResult(submitResultButton){
     );
 
     window.runningTaskId = await getTaskId();
-    getEvents(logPanel, stagesList, currentStageElement);
+    streamEvents(logPanel, stagesList, currentStageElement);
 }
 
 $(document).ready(() => {

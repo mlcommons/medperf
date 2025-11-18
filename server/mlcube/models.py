@@ -10,9 +10,11 @@ class MlCube(models.Model):
         ("OPERATION", "OPERATION"),
     )
 
-    name = models.CharField(max_length=20, unique=True)
-    container_config = models.JSONField()
-    parameters_config = models.JSONField(blank=True, null=True)
+    name = models.CharField(max_length=128, unique=True)
+    git_mlcube_url = models.CharField(max_length=256)
+    mlcube_hash = models.CharField(max_length=100)
+    git_parameters_url = models.CharField(max_length=256, blank=True)
+    parameters_hash = models.CharField(max_length=100, blank=True)
     image_tarball_url = models.CharField(max_length=256, blank=True)
     image_tarball_hash = models.CharField(max_length=100, blank=True)
     image_hash = models.CharField(max_length=100, blank=True)
@@ -38,7 +40,7 @@ class MlCube(models.Model):
                 "image_hash",
                 "additional_files_tarball_hash",
                 "container_config",
-                "parameters_config"
+                "parameters_config",
             ),
         )
         verbose_name_plural = "MlCubes"

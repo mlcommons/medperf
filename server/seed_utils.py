@@ -264,15 +264,6 @@ def create_benchmark(api_server, benchmark_owner_token, admin_token):
     )
     print("Benchmark state updated to", benchmark_state, "by Benchmark owner")
 
-    # Mark the benchmark to be APPROVED
-    benchmark_status = api_server.request(
-        "/benchmarks/" + str(benchmark) + "/",
-        "PUT",
-        admin_token,
-        {"approval_status": "APPROVED"},
-        "approval_status",
-    )
-    print("Benchmark Id:", benchmark, "is marked", benchmark_status, "(by Admin)")
     return benchmark
 
 

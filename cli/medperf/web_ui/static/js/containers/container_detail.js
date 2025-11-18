@@ -32,7 +32,7 @@ async function requestContainerAssociation(requestAssociationButton){
 
     showPanel(`Requesting Container Association...`);
     window.runningTaskId = await getTaskId();
-    getEvents(logPanel, stagesList, currentStageElement);
+    streamEvents(logPanel, stagesList, currentStageElement);
 }
 
 

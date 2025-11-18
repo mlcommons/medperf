@@ -8,7 +8,7 @@
 {% block title %}Container Compatibility Test{% endblock %}
 
 {% block content %}
-{% set comp_test_running = (task_running and request.app.state.task["name"] == "container_compatibility_test") %}
+{% set comp_test_running = (task_running and request.app.state.task.name == "container_compatibility_test") %}
 <div class="container mt-5">
     <h1 class="text-center">Test your Container Compatibility</h1>
     <form class="my-5" id="container-comp-test-form">
@@ -96,7 +96,7 @@
 <script src="{{ url_for('static', path='js/containers/container_compatibility_test.js') }}"></script>
 <script src="{{ url_for('static', path='js/folder_browsing.js') }}"></script>
 
-{% if task_running and request.app.state.task["name"] == "container_compatibility_test" %}
+{% if task_running and request.app.state.task.name == "container_compatibility_test" %}
 <script>
     $(document).ready(() => {
         resumeRunningTask(

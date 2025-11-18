@@ -1,10 +1,11 @@
-import uuid
+import binascii
+import os
 from typing import Callable
 
 from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
 
-security_token = str(uuid.uuid4())
+security_token = binascii.hexlify(os.urandom(24)).decode("ascii")
 AUTH_COOKIE_NAME = "auth_token"
 API_KEY_NAME = "access_token"
 

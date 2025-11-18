@@ -2,7 +2,7 @@
 function onBenchmarkWorkflowTestSuccess(response){
     markAllStagesAsComplete();
     if(response.status === "success"){
-        $("next-modal-title").html("Benchmark Workflow Test Successful");
+        $("#next-modal-title").html("Benchmark Workflow Test Successful");
         const nextModal = new bootstrap.Modal('#next-modal', {
             keyboard: false,
             backdrop: "static"
@@ -33,7 +33,7 @@ async function benchmarkWorkflowTest(workflowTestButton){
 
     showPanel(`Running Workflow Test...`);
     window.runningTaskId = await getTaskId();
-    getEvents(logPanel, stagesList, currentStageElement);
+    streamEvents(logPanel, stagesList, currentStageElement);
 }
 
 function showRegisterBenchmark(){

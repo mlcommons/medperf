@@ -4,26 +4,26 @@
 <div class="card {% if not benchmark.is_valid %}invalid-card{% endif %}">
     <div class="card-body">
         <h5 class="card-title">
-            <a href="/benchmarks/ui/display/{{ benchmark.id }}" class="text-primary">{{ benchmark.name }}</a>
+            <a href="/benchmarks/ui/display/{{ benchmark.id }}" class="text-primary" data-testid="bmk-name">{{ benchmark.name }}</a>
         </h5>
-        <h6 class="card-subtitle mb-2">ID: {{benchmark.id}}</h6>
-        <h6 class="card-subtitle mb-2 text-muted">{{ benchmark.state }}</h6>
-        <h6 class="card-subtitle mb-2 text-muted">Is valid: {{ benchmark.is_valid }}</h6>
-        <p class="card-text">
+        <h6 class="card-subtitle mb-2" data-testid="bmk-id">ID: {{benchmark.id}}</h6>
+        <h6 class="card-subtitle mb-2 text-muted" data-testid="bmk-state">{% if benchmark.state == 'OPERATION' %} OPERATIONAL {% else %} {{ benchmark.state }} {% endif %}</h6>
+        <h6 class="card-subtitle mb-2 text-muted" data-testid="bmk-is-valid">Is valid: {{ benchmark.is_valid }}</h6>
+        <p class="card-text" data-testid="bmk-description">
             <strong>Description:</strong> 
             {{ benchmark.description }}
         </p>
         {% if benchmark.docs_url %}
         <p class="card-text">
-            <a href="{{ benchmark.docs_url }}" target="_blank" class="text-primary">Documentation</a>
+            <a href="{{ benchmark.docs_url }}" target="_blank" class="text-primary" data-testid="bmk-docs">Documentation</a>
         </p>
         {% else %}
-        <p class="card-text text-muted">Documentation: Not Available</p>
+        <p class="card-text text-muted" data-testid="bmk-docs">Documentation: Not Available</p>
         {% endif %}
-        <p class="card-text">
+        <p class="card-text" data-testid="bmk-created-at">
             <small class="text-muted" data-date="{{ benchmark.created_at }}"></small>
         </p>
-        <p class="card-text">
+        <p class="card-text" data-testid="bmk-approval-status">
             <small class="text-muted">Approval Status: {{ benchmark.approval_status }}</small>
         </p>
     </div>
