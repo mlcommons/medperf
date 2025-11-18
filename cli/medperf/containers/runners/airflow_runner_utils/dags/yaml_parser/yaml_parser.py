@@ -1,12 +1,16 @@
 import yaml
 import os
-from constants import YAML_DIR
+from medperf.containers.runners.airflow_runner_utils.dags.constants import YAML_DIR
 from typing import Union, Any
-from dag_utils import import_external_python_function
+from medperf.containers.runners.airflow_runner_utils.dags.dag_utils import (
+    import_external_python_function,
+)
 from collections import defaultdict
 from airflow.sdk import DAG
-from dag_utils import create_legal_dag_id
-from dag_builder import DagBuilder
+from medperf.containers.runners.airflow_runner_utils.dags.dag_utils import (
+    create_legal_dag_id,
+)
+from medperf.containers.runners.airflow_runner_utils.dags.dag_builder import DagBuilder
 from copy import deepcopy
 
 
@@ -20,12 +24,13 @@ class YamlParser:
         self._raw_subject_definitions = yaml_content.get("per_subject_def", {})
         self.dag_builders = None
 
-    @staticmethod
-    def read_yaml_definition() -> (
-        dict[str, Union[list[dict[str, str]], dict[str, str]]]
-    ):
-        yaml_files = [yaml_file for yaml_file in os.listdir(YAML_DIR)]
-        yaml_files = [os.path.join(YAML_DIR, yaml_file) for yaml_file in yaml_files]
+    def read_yaml_definition(
+        self,
+    ) -> dict[str, Union[list[dict[str, str]], dict[str, str]]]:
+        yaml_files = [yaml_file for yaml_file in os.listdir(self.yaml_dir_path)]
+        yaml_files = [
+            os.path.join(self.yaml_dir_path, yaml_file) for yaml_file in yaml_files
+        ]
         yaml_files = [
             yaml_file
             for yaml_file in yaml_files
@@ -52,7 +57,9 @@ class YamlParser:
         return yaml_info
 
     def read_subject_partitions(self):
-        from pipeline_state import PipelineState
+        from medperf.containers.runners.airflow_runner_utils.dags.pipeline_state import (
+            PipelineState,
+        )
 
         if not self._raw_subject_definitions:
             return []
@@ -213,13 +220,53 @@ class YamlParser:
                 if not this_step_inlets:
                     this_step_inlets = [step_id]
                 step["inlets"] = this_step_inlets
-                step["base_inlet"] = step_id
             else:
                 step["inlets"] = []
-                step["base_inlet"] = None
+            step["host_mounts"] = self._make_mounts(step, upstream_ids)
 
         expanded_steps = list(step_id_to_expanded_step.values())
         return expanded_steps
+
+    @staticmethod
+    def _make_mounts(step, upstream_ids):
+
+        # Always the same in all containers
+        fixed_keys = [
+            "metadata_path",
+            "report_file",
+            "parameters_file",
+            "additional_files",
+            "statistics_file",
+        ]
+
+        # May change depending on container
+        variable_keys = [
+            "data_path",
+            "labels_path",
+            "output_path",
+            "output_labels_path",
+        ]
+
+        host_mounts = {key: os.getenv(f"host_{key}") for key in fixed_keys}
+        if not upstream_ids:
+            extra_mounts = {key: os.getenv(f"host_{key}") for key in variable_keys}
+        else:
+            # For now, this assumes all steps have the same output directories
+            # So steps that are not the first one in the pipeline will take the output directory as input
+            # TODO generalize for different output directories
+            extra_mounts = {
+                "data_path": os.getenv(f"host_output_path"),
+                "labels_path": os.getenv(f"host_output_labels_path"),
+                "output_labels_path": os.getenv(f"host_output_labels_path"),
+            }
+
+            if step.get("next"):
+                extra_mounts["output_path"] = os.getenv("host_output_path")
+            else:
+                extra_mounts["output_path"] = os.getenv("host_statistics_file")
+        host_mounts.update(**extra_mounts)
+
+        return host_mounts
 
     def _update_next_with_new_partition(self, original_dict, original_next, new_next):
         next_field = original_dict["next"]

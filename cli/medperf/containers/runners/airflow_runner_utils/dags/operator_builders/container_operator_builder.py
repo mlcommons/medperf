@@ -13,7 +13,7 @@ class ContainerOperatorBuilder(OperatorBuilder):
         image: str,
         command: str | list[str],
         mounts: dict,
-        base_inlet: Optional[str] = None,
+        host_mounts: dict,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -24,26 +24,17 @@ class ContainerOperatorBuilder(OperatorBuilder):
             self.base_command = command
 
         self.mounts, self.command_args = self.build_mounts_and_command_args(
-            mounts, base_inlet
+            mounts, host_mounts
         )
 
-    def build_mounts_and_command_args(self, mounts, base_inlet):
+    def build_mounts_and_command_args(self, mounts, host_mounts):
         container_mounts = []
         command_args = []
 
         for mount_type, mount_info in mounts.items():
             read_only = mount_type == "input_volumes"
             for var_name, mount_details in mount_info.items():
-                if var_name == "data_path" and base_inlet is not None:
-                    env_name = "output_path"
-                elif var_name == "labels_path" and base_inlet is not None:
-                    env_name = "output_labels_path"
-                elif var_name == "output_path" and self.raw_id == "statistics":
-                    env_name = "statistics_file"
-                else:
-                    env_name = var_name
-
-                host_path = os.getenv(f"host_{env_name}", None)
+                host_path = host_mounts[var_name]
 
                 if host_path is None:
                     raise MedperfException(
