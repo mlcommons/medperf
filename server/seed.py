@@ -14,6 +14,8 @@ from seed_utils import (
     create_benchmark,
     create_model,
     create_workflow_benchmark,
+    associate_model_to_benchmark,
+    create_benchmark_ref_model_and_metrics_containers,
 )
 from auth_provider_token import auth_provider_token
 from pathlib import Path
@@ -43,17 +45,30 @@ def seed(args):
         return
     # create benchmark
     benchmark_owner_token = get_token("testbo@example.com")
-    if args.workflow:
-        benchmark = create_workflow_benchmark(
-            api_server, benchmark_owner_token, admin_token
-        )
-    else:
-        benchmark = create_benchmark(api_server, benchmark_owner_token, admin_token)
+    ref_model, evaluator = create_benchmark_ref_model_and_metrics_containers(
+        api_server, benchmark_owner_token, admin_token
+    )
+    container_benchmark = create_benchmark(
+        api_server, ref_model, evaluator, benchmark_owner_token, admin_token
+    )
+    workflow_benchmark = create_workflow_benchmark(
+        api_server, ref_model, evaluator, benchmark_owner_token, admin_token
+    )
     if args.demo == "model":
         return
     # create model
     model_owner_token = get_token("testmo@example.com")
-    create_model(api_server, model_owner_token, benchmark_owner_token, benchmark)
+    model = create_model(api_server, model_owner_token)
+    associate_model_to_benchmark(
+        api_server, model_owner_token, benchmark_owner_token, model, container_benchmark
+    )
+    associate_model_to_benchmark(
+        api_server,
+        model_owner_token,
+        benchmark_owner_token,
+        model,
+        workflow_benchmark,
+    )
 
 
 if __name__ == "__main__":
@@ -90,12 +105,6 @@ if __name__ == "__main__":
         type=str,
         help="Path to local tokens file",
         default=default_tokens_file,
-    )
-    parser.add_argument(
-        "-w",
-        "--workflow",
-        action="store_true",
-        help="Use an Airflow workflow instead of a container for Data Preparation",
     )
     args = parser.parse_args()
     if args.cert.lower() == "none":
