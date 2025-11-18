@@ -164,7 +164,6 @@ class OperatorBuilder(ABC):
                 partition=partition,
             )
 
-            # TODO this will break!
             empty_operators = [
                 EmptyOperatorBuilder(
                     operator_id=empty_id,
