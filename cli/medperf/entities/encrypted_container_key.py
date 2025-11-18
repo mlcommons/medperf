@@ -73,7 +73,7 @@ class EncryptedKey(MedperfSchema):
 
     def decrypt(self):
         logging.debug("Decrypting key.")
-        output_path = tmp_path_for_key_decryption(self.container)
+        output_path = tmp_path_for_key_decryption()
         logging.debug(f"Output path: {output_path}")
         encrypted_key_bytes = base64.b64decode(self.encrypted_key_base64)
         private_key_bytes = load_user_private_key()
