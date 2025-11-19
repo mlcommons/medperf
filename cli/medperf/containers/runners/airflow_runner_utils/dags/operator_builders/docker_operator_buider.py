@@ -1,8 +1,6 @@
 from .container_operator_builder import ContainerOperatorBuilder
 from airflow.providers.docker.operators.docker import DockerOperator
 from docker.types import Mount
-import os
-from medperf.exceptions import MedperfException
 
 
 class DockerOperatorBuilder(ContainerOperatorBuilder):
@@ -19,6 +17,9 @@ class DockerOperatorBuilder(ContainerOperatorBuilder):
 
         command = self._get_command()
 
+        # TODO when adding device requests, it should be similar to what is defined below
+        # from docker.types import eviceRequest
+        # device_request = DeviceRequest(device_ids=["0", "2"], capabilities=[["gpu"]])
         return DockerOperator(
             image=self.image,
             command=command,
@@ -28,4 +29,10 @@ class DockerOperatorBuilder(ContainerOperatorBuilder):
             auto_remove="success",
             mount_tmp_dir=False,
             outlets=self.outlets,
+            # TODO add medperf arguments: shm_size, user, network, ports, entrypoint, gpus
+            shm_size=None,
+            user=None,
+            network_mode=None,
+            port_bindings=None,
+            device_requests=None,  # gpus
         )
