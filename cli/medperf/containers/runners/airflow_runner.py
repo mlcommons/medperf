@@ -68,7 +68,7 @@ class AirflowRunner(Runner):
         self,
         task: str = None,  # Not used
         tmp_folder: str = None,  # TODO implement
-        output_logs: str = None,  # TODO currently hardcoded; figure this out
+        output_logs: str = None,
         timeout: int = None,
         medperf_mounts: dict[str, str] = {},
         medperf_env: dict[str, str] = {},

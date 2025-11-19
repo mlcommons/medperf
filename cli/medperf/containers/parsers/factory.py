@@ -47,7 +47,6 @@ def load_parser(container_config_path: str) -> Parser:
 
     elif _is_airflow_yaml_file(container_config):
         # TODO add modifications to use container hashes rather than tags for download
-        # TODO maybe change workspace dir and so on here? We need to think about this
         parser = AirflowParser(
             airflow_config=container_config,
             allowed_runners=["docker", "singularity"],
