@@ -63,6 +63,10 @@ jobs:
       working-directory: .
       run: sh cli/cli_chestxray_tutorial_test.sh -f
 
+    - name: Run chestxray demo with workflow
+      working-directory: .
+      run: sh cli/cli_chestxray_tutorial_test.sh -f -w
+
     - name: Run client integration tests
       working-directory: .
       run: sh cli/cli_tests.sh -f
