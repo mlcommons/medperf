@@ -15,7 +15,7 @@ async function registerBenchmark(registerButton){
 
     const formData = new FormData($("#benchmark-register-form")[0]);
 
-    disableElements("#benchmark-register-form input, #benchmark-register-form textarea, #benchmark-register-form button");
+    disableElements("#benchmark-register-form input, #benchmark-register-form textarea, #benchmark-register-form select, #benchmark-register-form button");
 
     ajaxRequest(
         "/benchmarks/register",
@@ -27,7 +27,7 @@ async function registerBenchmark(registerButton){
 
     showPanel(`Registering Benchmark...`);
     window.runningTaskId = await getTaskId();
-    getEvents(logPanel, stagesList, currentStageElement);
+    streamEvents(logPanel, stagesList, currentStageElement);
 }
 
 function checkBenchmarkFormValidity() {
@@ -59,5 +59,5 @@ $(document).ready(() => {
         showConfirmModal(e.currentTarget, registerBenchmark, "register this benchmark?");
     });
 
-    $("#benchmark-register-form input, #benchmark-register-form textarea").on("keyup", checkBenchmarkFormValidity);
+    $("#benchmark-register-form input, #benchmark-register-form textarea, #benchmark-register-form select").on("keyup change", checkBenchmarkFormValidity);
 });

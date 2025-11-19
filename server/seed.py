@@ -24,6 +24,32 @@ import json
 REPO_BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+def populate_mock_benchmarks(api_server, admin_token):
+    demo_url = "https://storage.googleapis.com/medperf-storage/chestxray_tutorial/demo_data.tar.gz"
+    for name, description in [
+        ("Mock Brain Tumors Segmentation", "Mock benchmark for development purposes"),
+        ("Mock Skin Cancer Detection", "Mock benchmark for development purposes"),
+    ]:
+        api_server.request(
+            "/benchmarks/",
+            "POST",
+            admin_token,
+            {
+                "name": name,
+                "description": description,
+                "docs_url": "",
+                "demo_dataset_tarball_url": demo_url,
+                "demo_dataset_tarball_hash": "71faabd59139bee698010a0ae3a69e16d97bc4f2dde799d9e187b94ff9157c00",
+                "demo_dataset_generated_uid": "730d2474d8f22340d9da89fa2eb925fcb95683e0",
+                "data_preparation_mlcube": 1,
+                "reference_model_mlcube": 1,
+                "data_evaluator_mlcube": 1,
+                "state": "OPERATION",
+            },
+            "id",
+        )
+
+
 def seed(args):
     api_server = Server(host=args.server, cert=args.cert)
     if args.version:
@@ -41,6 +67,11 @@ def seed(args):
     # set admin
     admin_token = get_token("testadmin@example.com")
     set_user_as_admin(api_server, admin_token)
+
+    if args.demo == "tutorial":
+        populate_mock_benchmarks(api_server, admin_token)
+        return
+
     if args.demo == "benchmark":
         return
     # create benchmark
@@ -98,7 +129,7 @@ if __name__ == "__main__":
         type=str,
         help="Seed for a tutorial: 'benchmark', 'model', or 'data'.",
         default="data",
-        choices=["benchmark", "model", "data"],
+        choices=["benchmark", "model", "data", "tutorial"],
     )
     parser.add_argument(
         "--tokens",

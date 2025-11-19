@@ -25,5 +25,5 @@ cd model_custom_cnn/workspace/additional_files
 sh download.sh
 rm download.sh
 
-## Login locally as benchmark owner
-medperf auth login -e testbo@example.com
+# ## Login locally as benchmark owner
+# medperf auth login -e testbo@example.com

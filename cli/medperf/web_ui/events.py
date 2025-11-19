@@ -1,10 +1,13 @@
+import time
 from fastapi import Form, APIRouter, Depends, Request
-from fastapi.responses import JSONResponse
-
+from fastapi.responses import JSONResponse, StreamingResponse
+from queue import Empty
 import medperf.config as config
 from medperf.web_ui.common import (
     check_user_api,
 )
+from medperf.web_ui.schemas import EventBase
+import anyio
 
 router = APIRouter()
 
@@ -15,9 +18,8 @@ def get_notifications(
     current_user: bool = Depends(check_user_api),
 ):
     new_notifications = request.app.state.new_notifications.copy()
-    for notification in new_notifications:
-        request.app.state.notifications.append(notification)
-        request.app.state.new_notifications.remove(notification)
+    request.app.state.notifications.extend(new_notifications)
+    request.app.state.new_notifications.clear()
 
     return new_notifications
 
@@ -29,13 +31,8 @@ def read_notification(
     current_user: bool = Depends(check_user_api),
 ):
     for notification in request.app.state.notifications:
-        if notification["id"] == notification_id:
-            notification["read"] = True
-            return
-
-    for notification in request.app.state.new_notifications:
-        if notification["id"] == notification_id:
-            notification["read"] = True
+        if notification.id == notification_id:
+            notification.mark_read()
             return
 
 
@@ -46,50 +43,80 @@ def delete_notification(
     current_user: bool = Depends(check_user_api),
 ):
     notifications = request.app.state.notifications
-    new_notifications = request.app.state.new_notifications
 
     for notification in notifications:
-        if notification["id"] == notification_id:
+        if notification.id == notification_id:
             notifications.remove(notification)
-            return
-
-    for notification in new_notifications:
-        if notification["id"] == notification_id:
-            new_notifications.remove(notification)
             return
 
 
 @router.get("/current_task", response_class=JSONResponse)
 def get_task_id(request: Request, current_user: bool = Depends(check_user_api)):
+    start_time = time.monotonic()
     while not config.ui.task_id:
-        pass
+        time.sleep(0.1)
+        if time.monotonic() - start_time >= 2:
+            break
     return {"task_id": config.ui.task_id}
 
 
-@router.get("/events", response_class=JSONResponse)
-def get_event(
+def process_event(request: Request, event: EventBase):
+    if request.app.state.task.running and event.task_id == request.app.state.task.id:
+        request.app.state.task.add_log(event)
+        return
+    for task in request.app.state.old_tasks:
+        if task.id == event.task_id:
+            task.add_log(event)
+            break
+
+
+def sse_frame_event(event: EventBase):
+    return f"id: {event.id}\ndata: {event.json()}\n\n"
+
+
+def should_process_old(request: Request, stream_old: bool):
+    if not stream_old:
+        return
+    for old_event in request.app.state.task.logs.copy():
+        yield sse_frame_event(old_event)
+
+
+def event_generator(request: Request, stream_old: bool):
+    yield from should_process_old(request, stream_old)
+
+    while True:
+        event_processed = False
+        event = None
+        if anyio.from_thread.run(request.is_disconnected):
+            break
+        try:
+            event = config.ui.get_event(timeout=1.0)
+            if not event.task_id:
+                continue
+
+            process_event(request, event)
+            event_processed = True
+            yield sse_frame_event(event)
+
+        except Empty:
+            continue
+
+        except (BrokenPipeError, ConnectionResetError, GeneratorExit):
+            if event and not event_processed:
+                process_event(request, event)
+            break
+
+
+@router.get("/events", response_class=StreamingResponse)
+def stream_events(
     request: Request,
+    stream_old: bool = False,
     current_user: bool = Depends(check_user_api),
 ):
-    event = config.ui.get_event()
-
-    if event["task_id"] is None:
-        return event
-    # Add the event to task logs
-    if request.app.state.task["running"]:
-        if event["task_id"] == request.app.state.task["id"]:
-            request.app.state.task["logs"].append(event)
-        else:
-            for task in request.app.state.old_tasks:
-                if task["id"] == event["task_id"]:
-                    task["logs"].append(event)
-                    break
-    else:
-        for task in request.app.state.old_tasks:
-            if task["id"] == event["task_id"]:
-                task["logs"].append(event)
-                break
-    return event
+    return StreamingResponse(
+        event_generator(request, stream_old),
+        media_type="text/event-stream; charset=utf-8",
+    )
 
 
 @router.post("/events")
@@ -100,8 +127,8 @@ def respond(
 ):
     config.ui.set_response({"value": is_approved})
     # Remove the prompt event after responding to the prompt
-    for event in request.app.state.task["logs"]:
-        if event["type"] == "prompt":
-            event["type"] = "prompt_done"
-            event["approved"] = is_approved
+    for event in request.app.state.task.logs:
+        if event.kind == "event" and event.type == "prompt":
+            event.type = "prompt_done"
+            event.approved = is_approved
             break

@@ -26,6 +26,7 @@ uvicorn==0.30.1
 fastapi==0.116.1
 fastapi-login==1.10.2
 methodtools==0.4.7
+click==8.1.8
 synapseclient @ git+https://github.com/Sage-Bionetworks/synapsePythonClient@develop
 methodtools==0.4.7
 apache-airflow==3.0.1
@@ -35,3 +36,4 @@ apache-airflow-providers-docker==4.4.0
 apache-airflow-providers-fab==2.0.2
 psycopg2-binary==2.9.9
 asyncpg==0.30.0
+

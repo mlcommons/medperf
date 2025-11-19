@@ -1,3 +1,4 @@
+import os
 import logging
 from typing import List
 
@@ -131,6 +132,7 @@ def dataset_detail_ui(
                     if model.result["results_exist"]:
                         model.result["results"] = result.read_results()
 
+    report_exists = os.path.exists(dataset.report_path)
     return templates.TemplateResponse(
         "dataset/dataset_detail.html",
         {
@@ -144,6 +146,7 @@ def dataset_detail_ui(
             "benchmark_models": benchmark_models,  # Pass associated models without status
             "approved_benchmarks": approved_benchmarks,
             "is_owner": is_owner,
+            "report_exists": report_exists,
         },
     )
 

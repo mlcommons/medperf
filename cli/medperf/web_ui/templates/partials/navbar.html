@@ -1,8 +1,10 @@
 {# ./cli/medperf/web_ui/templates/partials/navbar.html #}
 
-<div class="container-fluid">
-    <nav class="navbar navbar-expand-md navbar-light bg-light">
-        <a class="navbar-brand" href="#">MedPerf</a>
+<div class="container-fluid py-1" style="background-color: #d0ecd4;">
+    <nav class="navbar navbar-expand-md navbar-light">
+        <a class="navbar-brand ms-3" href="/">
+            <img alt="MedPerf Logo" src="{{ url_for('static', path='images/medperf_logo.svg') }}" style="width: 90px; height: 40px">
+        </a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>

@@ -24,9 +24,9 @@ async function registerContainer(registerButton){
         "Error registering container:"
     )
 
-    showPanel(`Registering Model...`);
+    showPanel(`Registering Container...`);
     window.runningTaskId = await getTaskId();
-    getEvents(logPanel, stagesList, currentStageElement);
+    streamEvents(logPanel, stagesList, currentStageElement);
 }
 
 function checkContainerFormValidity() {

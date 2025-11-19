@@ -22,7 +22,7 @@ class Benchmark(Entity, ApprovableSchema, DeployableSchema):
     what models to run and how to evaluate them.
     """
 
-    description: Optional[str] = Field(None, max_length=20)
+    description: Optional[str] = Field(None, max_length=256)
     docs_url: Optional[HttpUrl] = None
     demo_dataset_tarball_url: str
     demo_dataset_tarball_hash: Optional[str] = None

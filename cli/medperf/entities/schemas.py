@@ -20,7 +20,7 @@ from medperf.utils import format_errors_dict
 class MedperfSchema(BaseModel):
     for_test: bool = False
     id: Optional[int] = None
-    name: str = Field(..., max_length=64, validate_default=True)
+    name: str = Field(..., max_length=128, validate_default=True)
     owner: Optional[int] = None
     is_valid: bool = True
     created_at: Optional[datetime] = None
@@ -98,12 +98,6 @@ class MedperfSchema(BaseModel):
                 default_value = current_attribute.default_factory()
             return default_value
 
-        return v
-
-    @field_validator("name", mode="before")
-    def name_max_length(cls, v: str, info: ValidationInfo):
-        if not info.data.get("for_test") and len(v) > 20:
-            raise ValueError("The name must have no more than 20 characters")
         return v
 
     model_config = ConfigDict(
