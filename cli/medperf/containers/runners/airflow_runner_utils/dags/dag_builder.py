@@ -11,10 +11,11 @@ class DagBuilder:
 
     def __init__(self, expanded_step: dict[str, Any]):
         raw_inlets = expanded_step.pop("inlets", [])
+        is_first = not bool(raw_inlets)  # If a step has no inlets, it is the first step
         self.builder_id = expanded_step["id"]
         self.inlets = [Asset(raw_inlet) for raw_inlet in raw_inlets]
         self.partition = expanded_step.get("partition", None)
-        self.operator_builders = operator_factory(**expanded_step)
+        self.operator_builders = operator_factory(is_first=is_first, **expanded_step)
         self._operator_id_to_builder_obj = {
             operator.operator_id: operator for operator in self.operator_builders
         }

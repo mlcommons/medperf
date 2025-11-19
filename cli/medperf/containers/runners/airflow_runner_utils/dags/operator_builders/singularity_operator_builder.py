@@ -1,4 +1,4 @@
-from .container_operator_builder import ContainerOperatorBuilder
+from .container_operator_builder import ContainerOperatorBuilder, MountInfo
 from airflow.providers.singularity.operators.singularity import SingularityOperator
 import os
 from medperf.exceptions import MedperfException
@@ -9,9 +9,11 @@ class SingularityOperatorBuilder(ContainerOperatorBuilder):
     Currently untested!!
     """
 
-    def _build_mount_item(self, host_path, mount_path, read_only):
-        mount_suffix = "ro" if read_only else "rw"
-        mount_str = f"{host_path}:{mount_path}:{mount_suffix}"
+    def _build_mount_item(
+        self, host_path, mount_path, read_only, mount_info: MountInfo
+    ):
+        mount_suffix = "ro" if mount_info.read_only else "rw"
+        mount_str = f"{mount_info.source}:{mount_info.target}:{mount_suffix}"
         return mount_str
 
     def _define_base_operator(self) -> SingularityOperator:

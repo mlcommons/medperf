@@ -1,16 +1,16 @@
-from .container_operator_builder import ContainerOperatorBuilder
+from .container_operator_builder import ContainerOperatorBuilder, MountInfo
 from airflow.providers.docker.operators.docker import DockerOperator
 from docker.types import Mount
 
 
 class DockerOperatorBuilder(ContainerOperatorBuilder):
 
-    def _build_mount_item(self, host_path, mount_path, read_only):
+    def _build_mount_item(self, mount_info: MountInfo):
         return Mount(
-            source=host_path,
-            target=mount_path,
+            source=mount_info.source,
+            target=mount_info.target,
             type="bind",
-            read_only=read_only,
+            read_only=mount_info.read_only,
         )
 
     def _define_base_operator(self) -> DockerOperator:
@@ -26,7 +26,7 @@ class DockerOperatorBuilder(ContainerOperatorBuilder):
             mounts=self.mounts,
             task_id=self.operator_id,
             task_display_name=self.display_name,
-            auto_remove="success",
+            # auto_remove="success",
             mount_tmp_dir=False,
             outlets=self.outlets,
             # TODO add medperf arguments: shm_size, user, network, ports, entrypoint, gpus

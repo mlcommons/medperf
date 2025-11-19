@@ -222,51 +222,88 @@ class YamlParser:
                 step["inlets"] = this_step_inlets
             else:
                 step["inlets"] = []
-            step["host_mounts"] = self._make_mounts(step, upstream_ids)
 
+        self._make_host_mounts(step_id_to_expanded_step)
         expanded_steps = list(step_id_to_expanded_step.values())
+
         return expanded_steps
 
+    def _make_host_mounts(self, step_id_to_expanded_step: dict):
+
+        look_on_second_pass = set()
+
+        for step_id, step in step_id_to_expanded_step.items():
+            host_mounts = {}
+            self._host_mounts_first_pass(
+                step=step,
+                look_on_second_pass=look_on_second_pass,
+                host_mounts=host_mounts,
+                volume_key="input_volumes",
+            )
+            self._host_mounts_first_pass(
+                step=step,
+                look_on_second_pass=look_on_second_pass,
+                host_mounts=host_mounts,
+                volume_key="output_volumes",
+            )
+            if step.get("next") is None:  # last step
+                host_mounts["output_path"] = os.getenv("host_statistics_file")
+            step["host_mounts"] = host_mounts
+
+        for step_id in look_on_second_pass:
+            step = step_id_to_expanded_step[step_id]
+            self._host_mounts_second_pass(
+                step=step,
+                step_id_to_expanded_step=step_id_to_expanded_step,
+                volume_key="input_volumes",
+            )
+            # self._host_mounts_second_pass(
+            #     step=step,
+            #     step_id_to_expanded_step=step_id_to_expanded_step,
+            #     volume_key="output_volumes",
+            # )
+
     @staticmethod
-    def _make_mounts(step, upstream_ids):
-
-        # Always the same in all containers
-        fixed_keys = [
-            "metadata_path",
-            "report_file",
-            "parameters_file",
-            "additional_files",
-            "statistics_file",
-        ]
-
-        # May change depending on container
-        variable_keys = [
-            "data_path",
-            "labels_path",
-            "output_path",
-            "output_labels_path",
-        ]
-
-        host_mounts = {key: os.getenv(f"host_{key}") for key in fixed_keys}
-        if not upstream_ids:
-            extra_mounts = {key: os.getenv(f"host_{key}") for key in variable_keys}
-        else:
-            # For now, this assumes all steps have the same output directories
-            # So steps that are not the first one in the pipeline will take the output directory as input
-            # TODO generalize for different output directories
-            extra_mounts = {
-                "data_path": os.getenv(f"host_output_path"),
-                "labels_path": os.getenv(f"host_output_labels_path"),
-                "output_labels_path": os.getenv(f"host_output_labels_path"),
-            }
-
-            if step.get("next"):
-                extra_mounts["output_path"] = os.getenv("host_output_path")
+    def _host_mounts_first_pass(
+        step: dict,
+        look_on_second_pass: set,
+        host_mounts: dict,
+        volume_key: str,
+    ):
+        step_mounts = step["mounts"]
+        volumes = step_mounts.get(volume_key, {})
+        for volume_name, volume_data in volumes.items():
+            from_step = volume_data.get("from")
+            if from_step is not None:
+                look_on_second_pass.add(step["id"])
             else:
-                extra_mounts["output_path"] = os.getenv("host_statistics_file")
-        host_mounts.update(**extra_mounts)
+                host_mounts[volume_name] = os.getenv(f"host_{volume_name}")
 
-        return host_mounts
+    @staticmethod
+    def _host_mounts_second_pass(
+        step: dict,
+        step_id_to_expanded_step: dict,
+        volume_key: str,
+    ):
+        step_mounts = step["mounts"]
+        volumes = step_mounts.get(volume_key, {})
+        for volume_name, volume_data in volumes.items():
+            input_step_id = volume_data.get("from")
+
+            if input_step_id is None:
+                continue  # Done in first pass
+
+            input_step = step_id_to_expanded_step[input_step_id]
+            output_key = (
+                "output_path"
+                if volume_name == "data_path"
+                else (
+                    "output_labels_path"
+                    if volume_name == "labels_path"
+                    else volume_name
+                )
+            )
+            step["host_mounts"][volume_name] = input_step["host_mounts"][output_key]
 
     def _update_next_with_new_partition(self, original_dict, original_next, new_next):
         next_field = original_dict["next"]

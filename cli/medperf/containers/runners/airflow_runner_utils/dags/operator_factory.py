@@ -29,7 +29,7 @@ OPERATOR_MAPPING: dict[str, OperatorBuilder] = {
 }
 
 
-def operator_factory(type, **kwargs) -> list[OperatorBuilder]:
+def operator_factory(type, is_first: bool, **kwargs) -> list[OperatorBuilder]:
 
     return_list = []
     try:
@@ -37,5 +37,5 @@ def operator_factory(type, **kwargs) -> list[OperatorBuilder]:
     except KeyError:
         raise TypeError(f"Tasks of type {type} are not supported!")
 
-    return_list = operator_obj.build_operator_list(**kwargs)
+    return_list = operator_obj.build_operator_list(is_first=is_first, **kwargs)
     return return_list

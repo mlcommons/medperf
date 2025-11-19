@@ -17,6 +17,7 @@ class OperatorBuilder(ABC):
         from_yaml: bool = True,
         make_outlet: bool = True,
         on_error: str = None,
+        is_first: bool = False,
         **kwargs,
     ):
         # TODO add logic to import on_error as a callable
@@ -24,7 +25,7 @@ class OperatorBuilder(ABC):
         self.operator_id = operator_id
         self.raw_id = raw_id
         self.display_name = self._convert_id_to_display_name(self.raw_id)
-
+        self.is_first = is_first
         if make_outlet:
             self.next_ids = []
             self.outlets = self._make_outlets(next_ids)
@@ -85,7 +86,7 @@ class OperatorBuilder(ABC):
         pass
 
     @classmethod
-    def build_operator_list(cls, **kwargs) -> list[OperatorBuilder]:
+    def build_operator_list(cls, is_first: bool, **kwargs) -> list[OperatorBuilder]:
         """
         Helper method to build a list of required Operators for a DAG Builder.
         Usually will return a list with a single element that is the desired operator
@@ -191,6 +192,8 @@ class OperatorBuilder(ABC):
         else:
             kwargs["next_ids"] = id_info
 
-        this_operator = cls(**kwargs, make_outlet=make_outlet_for_main_operator)
+        this_operator = cls(
+            **kwargs, is_first=is_first, make_outlet=make_outlet_for_main_operator
+        )
         operator_list = [this_operator, *operator_list]
         return operator_list
