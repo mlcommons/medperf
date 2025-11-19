@@ -55,7 +55,6 @@ def get_container_info(
             f"Continuing despite the mismatch..."
         )
     container_info = yaml.safe_load(content)
-
     return container_info, hashes_matched
 
 
@@ -89,7 +88,7 @@ def get_docker_hash(
 
 
 def get_container_hashes(
-    input_json: os.PathLike, output_csv: os.PathLike, exclude_synapse: bool = False
+    input_json: os.PathLike, output_json: os.PathLike, exclude_synapse: bool = False
 ):
 
     request_session = requests.session()
@@ -128,6 +127,12 @@ def get_container_hashes(
         if this_container_yaml is not None:
             parameters_link = container_info.get("parameters_file")
 
+            if int(container_id) == 174:
+                # This parameter's file was not uploaded as the raw file, so hardcoding a fix here
+                parameters_link = (
+                    "https://raw.githubusercontent.com/WinstonHuTiger/medperf/c67f7ab5e35408186eaf9545eb0eeac26aaa2685/"
+                    "examples/BraTS2024/global_synthesis_metrics/mlcube/workspace/parameters.yaml"
+                )
             if parameters_link is not None:
                 parameters_config, parameters_hash_matched = get_container_info(
                     req_session=request_session,
@@ -170,7 +175,7 @@ def get_container_hashes(
         new_hashes_list.append(update_dict)
 
     new_hashes_df = pd.DataFrame(new_hashes_list)
-    new_hashes_df.to_json(output_csv, index=False, indent=4)
+    new_hashes_df.to_json(output_json, index=False, indent=4)
 
 
 def get_container_jsons(
