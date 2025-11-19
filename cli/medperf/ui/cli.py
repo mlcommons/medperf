@@ -29,6 +29,9 @@ class CLI(UI):
         msg = typer.style(msg, fg=typer.colors.RED, bold=True)
         self._print(msg)
 
+    def print_critical(self, msg: str):
+        self.print_warning(msg)
+
     def print_warning(self, msg: str):
         """Display a warning message on the command line
 

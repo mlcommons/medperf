@@ -60,6 +60,15 @@ def startup_event():
     # List of [schemas.Notification] that will be sent to the user as (popups)
     web_app.state.new_notifications = []
 
+    # Container auto grant access initial values
+    web_app.state.model_auto_give_access = {
+        "running": False,
+        "worker": None,
+        "benchmark": 0,
+        "model": 0,
+        "interval": 0,
+    }
+
     # continue setup logging
     host_props = {**web_app.state.host_props, "security_token": security_token}
     with open(config.webui_host_props, "w") as f:

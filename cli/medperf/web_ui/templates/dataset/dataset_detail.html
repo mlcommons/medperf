@@ -329,6 +329,21 @@
 					<li class="list-group-item d-flex justify-content-between align-items-center">
 						<!-- Left section: Model info -->
 						<div class="model-info d-flex flex-column">
+                            {% if model._encrypted %}
+                            <div>
+                            <small class="text-muted">&nbsp;Encrypted Model</small>
+                            {% if model.access_status["has_access"] %}
+                            <small class="text-success fw-bold">&nbsp;Access Granted</small>
+                            {% else %}
+                            <small
+                                class="text-danger"
+                                data-bs-toggle="tooltip"
+                                data-bs-placement="top"
+                                data-bs-title="{{ model.access_status['reason'] }}"
+                                >&nbsp;Access Pending</small>
+                            {% endif %}
+                            </div>
+                            {% endif %}
 							{{ container_macros.container_link(model) }}
 						</div>
 						<div class="d-flex align-items-center">

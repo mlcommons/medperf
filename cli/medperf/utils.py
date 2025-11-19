@@ -86,7 +86,7 @@ def move_to_trash(path, sensitive=False):
         msg = "WARNING: Failed to premanently delete a sensitive file!"
         msg += " Delete the sensitive file manually as soon as possible!"
         msg += f" The file is located at {unique_path}"
-        config.ui.print_warning(msg)
+        config.ui.print_critical(msg)
 
 
 def cleanup():

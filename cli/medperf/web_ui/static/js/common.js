@@ -169,6 +169,8 @@ function respondToPrompt(value){
         data: { is_approved: value },
     });
     window.isPromptReceived = false;
+    document.getElementById("prompt-text").innerHTML = "";
+    document.getElementById("prompt-container").removeAttribute("style");
     streamEvents(logPanel, stagesList, currentStageElement);
 }
 
