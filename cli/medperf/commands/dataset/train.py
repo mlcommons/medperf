@@ -120,7 +120,9 @@ class TrainingExecution:
 
     def prepare_pki_assets(self):
         ca = CA.get(config.certificate_authority_id)
-        verify_certificate_authority(ca)
+        verify_certificate_authority(
+            ca, expected_fingerprint=config.certificate_authority_fingerprint
+        )
         self.dataset_pki_assets = get_pki_assets_path(self.user_email, ca.id)
         self.ca = ca
 

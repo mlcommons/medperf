@@ -1,7 +1,7 @@
 import base64
 import uuid
 from medperf.account_management import get_medperf_user_data
-from medperf.exceptions import MedperfException
+from medperf.exceptions import CleanExit, MedperfException
 from medperf.utils import get_pki_assets_path, approval_prompt
 import os
 from medperf import config
@@ -69,8 +69,7 @@ class SubmitCertificate:
         approved = self.approved or approval_prompt(msg)
 
         if not approved:
-            config.ui.print("Certificate submission cancelled.")
-            return
+            raise CleanExit("Certificate submission cancelled")
         updated_body = self.certificate.upload()
         return updated_body
 

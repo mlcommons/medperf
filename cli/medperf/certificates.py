@@ -46,11 +46,9 @@ def get_server_cert(ca: CA, address: str, output_path: str):
     )
 
 
-def verify_certificate_authority(ca: CA, expected_fingerprint=None):
+def verify_certificate_authority(ca: CA, expected_fingerprint: str):
     """Verifies the CA cert fingerprint and writes it to the MedPerf storage."""
     logging.debug(f"Verifying certificate authority {ca.id}")
-    if expected_fingerprint is None:
-        expected_fingerprint = config.certificate_authority_fingerprint
     logging.debug(f"Expected CA fingerprint {expected_fingerprint}")
     if ca.config["fingerprint"] != expected_fingerprint:
         logging.debug(f"Found fingerprint {ca.config['fingerprint']}")
@@ -79,7 +77,9 @@ def verify_certificate(
     logging.debug(f"Expected common name: {expected_cn}")
     ca = CA.get(certificate.ca)
     if verify_ca:
-        verify_certificate_authority(ca)
+        verify_certificate_authority(
+            ca, expected_fingerprint=config.certificate_authority_fingerprint
+        )
     ca.prepare_config()
     ca_container = Cube.get(ca.ca_mlcube)
     cert_folder = certificate.prepare_certificate_file()

@@ -52,6 +52,8 @@ class GrantAccess:
         self.model_id = model_id
         self.approved = approved
         self.allowed_emails = allowed_emails
+        self.certificates = None
+        self.cert_user_info = None
 
     def get_approval(self):
         msg = (
@@ -71,7 +73,9 @@ class GrantAccess:
     def verify_certificate_authority(self):
         config.ui.print("Verifying Certificate Authority")
         ca = CA.get(uid=config.certificate_authority_id)
-        verify_certificate_authority(ca)
+        verify_certificate_authority(
+            ca, expected_fingerprint=config.certificate_authority_fingerprint
+        )
 
     def prepare_certificates_list(self):
         config.ui.print("Getting Data Owner Certificates")
@@ -111,6 +115,9 @@ class GrantAccess:
         logging.debug(
             f"Certificates after filtering: {[cert.id for cert in filtered_certificates]}"
         )
+        if not filtered_certificates:
+            raise CleanExit("No allowed filtered users in need of keys were found.")
+
         self.certificates = filtered_certificates
 
     def verify_certificates(self):
@@ -136,12 +143,14 @@ class GrantAccess:
                 )
             config.ui.print(error_cert_msg)
 
+        if not valid_certs:
+            raise CleanExit(
+                "No users with valid certificates in need of keys were found."
+            )
+
         self.certificates = valid_certs
 
     def generate_encrypted_keys_list(self):
-        if len(self.certificates) == 0:
-            raise CleanExit("No users with valid certificates need keys.")
-
         encryptor = AsymmetricEncryption()
         keys_objects = []
         container_key_file = get_decryption_key_path(self.model_id)

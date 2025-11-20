@@ -14,7 +14,7 @@ from medperf.commands.mlcube.grant_access import GrantAccess
 from medperf.commands.mlcube.revoke_user_access import RevokeUserAccess
 from medperf.commands.mlcube.delete_keys import DeleteKeys
 from medperf.commands.mlcube.check_access import CheckAccess
-from medperf.exceptions import InvalidCertificateError, CleanExit
+from medperf.exceptions import CleanExit
 
 app = typer.Typer()
 
@@ -350,7 +350,7 @@ def auto_give_access(
                 approved=True,
                 allowed_emails=allowed_emails,
             )
-        except (CleanExit, InvalidCertificateError) as e:
+        except CleanExit as e:
             config.ui.print(str(e))
         except KeyboardInterrupt:
             config.ui.print("✅ Stopping at request of the user.")

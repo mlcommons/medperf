@@ -27,6 +27,8 @@ def __validate_ca_args(args, current_profile_args):
         return
 
     target_id = args.get(id_key, current_profile_args[id_key])
-    target_fingerprint = args.get(id_key, current_profile_args[fingerprint_key])
+    target_fingerprint = args.get(
+        fingerprint_key, current_profile_args[fingerprint_key]
+    )
 
     verify_certificate_authority_by_id(target_id, target_fingerprint)

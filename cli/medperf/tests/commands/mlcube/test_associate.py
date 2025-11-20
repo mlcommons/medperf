@@ -14,7 +14,6 @@ def cube(mocker):
     cube = mocker.create_autospec(spec=Cube)
     mocker.patch.object(Cube, "get", return_value=cube)
     cube.name = "name"
-    cube.trusted_cas = []
     return cube
 
 
@@ -62,8 +61,7 @@ def test_run_calls_compatibility_test_without_force_by_default(
     AssociateCube.run(cube_uid, benchmark_uid)
 
     # Assert
-    spy.assert_called_once_with(benchmark=benchmark_uid, model=cube_uid,
-                                no_cache=False, decryption_key_path=None)
+    spy.assert_called_once_with(benchmark=benchmark_uid, model=cube_uid, no_cache=False)
 
 
 def test_stops_if_not_approved(mocker, comms, ui, cube, benchmark):

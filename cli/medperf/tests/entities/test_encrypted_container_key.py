@@ -1,267 +1,153 @@
-from __future__ import annotations
-import base64
 import pytest
+import base64
+from medperf.tests.mocks.certificate import TestCertificate
 from medperf.entities.encrypted_container_key import EncryptedKey
-from medperf.exceptions import MedperfException, DecryptionError
-from typing import TYPE_CHECKING
-from medperf.entities.cube import Cube
-from medperf.entities.ca import CA
-from pathlib import Path
-from medperf import config
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.fernet import Fernet
-from cryptography.hazmat.primitives.asymmetric import padding
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives import serialization
+from medperf.exceptions import (
+    MedperfException,
+    PrivateContainerAccessError,
+    DecryptionError,
+)
 
-if TYPE_CHECKING:
-    from pyfakefs.fake_filesystem import FakeFilesystem
-    from pytest_mock import MockerFixture
-
-PATCH_ASSOC = "medperf.entities.encrypted_container_key.{}"
-TEST_KEY_ID = 42
+PATCH_EK = "medperf.entities.encrypted_container_key.{}"
 
 
-@pytest.fixture
-def mock_bytes_key() -> bytes:
-    return b"some_key"
-
-
-@pytest.fixture
-def mock_b64_key(mock_bytes_key: bytes) -> str:
-    return base64.b64encode(mock_bytes_key).decode("utf-8")
-
-
-@pytest.fixture
-def private_key() -> rsa.RSAPrivateKey:
-    return rsa.generate_private_key(
-        public_exponent=65537,
-        key_size=2048,
-    )
-
-
-@pytest.fixture
-def unencrypted_container_key() -> bytes:
-    return Fernet.generate_key()
-
-
-@pytest.fixture
-def padding_obj() -> padding.AsymmetricPadding:
-    return padding.OAEP(
-        mgf=padding.MGF1(algorithm=hashes.SHA256()),
-        algorithm=hashes.SHA256(),
-        label=None,
-    )
-
-
-@pytest.fixture
-def encrypted_container_key(
-    unencrypted_container_key: bytes,
-    private_key: rsa.RSAPrivateKey,
-    padding_obj: padding.AsymmetricPadding,
-):
-    public_key = private_key.public_key()
-
-    encrypted_cont_key = public_key.encrypt(
-        plaintext=unencrypted_container_key, padding=padding_obj
-    )
-    return encrypted_cont_key
-
-
-def _arrange_for_decryption_tests(
-    mocker: MockerFixture,
-    fs: FakeFilesystem,
-    encrypted_container_key: bytes,
-    padding_obj: padding.AsymmetricPadding,
-    private_key: rsa.RSAPrivateKey,
-):
+# -------------------------------------------------------------------
+# get_user_container_key
+# -------------------------------------------------------------------
+def test_get_user_container_key_happy_path(mocker, comms):
     # Arrange
-    encrypted_key_obj = EncryptedKey(
-        name="TestCert",
-        id=TEST_KEY_ID,
-        owner=None,
-        for_test=True,
-        encrypted_key=encrypted_container_key,
-        certificate=1,
-        container=1,
-        padding=padding_obj,
-    )
-    ca = mocker.create_autospec(CA)
-    ca.name = "TestDecryptCA"
-    ca.id = 1
-
-    container = mocker.create_autospec(Cube)
-    container.name = "TestDecryptContainer"
-    container.id = 1
-
-    mock_get_ca = mocker.patch.object(CA, "from_key", return_value=ca)
-    mock_pki_assets_path = Path(f"/path/to/pki/assets/{ca.id}")
-    mock_get_user_data = mocker.patch(
-        PATCH_ASSOC.format("get_medperf_user_data"),
-        return_value={"email": "testrun@test.com"},
-    )
-    mock_get_pki_assets_path = mocker.patch(
-        PATCH_ASSOC.format("get_pki_assets_path"),
-        return_value=str(mock_pki_assets_path),
-    )
-    mock_private_key_path = mock_pki_assets_path / config.private_key_file
-
-    private_key_bytes = private_key.private_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PrivateFormat.TraditionalOpenSSL,
-        encryption_algorithm=serialization.NoEncryption(),
-    )
-    fs.create_dir(mock_pki_assets_path)
-    fs.create_file(mock_private_key_path, contents=private_key_bytes)
-    return (
-        encrypted_key_obj,
-        container,
-        mock_get_ca,
-        mock_get_user_data,
-        mock_get_pki_assets_path,
+    user_cert = TestCertificate(id=100)
+    status = {
+        "no_action_required": True,
+        "user_cert_object": user_cert,
+    }
+    mocker.patch(
+        PATCH_EK.format("current_user_certificate_status"), return_value=status
     )
 
+    returned_key = {
+        "id": 55,
+        "name": "k",
+        "certificate": 100,
+        "container": 1,
+        "encrypted_key_base64": base64.b64encode(b"data").decode(),
+    }
 
-def test_generates_b64_key_from_bytes_key(mock_bytes_key: bytes, mock_b64_key: str):
-    encrypted_key = EncryptedKey(
-        name="TestCert",
-        id=TEST_KEY_ID,
-        owner=None,
-        certificate=1,
-        for_test=True,
-        encrypted_key=mock_bytes_key,
-        container=1,
+    mocker.patch.object(
+        comms,
+        "get_certificate_encrypted_keys",
+        return_value=[returned_key],
     )
-
-    assert encrypted_key.encrypted_key_base64 == mock_b64_key
-
-
-def test_generates_bytes_key_from_b64_key(mock_bytes_key: bytes, mock_b64_key: str):
-    encrypted_key = EncryptedKey(
-        name="TestCert",
-        id=TEST_KEY_ID,
-        owner=None,
-        certificate=1,
-        for_test=True,
-        encrypted_key_base64=mock_b64_key,
-        container=1,
-    )
-    assert encrypted_key.encrypted_key == mock_bytes_key
-
-
-def test_accepts_both_bytes_and_b64_if_equal(mock_bytes_key, mock_b64_key):
-    encrypted_key = EncryptedKey(
-        name="TestCert",
-        id=TEST_KEY_ID,
-        owner=None,
-        for_test=True,
-        encrypted_key_base64=mock_b64_key,
-        encrypted_key=mock_bytes_key,
-        certificate=1,
-        container=1,
-    )
-    assert encrypted_key.encrypted_key_base64 == mock_b64_key
-    assert encrypted_key.encrypted_key == mock_bytes_key
-    assert (
-        base64.b64encode(encrypted_key.encrypted_key).decode("utf-8")
-        == encrypted_key.encrypted_key_base64
-    )
-    assert (
-        base64.b64decode(encrypted_key.encrypted_key_base64.encode("utf-8"))
-        == encrypted_key.encrypted_key
-    )
-
-
-def test_raises_error_if_key_mismatch(mock_bytes_key):
-    with pytest.raises(MedperfException):
-        EncryptedKey(
-            name="TestCert",
-            id=TEST_KEY_ID,
-            owner=None,
-            for_test=True,
-            encrypted_key_base64="unmatching key",
-            encrypted_key=mock_bytes_key,
-            certificate=1,
-            container=1,
-        )
-
-
-def test_raises_error_if_no_keys():
-    with pytest.raises(MedperfException):
-        EncryptedKey(
-            name="TestCert",
-            id=TEST_KEY_ID,
-            owner=None,
-            for_test=True,
-            certificate=1,
-            container=1,
-        )
-
-
-def test_decrypt(
-    unencrypted_container_key: bytes,
-    private_key: rsa.RSAPrivateKey,
-    padding_obj: padding.AsymmetricPadding,
-    encrypted_container_key: bytes,
-    fs: FakeFilesystem,
-    mocker: MockerFixture,
-):
-    # Arrange
-    args_tuple = _arrange_for_decryption_tests(
-        mocker=mocker,
-        fs=fs,
-        encrypted_container_key=encrypted_container_key,
-        padding_obj=padding_obj,
-        private_key=private_key,
-    )
-    (
-        encrypted_key_obj,
-        container,
-        mock_get_ca,
-        mock_get_user_data,
-        mock_get_pki_assets_path,
-    ) = args_tuple
 
     # Act
-    decrypted_container_key = encrypted_key_obj.decrypt_key(
-        container=container
-    ).get_secret_value()
+    result = EncryptedKey.get_user_container_key(container_id=1)
 
     # Assert
-    assert decrypted_container_key != encrypted_container_key
-    assert decrypted_container_key == unencrypted_container_key
-    assert unencrypted_container_key != encrypted_container_key
-    mock_get_ca.assert_called_once
-    mock_get_user_data.assert_called_once()
-    mock_get_pki_assets_path.assert_called_once()
+    assert isinstance(result, EncryptedKey)
+    assert result.id == 55
+    assert result.container == 1
+    assert result.certificate == 100
 
 
-def test_decrypt_fails_wrong_key(
-    padding_obj: padding.AsymmetricPadding,
-    encrypted_container_key: bytes,
-    fs: FakeFilesystem,
-    mocker: MockerFixture,
-):
+def test_get_user_container_key_invalid_certificate(mocker):
     # Arrange
-    unrelated_key = rsa.generate_private_key(
-        public_exponent=65537,
-        key_size=2048,
+    status = {"no_action_required": False}
+    mocker.patch(
+        PATCH_EK.format("current_user_certificate_status"), return_value=status
     )
-    args_tuple = _arrange_for_decryption_tests(
-        mocker=mocker,
-        fs=fs,
-        encrypted_container_key=encrypted_container_key,
-        padding_obj=padding_obj,
-        private_key=unrelated_key,
+
+    # Act + Assert
+    with pytest.raises(PrivateContainerAccessError):
+        EncryptedKey.get_user_container_key(1)
+
+
+def test_get_user_container_key_no_keys(mocker, comms):
+    # Arrange
+    user_cert = TestCertificate(id=1)
+    mocker.patch(
+        PATCH_EK.format("current_user_certificate_status"),
+        return_value={"no_action_required": True, "user_cert_object": user_cert},
     )
-    encrypted_key_obj, ca, container, mock_get_user_data, mock_get_pki_assets_path = (
-        args_tuple
+    mocker.patch.object(comms, "get_certificate_encrypted_keys", return_value=[])
+
+    # Act + Assert
+    with pytest.raises(PrivateContainerAccessError):
+        EncryptedKey.get_user_container_key(1)
+
+
+def test_get_user_container_key_multiple_keys(mocker, comms):
+    # Arrange
+    user_cert = TestCertificate(id=1)
+    mocker.patch(
+        PATCH_EK.format("current_user_certificate_status"),
+        return_value={"no_action_required": True, "user_cert_object": user_cert},
     )
+
+    mocker.patch.object(
+        comms, "get_certificate_encrypted_keys", return_value=[{"id": 1}, {"id": 2}]
+    )
+
+    # Act + Assert
+    with pytest.raises(MedperfException):
+        EncryptedKey.get_user_container_key(1)
+
+
+# -------------------------------------------------------------------
+# decrypt
+# -------------------------------------------------------------------
+def test_decrypt_happy_path(mocker, fs):
+    # Arrange
+    plaintext = b"my-secret-key"
+    private_key = b"private"
+
+    encrypted_key = EncryptedKey(
+        id=1,
+        name="k",
+        certificate=1,
+        container=1,
+        encrypted_key_base64=base64.b64encode(b"cipher").decode(),
+    )
+
+    # Private key exists
+    mocker.patch(PATCH_EK.format("load_user_private_key"), return_value=private_key)
+
+    # Path for output
+    output_path = "/tmp/decrypted-key"
+    mocker.patch(
+        PATCH_EK.format("tmp_path_for_key_decryption"),
+        return_value=output_path,
+    )
+
+    # Mock decrypt() call on AsymmetricEncryption
+    mock_decrypt = mocker.patch(
+        PATCH_EK.format("AsymmetricEncryption.decrypt"),
+        return_value=plaintext,
+    )
+
+    # Track secure write
+    mock_write = mocker.patch(PATCH_EK.format("secure_write_to_file"))
 
     # Act
+    result = encrypted_key.decrypt()
+
+    # Assert
+    assert result == output_path
+    mock_decrypt.assert_called_once()
+    mock_write.assert_called_once_with(output_path, plaintext, exec_permission=True)
+
+
+def test_decrypt_missing_private_key(mocker):
+    # Arrange
+    encrypted_key = EncryptedKey(
+        id=1,
+        name="k",
+        certificate=1,
+        container=1,
+        encrypted_key_base64=base64.b64encode(b"cipher").decode(),
+    )
+
+    mocker.patch(PATCH_EK.format("load_user_private_key"), return_value=None)
+
+    # Act + Assert
     with pytest.raises(DecryptionError):
-        encrypted_key_obj.decrypt_key(container=container)
-
-    # Assert
-    mock_get_user_data.assert_called_once()
-    mock_get_pki_assets_path.assert_called_once()
+        encrypted_key.decrypt()

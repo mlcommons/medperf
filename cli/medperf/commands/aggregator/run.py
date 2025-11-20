@@ -85,7 +85,9 @@ class StartAggregator:
 
     def prepare_pki_assets(self):
         ca = CA.get(config.certificate_authority_id)
-        verify_certificate_authority(ca)
+        verify_certificate_authority(
+            ca, expected_fingerprint=config.certificate_authority_fingerprint
+        )
         agg_address = self.aggregator.address
         self.aggregator_pki_assets = get_pki_assets_path(agg_address, ca.id)
         self.ca = ca
