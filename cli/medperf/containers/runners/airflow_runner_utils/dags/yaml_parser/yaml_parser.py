@@ -14,6 +14,17 @@ from medperf.containers.runners.airflow_runner_utils.dags.dag_builder import Dag
 from copy import deepcopy
 
 
+def get_dict_value_by_key_prefix(key_prefix: str, dictionary: dict):
+    """
+    This assumes the values are effectively the same for the purposes this function is called.
+    If they are different, then calling by suffix does not make sense!
+    """
+    relevant_dict = {
+        key: value for key, value in dictionary.items() if key.startswith(key_prefix)
+    }
+    return list(relevant_dict.values())[0]
+
+
 class YamlParser:
 
     def __init__(self, yaml_dir_path: str = None):
@@ -257,11 +268,6 @@ class YamlParser:
                 step_id_to_expanded_step=step_id_to_expanded_step,
                 volume_key="input_volumes",
             )
-            # self._host_mounts_second_pass(
-            #     step=step,
-            #     step_id_to_expanded_step=step_id_to_expanded_step,
-            #     volume_key="output_volumes",
-            # )
 
     @staticmethod
     def _host_mounts_first_pass(
@@ -270,7 +276,10 @@ class YamlParser:
         host_mounts: dict,
         volume_key: str,
     ):
-        step_mounts = step["mounts"]
+        step_mounts = step.get("mounts")
+        if step_mounts is None:
+            return
+
         volumes = step_mounts.get(volume_key, {})
         for volume_name, volume_data in volumes.items():
             from_step = volume_data.get("from")
@@ -285,15 +294,20 @@ class YamlParser:
         step_id_to_expanded_step: dict,
         volume_key: str,
     ):
-        step_mounts = step["mounts"]
+        step_mounts = step.get("mounts")
+        if step_mounts is None:
+            return
+
         volumes = step_mounts.get(volume_key, {})
         for volume_name, volume_data in volumes.items():
-            input_step_id = volume_data.get("from")
+            input_step_id_prefix = volume_data.get("from")
 
-            if input_step_id is None:
+            if input_step_id_prefix is None:
                 continue  # Done in first pass
 
-            input_step = step_id_to_expanded_step[input_step_id]
+            input_step = get_dict_value_by_key_prefix(
+                key_prefix=input_step_id_prefix, dictionary=step_id_to_expanded_step
+            )
             output_key = (
                 "output_path"
                 if volume_name == "data_path"
