@@ -27,6 +27,8 @@ class DeleteKeys:
 
     def revoke_access(self):
         keys = EncryptedKey.get_container_keys(self.container_id)
+        if len(keys) == 0:
+            raise CleanExit("No keys to be deleted were found")
         bodies = [
             {
                 "id": key.id,

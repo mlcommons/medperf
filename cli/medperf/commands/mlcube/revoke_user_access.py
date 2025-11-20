@@ -25,7 +25,7 @@ class RevokeUserAccess:
             raise CleanExit("Access revoking operation cancelled")
 
     def revoke_access(self):
-        key = EncryptedKey.Get(self.key_id)
+        key = EncryptedKey.get(self.key_id)
         redaction_record = generate_container_key_redaction_record(
             key.encrypted_key_base64
         )

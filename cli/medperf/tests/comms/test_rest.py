@@ -29,7 +29,7 @@ def server(mocker, ui):
             200,
             [1],
             [],
-            (f"{full_url}/benchmarks/1/models",),
+            (f"{full_url}/benchmarks/1/models/",),
             {"error_msg": ANY, "filters": {}},
         ),
         ("get_cube_metadata", "get", 200, [1], {}, (f"{full_url}/mlcubes/1/",), {}),
@@ -179,7 +179,7 @@ def test__req_sanitizes_json(mocker, server):
 def test__get_list_uses_default_page_size(mocker, server):
     # Arrange
     exp_page_size = config.default_page_size
-    exp_url = f"{full_url}?limit={exp_page_size}&offset=0"
+    exp_url = f"{full_url}?is_valid=True&limit={exp_page_size}&offset=0"
     ret_body = MockResponse({"count": 1, "next": None, "results": []}, 200)
     spy = mocker.patch.object(server, "_REST__auth_get", return_value=ret_body)
 
@@ -232,7 +232,7 @@ def test__get_list_splits_page_size_on_error(mocker, server):
         {"count": 32, "next": None, "results": ["element"] * 32}, 200
     )
     ret_bodies = [failing_body, reduced_body, next_body]
-    gen_url = url + "?limit={}&offset={}"
+    gen_url = url + "?is_valid=True&limit={}&offset={}"
     exp_calls = [
         call(gen_url.format(32, 0)),
         call(gen_url.format(16, 0)),

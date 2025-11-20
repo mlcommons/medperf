@@ -8,6 +8,7 @@ from medperf import certificates as certs
 from medperf.tests.mocks.certificate import TestCertificate
 from medperf.tests.mocks.ca import TestCA
 from medperf.tests.mocks.cube import TestCube
+from medperf import config
 
 PATCH_CERTS = "medperf.certificates.{}"
 
@@ -81,7 +82,9 @@ def test_verify_certificate_success_verify_ca_true(mocker):
     )
 
     # Assert
-    mock_verify_ca.assert_called_once_with(ca)
+    mock_verify_ca.assert_called_once_with(
+        ca, expected_fingerprint=config.certificate_authority_fingerprint
+    )
     mock_ca_prepare.assert_called_once()
     mock_cert_prepare.assert_called_once()
     mock_run.assert_called_once()
