@@ -1,6 +1,7 @@
 from .container_operator_builder import ContainerOperatorBuilder, MountInfo
 from airflow.providers.docker.operators.docker import DockerOperator
 from docker.types import Mount
+import os
 
 
 class DockerOperatorBuilder(ContainerOperatorBuilder):
@@ -26,12 +27,12 @@ class DockerOperatorBuilder(ContainerOperatorBuilder):
             mounts=self.mounts,
             task_id=self.operator_id,
             task_display_name=self.display_name,
-            # auto_remove="success",
+            auto_remove="success",
             mount_tmp_dir=False,
             outlets=self.outlets,
+            user=f"{os.getuid()}:{os.getgid()}",
             # TODO add medperf arguments: shm_size, user, network, ports, entrypoint, gpus
             shm_size=None,
-            user=None,
             network_mode=None,
             port_bindings=None,
             device_requests=None,  # gpus
