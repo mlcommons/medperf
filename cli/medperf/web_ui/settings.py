@@ -157,11 +157,11 @@ def get_certificate(
     try:
         GetUserCertificate.run()
         return_response["status"] = "success"
-        notification_message = "Certificate generated"
+        notification_message = "Certificate retrieved"
     except Exception as exp:
         return_response["status"] = "failed"
         return_response["error"] = str(exp)
-        notification_message = "Failed to generate certificate"
+        notification_message = "Failed to get certificate"
         logger.exception(exp)
 
     config.ui.end_task(return_response)
@@ -211,8 +211,7 @@ def submit_certificate(
     return_response = {"status": "", "error": ""}
 
     try:
-        # TODO: don't pass name, it will be auto-generated
-        SubmitCertificate.run(name="auto-generated")
+        SubmitCertificate.run()
         return_response["status"] = "success"
         notification_message = "Certificate submitted"
     except Exception as exp:
