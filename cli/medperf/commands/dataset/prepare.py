@@ -1,3 +1,4 @@
+from __future__ import annotations
 import logging
 import os
 import pandas as pd
@@ -18,7 +19,7 @@ from threading import Timer, Lock
 
 
 class ReportHandler(FileSystemEventHandler):
-    def __init__(self, preparation_obj: "DataPreparation"):
+    def __init__(self, preparation_obj: DataPreparation):
         self.preparation = preparation_obj
         self.timer = None
 
@@ -48,7 +49,7 @@ class ReportHandler(FileSystemEventHandler):
 
 
 class ReportSender:
-    def __init__(self, preparation_obj: "DataPreparation"):
+    def __init__(self, preparation_obj: DataPreparation):
         self.preparation = preparation_obj
 
     def start(self):
@@ -185,6 +186,7 @@ class DataPreparation:
 
         if self.cube.is_workflow:
             prepare_mounts["statistics_file"] = self.out_statistics_path
+            prepare_mounts["dataset_path"] = self.dataset.path
 
         self.ui.text = "Running preparation step..."
         try:
@@ -282,31 +284,20 @@ class DataPreparation:
         self.dataset.mark_as_ready()
 
     def __generate_report_dict(self):
-        report_status_dict = {}
-
         if os.path.exists(self.report_path):
             with open(self.report_path, "r") as f:
                 report_dict = yaml.safe_load(f)
+            return report_dict.get("progress", {})
 
-            # TODO: this specific logic with status is very tuned to the RANO. Hope we'd
-            #  make it more general once
-            report = pd.DataFrame(report_dict)
-            if "status" in report.keys():
-                report_status = report.status.value_counts() / len(report)
-                report_status_dict = report_status.round(3).to_dict()
-                report_status_dict = {
-                    f"Stage {key}": str(val * 100) + "%"
-                    for key, val in report_status_dict.items()
-                }
-
-        return report_status_dict
+        # If no report has been generated yet, return a blank report
+        return {}
 
     def prompt_for_report_sending_approval(self):
         example = {
             "execution_status": "running",
             "progress": {
-                "Stage 1": "40%",
-                "Stage 3": "60%",
+                "Stage 1": "40.0",
+                "Stage 3": "60.0",
             },
         }
 
@@ -351,6 +342,7 @@ class DataPreparation:
         report_status_dict = {}
         if self.allow_sending_reports:
             report_status_dict = self.__generate_report_dict()
+
         report = {"progress": report_status_dict, **report_metadata}
         if report == self.dataset.report:
             # Watchdog may trigger an event even if contents didn't change
