@@ -29,6 +29,7 @@ class EncryptedKeySerializer(serializers.ModelSerializer):
 class EncryptedKeyDetailSerializer(serializers.ModelSerializer):
     """To be used with UpdateEncryptedKeyListSerializer. See
     https://www.django-rest-framework.org/api-guide/serializers/#customizing-multiple-update
+    NOTE that self.instance will be None since this is how the list serializer works.
     """
 
     id = serializers.IntegerField()
@@ -41,7 +42,8 @@ class EncryptedKeyDetailSerializer(serializers.ModelSerializer):
     def validate(self, data):
         keys = list(data.keys())
         # Only `is_valid` and `encrypted_key_base64` are allowed to be edited
-        if set(keys) != {"is_valid", "encrypted_key_base64"}:
+        # ID should exist but it will be discarded since this will be used for bulk updates
+        if set(keys) != {"is_valid", "encrypted_key_base64", "id"}:
             raise serializers.ValidationError(
                 "User can only invalidate a container key and overwrite its value"
             )
@@ -63,7 +65,7 @@ class CreateEncryptedKeyListSerializer(serializers.ListSerializer):
 
         try:
             with transaction.atomic():
-                return EncryptedKey.objects.bulk_create(objects)
+                return EncryptedKey.objects.bulk_create(objects, batch_size=100)
         except IntegrityError:
             raise serializers.ValidationError(
                 {"non_field_errors": ["Database Integrity Error"]}
@@ -87,7 +89,9 @@ class UpdateEncryptedKeyListSerializer(serializers.ListSerializer):
         try:
             with transaction.atomic():
                 return EncryptedKey.objects.bulk_update(
-                    instance_mapping.values(), ["is_valid", "encrypted_key_base64"]
+                    instance_mapping.values(),
+                    ["is_valid", "encrypted_key_base64"],
+                    batch_size=100,
                 )
         except IntegrityError:
             raise serializers.ValidationError(

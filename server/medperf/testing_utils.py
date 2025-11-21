@@ -192,3 +192,72 @@ def mock_mlcube_association(benchmark, mlcube, **kwargs):
         data[key] = val
 
     return data
+
+
+def mock_ca(**kwargs):
+    """Mock CA object for testing
+
+    Note: Uses mlcube ID 1 for all three mlcubes (client, server, ca).
+    This mlcube is created during migrations and is always available.
+    """
+    data = {
+        "name": "test_ca",
+        "config": {"key": "value"},
+        "client_mlcube": 1,  # Use existing mlcube from migrations
+        "server_mlcube": 1,  # Use existing mlcube from migrations
+        "ca_mlcube": 1,  # Use existing mlcube from migrations
+        "is_valid": True,
+        "metadata": {},
+    }
+
+    for key, val in kwargs.items():
+        if key not in data:
+            raise ValueError(f"Invalid argument: {key}")
+        data[key] = val
+
+    return data
+
+
+def mock_certificate(ca, **kwargs):
+    """Mock Certificate object for testing
+
+    Args:
+        ca: The CA ID (required)
+    """
+    data = {
+        "name": "test_certificate",
+        "ca": ca,
+        "certificate_content_base64": "dGVzdF9jZXJ0aWZpY2F0ZV9jb250ZW50X2Jhc2U2NA==",
+        "is_valid": True,
+    }
+
+    for key, val in kwargs.items():
+        if key not in data:
+            raise ValueError(f"Invalid argument: {key}")
+        data[key] = val
+
+    return data
+
+
+def mock_encrypted_key(certificate, container, **kwargs):
+    """Mock EncryptedKey object for testing
+
+    Args:
+        certificate: The Certificate ID (required)
+        container: The MlCube ID to use as container (required)
+    """
+    data = {
+        "name": "test_key",
+        "certificate": certificate,
+        "container": container,
+        "encrypted_key_base64": "dGVzdF9lbmNyeXB0ZWRfa2V5X2NvbnRlbnQ=",
+        "is_valid": True,
+        "metadata": {},
+    }
+
+    for key, val in kwargs.items():
+        if key not in data:
+            raise ValueError(f"Invalid argument: {key}")
+        data[key] = val
+
+    return data
