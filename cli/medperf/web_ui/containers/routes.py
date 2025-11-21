@@ -380,6 +380,7 @@ def stop_auto_access(
     return_response = {"status": "", "error": ""}
     try:
         request.app.state.model_auto_give_access["event"].set()
+        request.app.state.model_auto_give_access["worker"].join()
         return_response["status"] = "success"
         notification_message = "Successfully stopped automatic grant access."
     except Exception as exp:
