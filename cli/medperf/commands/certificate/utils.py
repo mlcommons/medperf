@@ -7,6 +7,21 @@ import base64
 import logging
 
 
+def _check_and_clean_certificate_corruption(local_cert_folder):
+    private_key_path = os.path.join(local_cert_folder, config.private_key_file)
+    certificate_path = os.path.join(local_cert_folder, config.certificate_file)
+
+    private_key_exists = os.path.exists(private_key_path)
+    certificate_exists = os.path.exists(certificate_path)
+
+    certificate_corrupted = (private_key_exists and not certificate_exists) or (
+        certificate_exists and not private_key_exists
+    )
+
+    if certificate_corrupted:
+        remove_path(local_cert_folder, sensitive=True)
+
+
 def current_user_certificate_status():
     """Check the status of the current user certificate. Possible cases:
     - No local certificate folder and no submitted certificate
@@ -35,19 +50,11 @@ def current_user_certificate_status():
     email = get_medperf_user_data()["email"]
     local_cert_folder = get_pki_assets_path(email, config.certificate_authority_id)
 
-    # Get local certificate and key paths
-    private_key_path = os.path.join(local_cert_folder, config.private_key_file)
-    certificate_path = os.path.join(local_cert_folder, config.certificate_file)
-
-    # Check existence of local certificate and key paths
-    private_key_exists = os.path.exists(private_key_path)
-    certificate_exists = os.path.exists(certificate_path)
+    # If certificate is corrupted, delete the certificate folder
+    _check_and_clean_certificate_corruption(local_cert_folder)
 
     # Check
-    exists_locally = private_key_exists and certificate_exists
-    certificate_corrupted = (private_key_exists and not certificate_exists) or (
-        certificate_exists and not private_key_exists
-    )
+    exists_locally = os.path.exists(local_cert_folder)
     submitted = user_cert_object is not None
 
     no_certs_found = False
@@ -55,11 +62,7 @@ def current_user_certificate_status():
     should_be_invalidated = False
     no_action_required = False
 
-    if not submitted and certificate_corrupted:
-        logging.debug("local certificate is corrupted")
-        remove_path(local_cert_folder, sensitive=True)
-        no_certs_found = True
-    elif not submitted and not exists_locally:
+    if not submitted and not exists_locally:
         logging.debug("No remote or local certificate")
         no_certs_found = True
     elif not submitted and exists_locally:
