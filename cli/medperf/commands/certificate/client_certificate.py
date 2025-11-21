@@ -26,5 +26,5 @@ class GetUserCertificate:
             remove_path(output_path, sensitive=True)
 
         with ui.interactive():
-            ui.text = "Generating Certificate"
+            ui.text = "Getting Certificate"
             get_client_cert(ca, email, output_path)

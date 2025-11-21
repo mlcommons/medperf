@@ -107,11 +107,11 @@ function editCertificate(editCertBtn) {
 
 function onGetCertSuccess(response){
     if (response.status === "success"){
-        showReloadModal("Certificate Generated Successfully");
+        showReloadModal("Certificate Retrieved Successfully");
         timer(3);
     }
     else {
-        showErrorModal("Failed to Generate Certificate", response);
+        showErrorModal("Failed to Get Certificate", response);
     }
 }
 
