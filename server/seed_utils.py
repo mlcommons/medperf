@@ -292,8 +292,8 @@ def create_workflow_benchmark(
 
     DATA_PREP_ASSETS_WORKFLOW_URL = (
         "https://raw.githubusercontent.com/RodriguesRBruno/medperf/"
-        "41c7082bf5093de8ba287683a41365860ee71d18/examples/"
-        "chestxray_tutorial/"
+        "685bea196aa4314023dbeea939b94f44fb7efbab/examples/"
+        "chestxray_tutorial/data_preparator_workflow/"
     )
     # Create a Data preprocessor MLCube by Benchmark Owner
     data_preprocessor_mlcube = api_server.request(
@@ -302,13 +302,10 @@ def create_workflow_benchmark(
         benchmark_owner_token,
         {
             "name": "chestxray_wprep",
-            "git_mlcube_url": (
-                DATA_PREP_ASSETS_WORKFLOW_URL + "data_preparator_workflow/workflow.yaml"
-            ),
-            "mlcube_hash": "9b65373a0cae9b2cbbd5027a3d692f2ed080e6f15c0ff5d45e9d92517409651d",
+            "git_mlcube_url": (DATA_PREP_ASSETS_WORKFLOW_URL + "workflow.yaml"),
+            "mlcube_hash": "4617173987929fc78471c77318318340067c669eb54f4e0aa3f7d88c4e973f9b",
             "git_parameters_url": (
-                DATA_PREP_ASSETS_WORKFLOW_URL
-                + "data_preparator/workspace/parameters.yaml"
+                DATA_PREP_ASSETS_WORKFLOW_URL + "workspace/parameters.yaml"
             ),
             "parameters_hash": "1541e05437040745d2489e8d2cf14795d4839eecc15c1ac959c84f6b77c1a5df",
             "image_tarball_url": "",
