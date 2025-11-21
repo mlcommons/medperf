@@ -82,13 +82,13 @@ class AirflowSystemRunner:
             capture_output=True,
             env=self._run_env,
         )
-        config = configparser.ConfigParser()
+        airflow_config = configparser.ConfigParser()
         logging.debug(
             f"Airflow process creation stdout:\n{config_create_process.stdout}"
         )
         with open(self.airflow_config_file, "r") as f:
-            config.read_file(f)
-        config["core"].update(
+            airflow_config.read_file(f)
+        airflow_config["core"].update(
             {
                 "dags_folder": self.dags_folder,
                 "executor": "LocalExecutor",
@@ -96,12 +96,14 @@ class AirflowSystemRunner:
                 "load_examples": "false",
             }
         )
-        config["database"].update({"sql_alchemy_conn": self.db.connection_string})
-        config["scheduler"].update({"enable_health_check": "true"})
+        airflow_config["database"].update(
+            {"sql_alchemy_conn": self.db.connection_string}
+        )
+        airflow_config["scheduler"].update({"enable_health_check": "true"})
 
         logging.debug(f"Saving Airflow configuration to {self.airflow_config_file}")
         with open(self.airflow_config_file, "w") as f:
-            config.write(f)
+            airflow_config.write(f)
 
     def init_airflow(self, force_venv_creation: bool = False):
         # create_airflow_venv_if_not_exists(force_creation=force_venv_creation)
