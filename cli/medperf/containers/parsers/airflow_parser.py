@@ -44,6 +44,7 @@ class AirflowParser(Parser):
 
         # The following variables are set when calling check_schema for the first time
         self._steps = []
+        self._has_metadata = None
         self.pools = None
         self.step_ids = []
         self.containers: Set[ContainerForAirflow] = (
@@ -181,7 +182,18 @@ class AirflowParser(Parser):
         pass
 
     def is_report_specified(self):
-        pass
+        """Can always get report data from Airflow REST API"""
+        return True
+
+    @property
+    def has_metadata(self):
+        if self._has_metadata is None:
+            self._has_metadata = any(
+                "metadata_path" in step["mounts"].get("output_volumes", {})
+                for step in self._steps
+            )
+
+        return self._has_metadata
 
     def is_metadata_specified(self):
-        pass
+        return self._has_metadata
