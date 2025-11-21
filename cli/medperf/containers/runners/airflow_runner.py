@@ -79,7 +79,8 @@ class AirflowRunner(Runner):
         email = get_medperf_user_data()["email"]
         username = email.split("@", maxsplit=1)[0]
 
-        airflow_home = os.path.join(self.container_dir, "airflow_home")
+        dataset_dir = medperf_mounts.pop("dataset_path")
+        airflow_home = os.path.join(dataset_dir, "airflow_home")
         additional_files_path = medperf_mounts["additional_files"]
         self._symlink_yaml_dag_to_additional_files(additional_files_path)
 
