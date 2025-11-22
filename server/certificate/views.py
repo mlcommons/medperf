@@ -1,9 +1,8 @@
-from __future__ import annotations
-from typing import TYPE_CHECKING
 from django.http import Http404
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.request import Request
 from django.contrib.auth import get_user_model
 from .models import Certificate
 from .serializers import (
@@ -18,9 +17,6 @@ from benchmark.models import Benchmark
 from django.db.models import OuterRef, Subquery
 from encrypted_key.serializers import EncryptedKeySerializer
 from encrypted_key.models import EncryptedKey
-
-if TYPE_CHECKING:
-    from rest_framework.request import Request
 
 
 User = get_user_model()
