@@ -27,12 +27,14 @@ from traindataset_association.models import ExperimentDataset
 from traindataset_association.serializers import ExperimentDatasetListSerializer
 from aggregator_association.models import ExperimentAggregator
 from aggregator_association.serializers import ExperimentAggregatorListSerializer
-from ca_association.models import ExperimentCA
-from ca_association.serializers import ExperimentCAListSerializer
 from trainingevent.serializers import EventDetailSerializer
 from ca.serializers import CASerializer
 from trainingevent.models import TrainingEvent
 from ca.models import CA
+from certificate.models import Certificate
+from certificate.serializers import CertificateDetailSerializer
+from encrypted_key.models import EncryptedKey
+from encrypted_key.serializers import EncryptedKeyDetailSerializer
 
 
 class User(GenericAPIView):
@@ -208,6 +210,50 @@ class ModelResultList(GenericAPIView):
         return self.get_paginated_response(serializer.data)
 
 
+class CertificateList(GenericAPIView):
+    serializer_class = CertificateDetailSerializer
+    queryset = ""
+    filterset_fields = ("name", "owner", "is_valid", "ca")
+
+    def get_object(self, pk):
+        try:
+            return Certificate.objects.filter(owner__id=pk)
+        except Certificate.DoesNotExist:
+            raise Http404
+
+    def get(self, request, format=None):
+        """
+        Retrieve all certs associated with the current user
+        """
+        certs = self.get_object(request.user.id)
+        certs = self.filter_queryset(certs)
+        certs = self.paginate_queryset(certs)
+        serializer = CertificateDetailSerializer(certs, many=True)
+        return self.get_paginated_response(serializer.data)
+
+
+class EncryptedKeyList(GenericAPIView):
+    serializer_class = EncryptedKeyDetailSerializer
+    queryset = ""
+    filterset_fields = ("name", "owner", "is_valid", "certificate", "container")
+
+    def get_object(self, pk):
+        try:
+            return EncryptedKey.objects.filter(owner__id=pk)
+        except EncryptedKey.DoesNotExist:
+            raise Http404
+
+    def get(self, request, format=None):
+        """
+        Retrieve all keys associated with the current user
+        """
+        keys = self.get_object(request.user.id)
+        keys = self.filter_queryset(keys)
+        keys = self.paginate_queryset(keys)
+        serializer = EncryptedKeyDetailSerializer(keys, many=True)
+        return self.get_paginated_response(serializer.data)
+
+
 class DatasetAssociationList(GenericAPIView):
     serializer_class = BenchmarkDatasetListSerializer
     queryset = ""
@@ -294,28 +340,6 @@ class AggregatorAssociationList(GenericAPIView):
         experiment_aggs = self.get_object(request.user.id)
         experiment_aggs = self.paginate_queryset(experiment_aggs)
         serializer = ExperimentAggregatorListSerializer(experiment_aggs, many=True)
-        return self.get_paginated_response(serializer.data)
-
-
-class CAAssociationList(GenericAPIView):
-    serializer_class = ExperimentCAListSerializer
-    queryset = ""
-
-    def get_object(self, pk):
-        try:
-            return ExperimentCA.objects.filter(
-                Q(ca__owner__id=pk) | Q(training_exp__owner__id=pk)
-            )
-        except ExperimentCA.DoesNotExist:
-            raise Http404
-
-    def get(self, request, format=None):
-        """
-        Retrieve all ca associations involving an asset of mine
-        """
-        experiment_cas = self.get_object(request.user.id)
-        experiment_cas = self.paginate_queryset(experiment_cas)
-        serializer = ExperimentCAListSerializer(experiment_cas, many=True)
         return self.get_paginated_response(serializer.data)
 
 

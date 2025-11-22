@@ -7,7 +7,7 @@ from medperf.entities.training_exp import TrainingExp
 from medperf.entities.aggregator import Aggregator
 from medperf.entities.cube import Cube
 from medperf.utils import get_pki_assets_path, remove_path
-from medperf.certificates import trust
+from medperf.certificates import verify_certificate_authority
 
 
 class StartAggregator:
@@ -84,10 +84,12 @@ class StartAggregator:
         self.training_exp.prepare_plan()
 
     def prepare_pki_assets(self):
-        ca = CA.from_experiment(self.training_exp_id)
-        trust(ca)
+        ca = CA.get(config.certificate_authority_id)
+        verify_certificate_authority(
+            ca, expected_fingerprint=config.certificate_authority_fingerprint
+        )
         agg_address = self.aggregator.address
-        self.aggregator_pki_assets = get_pki_assets_path(agg_address, ca.name)
+        self.aggregator_pki_assets = get_pki_assets_path(agg_address, ca.id)
         self.ca = ca
 
     def run_experiment(self):

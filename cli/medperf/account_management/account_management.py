@@ -13,6 +13,10 @@ def read_user_account():
     return account_info
 
 
+def is_user_logged_in():
+    return read_user_account() is not None
+
+
 def set_credentials(
     access_token,
     refresh_token,

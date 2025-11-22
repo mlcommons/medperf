@@ -9,9 +9,9 @@ from medperf.utils import (
     dict_pretty_print,
     remove_path,
 )
-from medperf.certificates import trust
 import yaml
 import os
+from medperf.certificates import verify_certificate_authority
 
 
 class GetExperimentStatus:
@@ -48,9 +48,11 @@ class GetExperimentStatus:
         self.training_exp.prepare_plan()
 
     def prepare_pki_assets(self):
-        ca = CA.from_experiment(self.training_exp_id)
-        trust(ca)
-        self.admin_pki_assets = get_pki_assets_path(self.user_email, ca.name)
+        ca = CA.get(config.certificate_authority_id)
+        verify_certificate_authority(
+            ca, expected_fingerprint=config.certificate_authority_fingerprint
+        )
+        self.admin_pki_assets = get_pki_assets_path(self.user_email, ca.id)
         self.ca = ca
 
     def prepare_admin_cube(self):

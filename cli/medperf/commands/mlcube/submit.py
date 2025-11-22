@@ -2,37 +2,55 @@ import os
 
 import medperf.config as config
 from medperf.entities.cube import Cube
-from medperf.utils import remove_path
+from medperf.exceptions import InvalidArgumentError
+from medperf.utils import remove_path, store_decryption_key
+import logging
 
 
 class SubmitCube:
     @classmethod
-    def run(cls, submit_info: dict):
+    def run(cls, submit_info: dict, decryption_key: str = None):
         """Submits a new cube to the medperf platform
 
         Args:
             submit_info (dict): Dictionary containing the cube information.
         """
         ui = config.ui
-        submission = cls(submit_info)
-
+        submission = cls(submit_info, decryption_key)
         with ui.interactive():
             ui.text = "Validating Container can be downloaded"
-            submission.download()
+            submission.download_config_files()
+            submission.validate()
+            submission.download_run_files()
             ui.text = "Submitting Container to MedPerf"
             updated_cube_dict = submission.upload()
             submission.to_permanent_path(updated_cube_dict)
             submission.write(updated_cube_dict)
+            submission.store_decryption_key()
         return submission.cube.id
 
-    def __init__(self, submit_info: dict):
+    def __init__(self, submit_info: dict, decryption_key: str = None):
         self.comms = config.comms
         self.ui = config.ui
         self.cube = Cube(**submit_info)
+        self.decryption_key = decryption_key
         config.tmp_paths.append(self.cube.path)
 
-    def download(self):
+    def download_config_files(self):
         self.cube.download_config_files()
+
+    def validate(self):
+        if self.cube.is_encrypted() and not self.decryption_key:
+            raise InvalidArgumentError(
+                "Container seems to be encrypted, but no decryption key is provided"
+            )
+
+        if not self.cube.is_encrypted() and self.decryption_key:
+            raise InvalidArgumentError(
+                "Container is not encrypted, but a decryption key is provided"
+            )
+
+    def download_run_files(self):
         self.cube.download_run_files()
 
     def upload(self):
@@ -52,3 +70,10 @@ class SubmitCube:
     def write(self, updated_cube_dict):
         self.cube = Cube(**updated_cube_dict)
         self.cube.write()
+
+    def store_decryption_key(self):
+        if self.decryption_key is None:
+            logging.debug("Decryption key not provided")
+            return
+        logging.debug(f"Decryption key provided: {self.decryption_key}")
+        store_decryption_key(self.cube.id, self.decryption_key)

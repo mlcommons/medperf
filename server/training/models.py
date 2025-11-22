@@ -68,11 +68,5 @@ class TrainingExperiment(models.Model):
         if aggregator_assoc and aggregator_assoc.approval_status == "APPROVED":
             return aggregator_assoc.aggregator
 
-    @property
-    def ca(self):
-        ca_assoc = self.experimentca_set.all().order_by("created_at").last()
-        if ca_assoc and ca_assoc.approval_status == "APPROVED":
-            return ca_assoc.ca
-
     class Meta:
         ordering = ["modified_at"]

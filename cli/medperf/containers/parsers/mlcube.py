@@ -4,13 +4,14 @@ from medperf.exceptions import InvalidContainerSpec, MedperfException
 import shlex
 from pathlib import Path
 from medperf.containers.parsers.parser import Parser
+from medperf.enums import ContainerTypes
 
 
 class MLCubeParser(Parser):
     def __init__(self, container_config: dict, allowed_runners: list):
         self.container_config = container_config
         self.allowed_runners = allowed_runners
-        self.container_type = "mlcube"
+        self.container_type = ContainerTypes.MLCUBE.value
 
     def check_schema(self):
         container_config = self.container_config
@@ -65,6 +66,18 @@ class MLCubeParser(Parser):
             )
         except KeyError:
             return False
+
+    def is_container_encrypted(self):
+        return False
+
+    def is_docker_archive(self):
+        return False
+
+    def is_singularity_file(self):
+        return False
+
+    def is_docker_image(self):
+        return True
 
 
 def _parse_task(container_config: dict, task: str, medperf_mounts: dict):

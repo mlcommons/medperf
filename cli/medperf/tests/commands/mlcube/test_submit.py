@@ -4,6 +4,7 @@ import pytest
 import medperf.config as config
 from medperf.tests.mocks.cube import TestCube
 from medperf.commands.mlcube.submit import SubmitCube
+from medperf.exceptions import InvalidArgumentError
 
 PATCH_MLCUBE = "medperf.commands.mlcube.submit.{}"
 
@@ -17,6 +18,50 @@ def cube(mocker):
     return TestCube()
 
 
+def test_download_executes_expected_commands1(mocker, comms, ui, cube):
+    submission = SubmitCube(cube.todict())
+    config_down_spy = mocker.patch(PATCH_MLCUBE.format("Cube.download_config_files"))
+
+    # Act
+    submission.download_config_files()
+
+    # Assert
+    config_down_spy.assert_called_once_with()
+
+
+def test_validate_raises_when_encrypted_without_key(mocker, cube):
+    # Arrange
+    submission = SubmitCube(cube.todict())
+    mocker.patch.object(submission.cube, "is_encrypted", return_value=True)
+    submission.decryption_key = None
+
+    # Act & Assert
+    with pytest.raises(InvalidArgumentError):
+        submission.validate()
+
+
+def test_validate_raises_when_not_encrypted_with_key(mocker, cube):
+    # Arrange
+    submission = SubmitCube(cube.todict())
+    mocker.patch.object(submission.cube, "is_encrypted", return_value=False)
+    submission.decryption_key = "some_key"
+
+    # Act & Assert
+    with pytest.raises(InvalidArgumentError):
+        submission.validate()
+
+
+def test_download_executes_expected_commands2(mocker, comms, ui, cube):
+    submission = SubmitCube(cube.todict())
+    run_down_spy = mocker.patch(PATCH_MLCUBE.format("Cube.download_run_files"))
+
+    # Act
+    submission.download_run_files()
+
+    # Assert
+    run_down_spy.assert_called_once_with()
+
+
 def test_submit_prepares_tmp_path_for_cleanup():
     # Arrange
     cube = TestCube(id=None)
@@ -26,27 +71,6 @@ def test_submit_prepares_tmp_path_for_cleanup():
 
     # Assert
     assert submission.cube.path in config.tmp_paths
-
-
-def test_run_runs_expected_flow(mocker, comms, ui, cube):
-    # Arrange
-    mock_body = cube.todict()
-    # Arrange
-    spy_download = mocker.patch(PATCH_MLCUBE.format("SubmitCube.download"))
-    spy_cube_upload = mocker.patch(
-        PATCH_MLCUBE.format("SubmitCube.upload"), return_value=mock_body
-    )
-    spy_toper = mocker.patch(PATCH_MLCUBE.format("SubmitCube.to_permanent_path"))
-    spy_write = mocker.patch(PATCH_MLCUBE.format("SubmitCube.write"))
-
-    # Act
-    SubmitCube.run(cube.todict())
-
-    # Assert
-    spy_download.assert_called_once()
-    spy_cube_upload.assert_called_once()
-    spy_toper.assert_called_once_with(mock_body)
-    spy_write.assert_called_once_with(mock_body)
 
 
 @pytest.mark.parametrize("uid", [858, 2770, 2052])
@@ -87,15 +111,3 @@ def test_upload_uploads_using_entity(mocker, comms, ui, cube):
 
     # Assert
     spy.assert_called_once_with()
-
-
-def test_download_executes_expected_commands(mocker, comms, ui, cube):
-    submission = SubmitCube(cube.todict())
-    config_down_spy = mocker.patch(PATCH_MLCUBE.format("Cube.download_config_files"))
-    run_down_spy = mocker.patch(PATCH_MLCUBE.format("Cube.download_run_files"))
-    # Act
-    submission.download()
-
-    # Assert
-    config_down_spy.assert_called_once_with()
-    run_down_spy.assert_called_once_with()

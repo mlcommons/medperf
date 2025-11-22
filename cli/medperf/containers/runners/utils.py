@@ -1,27 +1,12 @@
 from typing import Optional
-from medperf.exceptions import InvalidContainerSpec, ExecutionError, MedperfException
-from medperf.utils import spawn_and_kill, combine_proc_sp_text
+from medperf.exceptions import InvalidContainerSpec, MedperfException
 from medperf import config
-import shlex
 import os
-
-
-def run_command(cmd, timeout=None, output_logs=None):
-    with spawn_and_kill(shlex.join(cmd), timeout=timeout) as proc_wrapper:
-        proc = proc_wrapper.proc
-        proc_out = combine_proc_sp_text(proc)
-
-    if output_logs is not None:
-        with open(output_logs, "w") as f:
-            f.write(proc_out)
-
-    if proc.exitstatus != 0:
-        raise ExecutionError("There was an error while executing the container")
-
-    return proc_out
+import logging
 
 
 def check_allowed_run_args(run_args):
+    logging.debug("Checking allowed run args")
     allowed_keys = {"shm_size", "gpus", "command", "entrypoint", "environment"}
     given_keys = set(run_args.keys())
     not_allowed_keys = given_keys.difference(allowed_keys)
@@ -32,10 +17,13 @@ def check_allowed_run_args(run_args):
 
 
 def add_medperf_run_args(run_args):
+    logging.debug("Adding MedPerf run args")
     run_args["user"] = f"{os.getuid()}:{os.getgid()}"
+    run_args["remove_container"] = True
 
 
 def add_user_defined_run_args(run_args):
+    logging.debug("Adding user defined run args")
     # shm_size
     if config.shm_size is not None:
         run_args["shm_size"] = config.shm_size
@@ -48,6 +36,7 @@ def add_user_defined_run_args(run_args):
 
 
 def _normalize_gpu_arg(gpus: Optional[str]):
+    logging.debug(f"Normalizing gpu arg: |{gpus}| of type {type(gpus)}")
     if gpus is None or gpus == "":
         return
 
@@ -73,12 +62,16 @@ def _normalize_gpu_arg(gpus: Optional[str]):
 
 
 def add_medperf_environment_variables(run_args, medperf_env):
+    logging.debug(f"Adding medperf environment: {medperf_env}")
     env_dict: dict = run_args.get("environment", {})
     env_dict.update(medperf_env)
     run_args["environment"] = env_dict
 
 
 def add_network_config(run_args, disable_network, ports):
+    logging.debug(
+        f"Adding network args: Disable network: {disable_network}, ports {ports}"
+    )
     if disable_network and ports:
         raise MedperfException(
             "Internal error: ports is specified but disable_network is True"
@@ -99,6 +92,7 @@ def add_network_config(run_args, disable_network, ports):
 
 
 def add_medperf_tmp_folder(output_volumes, tmp_folder):
+    logging.debug(f"Adding medperf tmp folder: {tmp_folder}")
     output_volumes.append(
         {"host_path": tmp_folder, "mount_path": "/tmp", "type": "directory"}
     )
@@ -107,11 +101,17 @@ def add_medperf_tmp_folder(output_volumes, tmp_folder):
 def check_docker_image_hash(
     computed_image_hash, expected_image_hash=None, alternative_image_hash=None
 ):
+    logging.debug("Checking docker image hash:")
+    logging.debug(f"Computed hash: {computed_image_hash}")
+    logging.debug(f"Expected hash: {expected_image_hash}")
+    logging.debug(f"Alternative hash: {alternative_image_hash}")
+
     if expected_image_hash and expected_image_hash != computed_image_hash:
         # try with digest if possible
         # This fixes an issue with newer docker versions where inspect returns
         # the digest instead of the image ID. The cleaner fix will require changing how
         # we define the image hash.
+        logging.debug("Hash check failed. Trying with Alternative image hash.")
         if alternative_image_hash is None:
             raise InvalidContainerSpec(
                 f"Hash mismatch. Expected {expected_image_hash}, found {computed_image_hash}."

@@ -59,7 +59,10 @@ class CA(Entity, MedperfSchema):
             "server_provisioner",
         }
         if keys != allowed_keys:
-            raise ValueError("config must contain two keys only: address and port")
+            raise ValueError(
+                "CA config must contain these exact 5 keys:\n"
+                "address, port, fingerprint, client_provisioner, server_provisioner"
+            )
         return v
 
     def __init__(self, *args, **kwargs):
@@ -77,13 +80,6 @@ class CA(Entity, MedperfSchema):
     @property
     def local_id(self):
         return self.name
-
-    @classmethod
-    def from_experiment(cls, training_exp_uid: int) -> "CA":
-        meta = config.comms.get_experiment_ca(training_exp_uid)
-        ca = cls(**meta)
-        ca.write()
-        return ca
 
     @classmethod
     def remote_prefilter(cls, filters: dict) -> callable:

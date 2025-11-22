@@ -1,7 +1,7 @@
 import os
 import base64
 import logging
-from medperf.utils import remove_path
+from medperf.utils import remove_path, secure_write_to_file
 from medperf import config
 
 
@@ -26,20 +26,11 @@ class FilesystemTokenStore:
 
         return access_token_file, refresh_token_file
 
-    def set_tokens(self, account_id, access_token, refresh_token):
+    def set_tokens(self, account_id, access_token: str, refresh_token: str):
         access_token_file, refresh_token_file = self.__get_paths(account_id)
 
-        with open(access_token_file, "w") as f:
-            pass
-        os.chmod(access_token_file, 0o600)
-        with open(access_token_file, "a") as f:
-            f.write(access_token)
-
-        with open(refresh_token_file, "w") as f:
-            pass
-        os.chmod(refresh_token_file, 0o600)
-        with open(refresh_token_file, "a") as f:
-            f.write(refresh_token)
+        secure_write_to_file(access_token_file, access_token.encode())
+        secure_write_to_file(refresh_token_file, refresh_token.encode())
 
     def read_tokens(self, account_id):
         access_token_file, refresh_token_file = self.__get_paths(account_id)

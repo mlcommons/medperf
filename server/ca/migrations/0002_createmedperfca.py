@@ -1,24 +1,24 @@
-from django.contrib.auth import get_user_model
 from django.db import migrations
 from django.db.backends.postgresql.schema import DatabaseSchemaEditor
 from django.db.migrations.state import StateApps
 from django.conf import settings
-from ca.models import CA
-from mlcube.models import MlCube
-
-User = get_user_model()
 
 
 def createmedperfca(apps: StateApps, schema_editor: DatabaseSchemaEditor) -> None:
     """
     Dynamically create the configured main CA as part of a migration
     """
+    # NOTE: if we later use another user model (e.g., a custom one), this may be problematic.
+    User = apps.get_model("auth", "User")
+    MlCube = apps.get_model("mlcube", "MlCube")
+    CA = apps.get_model("ca", "CA")
     admin_user = User.objects.get(username=settings.SUPERUSER_USERNAME)
     ca_mlcube = MlCube.objects.create(
         name=settings.CA_MLCUBE_NAME,
         git_mlcube_url=settings.CA_MLCUBE_URL,
         mlcube_hash=settings.CA_MLCUBE_HASH,
         image_hash=settings.CA_MLCUBE_IMAGE_HASH,
+        metadata=settings.CA_MLCUBE_METADATA,
         owner=admin_user,
         state="OPERATION",
     )
@@ -33,7 +33,6 @@ def createmedperfca(apps: StateApps, schema_editor: DatabaseSchemaEditor) -> Non
 
 
 class Migration(migrations.Migration):
-
     initial = True
     dependencies = [
         ("ca", "0001_initial"),

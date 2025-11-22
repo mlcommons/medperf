@@ -4,6 +4,18 @@ import os
 import yaml
 from .mlcube import MLCubeParser
 from .simple_container import SimpleContainerParser
+from medperf.enums import ContainerTypes
+import logging
+
+DOCKER_TYPES = [
+    ContainerTypes.DOCKER_IMAGE.value,
+    ContainerTypes.DOCKER_ARCHIVE.value,
+    ContainerTypes.ENCRYPTED_DOCKER_ARCHIVE.value,
+]
+SINGULARITY_TYPES = [
+    ContainerTypes.SINGULARITY_FILE.value,
+    ContainerTypes.ENCRYPTED_SINGULARITY_FILE.value,
+]
 
 
 def _is_mlcube_yaml_file(container_config: dict):
@@ -46,18 +58,24 @@ def load_parser(container_config_path: str) -> Parser:
         )
 
     container_type = container_config["container_type"]
-    if container_type == "DockerImage":
+    logging.debug(f"Container type: {container_type}")
+    if container_type in DOCKER_TYPES:
+        logging.debug("Found a docker type")
         parser = SimpleContainerParser(
             container_config, allowed_runners=["docker", "singularity"]
         )
         parser.check_schema()
         return parser
 
-    if container_type == "SingularityFile":
+    if container_type in SINGULARITY_TYPES:
+        logging.debug("Found a singularity type")
         parser = SimpleContainerParser(
             container_config, allowed_runners=["singularity"]
         )
         parser.check_schema()
         return parser
 
-    raise InvalidContainerSpec(f"Invalid container type: {container_type}.")
+    expected = ", ".join([c.value for c in ContainerTypes])
+    raise InvalidContainerSpec(
+        f"Invalid container type: {container_type}. Expected: {expected}"
+    )

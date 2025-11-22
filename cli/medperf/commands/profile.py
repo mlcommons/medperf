@@ -1,3 +1,4 @@
+from copy import deepcopy
 import typer
 
 from medperf import config
@@ -5,6 +6,7 @@ from medperf.decorators import configurable, clean_except
 from medperf.utils import dict_pretty_print
 from medperf.config_management import read_config, write_config
 from medperf.exceptions import InvalidArgumentError
+from medperf.commands.utils import set_profile_args
 
 app = typer.Typer()
 
@@ -28,20 +30,17 @@ def activate(profile: str):
 
 @app.command("create")
 @clean_except
-@configurable
 def create(
-    ctx: typer.Context,
     name: str = typer.Option(..., "--name", "-n", help="Profile's name"),
 ):
-    """Creates a new profile for managing and customizing configuration"""
-    args = ctx.params
-    args.pop("name")
+    """Creates a new profile for managing and customizing configuration
+    The profile settings will be identical to those of the current activated profile"""
     config_p = read_config()
 
     if name in config_p:
         raise InvalidArgumentError("A profile with the same name already exists")
 
-    config_p[name] = args
+    config_p[name] = deepcopy(config_p.active_profile)  # Deepcopy to avoid yaml anchors
     write_config(config_p)
 
 
@@ -51,10 +50,7 @@ def create(
 def set_args(ctx: typer.Context):
     """Assign key-value configuration pairs to the current profile."""
     args = ctx.params
-    config_p = read_config()
-
-    config_p.active_profile.update(args)
-    write_config(config_p)
+    set_profile_args(args)
 
 
 @app.command("ls")

@@ -3,6 +3,7 @@ from medperf.entities.execution import Execution
 
 
 class TestExecution(Execution):
+    __test__ = False
     id: Optional[int] = 1
     name: str = "name"
     benchmark: int = 1

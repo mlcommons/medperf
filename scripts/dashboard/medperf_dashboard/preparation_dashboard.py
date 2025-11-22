@@ -272,9 +272,7 @@ def main(
     mlcube_id: int = Option(
         ..., "-m", "--mlcube", help="MLCube ID to inspect prparation from"
     ),
-    stages_path: str = Option(
-        ..., "-s", "--stages", help="Path to stages.csv"
-    ),
+    stages_path: str = Option(..., "-s", "--stages", help="Path to stages.csv"),
     institutions_path: str = Option(
         ...,
         "-i",

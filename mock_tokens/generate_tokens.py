@@ -23,7 +23,7 @@ def token_payload(user):
     }
 
 
-users = ["testadmin", "testbo", "testmo", "testdo", "testdo2", "testao", "testfladmin"]
+users = ["testadmin", "testbo", "testmo", "testdo", "testdo2", "testao", "testfladmin", "testpo"]
 tokens = {}
 
 # Use headers when verifying tokens using json web keys

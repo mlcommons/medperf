@@ -23,5 +23,6 @@ class Runner(ABC):
         medperf_env: dict[str, str] = {},
         ports: list = [],
         disable_network: bool = True,
+        container_decryption_key_file: str = None,
     ):
         pass

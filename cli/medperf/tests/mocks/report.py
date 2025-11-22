@@ -3,6 +3,7 @@ from medperf.entities.report import TestReport
 
 
 class TestTestReport(TestReport):
+    __test__ = False
     demo_dataset_url: Optional[str] = "url"
     demo_dataset_hash: Optional[str] = "hash"
     data_path: Optional[str]

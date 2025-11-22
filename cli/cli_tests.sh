@@ -121,7 +121,7 @@ checkFailed "Model1 submission failed"
 MODEL1_UID=$(medperf container ls | grep model1 | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 echo "MODEL1_UID=$MODEL1_UID"
 
-print_eval medperf container submit --name model2 -m $MODEL_MLCUBE -p $MODEL2_PARAMS -a $MODEL_ADD --operational
+print_eval medperf container submit --name model2 -m $MODEL_ARCHIVE_MLCUBE -p $MODEL2_PARAMS -a $MODEL_ADD --operational
 checkFailed "Model2 submission failed"
 MODEL2_UID=$(medperf container ls | grep model2 | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 echo "MODEL2_UID=$MODEL2_UID"
@@ -136,16 +136,6 @@ print_eval medperf container submit --name model-fail -m $FAILING_MODEL_MLCUBE -
 checkFailed "failing model submission failed"
 FAILING_MODEL_UID=$(medperf container ls | grep model-fail | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 echo "FAILING_MODEL_UID=$FAILING_MODEL_UID"
-
-print_eval medperf container submit --name model-log-none -m $MODEL_LOG_MLCUBE -p $MODEL_LOG_NONE_PARAMS --operational
-checkFailed "Model with logging None submission failed"
-MODEL_LOG_NONE_UID=$(medperf container ls | grep model-log-none | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
-echo "MODEL_LOG_NONE_UID=$MODEL_LOG_NONE_UID"
-
-print_eval medperf container submit --name model-log-debug -m $MODEL_LOG_MLCUBE -p $MODEL_LOG_DEBUG_PARAMS --operational
-checkFailed "Model with logging debug submission failed"
-MODEL_LOG_DEBUG_UID=$(medperf container ls | grep model-log-debug | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
-echo "MODEL_LOG_DEBUG_UID=$MODEL_LOG_DEBUG_UID"
 
 print_eval medperf container submit --name mock-metrics -m $METRIC_MLCUBE -p $METRIC_PARAMS --operational
 checkFailed "Metrics submission failed"
@@ -404,26 +394,6 @@ echo "\n"
 
 ##########################################################
 echo "======================================================"
-echo "Running logging-model-without-env association"
-echo "======================================================"
-print_eval medperf container associate -m $MODEL_LOG_NONE_UID -b $BMK_UID -y
-checkFailed "Logging-model-without-env association association failed"
-##########################################################
-
-echo "\n"
-
-##########################################################
-echo "======================================================"
-echo "Running logging-model-with-debug association"
-echo "======================================================"
-print_eval medperf --container-loglevel debug container associate -m $MODEL_LOG_DEBUG_UID -b $BMK_UID -y
-checkFailed "Logging-model-with-debug association failed"
-##########################################################
-
-echo "\n"
-
-##########################################################
-echo "======================================================"
 echo "Submitted associations:"
 echo "======================================================"
 print_eval medperf association ls -bd
@@ -454,10 +424,6 @@ print_eval medperf association approve -b $BMK_UID -m $MODEL3_UID
 checkFailed "Model3 association approval failed"
 print_eval medperf association approve -b $BMK_UID -m $FAILING_MODEL_UID
 checkFailed "failing model association approval failed"
-print_eval medperf association approve -b $BMK_UID -m $MODEL_LOG_NONE_UID
-checkFailed "Logging-model-without-env association approval failed"
-print_eval medperf association approve -b $BMK_UID -m $MODEL_LOG_DEBUG_UID
-checkFailed "Logging-model-with-debug association approval failed"
 ##########################################################
 
 echo "\n"
@@ -564,15 +530,6 @@ checkFailed "Rerunning with --new-result failed"
 
 echo "\n"
 
-##########################################################
-echo "====================================="
-echo "Running logging model with debug logging env"
-echo "====================================="
-print_eval medperf --container-loglevel debug run -b $BMK_UID -d $DSET_A_UID -m $MODEL_LOG_DEBUG_UID --new-result -y
-checkFailed "run logging model with debug logging env failed"
-##########################################################
-
-echo "\n"
 
 ##########################################################
 echo "====================================="
@@ -595,6 +552,12 @@ checkFailed "testdata profile activation failed"
 
 medperf auth logout
 checkFailed "logout failed"
+
+medperf profile activate testdata2
+checkFailed "testdata2 profile activation failed"
+
+medperf auth logout
+checkFailed "logout failed"
 ##########################################################
 
 echo "\n"
@@ -613,6 +576,9 @@ print_eval medperf profile delete testmodel
 checkFailed "Profile deletion failed"
 
 print_eval medperf profile delete testdata
+checkFailed "Profile deletion failed"
+
+print_eval medperf profile delete testdata2
 checkFailed "Profile deletion failed"
 ##########################################################
 

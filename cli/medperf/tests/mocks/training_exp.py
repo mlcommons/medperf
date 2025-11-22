@@ -4,6 +4,7 @@ from medperf.entities.training_exp import TrainingExp
 
 
 class TestTrainingExp(TrainingExp):
+    __test__ = False
     id: Optional[int] = 1
     name: str = "name"
     demo_dataset_tarball_url: str = "tarball_url"

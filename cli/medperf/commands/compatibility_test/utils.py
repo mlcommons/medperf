@@ -6,6 +6,7 @@ from medperf.utils import (
     sanitize_path,
     remove_path,
     generate_tmp_uid,
+    store_decryption_key,
 )
 from medperf.exceptions import InvalidArgumentError, InvalidEntityError
 
@@ -103,11 +104,22 @@ def prepare_cube(cube_uid: str):
 
 
 def get_cube(
-    uid: int, name: str, local_only: bool = False, use_local_model_image: bool = False
+    uid: int,
+    name: str,
+    local_only: bool = False,
+    use_local_model_image: bool = False,
+    decryption_key_file_path: os.PathLike = None,
 ) -> Cube:
     config.ui.text = f"Retrieving container '{name}'"
     cube = Cube.get(uid, local_only=local_only)
+
+    if decryption_key_file_path is not None:
+        logging.debug(f"Model decryption key is provided: {decryption_key_file_path}")
+        decryption_key_path = store_decryption_key(uid, decryption_key_file_path)
+        config.sensitive_tmp_paths.append(decryption_key_path)
+
     if not use_local_model_image:
+        logging.debug("Downloading container run files")
         cube.download_run_files()
     config.ui.print(f"> Container '{name}' download complete")
     return cube
