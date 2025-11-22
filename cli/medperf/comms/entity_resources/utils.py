@@ -79,6 +79,9 @@ def download_resource(
         The hash of the downloaded file (or existing file)
 
     """
+    logging.debug(
+        f"Downloading {resource} to {output_path} and the expected hash is {expected_hash}"
+    )
     tmp_output_path = tmp_download_resource(resource)
 
     calculated_hash = get_file_hash(tmp_output_path)

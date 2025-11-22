@@ -144,6 +144,16 @@ def configurable(func: Callable) -> Callable:
             "--cleanup/--no-cleanup",
             help="Wether to clean up temporary medperf storage after execution",
         ),
+        certificate_authority_id: int = typer.Option(
+            config.certificate_authority_id,
+            "--certificate_authority_id",
+            help="Certificate Authority ID to configure the client with",
+        ),
+        certificate_authority_fingerprint: str = typer.Option(
+            config.certificate_authority_fingerprint,
+            "--certificate_authority_fingerprint",
+            help="Expected fingerprint of the configured certificate authority",
+        ),
         **kwargs,
     ):
         return func(*args, **kwargs)

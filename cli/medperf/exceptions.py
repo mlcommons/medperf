@@ -44,3 +44,23 @@ class CleanExit(MedperfException):
 
 class InvalidContainerSpec(MedperfException):
     """Raised when container config file is invalid"""
+
+
+class PrivateContainerAccessError(MedperfException):
+    """Raised when the user has no access to a private container"""
+
+
+class DecryptionError(MedperfException):
+    """Raised when failing to decrypt data"""
+
+
+class EncryptionError(MedperfException):
+    """Raised when failing to encrypt data"""
+
+
+class InvalidCertificateError(MedperfException):
+    """Raised when a Certificate verification fails"""
+
+
+class InvalidCertificateAuthorityError(MedperfException):
+    """Raised when a CA verification fails"""

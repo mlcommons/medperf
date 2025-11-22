@@ -45,5 +45,14 @@ def get_server_cert(
     os.system(f"sh /mlcube_project/sign.sh -o {pki_assets} -s")
 
 
+@app.command("verify_cert")
+def verify_cert(
+    ca_config: str = typer.Option(..., "--ca_config"),
+    pki_assets: str = typer.Option(..., "--pki_assets"),
+):
+    asserts(ca_config)
+    assert os.path.exists(os.path.join(pki_assets, "crt.crt"))
+
+
 if __name__ == "__main__":
     app()

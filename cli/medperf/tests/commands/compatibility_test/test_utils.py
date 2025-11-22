@@ -1,4 +1,5 @@
 from medperf.exceptions import InvalidArgumentError
+from medperf.tests.mocks.cube import TestCube
 import pytest
 
 import medperf.commands.compatibility_test.utils as utils
@@ -84,3 +85,43 @@ class TestPrepareCube:
         )
         # Assert
         assert set([symlinked_path, metadata_file]).issubset(config.tmp_paths)
+
+
+def test_get_cube_downloads_files(mocker):
+    mocker.patch(PATCH_UTILS.format("Cube.get"), return_value=TestCube(id=1))
+    spy_download = mocker.patch.object(TestCube, "download_run_files")
+
+    uid = 1
+    name = "test-cube"
+
+    utils.get_cube(uid, name)
+
+    spy_download.assert_called_once()
+
+
+def test_get_cube_uses_local_model_image(mocker):
+    mocker.patch(PATCH_UTILS.format("Cube.get"), return_value=TestCube(id=1))
+    spy_download = mocker.patch.object(TestCube, "download_run_files")
+
+    utils.get_cube(1, "test-cube", use_local_model_image=True)
+
+    spy_download.assert_not_called()
+
+
+def test_get_cube_stores_decryption_key(mocker):
+    mocker.patch(PATCH_UTILS.format("Cube.get"), return_value=TestCube(id=5))
+    spy_store = mocker.patch(
+        PATCH_UTILS.format("store_decryption_key"), return_value="/tmp/dummy_key_path"
+    )
+
+    dummy_path = "/tmp/somekey.key"
+
+    utils.get_cube(
+        5,
+        "secure-cube",
+        decryption_key_file_path=dummy_path,
+        use_local_model_image=True,
+    )
+
+    spy_store.assert_called_once_with(5, dummy_path)
+    assert "/tmp/dummy_key_path" in config.sensitive_tmp_paths

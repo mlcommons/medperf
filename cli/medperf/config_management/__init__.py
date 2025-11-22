@@ -24,6 +24,8 @@ def _init_config():
         "auth_jwks_url": config.auth_dev_jwks_url,
         "auth_idtoken_issuer": config.auth_dev_idtoken_issuer,
         "auth_client_id": config.auth_dev_client_id,
+        "certificate_authority_id": config.dev_certificate_authority_id,
+        "certificate_authority_fingerprint": config.dev_certificate_authority_fingerprint,
     }
 
     # local profile
@@ -37,6 +39,8 @@ def _init_config():
         "auth_jwks_url": "N/A",
         "auth_idtoken_issuer": "N/A",
         "auth_client_id": "N/A",
+        "certificate_authority_id": config.dev_certificate_authority_id,
+        "certificate_authority_fingerprint": config.dev_certificate_authority_fingerprint,
     }
 
     # storage

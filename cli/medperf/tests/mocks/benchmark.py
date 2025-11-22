@@ -4,6 +4,7 @@ from medperf.entities.benchmark import Benchmark
 
 
 class TestBenchmark(Benchmark):
+    __test__ = False
     id: Optional[int] = 1
     name: str = "name"
     demo_dataset_tarball_url: str = "tarball_url"

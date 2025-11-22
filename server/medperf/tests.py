@@ -13,6 +13,9 @@ from .testing_utils import (
     mock_result,
     mock_dataset_association,
     mock_mlcube_association,
+    mock_ca,
+    mock_certificate,
+    mock_encrypted_key,
 )
 
 
@@ -55,6 +58,9 @@ class MedPerfTest(TestCase):
         self.mock_result = mock_result
         self.mock_dataset_association = mock_dataset_association
         self.mock_mlcube_association = mock_mlcube_association
+        self.mock_ca = mock_ca
+        self.mock_certificate = mock_certificate
+        self.mock_encrypted_key = mock_encrypted_key
 
     def create_user(self, username):
         token, user_data = create_user(username)
@@ -209,3 +215,30 @@ class MedPerfTest(TestCase):
         self.set_credentials(backup_user)
 
         return prep, ref_model, eval, benchmark
+
+    def create_ca(self, ca_data):
+        """Helper to create a CA
+
+        Usage:
+            ca = self.mock_ca()
+            ca = self.create_ca(ca).data
+        """
+        return self.__create_asset(ca_data, self.api_prefix + "/cas/")
+
+    def create_certificate(self, certificate_data):
+        """Helper to create a certificate
+
+        Usage:
+            certificate = self.mock_certificate(ca_id=1)
+            certificate = self.create_certificate(certificate).data
+        """
+        return self.__create_asset(certificate_data, self.api_prefix + "/certificates/")
+
+    def create_encrypted_keys(self, key_data):
+        """Helper to create an encrypted key
+
+        Usage:
+            key = self.mock_encrypted_key(certificate=cert_id, container=mlcube_id)
+            key = self.create_encrypted_keys([key]).data[0]
+        """
+        return self.__create_asset(key_data, self.api_prefix + "/encrypted_keys/bulk/")

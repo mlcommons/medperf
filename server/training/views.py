@@ -4,7 +4,6 @@ from aggregator.serializers import (
 from traindataset_association.serializers import (
     TrainingExperimentListofDatasetsSerializer,
 )
-from ca.serializers import CASerializer
 from trainingevent.serializers import EventDetailSerializer
 from dataset.serializers import DatasetWithOwnerInfoSerializer
 from django.http import Http404
@@ -105,33 +104,6 @@ class TrainingDatasetList(GenericAPIView):
         datasets = self.paginate_queryset(datasets)
         serializer = TrainingExperimentListofDatasetsSerializer(datasets, many=True)
         return self.get_paginated_response(serializer.data)
-
-
-class TrainingCA(GenericAPIView):
-    # permission_classes = [
-    #     IsAdmin | IsExpOwner | IsAssociatedDatasetOwner | IsAggregatorOwner
-    # ]
-    serializer_class = CASerializer
-    queryset = ""
-
-    def get_object(self, pk):
-        try:
-            training_exp = TrainingExperiment.objects.get(pk=pk)
-        except TrainingExperiment.DoesNotExist:
-            raise Http404
-
-        ca = training_exp.ca
-        if not ca:
-            raise Http404
-        return ca
-
-    def get(self, request, pk, format=None):
-        """
-        Retrieve CA associated with a training experiment instance.
-        """
-        ca = self.get_object(pk)
-        serializer = CASerializer(ca)
-        return Response(serializer.data)
 
 
 class GetTrainingEvent(GenericAPIView):

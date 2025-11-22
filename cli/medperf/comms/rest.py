@@ -96,7 +96,7 @@ class REST(Comms):
             List[dict]: A list of dictionaries representing the retrieved elements.
         """
         el_list = []
-
+        filters.update({"is_valid": True})
         if num_elements is None:
             num_elements = float("inf")
 
@@ -271,6 +271,16 @@ class REST(Comms):
         error_msg = "Could not retrieve ca"
         return self.__get(url, error_msg)
 
+    def get_encrypted_key(self, key_id: int) -> dict:
+        url = f"{self.server_url}/encrypted_keys/{key_id}"
+        error_msg = "Could not retrieve Encrypted Key"
+        return self.__get(url, error_msg)
+
+    def get_certificate(self, certificate_id: int) -> dict:
+        url = f"{self.server_url}/certificates/{certificate_id}"
+        error_msg = "Could not retrieve Certificate"
+        return self.__get(url, error_msg)
+
     def get_training_event(self, event_id: int) -> dict:
         """Retrieves the aggregator specification file from the server
 
@@ -311,21 +321,8 @@ class REST(Comms):
         error_msg = "Could not retrieve training experiment aggregator"
         return self.__get(url, error_msg)
 
-    def get_experiment_ca(self, training_exp_id: int) -> dict:
-        """Retrieves the training experiment's ca object from the server
-
-        Args:
-            training_exp_id (int): uid for the training experiment
-
-        Returns:
-            dict: ca specification
-        """
-        url = f"{self.server_url}/training/{training_exp_id}/ca/"
-        error_msg = "Could not retrieve training experiment ca"
-        return self.__get(url, error_msg)
-
     # get list
-    def get_benchmarks(self, filters={}) -> List[dict]:
+    def get_benchmarks(self, filters=dict()) -> List[dict]:
         """Retrieves all benchmarks in the platform.
 
         Returns:
@@ -335,7 +332,7 @@ class REST(Comms):
         error_msg = "Could not retrieve benchmarks"
         return self.__get_list(url, filters=filters, error_msg=error_msg)
 
-    def get_cubes(self, filters={}) -> List[dict]:
+    def get_cubes(self, filters=dict()) -> List[dict]:
         """Retrieves all MLCubes in the platform
 
         Returns:
@@ -345,7 +342,7 @@ class REST(Comms):
         error_msg = "Could not retrieve mlcubes"
         return self.__get_list(url, filters=filters, error_msg=error_msg)
 
-    def get_datasets(self, filters={}) -> List[dict]:
+    def get_datasets(self, filters=dict()) -> List[dict]:
         """Retrieves all datasets in the platform
 
         Returns:
@@ -355,7 +352,7 @@ class REST(Comms):
         error_msg = "Could not retrieve datasets"
         return self.__get_list(url, filters=filters, error_msg=error_msg)
 
-    def get_executions(self, filters={}) -> List[dict]:
+    def get_executions(self, filters=dict()) -> List[dict]:
         """Retrieves all executions
 
         Returns:
@@ -365,7 +362,7 @@ class REST(Comms):
         error_msg = "Could not retrieve executions"
         return self.__get_list(url, filters=filters, error_msg=error_msg)
 
-    def get_training_exps(self, filters={}) -> List[dict]:
+    def get_training_exps(self, filters=dict()) -> List[dict]:
         """Retrieves all training_exps
 
         Returns:
@@ -375,7 +372,7 @@ class REST(Comms):
         error_msg = "Could not retrieve training experiments"
         return self.__get_list(url, filters=filters, error_msg=error_msg)
 
-    def get_aggregators(self, filters={}) -> List[dict]:
+    def get_aggregators(self, filters=dict()) -> List[dict]:
         """Retrieves all aggregators
 
         Returns:
@@ -385,7 +382,7 @@ class REST(Comms):
         error_msg = "Could not retrieve aggregators"
         return self.__get_list(url, filters=filters, error_msg=error_msg)
 
-    def get_cas(self, filters={}) -> List[dict]:
+    def get_cas(self, filters=dict()) -> List[dict]:
         """Retrieves all cas
 
         Returns:
@@ -395,7 +392,7 @@ class REST(Comms):
         error_msg = "Could not retrieve cas"
         return self.__get_list(url, filters=filters, error_msg=error_msg)
 
-    def get_training_events(self, filters={}) -> List[dict]:
+    def get_training_events(self, filters=dict()) -> List[dict]:
         """Retrieves all training events
 
         Returns:
@@ -405,8 +402,28 @@ class REST(Comms):
         error_msg = "Could not retrieve training events"
         return self.__get_list(url, filters=filters, error_msg=error_msg)
 
+    def get_certificates(self, filters=dict()) -> List[dict]:
+        """Retrieves all certificates
+
+        Returns:
+            List[dict]: List of certificates
+        """
+        url = f"{self.server_url}/certificates/"
+        error_msg = "Could not retrieve certificates"
+        return self.__get_list(url, filters=filters, error_msg=error_msg)
+
+    def get_encrypted_keys(self, filters=dict()) -> List[dict]:
+        """Retrieves all encrypted keys
+
+        Returns:
+            List[dict]: List of encrypted keys
+        """
+        url = f"{self.server_url}/encrypted_keys/"
+        error_msg = "Could not retrieve encrypted keys"
+        return self.__get_list(url, filters=filters, error_msg=error_msg)
+
     # get user list
-    def get_user_cubes(self, filters={}) -> List[dict]:
+    def get_user_cubes(self, filters=dict()) -> List[dict]:
         """Retrieves metadata from all cubes registered by the user
 
         Returns:
@@ -416,7 +433,7 @@ class REST(Comms):
         error_msg = "Could not retrieve user mlcubes"
         return self.__get_list(url, filters=filters, error_msg=error_msg)
 
-    def get_user_datasets(self, filters={}) -> dict:
+    def get_user_datasets(self, filters=dict()) -> dict:
         """Retrieves all datasets registered by the user
 
         Returns:
@@ -426,7 +443,7 @@ class REST(Comms):
         error_msg = "Could not retrieve user datasets"
         return self.__get_list(url, filters=filters, error_msg=error_msg)
 
-    def get_user_benchmarks(self, filters={}) -> List[dict]:
+    def get_user_benchmarks(self, filters=dict()) -> List[dict]:
         """Retrieves all benchmarks created by the user
 
         Returns:
@@ -436,7 +453,7 @@ class REST(Comms):
         error_msg = "Could not retrieve user benchmarks"
         return self.__get_list(url, filters=filters, error_msg=error_msg)
 
-    def get_user_executions(self, filters={}) -> dict:
+    def get_user_executions(self, filters=dict()) -> dict:
         """Retrieves all executions registered by the user
 
         Returns:
@@ -446,7 +463,7 @@ class REST(Comms):
         error_msg = "Could not retrieve user executions"
         return self.__get_list(url, filters=filters, error_msg=error_msg)
 
-    def get_user_training_exps(self, filters={}) -> dict:
+    def get_user_training_exps(self, filters=dict()) -> dict:
         """Retrieves all training_exps registered by the user
 
         Returns:
@@ -456,7 +473,7 @@ class REST(Comms):
         error_msg = "Could not retrieve user training experiments"
         return self.__get_list(url, filters=filters, error_msg=error_msg)
 
-    def get_user_aggregators(self, filters={}) -> dict:
+    def get_user_aggregators(self, filters=dict()) -> dict:
         """Retrieves all aggregators registered by the user
 
         Returns:
@@ -466,7 +483,7 @@ class REST(Comms):
         error_msg = "Could not retrieve user aggregators"
         return self.__get_list(url, filters=filters, error_msg=error_msg)
 
-    def get_user_cas(self, filters={}) -> dict:
+    def get_user_cas(self, filters=dict()) -> dict:
         """Retrieves all cas registered by the user
 
         Returns:
@@ -476,7 +493,22 @@ class REST(Comms):
         error_msg = "Could not retrieve user cas"
         return self.__get_list(url, filters=filters, error_msg=error_msg)
 
-    def get_user_training_events(self, filters={}) -> dict:
+    def get_user_encrypted_keys(self, filters=dict()) -> dict:
+        url = f"{self.server_url}/me/encrypted_keys/"
+        error_msg = "Could not retrieve user Encrypted Keys"
+        return self.__get_list(url, filters=filters, error_msg=error_msg)
+
+    def get_user_certificates(self, filters=dict()) -> dict:
+        """Retrieves all certificates owned by the user
+
+        Returns:
+            dict: dictionary with the contents of each result registration query
+        """
+        url = f"{self.server_url}/me/certificates/"
+        error_msg = "Could not retrieve user certificates"
+        return self.__get_list(url, filters=filters, error_msg=error_msg)
+
+    def get_user_training_events(self, filters=dict()) -> dict:
         """Retrieves all training events registered by the user
 
         Returns:
@@ -487,7 +519,7 @@ class REST(Comms):
         return self.__get_list(url, filters=filters, error_msg=error_msg)
 
     # get user associations list
-    def get_user_benchmarks_datasets_associations(self, filters={}) -> List[dict]:
+    def get_user_benchmarks_datasets_associations(self, filters=dict()) -> List[dict]:
         """Get all dataset associations related to the current user
 
         Returns:
@@ -497,7 +529,7 @@ class REST(Comms):
         error_msg = "Could not retrieve user datasets benchmark associations"
         return self.__get_list(url, filters=filters, error_msg=error_msg)
 
-    def get_user_benchmarks_models_associations(self, filters={}) -> List[dict]:
+    def get_user_benchmarks_models_associations(self, filters=dict()) -> List[dict]:
         """Get all cube associations related to the current user
 
         Returns:
@@ -507,7 +539,7 @@ class REST(Comms):
         error_msg = "Could not retrieve user mlcubes benchmark associations"
         return self.__get_list(url, filters=filters, error_msg=error_msg)
 
-    def get_user_training_datasets_associations(self, filters={}) -> List[dict]:
+    def get_user_training_datasets_associations(self, filters=dict()) -> List[dict]:
         """Get all training dataset associations related to the current user
 
         Returns:
@@ -517,7 +549,7 @@ class REST(Comms):
         error_msg = "Could not retrieve user datasets training associations"
         return self.__get_list(url, filters=filters, error_msg=error_msg)
 
-    def get_user_training_aggregators_associations(self, filters={}) -> List[dict]:
+    def get_user_training_aggregators_associations(self, filters=dict()) -> List[dict]:
         """Get all aggregator associations related to the current user
 
         Returns:
@@ -525,16 +557,6 @@ class REST(Comms):
         """
         url = f"{self.server_url}/me/aggregators/training_associations/"
         error_msg = "Could not retrieve user aggregators training associations"
-        return self.__get_list(url, filters=filters, error_msg=error_msg)
-
-    def get_user_training_cas_associations(self, filters={}) -> List[dict]:
-        """Get all ca associations related to the current user
-
-        Returns:
-            List[dict]: List containing all associations information
-        """
-        url = f"{self.server_url}/me/cas/training_associations/"
-        error_msg = "Could not retrieve user cas training associations"
         return self.__get_list(url, filters=filters, error_msg=error_msg)
 
     # upload
@@ -641,6 +663,16 @@ class REST(Comms):
         error_msg = "could not upload ca"
         return self.__post(url, json=ca_dict, error_msg=error_msg)
 
+    def upload_encrypted_key(self, key_dict) -> int:
+        """Uploads a new Encrypted Key to the server."""
+        return self.upload_many_encrypted_keys([key_dict])
+
+    def upload_many_encrypted_keys(self, key_dict_list: list[dict]):
+        """Uploads a list of Encrypted Keys"""
+        url = f"{self.server_url}/encrypted_keys/bulk/"
+        error_msg = "could not upload Encrypted Keys"
+        return self.__post(url, json=key_dict_list, error_msg=error_msg)
+
     def upload_training_event(self, trainnig_event_dict: dict) -> int:
         """Uploads a new training event to the server.
 
@@ -653,6 +685,19 @@ class REST(Comms):
         url = f"{self.server_url}/training/events/"
         error_msg = "could not upload training event"
         return self.__post(url, json=trainnig_event_dict, error_msg=error_msg)
+
+    def upload_certificate(self, certificate_dict: dict) -> int:
+        """Uploads a new training event to the server.
+
+        Args:
+            certificate_dict (dict): certificate data to be uploaded
+
+        Returns:
+            int: UID of newly created benchmark
+        """
+        url = f"{self.server_url}/certificates/"
+        error_msg = "could not upload certificate"
+        return self.__post(url, json=certificate_dict, error_msg=error_msg)
 
     # Association creation
     def associate_benchmark_dataset(
@@ -728,22 +773,6 @@ class REST(Comms):
         error_msg = "Could not associate aggregator to training_exp"
         return self.__post(url, json=data, error_msg=error_msg)
 
-    def associate_training_ca(self, ca_id: int, training_exp_id: int):
-        """Create a ca experiment association
-
-        Args:
-            ca_id (int): Registered ca UID
-            training_exp_id (int): training experiment UID
-        """
-        url = f"{self.server_url}/cas/training/"
-        data = {
-            "ca": ca_id,
-            "training_exp": training_exp_id,
-            "approval_status": Status.PENDING.value,
-        }
-        error_msg = "Could not associate ca to training_exp"
-        return self.__post(url, json=data, error_msg=error_msg)
-
     # updates associations
     def update_benchmark_dataset_association(
         self, benchmark_uid: int, dataset_uid: int, data: str
@@ -811,23 +840,6 @@ class REST(Comms):
         )
         self.__put(url, json=data, error_msg=error_msg)
 
-    def update_training_ca_association(
-        self, training_exp_id: int, ca_uid: int, data: dict
-    ):
-        """Approves a training ca association
-
-        Args:
-            dataset_uid (int): Dataset UID
-            benchmark_uid (int): Benchmark UID
-            status (str): Approval status to set for the association
-        """
-        url = f"{self.server_url}/cas/{ca_uid}/training/{training_exp_id}/"
-        error_msg = (
-            "Could not update association: ca"
-            f"{ca_uid}, training_exp {training_exp_id}"
-        )
-        self.__put(url, json=data, error_msg=error_msg)
-
     # update objects
     def update_dataset(self, dataset_id: int, data: dict):
         url = f"{self.server_url}/datasets/{dataset_id}/"
@@ -849,8 +861,21 @@ class REST(Comms):
         error_msg = "Could not update benchmark"
         return self.__put(url, json=data, error_msg=error_msg)
 
+    def update_certificate(self, certificate_id: int, data: dict):
+        url = f"{self.server_url}/certificates/{certificate_id}/"
+        error_msg = "Could not update certificate"
+        return self.__put(url, json=data, error_msg=error_msg)
+
+    def update_encrypted_key(self, key_id: int, data: dict):
+        return self.update_many_encrypted_keys([{**data, "id": key_id}])
+
+    def update_many_encrypted_keys(self, data: list[dict]):
+        url = f"{self.server_url}/encrypted_keys/bulk/"
+        error_msg = "Could not update encrypted keys"
+        return self.__put(url, json=data, error_msg=error_msg)
+
     # misc
-    def get_benchmark_executions(self, benchmark_id: int, filters={}) -> dict:
+    def get_benchmark_executions(self, benchmark_id: int, filters=dict()) -> dict:
         """Retrieves all executions for a given benchmark
 
         Args:
@@ -863,7 +888,7 @@ class REST(Comms):
         error_msg = "Could not get benchmark executions"
         return self.__get_list(url, filters=filters, error_msg=error_msg)
 
-    def get_mlcube_datasets(self, mlcube_id: int, filters={}) -> dict:
+    def get_mlcube_datasets(self, mlcube_id: int, filters=dict()) -> dict:
         """Retrieves all datasets that have the specified mlcube as the prep mlcube
 
         Args:
@@ -877,7 +902,7 @@ class REST(Comms):
         return self.__get_list(url, filters=filters, error_msg=error_msg)
 
     def get_training_datasets_associations(
-        self, training_exp_id: int, filters={}
+        self, training_exp_id: int, filters=dict()
     ) -> dict:
         """Retrieves all datasets for a given training_exp
 
@@ -887,12 +912,12 @@ class REST(Comms):
         Returns:
             dict: dictionary with the contents of each result in the specified benchmark
         """
-        url = f"{self.server_url}/training/{training_exp_id}/datasets"
+        url = f"{self.server_url}/training/{training_exp_id}/datasets/"
         error_msg = "Could not get training experiment datasets associations"
         return self.__get_list(url, filters=filters, error_msg=error_msg)
 
     def get_benchmark_models_associations(
-        self, benchmark_uid: int, filters={}
+        self, benchmark_uid: int, filters=dict()
     ) -> List[int]:
         """Retrieves all the model associations of a benchmark.
 
@@ -902,12 +927,12 @@ class REST(Comms):
         Returns:
             list[int]: List of benchmark model associations
         """
-        url = f"{self.server_url}/benchmarks/{benchmark_uid}/models"
+        url = f"{self.server_url}/benchmarks/{benchmark_uid}/models/"
         error_msg = "Could not get benchmark models associations"
         return self.__get_list(url, filters=filters, error_msg=error_msg)
 
     def get_training_datasets_with_users(
-        self, training_exp_id: int, filters={}
+        self, training_exp_id: int, filters=dict()
     ) -> dict:
         """Retrieves all datasets for a given training_exp and their owner information
 
@@ -921,7 +946,9 @@ class REST(Comms):
         error_msg = "Could not get training experiment participants info"
         return self.__get_list(url, filters=filters, error_msg=error_msg)
 
-    def get_benchmark_datasets_with_users(self, benchmark_id: int, filters={}) -> dict:
+    def get_benchmark_datasets_with_users(
+        self, benchmark_id: int, filters=dict()
+    ) -> dict:
         """Retrieves all datasets for a given benchmark and their owner information
 
         Args:
@@ -933,3 +960,19 @@ class REST(Comms):
         url = f"{self.server_url}/benchmarks/{benchmark_id}/participants_info/"
         error_msg = "Could not get benchmark participants info"
         return self.__get_list(url, filters=filters, error_msg=error_msg)
+
+    def get_benchmark_datasets_certificates(
+        self, benchmark_id: int, filters=dict()
+    ) -> List[dict]:
+        """Retrieves certificates of Data Owners associated with a given benchmark"""
+        url = f"{self.server_url}/benchmarks/{benchmark_id}/datasets_certificates/"
+        error_msg = f"Could not retrieve certificates from Benchmark {benchmark_id}"
+        return self.__get_list(url=url, filters=filters, error_msg=error_msg)
+
+    def get_certificate_encrypted_keys(
+        self, certificate_id: int, filters=dict()
+    ) -> List[dict]:
+        """Retrieves encrypted keys associated with a certificate"""
+        url = f"{self.server_url}/certificates/{certificate_id}/encrypted_keys/"
+        error_msg = f"Could not retrieve encrypted keys of certificate {certificate_id}"
+        return self.__get_list(url=url, filters=filters, error_msg=error_msg)

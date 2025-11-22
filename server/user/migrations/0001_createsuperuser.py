@@ -11,7 +11,7 @@ def createsuperuser(apps: StateApps, schema_editor: DatabaseSchemaEditor) -> Non
     """
     Dynamically create an admin user as part of a migration
     """
-
+    # NOTE: if we later use another user model (e.g., a custom one), this may be problematic.
     User.objects.create_superuser(
         settings.SUPERUSER_USERNAME, password=settings.SUPERUSER_PASSWORD
     )

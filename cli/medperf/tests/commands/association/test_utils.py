@@ -7,7 +7,6 @@ from medperf.commands.association import utils
 @pytest.mark.parametrize("dset_uid", [None, 1])
 @pytest.mark.parametrize("mlcube_uid", [None, 1])
 @pytest.mark.parametrize("aggregartor_uid", [None, 1])
-@pytest.mark.parametrize("ca_uid", [None, 1])
 @pytest.mark.parametrize("bmk_uid", [None, 1])
 @pytest.mark.parametrize("training_exp_uid", [None, 1])
 def test_validate_args_fails_if_invalid_arguments(
@@ -17,7 +16,6 @@ def test_validate_args_fails_if_invalid_arguments(
     dset_uid,
     mlcube_uid,
     aggregartor_uid,
-    ca_uid,
     bmk_uid,
     training_exp_uid,
 ):
@@ -25,13 +23,12 @@ def test_validate_args_fails_if_invalid_arguments(
     number_of_components_provided = (
         int(dset_uid is not None)
         + int(mlcube_uid is not None)
-        + int(ca_uid is not None)
         + int(aggregartor_uid is not None)
     )
     number_of_experiments_provided = int(bmk_uid is not None) + int(
         training_exp_uid is not None
     )
-    is_training_component = dset_uid or aggregartor_uid or ca_uid
+    is_training_component = dset_uid or aggregartor_uid
     is_evaluation_component = dset_uid or mlcube_uid
 
     should_succeed = (
@@ -52,7 +49,6 @@ def test_validate_args_fails_if_invalid_arguments(
                 dset_uid,
                 mlcube_uid,
                 aggregartor_uid,
-                ca_uid,
                 Status.APPROVED.value,
             )
     else:
@@ -62,7 +58,6 @@ def test_validate_args_fails_if_invalid_arguments(
             dset_uid,
             mlcube_uid,
             aggregartor_uid,
-            ca_uid,
             Status.APPROVED.value,
         )
 
@@ -83,7 +78,6 @@ def test_validate_args_fails_if_invalid_approval_status(
                 1,
                 None,
                 None,
-                None,
                 approval_status,
             )
     else:
@@ -91,7 +85,6 @@ def test_validate_args_fails_if_invalid_approval_status(
             1,
             None,
             1,
-            None,
             None,
             None,
             approval_status,

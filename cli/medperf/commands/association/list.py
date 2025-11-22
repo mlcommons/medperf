@@ -13,11 +13,10 @@ class ListAssociations:
         dataset=False,
         mlcube=False,
         aggregator=False,
-        ca=False,
     ):
         """Get user association requests"""
         validate_args(
-            benchmark, training_exp, dataset, mlcube, aggregator, ca, approval_status
+            benchmark, training_exp, dataset, mlcube, aggregator, approval_status
         )
         if training_exp:
             experiment_type = "training_exp"
@@ -30,8 +29,6 @@ class ListAssociations:
             component_type = "dataset"
         elif aggregator:
             component_type = "aggregator"
-        elif ca:
-            component_type = "ca"
 
         assocs = get_user_associations(experiment_type, component_type, approval_status)
 

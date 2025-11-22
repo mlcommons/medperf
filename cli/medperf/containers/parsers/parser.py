@@ -29,3 +29,19 @@ class Parser(ABC):
     @abstractmethod
     def is_metadata_specified(self):
         pass
+
+    @abstractmethod
+    def is_container_encrypted(self):
+        pass
+
+    @abstractmethod
+    def is_docker_archive(self):
+        pass
+
+    @abstractmethod
+    def is_singularity_file(self):
+        pass
+
+    @abstractmethod
+    def is_docker_image(self):
+        pass
