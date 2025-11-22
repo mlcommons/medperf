@@ -1,5 +1,5 @@
 from typing import Optional
-from medperf.entities.encrypted_container_key import EncryptedKey
+from medperf.entities.encrypted_key import EncryptedKey
 
 
 class TestEncryptedKey(EncryptedKey):

@@ -16,7 +16,7 @@ from medperf.utils import (
     remove_path,
     get_decryption_key_path,
 )
-from medperf.entities.encrypted_container_key import EncryptedKey
+from medperf.entities.encrypted_key import EncryptedKey
 import logging
 
 

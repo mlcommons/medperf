@@ -1,5 +1,5 @@
 from medperf.exceptions import MedperfException
-from medperf.entities.encrypted_container_key import EncryptedKey
+from medperf.entities.encrypted_key import EncryptedKey
 from medperf.entities.cube import Cube
 from medperf.account_management import get_medperf_user_data
 import logging

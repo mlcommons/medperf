@@ -1,7 +1,7 @@
 from medperf import config
 from medperf.utils import approval_prompt, generate_container_key_redaction_record
 from medperf.exceptions import CleanExit
-from medperf.entities.encrypted_container_key import EncryptedKey
+from medperf.entities.encrypted_key import EncryptedKey
 import logging
 
 

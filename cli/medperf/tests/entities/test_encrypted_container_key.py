@@ -1,14 +1,14 @@
 import pytest
 import base64
 from medperf.tests.mocks.certificate import TestCertificate
-from medperf.entities.encrypted_container_key import EncryptedKey
+from medperf.entities.encrypted_key import EncryptedKey
 from medperf.exceptions import (
     MedperfException,
     PrivateContainerAccessError,
     DecryptionError,
 )
 
-PATCH_EK = "medperf.entities.encrypted_container_key.{}"
+PATCH_EK = "medperf.entities.encrypted_key.{}"
 
 
 # -------------------------------------------------------------------

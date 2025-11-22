@@ -9,7 +9,7 @@ from medperf.utils import (
 )
 from medperf import config
 from medperf.exceptions import CleanExit, InvalidCertificateError
-from medperf.entities.encrypted_container_key import EncryptedKey
+from medperf.entities.encrypted_key import EncryptedKey
 from medperf.encryption import AsymmetricEncryption
 from medperf.certificates import verify_certificate_authority, verify_certificate
 import logging

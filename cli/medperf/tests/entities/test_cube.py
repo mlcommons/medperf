@@ -10,7 +10,7 @@ from medperf.tests.entities.utils import (
     setup_cube_comms_downloads,
 )
 from medperf.exceptions import InvalidEntityError
-from medperf.entities.encrypted_container_key import EncryptedKey
+from medperf.entities.encrypted_key import EncryptedKey
 from medperf.tests.mocks.cube import TestCube
 
 PATCH_CUBE = "medperf.entities.cube.{}"
