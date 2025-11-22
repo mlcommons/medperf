@@ -476,6 +476,156 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
+echo "Activate modelowner profile"
+echo "====================================="
+print_eval medperf profile activate testmodel
+checkFailed "testmodel profile activation failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Removing access for data owner1"
+echo "====================================="
+print_eval medperf container revoke_user_access -k 3 -y
+checkFailed "Model3 revoke access failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Activate dataowner profile"
+echo "====================================="
+print_eval medperf profile activate testdata
+checkFailed "testdata profile activation failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Running model3 (This should fail since access was revoked)"
+echo "====================================="
+print_eval medperf run -b $BMK_UID -d $DSET_A_UID -m $MODEL3_UID --no-cache --new-result -y
+checkSucceeded "Model3 run should fail"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Checking access to model3"
+# This will return zero status code if "denied" was in the output
+print_eval medperf container check_access -m $MODEL3_UID | grep -iq "denied"
+checkFailed "check access command should print access denied"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Activate modelowner profile"
+echo "====================================="
+print_eval medperf profile activate testmodel
+checkFailed "testmodel profile activation failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Give back access"
+echo "====================================="
+print_eval medperf container give_access --model-id $MODEL3_UID --benchmark-id $BMK_UID -y
+checkFailed "Model3 giving access failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Activate dataowner profile"
+echo "====================================="
+print_eval medperf profile activate testdata
+checkFailed "testdata profile activation failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Checking access to model3"
+# This will return zero status code if "denied" was in the output
+print_eval medperf container check_access -m $MODEL3_UID | grep -iq "denied"
+checkSucceeded "check access command should not print access denied"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Activate modelowner profile"
+echo "====================================="
+print_eval medperf profile activate testmodel
+checkFailed "testmodel profile activation failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Delete all keys of model 3"
+echo "====================================="
+print_eval medperf container delete_keys --model-id $MODEL3_UID -y
+checkFailed "Model3 giving access failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Activate dataowner profile"
+echo "====================================="
+print_eval medperf profile activate testdata
+checkFailed "testdata profile activation failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Checking access to model3"
+# This will return zero status code if "denied" was in the output
+print_eval medperf container check_access -m $MODEL3_UID | grep -iq "denied"
+checkFailed "check access command should print access denied"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Activate dataowner2 profile"
+echo "====================================="
+print_eval medperf profile activate testdata2
+checkFailed "testdata2 profile activation failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Checking access to model3"
+# This will return zero status code if "denied" was in the output
+print_eval medperf container check_access -m $MODEL3_UID | grep -iq "denied"
+checkFailed "check access command should print access denied"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
 echo "Logout users"
 echo "====================================="
 print_eval medperf profile activate testbenchmark
