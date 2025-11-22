@@ -26,8 +26,8 @@ class GrantAccess:
     ):
         """
         Registers encrypted access keys in the MedPerf server for all
-        Data Owners registered to the Benchmark from benchmark_id and
-        authorized by the Certificate Authority from ca_id.
+        Data Owners registered to the Benchmark benchmark_id with valid certificates
+        and, optionally, filtered by `allowed_emails`.
 
         allowed_emails: a string containing space-separated list of emails
         """

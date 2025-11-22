@@ -185,7 +185,7 @@ echo "\n"
 echo "====================================="
 echo "Give Access to Private Model"
 echo "====================================="
-print_eval medperf container give_access --model-id $PMODEL_UID --benchmark-id 1 -y
+print_eval medperf container grant_access --model-id $PMODEL_UID --benchmark-id 1 -y
 checkFailed "Failed to Give Model Access to Data owner"
 ##########################################################
 

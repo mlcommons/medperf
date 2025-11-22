@@ -255,24 +255,24 @@ def view(
     EntityView.run(entity_id, Cube, format, unregistered, mine, output)
 
 
-@app.command("give_access")  # TODO: also require a list of allowed emails
+@app.command("grant_access")
 @clean_except
-def give_access(
+def grant_access(
     model_id: int = typer.Option(
         ...,
         "-m",
         "--model-id",
         "--model_id",
-        help="Private Container for which access will be granted.",
+        help="Private model for which access will be granted.",
     ),
     benchmark_id: int = typer.Option(
         ...,
         "-b",
         "--benchmark-id",
         "--benchmark_id",
-        help="Benchmark UID to which the Private Container is associated. "
+        help="Benchmark UID to which the Private model is associated. "
         "All data owners registered to this benchmark and have "
-        "a valid certificate will be granted access to the container.",
+        "a valid certificate will be granted access to the model.",
     ),
     approval: bool = typer.Option(False, "-y", help="Skip approval step"),
     allowed_emails: str = typer.Option(
@@ -284,8 +284,9 @@ def give_access(
 ):
     """
     Allows all currently registered Data Owners in a given benchmark to access
-    a Private Container registered to the same benchmark.
-    The Private Container must have already been associated with the
+    a Private model registered to the same benchmark.
+    You can filter these data owners using `allowed_emails`.
+    The Private model must have already been associated with the
     benchmark for this to take effect.
     """
     GrantAccess.run(
@@ -297,24 +298,24 @@ def give_access(
     config.ui.print("✅ Done!")
 
 
-@app.command("auto_give_access")
+@app.command("auto_grant_access")
 @clean_except
-def auto_give_access(
+def auto_grant_access(
     model_id: int = typer.Option(
         ...,
         "-m",
         "--model-id",
         "--model_id",
-        help="Private Model Container for which access will be granted.",
+        help="Private model for which access will be granted.",
     ),
     benchmark_id: int = typer.Option(
         ...,
         "-b",
         "--benchmark-id",
         "--benchmark_id",
-        help="Benchmark UID to which the Private Container is associated. "
+        help="Benchmark UID to which the Private model is associated. "
         "All data owners registered to this benchmark and have "
-        "a valid certificate will be granted access to the container.",
+        "a valid certificate will be granted access to the model.",
     ),
     interval: int = typer.Option(
         5,
@@ -333,12 +334,13 @@ def auto_give_access(
     ),
 ):
     """
-    This command will run the 'give_access' command every 5 minutes indefinetely.
+    This command will run the 'grant_access' command every 5 minutes indefinetely.
     To stop this command, press CTRL+C. The time interval for checking for new data
     owners may be customized by using the -i flag.
     Allows all currently registered Data Owners in a given benchmark to access
-    a Private Container registered to the same benchmark.
-    The Private Container must have already been associated with both the CA and the
+    a Private model registered to the same benchmark.
+    You can filter these data owners using `allowed_emails`.
+    The private model must have already been associated with the
     benchmark for this to take effect.
     """
     interval_in_seconds = interval * 60
@@ -361,7 +363,7 @@ def auto_give_access(
 
 @app.command("revoke_user_access")
 @clean_except
-def revoke_revoke_user_accessaccess(
+def revoke_user_access(
     key_id: int = typer.Option(
         ...,
         "-k",
@@ -372,7 +374,7 @@ def revoke_revoke_user_accessaccess(
     approval: bool = typer.Option(False, "-y", help="Skip approval step"),
 ):
     """
-    Revokes access to the model for a user by deleting the user's key.
+    Revokes access to the container for a user by deleting the user's key.
     """
     RevokeUserAccess.run(key_id, approved=approval)
     config.ui.print("✅ Done!")
@@ -381,34 +383,34 @@ def revoke_revoke_user_accessaccess(
 @app.command("delete_keys")
 @clean_except
 def delete_keys(
-    model_id: int = typer.Option(
+    container_id: int = typer.Option(
         ...,
-        "-m",
-        "--model-id",
-        "--model_id",
-        help="Model ID to delete all its keys.",
+        "-c",
+        "--container-id",
+        "--container_id",
+        help="Container ID to delete all its keys.",
     ),
     approval: bool = typer.Option(False, "-y", help="Skip approval step"),
 ):
     """
-    Revokes access to the model by deleting all its encrypted keys on the server.
+    Revokes access to the container by deleting all its encrypted keys on the server.
     """
-    DeleteKeys.run(model_id, approved=approval)
+    DeleteKeys.run(container_id, approved=approval)
     config.ui.print("✅ Done!")
 
 
 @app.command("check_access")
 @clean_except
 def check_access(
-    model_id: int = typer.Option(
+    container_id: int = typer.Option(
         ...,
-        "-m",
-        "--model-id",
-        "--model_id",
-        help="Model ID to check if you have access to.",
+        "-c",
+        "--container-id",
+        "--container_id",
+        help="Container ID to check if you have access to.",
     )
 ):
     """
-    Check if you have access to a model.
+    Check if you have access to a container.
     """
-    CheckAccess.run(model_id)
+    CheckAccess.run(container_id)

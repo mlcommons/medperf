@@ -348,7 +348,7 @@ echo "\n"
 echo "====================================="
 echo "Giving access to model 2"
 echo "====================================="
-print_eval medperf container give_access --model-id $MODEL2_UID --benchmark-id $BMK_UID -y
+print_eval medperf container grant_access --model-id $MODEL2_UID --benchmark-id $BMK_UID -y
 checkFailed "Model2 giving access failed"
 ##########################################################
 
@@ -358,7 +358,7 @@ echo "\n"
 echo "====================================="
 echo "Giving access to model 3 with filtering"
 echo "====================================="
-print_eval medperf container give_access --model-id $MODEL3_UID --benchmark-id $BMK_UID --allowed_emails "$DATAOWNER" -y
+print_eval medperf container grant_access --model-id $MODEL3_UID --benchmark-id $BMK_UID --allowed_emails "$DATAOWNER" -y
 checkFailed "Model2 giving access failed"
 ##########################################################
 
@@ -428,7 +428,7 @@ echo "\n"
 echo "====================================="
 echo "Giving access to model 3 for data owner2"
 echo "====================================="
-print_eval medperf container give_access --model-id $MODEL3_UID --benchmark-id $BMK_UID -y
+print_eval medperf container grant_access --model-id $MODEL3_UID --benchmark-id $BMK_UID -y
 checkFailed "Model3 giving access failed"
 ##########################################################
 
@@ -518,7 +518,7 @@ echo "\n"
 echo "====================================="
 echo "Checking access to model3"
 # This will return zero status code if "denied" was in the output
-print_eval medperf container check_access -m $MODEL3_UID | grep -iq "denied"
+print_eval medperf container check_access -c $MODEL3_UID | grep -iq "denied"
 checkFailed "check access command should print access denied"
 ##########################################################
 
@@ -538,7 +538,7 @@ echo "\n"
 echo "====================================="
 echo "Give back access"
 echo "====================================="
-print_eval medperf container give_access --model-id $MODEL3_UID --benchmark-id $BMK_UID -y
+print_eval medperf container grant_access --model-id $MODEL3_UID --benchmark-id $BMK_UID -y
 checkFailed "Model3 giving access failed"
 ##########################################################
 
@@ -558,7 +558,7 @@ echo "\n"
 echo "====================================="
 echo "Checking access to model3"
 # This will return zero status code if "denied" was in the output
-print_eval medperf container check_access -m $MODEL3_UID | grep -iq "denied"
+print_eval medperf container check_access -c $MODEL3_UID | grep -iq "denied"
 checkSucceeded "check access command should not print access denied"
 ##########################################################
 
@@ -578,7 +578,7 @@ echo "\n"
 echo "====================================="
 echo "Delete all keys of model 3"
 echo "====================================="
-print_eval medperf container delete_keys --model-id $MODEL3_UID -y
+print_eval medperf container delete_keys --container-id $MODEL3_UID -y
 checkFailed "Model3 giving access failed"
 ##########################################################
 
@@ -598,7 +598,7 @@ echo "\n"
 echo "====================================="
 echo "Checking access to model3"
 # This will return zero status code if "denied" was in the output
-print_eval medperf container check_access -m $MODEL3_UID | grep -iq "denied"
+print_eval medperf container check_access -c $MODEL3_UID | grep -iq "denied"
 checkFailed "check access command should print access denied"
 ##########################################################
 
@@ -618,7 +618,7 @@ echo "\n"
 echo "====================================="
 echo "Checking access to model3"
 # This will return zero status code if "denied" was in the output
-print_eval medperf container check_access -m $MODEL3_UID | grep -iq "denied"
+print_eval medperf container check_access -c $MODEL3_UID | grep -iq "denied"
 checkFailed "check access command should print access denied"
 ##########################################################
 
