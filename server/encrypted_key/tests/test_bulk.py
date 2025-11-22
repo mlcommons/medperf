@@ -426,7 +426,7 @@ class EncryptedKeyBulkPutTest(EncryptedKeyTest):
 
         # Make sure the key wasn't changed (all or nothing)
         response = self.client.get(
-            self.api_prefix + "/encrypted_keys/1/", format="json"
+            self.api_prefix + f"/encrypted_keys/{self.keys[0]['id']}/", format="json"
         )
         self.assertEqual(response.data["is_valid"], True)
 
