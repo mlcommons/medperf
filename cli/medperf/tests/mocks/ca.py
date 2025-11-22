@@ -3,6 +3,7 @@ from medperf.entities.ca import CA
 
 
 class TestCA(CA):
+    __test__ = False
     id: Optional[int] = 1
     name: str = "name"
     metadata: dict = {}
