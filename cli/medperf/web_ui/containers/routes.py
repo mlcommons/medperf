@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 
 from medperf.account_management import get_medperf_user_data
+from medperf.entities.certificate import Certificate
 from medperf.entities.cube import Cube
 from medperf.entities.benchmark import Benchmark
 from medperf.commands.compatibility_test.run import CompatibilityTestExecution
@@ -14,6 +15,7 @@ from medperf.commands.mlcube.grant_access import GrantAccess
 from medperf.commands.mlcube.revoke_user_access import RevokeUserAccess
 from medperf.commands.mlcube.submit import SubmitCube
 import medperf.config as config
+from medperf.entities.encrypted_container_key import EncryptedKey
 from medperf.web_ui.common import (
     add_notification,
     check_user_api,
@@ -242,7 +244,7 @@ def container_access_ui(
             },
         )
 
-    if container.is_encrypted():
+    if not container.is_encrypted():
         return RedirectResponse(url=f"/containers/ui/display/{container_id}")
 
     benchmark_assocs = Cube.get_benchmarks_associations(mlcube_uid=container_id)
@@ -258,6 +260,25 @@ def container_access_ui(
         if b.id in benchmark_associations
         and benchmark_associations[b.id]["approval_status"] == "APPROVED"
     }
+
+    for benchmark_id in benchmarks:
+        certificates, cert_user_info = Certificate.get_benchmark_datasets_certificates(
+            benchmark_id
+        )
+        existing_keys = EncryptedKey.get_container_keys(container_id)
+        certificates_with_keys = [key.certificate for key in existing_keys]
+
+        certificates_need_keys: list[Certificate] = []
+
+        for cert in certificates:
+            if cert.id not in certificates_with_keys:
+                certificates_need_keys.append(cert)
+
+        # logging.debug(f"Available Certificates: {[cert.id for cert in certificates]}")
+        # logging.debug(f"Certificates already have access: {certificates_with_keys}")
+        # logging.debug(
+        #     f"Certificates that need access: {[cert.id for cert in certificates_need_keys]}"
+        # )
 
     return templates.TemplateResponse(
         "container/container_access.html",

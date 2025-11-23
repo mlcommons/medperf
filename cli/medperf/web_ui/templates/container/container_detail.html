@@ -101,7 +101,7 @@
             </div>
         </div>
         {% if is_owner %}
-        {% if not entity.is_encrypted() %}
+        {% if entity.is_encrypted() %}
         <div class="p-2 card flex-row mt-5 shadow-sm rounded bg-white py-4 bottom-buttons-panel">
             <div class="col-12 text-center">
                     <a class="step-btn btn btn-warning" href="/containers/ui/display/{{ entity.id }}/access">Manage Access</a>
