@@ -9,9 +9,9 @@ import os
 from medperf.containers.parsers.airflow_parser import AirflowParser
 from medperf.account_management import get_medperf_user_data
 from .utils import (
-    run_command,
     check_docker_image_hash,
 )
+from medperf.utils import run_command
 from medperf.comms.entity_resources import resources
 from .runner import Runner
 import logging
