@@ -15,7 +15,7 @@ from medperf.commands.mlcube.grant_access import GrantAccess
 from medperf.commands.mlcube.revoke_user_access import RevokeUserAccess
 from medperf.commands.mlcube.submit import SubmitCube
 import medperf.config as config
-from medperf.entities.encrypted_container_key import EncryptedKey
+from medperf.entities.encrypted_key import EncryptedKey
 from medperf.web_ui.common import (
     add_notification,
     check_user_api,
@@ -261,24 +261,23 @@ def container_access_ui(
         and benchmark_associations[b.id]["approval_status"] == "APPROVED"
     }
 
-    for benchmark_id in benchmarks:
-        certificates, cert_user_info = Certificate.get_benchmark_datasets_certificates(
-            benchmark_id
-        )
-        existing_keys = EncryptedKey.get_container_keys(container_id)
-        certificates_with_keys = [key.certificate for key in existing_keys]
+    existing_keys = {
+        i.id: i.certificate for i in EncryptedKey.get_container_keys(container_id)
+    }
 
-        certificates_need_keys: list[Certificate] = []
+    if existing_keys:
+        certs_mapping = {}
+        for benchmark_id in benchmarks:
+            _, cert_user_info = Certificate.get_benchmark_datasets_certificates(
+                benchmark_id
+            )
+            for cert_id in cert_user_info:
+                certs_mapping[cert_id] = cert_user_info[cert_id]
 
-        for cert in certificates:
-            if cert.id not in certificates_with_keys:
-                certificates_need_keys.append(cert)
-
-        # logging.debug(f"Available Certificates: {[cert.id for cert in certificates]}")
-        # logging.debug(f"Certificates already have access: {certificates_with_keys}")
-        # logging.debug(
-        #     f"Certificates that need access: {[cert.id for cert in certificates_need_keys]}"
-        # )
+        for key_id in existing_keys:
+            cert_id = existing_keys[key_id]
+            if cert_id in certs_mapping:
+                existing_keys[key_id] = certs_mapping[cert_id]
 
     return templates.TemplateResponse(
         "container/container_access.html",
@@ -288,6 +287,7 @@ def container_access_ui(
             "entity_name": container.name,
             "is_owner": is_owner,
             "benchmarks": benchmarks,
+            "keys": existing_keys,
         },
     )
 
@@ -304,7 +304,9 @@ def grant_access(
     initialize_state_task(request, task_name="container_grant_access")
     return_response = {"status": "", "error": ""}
     try:
-        GrantAccess.run(benchmark_id=benchmark_id, model_id=model_id)
+        GrantAccess.run(
+            benchmark_id=benchmark_id, model_id=model_id, allowed_emails=emails
+        )
         return_response["status"] = "success"
         notification_message = "Successfully granted access to the selected users."
     except Exception as exp:
@@ -324,11 +326,18 @@ def grant_access(
     return return_response
 
 
-def grant_access_worker(benchmark_id, model_id, interval, stop_event: threading.Event):
+def grant_access_worker(
+    benchmark_id, model_id, emails, interval, stop_event: threading.Event
+):
     interval_in_seconds = interval * 60
     while not stop_event.is_set():
         try:
-            GrantAccess.run(benchmark_id=benchmark_id, model_id=model_id, approved=True)
+            GrantAccess.run(
+                benchmark_id=benchmark_id,
+                model_id=model_id,
+                emails=emails,
+                approved=True,
+            )
         except Exception:
             pass
         if stop_event.wait(interval_in_seconds):
@@ -341,6 +350,7 @@ def start_auto_access(
     benchmark_id: int = Form(...),
     model_id: int = Form(...),
     interval: int = Form(...),
+    emails: str = Form(...),
     current_user: bool = Depends(check_user_api),
 ):
     if request.app.state.model_auto_give_access["running"]:
@@ -356,7 +366,7 @@ def start_auto_access(
         event = threading.Event()
         auto_access_worker = threading.Thread(
             target=grant_access_worker,
-            args=(benchmark_id, model_id, interval, event),
+            args=(benchmark_id, model_id, emails, interval, event),
             daemon=True,
         )
         auto_access_worker.start()
@@ -381,6 +391,7 @@ def start_auto_access(
         "event": event,
         "benchmark": benchmark_id,
         "model": model_id,
+        "emails": emails,
         "interval": interval,
     }
     return return_response
@@ -423,6 +434,7 @@ def stop_auto_access(
         "event": None,
         "benchmark": 0,
         "model": 0,
+        "emails": "",
         "interval": 0,
     }
 
@@ -442,7 +454,7 @@ def revoke_user_access(
     try:
         RevokeUserAccess.run(key_id)
         return_response["status"] = "success"
-        notification_message = "Successfully revoked key."
+        notification_message = "Successfully revoked key"
     except Exception as exp:
         return_response["status"] = "failed"
         return_response["error"] = str(exp)

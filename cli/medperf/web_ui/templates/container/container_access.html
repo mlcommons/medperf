@@ -11,6 +11,7 @@
 {% if auto_access_running %}
     {% set selected_benchmark = request.app.state.model_auto_give_access["benchmark"] %}
     {% set selected_interval = request.app.state.model_auto_give_access["interval"] %}
+    {% set selected_emails = request.app.state.model_auto_give_access["emails"] %}
 {% endif %}
 
 <div class="container my-4">
@@ -54,7 +55,7 @@
             <div class="email-container" id="allowed-email-list" data-allowed-list='{}'>
                 <input
                     type="text"
-                    name="dataset-allow-list-text-input"
+                    name="emails"
                     id="email-input"
                     class="form-control email-input mt-2"
                     placeholder="Type email and hit Enter, comma, or space"
@@ -108,6 +109,21 @@
                     >
             </div>
         </div>
+        <div class="form-group mb-4" id="email-chip-container">
+            <label class="form-label h6" for="email-input">
+                Allow list emails
+            </label>
+            <div class="email-container" id="allowed-email-list-auto" data-allowed-list='{% if auto_access_running %}{{ selected_emails }}{% else %}{}{% endif %}'>
+                <input
+                    type="text"
+                    name="emails"
+                    id="email-input"
+                    class="form-control email-input mt-2"
+                    placeholder="Type email and hit Enter, comma, or space"
+                    {% if task_running %} disabled {% endif %}
+                >
+            </div>
+        </div>
         <div class="text-center mt-3">
             <button
                 class="btn btn-info step-btn {% if auto_access_running %}hidden-element{% endif %}"
@@ -131,25 +147,28 @@
         <h3>Current Access</h3>
         <p class="text-muted">Users who currently have access to this container.</p>
 
-        {% if access_list %}
+        {% if keys %}
         <div class="table-responsive">
             <table class="table table-striped table-hover align-middle">
                 <thead>
                     <tr>
-                        <th>User</th>
+                        <th>Key ID</th>
+                        <th>User ID</th>
                         <th>Email</th>
                         <th class="text-end">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for user in access_list %}
+                    {% for key_id in keys %}
                     <tr>
-                        <td>{{ user.username }}</td>
-                        <td>{{ user.email }}</td>>
+                        <td>{{ key_id }}</td>
+                        <td>{{ keys[key_id].id }}</td>
+                        <td>{{ keys[key_id].email }}</td>
                         <td class="text-end">
                             <button
+                                id="revoke-btn-{{ key_id }}"
                                 class="btn btn-outline-danger btn-sm revoke-access-btn"
-                                data-user-id="{{ user.id }}">
+                                data-key-id="{{ key_id }}" data-model-id="{{ entity.id }}">
                                 Revoke Access
                             </button>
                         </td>
@@ -198,6 +217,17 @@
             "#grant-access-btn",
             `Granting Access...`,
             onGrantAccessSuccess
+        );
+    });
+</script>
+{% elif request.app.state.task.name == "container_revoke_key" and task_formData.get("model_id", "") == entity.id|string %}
+<script>
+    $(document).ready(() => {
+        const key_id = "{{ task_formData.get('key_id', '') }}";
+        resumeRunningTask(
+            `#revoke-btn-${key_id}`,
+            `Revoking User Access...`,
+            onRevokeUserAccessSuccess
         );
     });
 </script>

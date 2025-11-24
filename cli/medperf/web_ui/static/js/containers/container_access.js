@@ -16,6 +16,8 @@ function checkAccessForm(){
 }
 
 function checkAutoAccessForm(){
+    const allowListArr = getEmailsList($("#allowed-email-list-auto"));
+
     if(!$("#benchmark-auto").val()){
         showErrorToast("Make sure that you've selected a benchmark");
         return false;
@@ -25,6 +27,11 @@ function checkAutoAccessForm(){
 
     if(!interval || interval < 5 || interval > 60){
         showErrorToast("Make sure that the time interval is between 5 and 60 (inclusive)");
+        return false;
+    }
+
+    if(!allowListArr.length){
+        showErrorToast("Make sure that the email allow list is not empty");
         return false;
     }
 
@@ -69,11 +76,13 @@ async function grantAccess(grantBtn){
 function startAutoGrant(startBtn){
     disableElements(".card button, .card input, .card select");
     
+    const allowListArr = getEmailsList($("#allowed-email-list-auto"));
     const formData = new FormData();
 
     formData.append("benchmark_id", $("#benchmark-auto").val());
     formData.append("model_id", startBtn.getAttribute("data-model-id"))
     formData.append("interval", $("#interval-auto").val());
+    formData.append("emails", allowListArr.join(" "));
     
     ajaxRequest(
         `/containers/start_auto_access`,
@@ -114,6 +123,39 @@ async function stopAutoGrant(stopBtn){
         },
         "Failed to stop auto grant access"
     );
+}
+
+function onrevokeUserAccessSuccess(response){
+    if(response.status === "success"){
+        showReloadModal("Successfully Revoked User Access");
+        timer(3);
+    }
+    else{
+        showErrorModal("Failed to Revoke User Access", response);
+    }
+}
+
+async function revokeUserAccess(revokeAccessBtn){
+    addSpinner(revokeAccessBtn);
+
+    disableElements(".card button, .card input, .card select");
+    
+    const formData = new FormData();
+
+    formData.append("model_id", revokeAccessBtn.getAttribute("data-model-id"))
+    formData.append("key_id", revokeAccessBtn.getAttribute("data-key-id"))
+    
+    ajaxRequest(
+        `/containers/revoke_user_access`,
+        "POST",
+        formData,
+        onDeleteKeysSuccess,
+        "Failed to revoke user access"
+    );
+
+    showPanel(`Revoking User Access...`);
+    window.runningTaskId = await getTaskId();
+    streamEvents(logPanel, stagesList, currentStageElement);
 }
 
 function onDeleteKeysSuccess(response){

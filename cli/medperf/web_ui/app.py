@@ -66,6 +66,7 @@ def startup_event():
         "worker": None,
         "benchmark": 0,
         "model": 0,
+        "emails": "",
         "interval": 0,
     }
 
