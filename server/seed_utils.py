@@ -292,7 +292,7 @@ def create_workflow_benchmark(
 
     DATA_PREP_ASSETS_WORKFLOW_URL = (
         "https://raw.githubusercontent.com/RodriguesRBruno/medperf/"
-        "685bea196aa4314023dbeea939b94f44fb7efbab/examples/"
+        "edd5658a5a6856d44f8b7fa0eb538a5d6a67a0c3/examples/"
         "chestxray_tutorial/data_preparator_workflow/"
     )
     # Create a Data preprocessor MLCube by Benchmark Owner
