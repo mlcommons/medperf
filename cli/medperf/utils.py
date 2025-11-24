@@ -25,13 +25,9 @@ from medperf.exceptions import (
     CleanExit,
     ExecutionError,
     InvalidArgumentError,
-    MedperfException,
 )
-import subprocess
-import venv
 import shlex
 from pydantic import TypeAdapter
-import shlex
 from email_validator import validate_email, EmailNotValidError
 
 

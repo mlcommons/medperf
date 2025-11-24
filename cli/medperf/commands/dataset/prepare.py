@@ -1,7 +1,6 @@
 from __future__ import annotations
 import logging
 import os
-import pandas as pd
 from medperf.entities.dataset import Dataset
 import medperf.config as config
 from medperf.entities.cube import Cube

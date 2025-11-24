@@ -137,7 +137,7 @@ class AirflowSystemRunner:
         }
 
         self.db = PostgresDBDocker(
-            project_name=self.project_name,  # TODO Check platform to instantiate singularity version, when singularity version is implementated
+            project_name=self.project_name,  # TODO Check platform to instantiate singularity version
             root_dir=self.airflow_home,
             postgres_user="airflow",
             postgres_db="airflow",
@@ -309,7 +309,7 @@ class AirflowSystemRunner:
             asset_events = airflow_client.assets.get_asset_events()["asset_events"]
         except json.JSONDecodeError:
             config.ui.print(
-                f"Error checking completion of the pipeline. Please use the Airflow WebUI to verify execution status."
+                "Error checking completion of the pipeline. Please use the Airflow WebUI to verify execution status."
             )
             asset_events = []
 

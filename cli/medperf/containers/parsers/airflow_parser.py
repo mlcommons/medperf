@@ -113,7 +113,7 @@ class AirflowParser(Parser):
             if step.get("id"):
                 step_identifier = f"step {step['id']}"
             else:
-                step_identifier = f"{step_index+1}th step"
+                step_identifier = f"{step_index + 1}th step"
             msg = (
                 f"The {step_identifier} in the yaml file is missing the "
                 f"following mandatory fields: ', '.join({ordered_fields})"

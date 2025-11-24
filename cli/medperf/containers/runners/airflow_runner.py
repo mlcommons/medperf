@@ -13,7 +13,6 @@ from .utils import (
 )
 from medperf.utils import run_command
 from medperf.comms.entity_resources import resources
-from .runner import Runner
 import logging
 from .docker_utils import get_docker_image_hash
 

@@ -1,7 +1,5 @@
 from .container_operator_builder import ContainerOperatorBuilder, MountInfo
 from airflow.providers.singularity.operators.singularity import SingularityOperator
-import os
-from medperf.exceptions import MedperfException
 
 
 class SingularityOperatorBuilder(ContainerOperatorBuilder):

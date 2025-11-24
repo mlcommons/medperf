@@ -55,29 +55,6 @@ class DockerRunner(Runner):
 
     def _download_docker_image(
         self,
-        hashes_dict,
-        download_timeout: int = None,
-        get_hash_timeout: int = None,
-        alternative_image_hash: str = None,
-    ):
-        if self.parser.is_docker_archive():
-            logging.debug("Downloading Docker archive")
-            return self._download_docker_archive(
-                hashes_dict,
-                download_timeout,
-                get_hash_timeout,
-            )
-        else:
-            logging.debug("Downloading Docker image")
-            return self._download_docker_image(
-                hashes_dict,
-                download_timeout,
-                get_hash_timeout,
-                alternative_image_hash,
-            )
-
-    def _download_docker_image(
-        self,
         hashes_dict: Dict[str, str],
         download_timeout: int = None,
         get_hash_timeout: int = None,
@@ -107,19 +84,6 @@ class DockerRunner(Runner):
         )  # Hash checking happens in resources
         self.image_archive_path = image_path
         return {file_url: computed_image_hash}
-
-    def _download_docker_archive(
-        self,
-        expected_image_hash,
-        download_timeout: int = None,
-        get_hash_timeout: int = None,
-    ):
-        file_url = self.parser.get_setup_args()
-        image_path, computed_image_hash = resources.get_cube_image(
-            file_url, expected_image_hash
-        )  # Hash checking happens in resources
-        self.image_archive_path = image_path
-        return computed_image_hash
 
     def run(
         self,

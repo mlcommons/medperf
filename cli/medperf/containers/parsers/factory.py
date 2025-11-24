@@ -6,6 +6,7 @@ from .mlcube import MLCubeParser
 from .simple_container import SimpleContainerParser
 from medperf.enums import ContainerTypes
 import logging
+from .airflow_parser import AirflowParser
 
 DOCKER_TYPES = [
     ContainerTypes.DOCKER_IMAGE.value,
@@ -16,7 +17,6 @@ SINGULARITY_TYPES = [
     ContainerTypes.SINGULARITY_FILE.value,
     ContainerTypes.ENCRYPTED_SINGULARITY_FILE.value,
 ]
-from .airflow_parser import AirflowParser
 
 
 def _is_mlcube_yaml_file(container_config: dict):
