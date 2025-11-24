@@ -209,10 +209,14 @@ class TestPrepareCubes:
 
     @pytest.mark.parametrize("data_source", ["path"])
     @pytest.mark.parametrize("offline", [True, False])
-    def test_model_and_eval_cubes_are_retrieved(self, mocker, data_source, offline):
+    @pytest.mark.parametrize("model_decryption_key", ["/fake/path/to/file", None])
+    def test_model_and_eval_cubes_are_retrieved(
+        self, mocker, data_source, offline, model_decryption_key
+    ):
         # Arrange
         self.exec_instance.data_source = data_source
         self.exec_instance.offline = offline
+        self.exec_instance.model_decryption_key = model_decryption_key
         model_cube = "model_cube"
         eval_cube = "eval_cube"
         get_spy = mocker.patch(
@@ -225,7 +229,13 @@ class TestPrepareCubes:
         # Assert
         get_spy.assert_has_calls(
             [
-                call(self.new_model_uid, "Model", local_only=offline, use_local_model_image=False),
+                call(
+                    self.new_model_uid,
+                    "Model",
+                    local_only=offline,
+                    use_local_model_image=False,
+                    decryption_key_file_path=model_decryption_key,
+                ),
                 call(self.new_eval_uid, "Evaluator", local_only=offline),
             ]
         )

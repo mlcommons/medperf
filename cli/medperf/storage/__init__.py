@@ -58,7 +58,7 @@ def __apply_login_tracking_migrations(config_p: ConfigManager):
             )
 
 
-def __apply_results_to_executions_migrations(config_p):
+def __apply_results_to_executions_migrations(config_p: ConfigManager):
     if "results_folder" not in config_p.storage:
         return
 
@@ -75,6 +75,32 @@ def __apply_results_to_executions_migrations(config_p):
     config_p.storage["executions_folder"] = results_base
 
 
+def __apply_trusted_ca_migrations(config_p: ConfigManager):
+    if "certificate_authority_id" not in config_p.active_profile:
+        # set new fields for the current active profile
+        config_p.active_profile["certificate_authority_id"] = (
+            config.certificate_authority_id
+        )
+        config_p.active_profile["certificate_authority_fingerprint"] = (
+            config.certificate_authority_fingerprint
+        )
+
+        # set new fields for the two dev profiles
+        config_p[config.testauth_profile_name][
+            "certificate_authority_id"
+        ] = config.dev_certificate_authority_id
+        config_p[config.testauth_profile_name][
+            "certificate_authority_fingerprint"
+        ] = config.dev_certificate_authority_fingerprint
+
+        config_p[config.test_profile_name][
+            "certificate_authority_id"
+        ] = config.dev_certificate_authority_id
+        config_p[config.test_profile_name][
+            "certificate_authority_fingerprint"
+        ] = config.dev_certificate_authority_fingerprint
+
+
 def apply_configuration_migrations():
     if not os.path.exists(config.config_path):
         return
@@ -84,5 +110,6 @@ def apply_configuration_migrations():
     __apply_training_migrations(config_p)
     __apply_login_tracking_migrations(config_p)
     __apply_results_to_executions_migrations(config_p)
+    __apply_trusted_ca_migrations(config_p)
 
     write_config(config_p)

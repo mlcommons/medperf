@@ -9,7 +9,7 @@ psycopg2-binary==2.9.9
 gunicorn==23.0.0
 google-cloud-secret-manager==2.19.0
 whitenoise==6.6.0
-pyOpenSSL==24.1.0
+pyOpenSSL==25.1.0
 Werkzeug==3.0.6
 django-extensions==3.2.3
 djangorestframework-simplejwt==5.3.1

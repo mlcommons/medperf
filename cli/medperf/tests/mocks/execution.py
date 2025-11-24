@@ -4,6 +4,7 @@ from pydantic import Field
 
 
 class TestExecution(Execution):
+    __test__ = False
     id: Optional[int] = 1
     name: str = "name"
     benchmark: int = 1

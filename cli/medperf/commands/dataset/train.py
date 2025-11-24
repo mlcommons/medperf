@@ -19,7 +19,7 @@ from medperf.utils import (
     get_participant_label,
     remove_path,
 )
-from medperf.certificates import trust
+from medperf.certificates import verify_certificate_authority
 
 
 class TrainingExecution:
@@ -119,9 +119,11 @@ class TrainingExecution:
         self.training_exp.prepare_plan()
 
     def prepare_pki_assets(self):
-        ca = CA.from_experiment(self.training_exp_id)
-        trust(ca)
-        self.dataset_pki_assets = get_pki_assets_path(self.user_email, ca.name)
+        ca = CA.get(config.certificate_authority_id)
+        verify_certificate_authority(
+            ca, expected_fingerprint=config.certificate_authority_fingerprint
+        )
+        self.dataset_pki_assets = get_pki_assets_path(self.user_email, ca.id)
         self.ca = ca
 
     def confirm_run(self):

@@ -134,17 +134,6 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Associate with ca"
-echo "====================================="
-CA_UID=$(medperf ca ls | grep "MedPerf CA" | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
-print_eval medperf ca associate -t $TRAINING_UID -c $CA_UID -y
-checkFailed "ca association failed"
-##########################################################
-
-echo "\n"
-
-##########################################################
-echo "====================================="
 echo "Activate aggowner profile"
 echo "====================================="
 print_eval medperf profile activate testagg
@@ -235,7 +224,7 @@ echo "\n"
 echo "====================================="
 echo "Get aggregator cert"
 echo "====================================="
-print_eval medperf certificate get_server_certificate -t $TRAINING_UID
+print_eval medperf certificate get_server_certificate -a $AGG_UID
 checkFailed "Get aggregator cert failed"
 ##########################################################
 
@@ -314,7 +303,7 @@ echo "\n"
 echo "====================================="
 echo "Get data1owner cert"
 echo "====================================="
-print_eval medperf certificate get_client_certificate -t $TRAINING_UID
+print_eval medperf certificate get_client_certificate
 checkFailed "Get data1owner cert failed"
 ##########################################################
 
@@ -393,7 +382,7 @@ echo "\n"
 echo "====================================="
 echo "Get data2owner cert"
 echo "====================================="
-print_eval medperf certificate get_client_certificate -t $TRAINING_UID
+print_eval medperf certificate get_client_certificate
 checkFailed "Get data2owner cert failed"
 ##########################################################
 
@@ -431,7 +420,7 @@ echo "\n"
 echo "====================================="
 echo "Get fladmin certificate"
 echo "====================================="
-print_eval medperf certificate get_client_certificate -t $TRAINING_UID
+print_eval medperf certificate get_client_certificate
 checkFailed "Get fladmin cert failed"
 ##########################################################
 

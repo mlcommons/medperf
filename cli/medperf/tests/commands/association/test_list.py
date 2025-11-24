@@ -25,10 +25,6 @@ PATCH_LIST = "medperf.commands.association.list.{}"
             {"training_exp": True, "aggregator": True},
             ["training_exp", "aggregator"],
         ),
-        (
-            {"training_exp": True, "ca": True},
-            ["training_exp", "ca"],
-        ),
     ],
 )
 def test_run_calls_correct_comms_method(mocker, comms, ui, kwargs, expected_util_args):

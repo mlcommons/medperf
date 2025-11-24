@@ -11,7 +11,6 @@ class Approval:
         dataset_uid: int = None,
         mlcube_uid: int = None,
         aggregator_uid: int = None,
-        ca_uid: int = None,
     ):
         """Sets approval status for an association between a benchmark and a dataset or mlcube
 
@@ -30,7 +29,6 @@ class Approval:
             dataset_uid,
             mlcube_uid,
             aggregator_uid,
-            ca_uid,
             approval_status.value,
         )
         update = {"approval_status": approval_status.value}
@@ -53,5 +51,3 @@ class Approval:
                 comms.update_training_aggregator_association(
                     training_exp_uid, aggregator_uid, update
                 )
-            if ca_uid:
-                comms.update_training_ca_association(training_exp_uid, ca_uid, update)

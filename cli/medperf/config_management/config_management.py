@@ -32,7 +32,7 @@ class ConfigManager:
             "storage": self.storage,
         }
         with open(path, "w") as f:
-            yaml.dump(data, f)
+            yaml.safe_dump(data, f)
 
     def __getitem__(self, key):
         return self.profiles[key]

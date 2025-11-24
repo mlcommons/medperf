@@ -1,22 +1,25 @@
-from medperf.entities.ca import CA
 from medperf.account_management import get_medperf_user_data
 from medperf.certificates import get_client_cert
 from medperf.exceptions import MedperfException
 from medperf.utils import get_pki_assets_path, remove_path
+from medperf import config
+from medperf.entities.ca import CA
 import os
 
 
 class GetUserCertificate:
     @staticmethod
-    def run(training_exp_id: int, overwrite: bool = False):
+    def run(overwrite: bool = False):
         """get user cert"""
-        ca = CA.from_experiment(training_exp_id)
+        ca_id = config.certificate_authority_id
+        ca = CA.get(ca_id)
+
         email = get_medperf_user_data()["email"]
-        output_path = get_pki_assets_path(email, ca.name)
+        output_path = get_pki_assets_path(email, ca.id)
         if os.path.exists(output_path):
             if not overwrite:
                 raise MedperfException(
                     "Cert and key already present. Rerun the command with --overwrite"
                 )
-            remove_path(output_path)
+            remove_path(output_path, sensitive=True)
         get_client_cert(ca, email, output_path)

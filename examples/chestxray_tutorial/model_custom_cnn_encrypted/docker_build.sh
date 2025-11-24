@@ -1,0 +1,1 @@
+docker build . -t tmp-local/chestxray-tutorial-cnn-private:0.0.1

@@ -5,7 +5,6 @@ import typer
 import medperf.config as config
 from medperf.decorators import clean_except
 from medperf.commands.ca.submit import SubmitCA
-from medperf.commands.ca.associate import AssociateCA
 
 from medperf.commands.list import EntityList
 from medperf.commands.view import EntityView
@@ -37,20 +36,6 @@ def submit(
 ):
     """Submits a ca"""
     SubmitCA.run(name, config_path, ca_mlcube, client_mlcube, server_mlcube)
-    config.ui.print("✅ Done!")
-
-
-@app.command("associate")
-@clean_except
-def associate(
-    ca_id: int = typer.Option(..., "--ca_id", "-c", help="UID of CA to associate with"),
-    training_exp_id: int = typer.Option(
-        ..., "--training_exp_id", "-t", help="UID of training exp to associate with"
-    ),
-    approval: bool = typer.Option(False, "-y", help="Skip approval step"),
-):
-    """Associates a CA with a training experiment."""
-    AssociateCA.run(ca_id, training_exp_id, approved=approval)
     config.ui.print("✅ Done!")
 
 

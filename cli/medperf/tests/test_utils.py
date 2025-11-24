@@ -1,4 +1,5 @@
 import os
+from medperf.exceptions import InvalidArgumentError
 import pytest
 import logging
 from pathlib import Path
@@ -357,3 +358,41 @@ def test_format_errors_dict_correctly_formats_all_expected_inputs(
 
     # Assert
     assert out == expected_out
+
+
+@pytest.mark.parametrize(
+    "emails,expected",
+    [
+        (
+            ["Al@example.com", "", " ", "B@example.COM"],
+            ["al@example.com", "b@example.com"],
+        ),
+        (
+            [""],
+            [],
+        ),
+        (
+            [],
+            [],
+        ),
+    ],
+)
+def test_successful_validate_and_normalize_emails(emails, expected):
+    # Act
+    out = utils.validate_and_normalize_emails(emails)
+
+    # Assert
+    assert out == expected
+
+
+@pytest.mark.parametrize(
+    "emails",
+    [
+        ["Al.example.com", "", " ", "B@example.COM"],
+        ["example@.com"],
+    ],
+)
+def test_failing_validate_and_normalize_emails(emails):
+    # Act & Assert
+    with pytest.raises(InvalidArgumentError):
+        utils.validate_and_normalize_emails(emails)

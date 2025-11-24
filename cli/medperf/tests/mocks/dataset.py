@@ -5,6 +5,7 @@ from pydantic import Field
 
 
 class TestDataset(Dataset):
+    __test__ = False
     id: Optional[int] = 1
     name: str = "name"
     location: str = "location"

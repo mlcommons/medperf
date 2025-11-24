@@ -31,6 +31,8 @@ import subprocess
 import venv
 import shlex
 from pydantic import TypeAdapter
+import shlex
+from email_validator import validate_email, EmailNotValidError
 
 
 def get_file_hash(path: str) -> str:
@@ -57,7 +59,7 @@ def get_file_hash(path: str) -> str:
     return sha_val
 
 
-def remove_path(path):
+def remove_path(path, sensitive=False):
     """Cleans up a clutter object. In case of failure, it is moved to `.trash`"""
 
     # NOTE: We assume medperf will always have permissions to unlink
@@ -65,6 +67,7 @@ def remove_path(path):
     # in folders owned by medperf
 
     if not os.path.exists(path):
+        logging.debug(f"{path} was to be removed, but not found.")
         return
     logging.info(f"Removing clutter path: {path}")
 
@@ -80,14 +83,19 @@ def remove_path(path):
             shutil.rmtree(path)
     except OSError as e:
         logging.error(f"Could not remove {path}: {str(e)}")
-        move_to_trash(path)
+        move_to_trash(path, sensitive=sensitive)
 
 
-def move_to_trash(path):
+def move_to_trash(path, sensitive=False):
     trash_folder = config.trash_folder
     unique_path = os.path.join(trash_folder, generate_tmp_uid())
-    os.makedirs(unique_path)
+    os.makedirs(unique_path, mode=0o700)
     shutil.move(path, unique_path)
+    if sensitive:
+        msg = "WARNING: Failed to premanently delete a sensitive file!"
+        msg += " Delete the sensitive file manually as soon as possible!"
+        msg += f" The file is located at {unique_path}"
+        config.ui.print_warning(msg)
 
 
 def cleanup():
@@ -98,6 +106,9 @@ def cleanup():
 
     for path in config.tmp_paths:
         remove_path(path)
+
+    for path in config.sensitive_tmp_paths:
+        remove_path(path, sensitive=True)
 
     trash_folder = config.trash_folder
     if os.path.exists(trash_folder) and os.listdir(trash_folder):
@@ -525,12 +536,32 @@ class spawn_and_kill:
         return False
 
 
-def get_pki_assets_path(common_name: str, ca_name: str):
+def run_command(cmd, timeout=None, output_logs=None):
+    logging.debug(f"Command as list, to be run: {cmd}")
+    command_as_str = shlex.join(cmd)
+    logging.debug(f"Running command: {command_as_str}")
+    with spawn_and_kill(command_as_str, timeout=timeout) as proc_wrapper:
+        proc = proc_wrapper.proc
+        proc_out = combine_proc_sp_text(proc)
+
+    if output_logs is not None:
+        with open(output_logs, "w") as f:
+            f.write(proc_out)
+
+    if proc.exitstatus != 0:
+        raise ExecutionError("There was an error while executing the container")
+
+    return proc_out
+
+
+def get_pki_assets_path(common_name: str, ca_id: int):
     # Base64 encoding is used just to avoid special characters used in emails
     # and server domains/ipaddresses.
+    logging.debug(f"Getting pki assets path for {common_name}")
     cn_encoded = base64.b64encode(common_name.encode("utf-8")).decode("utf-8")
     cn_encoded = cn_encoded.rstrip("=")
-    return os.path.join(config.pki_assets, cn_encoded, ca_name)
+    logging.debug(f"common name base64encoded: {cn_encoded}")
+    return os.path.join(config.pki_assets, cn_encoded, str(ca_id))
 
 
 def get_participant_label(email, data_id):
@@ -578,6 +609,72 @@ def get_webui_properties():
     port = props["port"]
     security_token = props["security_token"]
     print_webui_props(host, port, security_token)
+
+
+def get_decryption_key_path(container_id):
+    path = os.path.join(
+        config.container_keys_dir, str(container_id), config.container_key_file
+    )
+    path = sanitize_path(path)
+    return path
+
+
+def store_decryption_key(container_id, decryption_key_path):
+    logging.debug(
+        f"Storing decryption key {decryption_key_path} for container {container_id}"
+    )
+    target_path = get_decryption_key_path(container_id)
+    target_folder = os.path.dirname(target_path)
+    os.makedirs(target_folder, exist_ok=True)
+    shutil.copy(decryption_key_path, target_path)
+    logging.debug(f"Decryption key stored at {target_path}")
+    return target_path
+
+
+def _tmp_path_for_decryption(base_path: str):
+    """Generates a temporary file path as the output path for decryption"""
+    folder_name = generate_tmp_uid()
+    folder_path = os.path.join(base_path, folder_name)
+    os.makedirs(folder_path, mode=0o700)
+    config.sensitive_tmp_paths.append(folder_path)
+    file_path = os.path.join(folder_path, generate_tmp_uid())
+    return file_path
+
+
+def tmp_path_for_file_decryption():
+    """Generates a temporary file path as the output path for file decryption"""
+    return _tmp_path_for_decryption(base_path=config.decrypted_files_folder)
+
+
+def tmp_path_for_key_decryption():
+    """Generates a temporary file path as the output path for encrypted key decryption"""
+    return _tmp_path_for_decryption(base_path=config.container_keys_dir)
+
+
+def secure_write_to_file(file_path, content: bytes, exec_permission=False):
+    permission_mode = 0o700 if exec_permission else 0o600
+    with open(file_path, "wb") as f:
+        pass
+    os.chmod(file_path, permission_mode)
+    with open(file_path, "ab") as f:
+        f.write(content)
+
+
+def generate_container_key_redaction_record(encrypted_key_base64: str):
+    sha = hashlib.sha256()
+    sha.update(base64.b64decode(encrypted_key_base64))
+    return sha.hexdigest()
+
+
+def validate_and_normalize_emails(emails: list[str]):
+    emails = [email.lower().strip() for email in emails if email.strip()]
+    for email in emails:
+        try:
+            validate_email(email, check_deliverability=False)
+        except EmailNotValidError as e:
+            logging.debug(f"Invalid email: |{email}|")
+            raise InvalidArgumentError(str(e))
+    return emails
 
 
 def parse_datetime(datetime_obj: Union[str, int, datetime]):

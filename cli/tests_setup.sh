@@ -88,7 +88,8 @@ fi
 ##########################################################
 ########################## Setup #########################
 ##########################################################
-ASSETS_URL="https://raw.githubusercontent.com/hasan7n/mockcube/63454ef4bb96f1879a549e2131ab6361a702e8e1"
+ASSETS_URL="https://raw.githubusercontent.com/hasan7n/mockcube/04118b14049c4a421511bb02ddbd591fdc754981"
+CHESTXRAY_ASSETS_URL="https://raw.githubusercontent.com/RodriguesRBruno/medperf/0f1113bca1c2eef6a3c40b83032a9982b008effd/examples/chestxray_tutorial"
 
 # datasets
 DSET_A_URL="$ASSETS_URL/assets/datasets/dataset_a.tar.gz"
@@ -105,7 +106,9 @@ PREP_TRAINING_MLCUBE="https://storage.googleapis.com/medperf-storage/testfl/mlcu
 FAILING_MODEL_MLCUBE="$ASSETS_URL/model-bug/mlcube/mlcube.yaml" # doesn't fail with association
 MODEL_WITH_SINGULARITY="$ASSETS_URL/model-cpu/container_config_as_singularity.yaml"
 MODEL_MLCUBE="$ASSETS_URL/model-cpu/container_config_as_docker.yaml"
-MODEL_LOG_MLCUBE="$ASSETS_URL/model-debug-logging/mlcube/mlcube.yaml"
+MODEL_ARCHIVE_MLCUBE="$ASSETS_URL/model-cpu/container_config_as_docker_archive.yaml"
+MODEL_ENCRYPTED_ARCHIVE_MLCUBE="$ASSETS_URL/model-cpu/container_config_as_encrypted_docker_archive.yaml"
+MODEL_ENCRYPTED_SINGULARITY_MLCUBE="$ASSETS_URL/model-cpu/container_config_as_encrypted_singularity.yaml"
 MODEL_ADD="$ASSETS_URL/assets/weights/weights1.tar.gz"
 
 MODEL1_PARAMS="$ASSETS_URL/model-cpu/workspace/parameters1.yaml"
@@ -113,8 +116,10 @@ MODEL2_PARAMS="$ASSETS_URL/model-cpu/workspace/parameters2.yaml"
 MODEL3_PARAMS="$ASSETS_URL/model-cpu/workspace/parameters3.yaml"
 MODEL4_PARAMS="$ASSETS_URL/model-cpu/workspace/parameters4.yaml"
 
-MODEL_LOG_NONE_PARAMS="$ASSETS_URL/model-debug-logging/mlcube/workspace/parameters_none.yaml"
-MODEL_LOG_DEBUG_PARAMS="$ASSETS_URL/model-debug-logging/mlcube/workspace/parameters_debug.yaml"
+# chestxray tutorial models
+CHESTXRAY_ENCRYPTED_MODEL="$CHESTXRAY_ASSETS_URL/model_custom_cnn_encrypted/container_config.yaml"
+CHESTXRAY_ENCRYPTED_MODEL_PARAMS="$CHESTXRAY_ASSETS_URL/model_custom_cnn_encrypted/workspace/parameters.yaml"
+CHESTXRAY_ENCRYPTED_MODEL_ADD="https://storage.googleapis.com/medperf-storage/chestxray_tutorial/cnn_weights.tar.gz"
 
 # metrics cubes
 METRIC_MLCUBE="$ASSETS_URL/metrics/container_config.yaml"
@@ -133,11 +138,13 @@ ADMIN="testadmin@example.com"
 DATAOWNER2="testdo2@example.com"
 AGGOWNER="testao@example.com"
 FLADMIN="testfladmin@example.com"
+PRIVATEMODELOWNER="testpo@example.com"
 
 # local MLCubes for local compatibility tests
 PREP_LOCAL="$(dirname $(dirname $(realpath "$0")))/examples/chestxray_tutorial/data_preparator"
 MODEL_LOCAL="$(dirname $(dirname $(realpath "$0")))/examples/chestxray_tutorial/model_custom_cnn"
 METRIC_LOCAL="$(dirname $(dirname $(realpath "$0")))/examples/chestxray_tutorial/metrics"
+PRIVATE_MODEL_LOCAL="$(dirname $(dirname $(realpath "$0")))/examples/chestxray_tutorial/model_custom_cnn_encrypted"
 
 TRAINING_CONFIG="$(dirname $(dirname $(realpath "$0")))/examples/fl/fl/mlcube/workspace/training_config.yaml"
 # create storage folders
