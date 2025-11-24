@@ -336,7 +336,7 @@
                             <small class="text-success fw-bold">&nbsp;Access Granted</small>
                             {% else %}
                             <small
-                                class="text-danger"
+                                class="text-danger text-decoration-underline"
                                 data-bs-toggle="tooltip"
                                 data-bs-placement="top"
                                 data-bs-title="{{ model.access_status['reason'] }}"
@@ -357,7 +357,7 @@
 									data-model-name="{{ model.name }}"
 									id="run-{{ assoc }}-{{ model.id }}"
                                     {% if results_exist %} rerun="true" {% endif %}
-                                    {% if task_running %} disabled {% endif %}
+                                    {% if task_running or not model.access_status["has_access"] %} disabled {% endif %}
 								>
 									▶️ {% if results_exist %} Rerun {% else %} Run {% endif %}
 								</button>
