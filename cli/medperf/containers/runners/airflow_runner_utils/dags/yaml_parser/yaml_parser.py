@@ -12,13 +12,25 @@ from medperf.containers.runners.airflow_runner_utils.dags.dag_utils import (
 )
 from medperf.containers.runners.airflow_runner_utils.dags.dag_builder import DagBuilder
 from copy import deepcopy
+from medperf.enums import ContainerConfigMountKeys
+from medperf.exceptions import MedperfException
 
 
-def get_dict_value_by_key_prefix(key_prefix: str, dictionary: dict):
+valid_mount_keys = [item.value for item in ContainerConfigMountKeys]
+
+
+def get_dict_value_by_key_prefix(
+    key_prefix: str, dictionary: dict, key_suffix: str = None
+):
     """
     This assumes the values are effectively the same for the purposes this function is called.
     If they are different, then calling by suffix does not make sense!
     """
+    if key_suffix is not None:
+        complete_key = create_legal_dag_id(f"{key_prefix}_{key_suffix}")
+        if complete_key in dictionary:
+            return dictionary[complete_key]
+
     relevant_dict = {
         key: value for key, value in dictionary.items() if key.startswith(key_prefix)
     }
@@ -285,8 +297,12 @@ class YamlParser:
             from_step = volume_data.get("from")
             if from_step is not None:
                 look_on_second_pass.add(step["id"])
-            else:
+            elif volume_name in valid_mount_keys:
                 host_mounts[volume_name] = os.getenv(f"host_{volume_name}")
+            else:
+                raise MedperfException(
+                    f'Invalid mount {volume_name} in step {step["id"]}'
+                )
 
     @staticmethod
     def _host_mounts_second_pass(
@@ -300,23 +316,17 @@ class YamlParser:
 
         volumes = step_mounts.get(volume_key, {})
         for volume_name, volume_data in volumes.items():
-            input_step_id_prefix = volume_data.get("from")
+            input_step_info = volume_data.get("from")
 
-            if input_step_id_prefix is None:
+            if input_step_info is None:
                 continue  # Done in first pass
 
             input_step = get_dict_value_by_key_prefix(
-                key_prefix=input_step_id_prefix, dictionary=step_id_to_expanded_step
+                key_prefix=input_step_info["step"],
+                dictionary=step_id_to_expanded_step,
+                key_suffix=step.get("partition"),
             )
-            output_key = (
-                "output_path"
-                if volume_name == "data_path"
-                else (
-                    "output_labels_path"
-                    if volume_name == "labels_path"
-                    else volume_name
-                )
-            )
+            output_key = input_step_info["mount"]
             step["host_mounts"][volume_name] = input_step["host_mounts"][output_key]
 
     def _update_next_with_new_partition(self, original_dict, original_next, new_next):

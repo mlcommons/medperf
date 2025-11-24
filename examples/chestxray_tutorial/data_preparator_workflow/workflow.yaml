@@ -33,15 +33,18 @@ steps:
         data_path:
           mount_path: /mlcommons/volumes/data
           type: directory
-          from: prepare
+          from: 
+            step: prepare
+            mount: output_path
         labels_path:
           mount_path: /mlcommons/volumes/labels
           type: directory
-          from: prepare
+          from: 
+            step: prepare
+            mount: output_labels_path
         parameters_file:
           mount_path: /mlcommons/volumes/parameters/parameters_file.yaml
           type: file
-          from: prepare
     next: statistics
     on_error: do_something
 
@@ -54,16 +57,20 @@ steps:
         data_path:
           mount_path: /mlcommons/volumes/data
           type: directory
-          from: prepare
+          from: 
+            step: prepare
+            mount: output_path
         labels_path:
           mount_path: /mlcommons/volumes/labels
           type: directory
-          from: prepare
+          from: 
+            step: prepare
+            mount: output_path
         parameters_file:
           mount_path: /mlcommons/volumes/parameters/parameters_file.yaml
           type: file
       output_volumes:
-        output_path:
+        statistics_file:
           mount_path: /mlcommons/volumes/statistics/statistics.yaml
           type: file
     next: null
