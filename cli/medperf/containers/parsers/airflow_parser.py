@@ -91,6 +91,7 @@ class AirflowParser(Parser):
             error_msgs.append(msg)
 
         elif len(final_step_candidates) > 1:
+            final_step_candidates = [f"- {step}" for step in final_step_candidates]
             msg = "The provided YAML DAG file has multiple potential last steps. Please verify the following steps:\n"
             msg += "\n".join(final_step_candidates)
             error_msgs.append(msg)
