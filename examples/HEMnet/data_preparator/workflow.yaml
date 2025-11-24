@@ -1,0 +1,162 @@
+steps:
+  - id: create_normalisation
+    type: container
+    image: local/hemnet:0.0.6
+    command: python normaliser_step.py 
+    mounts:
+      input_volumes:
+        data_path:
+          mount_path: /workspace/input_data
+          type: directory
+      output_volumes:
+        output_path:
+          mount_path: /workspace/data
+          type: directory
+    next: image_registration
+    per_subject: false
+
+  - id: image_registration
+    type: container
+    mounts:
+      input_volumes:
+        data_path:
+          mount_path: /workspace/input_data
+          type: directory
+        normalisation_input:
+          mount_path: /workspace/data
+          type: directory
+          from:
+            step: create_normalisation
+            mount: output_path
+      output_volumes:
+        output_path:
+          mount_path: /workspace/data
+          type: directory
+    image: local/hemnet:0.0.6
+    command: python image_registration.py -v
+    per_subject: true
+    next: affine_registration
+    
+  - id: affine_registration
+    type: container
+    image: local/hemnet:0.0.6
+    mounts:
+      input_volumes:
+        image_registration_input:
+          mount_path: /workspace/data
+          type: directory
+          from:
+            step: image_registration
+            mount: output_path
+      output_volumes:
+        output_path:
+          mount_path: /workspace/data
+          type: directory
+    command: python affine_registration.py -v
+    next: bspline_registration
+    per_subject: true
+    limit: 1
+    
+  - id: bspline_registration
+    type: container
+    image: local/hemnet:0.0.6
+    mounts:
+      input_volumes:
+        data_path:
+          mount_path: /workspace/input_data
+          type: directory
+        affine_registration_input:
+          mount_path: /workspace/data
+          type: directory
+          from:
+            step: affine_registration
+            mount: output_path
+      output_volumes:
+        output_path:
+          mount_path: /workspace/data
+          type: directory
+    command: python bspline_registration.py -v
+    next: generate_masks
+    per_subject: true
+    limit: 1
+
+  - id: generate_masks
+    type: container
+    image: local/hemnet:0.0.6
+    mounts:
+      input_volumes:
+        bspline_registration_input:
+          mount_path: /workspace/data
+          type: directory
+          from:
+            step: bspline_registration
+            mount: output_path
+      output_volumes:
+        output_path:
+          mount_path: /workspace/data
+          type: directory
+    command: python generate_masks.py -v
+    next: save_tiles
+    per_subject: true
+    limit: 2
+
+  - id: save_tiles
+    type: container
+    image: local/hemnet:0.0.6
+    mounts:
+      input_volumes:
+        data_path:
+          mount_path: /workspace/input_data
+          type: directory
+        generate_masks_input:
+          mount_path: /workspace/data
+          type: directory
+          from:
+            step: generate_masks
+            mount: output_path
+      output_volumes:
+        output_path:
+          mount_path: /workspace/data
+          type: directory
+    command: python save_tiles.py -v
+    next: consolidate_metrics
+    per_subject: true
+    limit: 2
+  
+  - id: consolidate_metrics
+    type: container
+    image: local/hemnet:0.0.6
+    mounts:
+      input_volumes:
+        save_tiles_input:
+          mount_path: /workspace/data
+          type: directory
+          from:
+            step: save_tiles
+            mount: output_path
+      output_volumes:
+        output_path:
+          mount_path: /workspace/data
+          type: directory
+    command: python consolidate_metrics.py
+    next: cleanup
+    per_subject: true
+
+  - id: cleanup
+    type: container
+    image: local/hemnet:0.0.6
+    per_subject: false
+    mounts:
+      input_volumes:
+        consolidate_metrics_input:
+          mount_path: /workspace/data
+          type: directory
+          from:
+            step: consolidate_metrics
+            mount: output_path
+    command: python cleanup.py
+    next: null
+
+per_subject_def:
+  type: function
+  function_name: slides_definition.slides_definition
