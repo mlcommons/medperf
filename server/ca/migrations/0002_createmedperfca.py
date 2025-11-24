@@ -15,7 +15,8 @@ def createmedperfca(apps: StateApps, schema_editor: DatabaseSchemaEditor) -> Non
     admin_user = User.objects.get(username=settings.SUPERUSER_USERNAME)
     ca_mlcube = MlCube.objects.create(
         name=settings.CA_MLCUBE_NAME,
-        container_config=settings.CA_CONTAINER_CONFIG,
+        git_mlcube_url=settings.CA_MLCUBE_URL,
+        mlcube_hash=settings.CA_MLCUBE_HASH,
         image_hash=settings.CA_MLCUBE_IMAGE_HASH,
         metadata=settings.CA_MLCUBE_METADATA,
         owner=admin_user,
@@ -36,6 +37,6 @@ class Migration(migrations.Migration):
     dependencies = [
         ("ca", "0001_initial"),
         ("user", "0001_createsuperuser"),
-        ("mlcube", "0003_alter_mlcube_unique_together_mlcube_container_config_and_more"),
+        ("mlcube", "0002_alter_mlcube_unique_together"),
     ]
     operations = [migrations.RunPython(createmedperfca)]
