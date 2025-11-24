@@ -305,7 +305,13 @@ class AirflowSystemRunner:
 
     def _check_completed_asset(self, airflow_client: AirflowAPIClient) -> bool:
         """Checks if the final asset that marks pipeline completion has been updated"""
-        asset_events = airflow_client.assets.get_asset_events()["asset_events"]
+        try:
+            asset_events = airflow_client.assets.get_asset_events()["asset_events"]
+        except json.JSONDecodeError:
+            config.ui.print(
+                f"Error checking completion of the pipeline. Please use the Airflow WebUI to verify execution status."
+            )
+            asset_events = []
 
         if not asset_events:
             return False
