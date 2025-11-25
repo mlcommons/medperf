@@ -1,7 +1,10 @@
+base_step: &BASE_STEP
+  - type: container
+    image: mlcommons/hemnet-airflow:0.0.1
+
 steps:
   - id: create_normalisation
-    type: container
-    image: local/hemnet:0.0.6
+    <<: *BASE_STEP
     command: python normaliser_step.py 
     mounts:
       input_volumes:
@@ -16,7 +19,7 @@ steps:
     per_subject: false
 
   - id: image_registration
-    type: container
+    <<: *BASE_STEP
     mounts:
       input_volumes:
         data_path:
@@ -32,14 +35,12 @@ steps:
         output_path:
           mount_path: /workspace/data
           type: directory
-    image: local/hemnet:0.0.6
     command: python image_registration.py -v
     per_subject: true
     next: affine_registration
     
   - id: affine_registration
-    type: container
-    image: local/hemnet:0.0.6
+    <<: *BASE_STEP
     mounts:
       input_volumes:
         image_registration_input:
@@ -58,8 +59,7 @@ steps:
     limit: 1
     
   - id: bspline_registration
-    type: container
-    image: local/hemnet:0.0.6
+    <<: *BASE_STEP
     mounts:
       input_volumes:
         data_path:
@@ -81,8 +81,7 @@ steps:
     limit: 1
 
   - id: generate_masks
-    type: container
-    image: local/hemnet:0.0.6
+    <<: *BASE_STEP
     mounts:
       input_volumes:
         bspline_registration_input:
@@ -101,8 +100,7 @@ steps:
     limit: 2
 
   - id: save_tiles
-    type: container
-    image: local/hemnet:0.0.6
+    <<: *BASE_STEP
     mounts:
       input_volumes:
         data_path:
@@ -124,8 +122,7 @@ steps:
     limit: 2
   
   - id: consolidate_metrics
-    type: container
-    image: local/hemnet:0.0.6
+    <<: *BASE_STEP
     mounts:
       input_volumes:
         save_tiles_input:
@@ -140,11 +137,9 @@ steps:
           type: directory
     command: python consolidate_metrics.py
     next: cleanup
-    per_subject: true
 
   - id: cleanup
-    type: container
-    image: local/hemnet:0.0.6
+    <<: *BASE_STEP
     per_subject: false
     mounts:
       input_volumes:
