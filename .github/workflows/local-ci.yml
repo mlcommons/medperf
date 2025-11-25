@@ -62,6 +62,10 @@ jobs:
     - name: Run chestxray demo
       working-directory: .
       run: sh cli/cli_chestxray_tutorial_test.sh -f
+    
+    - name: Refresh DB for Workflow test
+      working-directory: ./server
+      run: sh reset_db.sh && python seed.py --cert cert.crt -w
 
     - name: Run chestxray demo with workflow
       working-directory: .

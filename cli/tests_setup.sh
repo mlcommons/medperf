@@ -6,7 +6,6 @@ while getopts s:d:c:ft::w flag; do
   c) CLEANUP="true" ;;
   f) FRESH="true" ;;
   t) TIMEOUT=${OPTARG} ;;
-  w) WORKFLOW="true"
   esac
 done
 
@@ -14,7 +13,6 @@ SERVER_URL="${SERVER_URL:-https://localhost:8000}"
 DIRECTORY="${DIRECTORY:-/tmp/medperf_test_files}"
 CLEANUP="${CLEANUP:-false}"
 FRESH="${FRESH:-false}"
-WORKFLOW="${WORKFLOW:-false}"
 OS=$(uname)
 
 TEST_ROOT="/tmp/medperf_tests_$(date +%Y%m%d%H%M%S)"

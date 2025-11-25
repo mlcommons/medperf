@@ -12,24 +12,6 @@ echo "downloading files to $DIRECTORY"
 wget -P $DIRECTORY https://storage.googleapis.com/medperf-storage/chestxray_tutorial/sample_raw_data.tar.gz
 tar -xzvf $DIRECTORY/sample_raw_data.tar.gz -C $DIRECTORY
 
-if ${WORKFLOW}; then
-  BMK_UID=2
-  DSET_NAME="nih_chestxray_w"
-
-  # Remove one file if workflow so we get different dataset hashes
-  echo "Removing $DIRECTORY/sample_raw_data/images/00028846_000.png for workflow execution"
-  rm -rf $DIRECTORY/sample_raw_data/images/00028846_000.png
-  if [[ "$OS" == "Linux" ]]; then
-    sed -i '$d' $DIRECTORY/sample_raw_data/labels/labels.csv
-  elif [[ "$OS" == "Darwin" ]]; then
-    sed -i '' '$d' $DIRECTORY/sample_raw_data/labels/labels.csv
-  fi
-else
-  BMK_UID=1
-  DSET_NAME="nih_chestxray"
-  PMODEL_NAME="privmodel"
-fi
-
 chmod a+w $DIRECTORY/sample_raw_data
 
 ##########################################################
@@ -88,7 +70,7 @@ echo "====================================="
 echo ""Change association approval policy to auto approve always""
 echo "====================================="
 # Log in as the benchmark owner
-print_eval medperf benchmark update_associations_policy -b $BMK_UID \
+print_eval medperf benchmark update_associations_policy -b 1 \
   --dataset_auto_approve_mode ALWAYS --model_auto_approve_mode ALWAYS
 checkFailed "benchmark update policy failed"
 ##########################################################
@@ -109,7 +91,7 @@ echo "\n"
 echo "====================================="
 echo "Registering dataset with medperf"
 echo "====================================="
-print_eval "medperf dataset submit -b $BMK_UID -d $DIRECTORY/sample_raw_data/images -l $DIRECTORY/sample_raw_data/labels --name='$DSET_NAME' --description='sample dataset' --location='mock location' -y"
+print_eval "medperf dataset submit -b 1 -d $DIRECTORY/sample_raw_data/images -l $DIRECTORY/sample_raw_data/labels --name='nih_chestxray' --description='sample dataset' --location='mock location' -y"
 checkFailed "Data registration step failed"
 DSET_UID=$(medperf dataset ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 echo "Dataset UID: $DSET_UID"
@@ -121,7 +103,7 @@ echo "\n"
 echo "====================================="
 echo "Running data preparation step"
 echo "====================================="
-print_eval medperf dataset prepare -d $DSET_UID
+print_eval medperf dataset prepare -d $DSET_UID -y
 checkFailed "Data preparation step failed"
 ##########################################################
 
@@ -141,7 +123,7 @@ echo "\n"
 echo "====================================="
 echo "Creating dataset benchmark association"
 echo "====================================="
-print_eval medperf dataset associate -d $DSET_UID -b $BMK_UID -y
+print_eval medperf dataset associate -d $DSET_UID -b 1 -y
 checkFailed "Data association step failed"
 ##########################################################
 
@@ -151,7 +133,7 @@ echo "\n"
 echo "============================================="
 echo "Getting a certificate"
 echo "============================================="
-print_eval medperf certificate get_client_certificate
+print_eval medperf certificate get_client_certificate --overwrite
 checkFailed "Failed to obtain Data Owner Certificate"
 ##########################################################
 
@@ -225,7 +207,7 @@ echo "====================================="
 echo "Running benchmark execution step - Public"
 echo "====================================="
 # Create results
-print_eval medperf run -b $BMK_UID -d $DSET_UID -m 6 -y
+print_eval medperf run -b 1 -d $DSET_UID -m 5 -y
 checkFailed "Benchmark execution step failed (public)"
 ##########################################################
 
