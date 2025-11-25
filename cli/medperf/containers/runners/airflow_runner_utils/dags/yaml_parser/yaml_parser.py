@@ -173,11 +173,47 @@ class YamlParser:
         if potential_id in mapped_steps:
             raise ValueError(f"ID {original_id} has been used more than one time!")
 
-    def _create_expanded_steps(  # noqa: C901
+    def _create_expanded_steps(
         self, raw_steps: list[dict[str, Any]], subject_partitions: list[str]
     ):
         step_id_to_expanded_step = {}
         original_id_to_partition_to_partitioned_id = defaultdict(dict)
+        next_id_to_upstream_ids = defaultdict(set)
+
+        self._expanded_steps_first_pass(
+            raw_steps=raw_steps,
+            subject_partitions=subject_partitions,
+            step_id_to_expanded_step=step_id_to_expanded_step,
+            original_id_to_partition_to_partitioned_id=original_id_to_partition_to_partitioned_id,
+        )
+
+        for step_id, step in step_id_to_expanded_step.items():
+            new_next = self._update_next_id_in_expanded_step(
+                step, original_id_to_partition_to_partitioned_id
+            )
+            step["next"] = new_next
+
+        for step_id, step in step_id_to_expanded_step.items():
+            next_ids = self._get_next_id_from_expanded_step(step)
+            for next_id in next_ids:
+                next_id_to_upstream_ids[next_id].add(step_id)
+
+        self._make_inlets_for_expanded_steps(
+            step_id_to_expanded_step=step_id_to_expanded_step,
+            next_id_to_upstream_ids=next_id_to_upstream_ids,
+        )
+        self._make_host_mounts(step_id_to_expanded_step)
+        expanded_steps = list(step_id_to_expanded_step.values())
+
+        return expanded_steps
+
+    def _expanded_steps_first_pass(
+        self,
+        raw_steps,
+        subject_partitions,
+        step_id_to_expanded_step,
+        original_id_to_partition_to_partitioned_id,
+    ):
         for step in raw_steps:
             original_id = step["id"]
             step["conditions_definitions"] = self._raw_conditions
@@ -212,18 +248,9 @@ class YamlParser:
                 )
                 step_id_to_expanded_step[step_id] = step
 
-        for step_id, step in step_id_to_expanded_step.items():
-            new_next = self._update_next_id_in_expanded_step(
-                step, original_id_to_partition_to_partitioned_id
-            )
-            step["next"] = new_next
-
-        next_id_to_upstream_ids = defaultdict(set)
-        for step_id, step in step_id_to_expanded_step.items():
-            next_ids = self._get_next_id_from_expanded_step(step)
-            for next_id in next_ids:
-                next_id_to_upstream_ids[next_id].add(step_id)
-
+    def _make_inlets_for_expanded_steps(
+        self, step_id_to_expanded_step, next_id_to_upstream_ids
+    ):
         for step_id, step in step_id_to_expanded_step.items():
             upstream_ids = list(next_id_to_upstream_ids[step_id])
             if upstream_ids:
@@ -245,11 +272,6 @@ class YamlParser:
                 step["inlets"] = this_step_inlets
             else:
                 step["inlets"] = []
-
-        self._make_host_mounts(step_id_to_expanded_step)
-        expanded_steps = list(step_id_to_expanded_step.values())
-
-        return expanded_steps
 
     def _make_host_mounts(self, step_id_to_expanded_step: dict):
 
