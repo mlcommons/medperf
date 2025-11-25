@@ -280,7 +280,7 @@ def create_workflow_benchmark(api_server, benchmark_owner_token, admin_token):
         {
             "name": "chestxray_wprep",
             "git_mlcube_url": (DATA_PREP_ASSETS_WORKFLOW_URL + "workflow.yaml"),
-            "mlcube_hash": "4617173987929fc78471c77318318340067c669eb54f4e0aa3f7d88c4e973f9b",
+            "mlcube_hash": "1bfb153a9ea72ccb36f24264f82a9f003d03472a4e046b9b22422b63f75688e2",
             "git_parameters_url": (
                 DATA_PREP_ASSETS_WORKFLOW_URL + "workspace/parameters.yaml"
             ),
