@@ -59,17 +59,17 @@ jobs:
       working-directory: ./server
       run: python seed.py --cert cert.crt
 
-    - name: Run chestxray demo
+    - name: Run chestxray demo including private model
       working-directory: .
-      run: sh cli/cli_chestxray_tutorial_test.sh -f
+      run: sh cli/cli_chestxray_tutorial_test.sh -f -p
     
     - name: Refresh DB for Workflow test
       working-directory: ./server
       run: sh reset_db.sh && python seed.py --cert cert.crt -w
 
-    - name: Run chestxray demo with workflow
+    - name: Run chestxray demo with workflow (no private model)
       working-directory: .
-      run: sh cli/cli_chestxray_tutorial_test.sh -f -w
+      run: sh cli/cli_chestxray_tutorial_test.sh -f
 
     - name: Run client integration tests
       working-directory: .
