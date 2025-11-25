@@ -73,6 +73,7 @@ class AirflowRunner(Runner):
         medperf_env: dict[str, str] = {},
         ports: list = [],
         disable_network: bool = True,
+        container_decryption_key_file: str = None,
     ):
 
         email = get_medperf_user_data()["email"]

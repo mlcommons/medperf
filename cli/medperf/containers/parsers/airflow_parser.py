@@ -198,3 +198,15 @@ class AirflowParser(Parser):
 
     def is_metadata_specified(self):
         return self._has_metadata
+
+    def is_container_encrypted(self):
+        return False
+
+    def is_docker_archive(self):
+        return False
+
+    def is_docker_image(self):
+        return False
+
+    def is_singularity_file(self):
+        return False
