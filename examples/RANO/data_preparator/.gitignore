@@ -1,0 +1,6 @@
+*data/
+constants.py
+tmpmodel/
+additional_files/
+atlasImage_*.nii.gz
+container_config.yaml

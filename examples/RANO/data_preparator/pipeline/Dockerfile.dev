@@ -1,0 +1,20 @@
+FROM mlcommons/rano-data-prep-mlcube:1.0.10
+
+COPY ./project /project
+ENV WORKSPACE_DIRECTORY='/workspace'
+
+COPY ./atlasImage_0.125.nii.gz /project
+COPY ./tmpmodel/ /project/tmpmodel/
+
+# use a downsampled reference image for DICOM to NIFTI conversion
+RUN mv /project/atlasImage_0.125.nii.gz /Front-End/bin/install/appdir/usr/data/sri24/atlasImage.nii.gz
+
+# remove heavy brain extraction models
+RUN rm -rf /project/stages/data_prep_models/brain_extraction/model_0/
+RUN rm -rf /project/stages/data_prep_models/brain_extraction/model_1/
+
+# use dummy brain extraction models
+RUN cp -r /project/tmpmodel /project/stages/data_prep_models/brain_extraction/model_0
+RUN mv /project/tmpmodel /project/stages/data_prep_models/brain_extraction/model_1
+
+ENTRYPOINT ["python", "/project/direct_stages.py"]
