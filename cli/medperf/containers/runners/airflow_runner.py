@@ -82,7 +82,6 @@ class AirflowRunner(Runner):
         dataset_dir = medperf_mounts.pop("dataset_path")
         airflow_home = os.path.join(dataset_dir, "airflow_home")
         additional_files_path = medperf_mounts["additional_files"]
-        self._symlink_yaml_dag_to_additional_files(additional_files_path)
 
         logging.debug(
             f"Starting Airflow runner with the following airflow home directory: {airflow_home}."
@@ -101,16 +100,6 @@ class AirflowRunner(Runner):
         ) as system_runner:
             system_runner.init_airflow()
             system_runner.wait_for_dag()
-
-    def _symlink_yaml_dag_to_additional_files(self, additional_files_path: str):
-        yaml_file_name = os.path.basename(self.parser.config_file_path)
-        os.makedirs(additional_files_path, exist_ok=True)
-        symlinked_yaml_file_path = os.path.join(additional_files_path, yaml_file_name)
-        try:
-            os.unlink(symlinked_yaml_file_path)
-        except FileNotFoundError:
-            pass
-        os.symlink(self.parser.config_file_path, symlinked_yaml_file_path)
 
     @property
     def is_workflow(self):
