@@ -37,3 +37,4 @@ class ContainerConfigMountKeys(Enum):
     statistics_file = "statistics_file"
     additional_files = "additional_files"
     parameters_file = "parameters_file"
+    metadata_path = "metadata_path"
