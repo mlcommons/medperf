@@ -94,7 +94,7 @@ class AirflowRunner(Runner):
             airflow_home=airflow_home,
             user=username,
             dags_folder=self._DAGS_FOLDER,
-            yaml_dags_dir=additional_files_path,
+            additional_files_dir=additional_files_path,
             mounts=medperf_mounts,
             project_name=self.workflow_name,
             yaml_parser=self.parser,

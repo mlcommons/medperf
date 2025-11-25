@@ -1,6 +1,6 @@
-import yaml
-import os
-from medperf.containers.runners.airflow_runner_utils.dags.constants import YAML_DIR
+from medperf.containers.runners.airflow_runner_utils.dags.constants import (
+    WORKFLOW_YAML_FILE,
+)
 from typing import Union, Any
 from medperf.containers.runners.airflow_runner_utils.dags.dag_utils import (
     import_external_python_function,
@@ -14,7 +14,8 @@ from medperf.containers.runners.airflow_runner_utils.dags.dag_builder import Dag
 from copy import deepcopy
 from medperf.enums import ContainerConfigMountKeys
 from medperf.exceptions import MedperfException
-
+import os
+import yaml
 
 valid_mount_keys = [item.value for item in ContainerConfigMountKeys]
 
@@ -39,8 +40,8 @@ def get_dict_value_by_key_prefix(
 
 class YamlParser:
 
-    def __init__(self, yaml_dir_path: str = None):
-        self.yaml_dir_path = yaml_dir_path or YAML_DIR
+    def __init__(self, yaml_file: str = None):
+        self.yaml_file = yaml_file or WORKFLOW_YAML_FILE
         yaml_content = self.read_yaml_definition()
         self.raw_steps = yaml_content["steps"]
         self._raw_conditions = yaml_content.get("conditions", [])
@@ -50,32 +51,12 @@ class YamlParser:
     def read_yaml_definition(
         self,
     ) -> dict[str, Union[list[dict[str, str]], dict[str, str]]]:
-        yaml_files = [yaml_file for yaml_file in os.listdir(self.yaml_dir_path)]
-        yaml_files = [
-            os.path.join(self.yaml_dir_path, yaml_file) for yaml_file in yaml_files
-        ]
-        yaml_files = [
-            yaml_file
-            for yaml_file in yaml_files
-            if os.path.isfile(yaml_file)
-            and (yaml_file.endswith(".yaml") or yaml_file.endswith(".yml"))
-        ]
-
-        if len(yaml_files) == 0:
-            raise ValueError("No YAML files found!")
-        elif len(yaml_files) > 1:
-            raise ValueError(
-                "More than one YAML file found! The parser currently only supports parsing a single file!"
-            )
-
-        yaml_file = yaml_files[0]
         try:
-            with open(yaml_file, "r") as f:
+            with open(self.yaml_file, "r") as f:
                 raw_content = f.read()
-                expanded_content = os.path.expandvars(raw_content)
-                yaml_info = yaml.safe_load(expanded_content)
+                yaml_info = yaml.safe_load(raw_content)
         except Exception:
-            print(f"Unable to load YAML file {yaml_file}. It will be skipped.")
+            MedperfException(f"Unable to load Workflow YAML file {self.yaml_file}!")
 
         return yaml_info
 
@@ -291,8 +272,6 @@ class YamlParser:
                 host_mounts=host_mounts,
                 volume_key="output_volumes",
             )
-            if step.get("next") is None:  # last step
-                host_mounts["output_path"] = os.getenv("host_statistics_file")
             step["host_mounts"] = host_mounts
 
         for step_id in look_on_second_pass:

@@ -1,6 +1,6 @@
 import os
 from abc import abstractmethod
-from typing import List
+from typing import List, Literal
 from .component import ComponentRunner
 
 
@@ -8,10 +8,11 @@ class AirflowComponentRunner(ComponentRunner):
 
     def __init__(
         self,
-        python_executable: str,
-        airflow_home: str,
-        container_type: str,
-        yaml_dags_dir: str,
+        python_executable: os.PathLike,
+        airflow_home: os.PathLike,
+        container_type: Literal["docker", "singularity"],
+        workflow_yaml_file: os.PathLike,
+        additional_files_dir: os.PathLike,
         dags_folder: os.PathLike,
     ):
         self._python_exec = python_executable
@@ -20,8 +21,8 @@ class AirflowComponentRunner(ComponentRunner):
         self.airflow_home = airflow_home
         self._env_vars = {
             "AIRFLOW_HOME": airflow_home,
-            "PYTHONPATH": f"{dags_folder}:{user_dags_folder}:{yaml_dags_dir}",
-            "YAML_DAGS_DIR": yaml_dags_dir,
+            "PYTHONPATH": f"{dags_folder}:{user_dags_folder}:{additional_files_dir}",
+            "WORKFLOW_YAML_FILE": workflow_yaml_file,
             "CONTAINER_TYPE": container_type,
         }
 

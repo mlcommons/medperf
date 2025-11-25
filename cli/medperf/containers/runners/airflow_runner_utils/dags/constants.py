@@ -6,4 +6,4 @@ SUMMARIZER_TAG = "Pipeline Summarizer"
 ALWAYS_CONDITION = "ALWAYS"
 YESTERDAY = datetime.today() - timedelta(days=1)
 FINAL_ASSET = "medperf_airflow_completed_asset"
-YAML_DIR = os.getenv("YAML_DAGS_DIR")
+WORKFLOW_YAML_FILE = os.getenv("WORKFLOW_YAML_FILE")

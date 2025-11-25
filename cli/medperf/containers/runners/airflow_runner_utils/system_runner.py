@@ -10,7 +10,6 @@ from .components.scheduler import AirflowScheduler
 from .components.triggerer import AirflowTriggerer
 from .components.utils import validate_port
 from .monitor.yaml_dag_monitor import Summarizer
-from .yaml_partial_parser import YamlPartialParser
 from airflow.utils.state import DagRunState
 import configparser
 from typing import Union, List
@@ -23,6 +22,7 @@ from medperf.containers.runners.airflow_runner_utils.dags.constants import (
     FINAL_ASSET,
     SUMMARIZER_ID,
 )
+from medperf.containers.parsers.airflow_parser import AirflowParser
 from medperf import config
 import sys
 
@@ -34,8 +34,9 @@ class AirflowSystemRunner:
         user: str,
         dags_folder: os.PathLike,
         mounts: dict[str, os.PathLike],
-        yaml_dags_dir: os.PathLike,
+        additional_files_dir: os.PathLike,
         project_name: str,
+        yaml_parser: AirflowParser,
         port: Union[str, int] = 8080,
         postgres_port: Union[str, int] = 5432,
         airflow_python_executable: os.PathLike = None,
@@ -48,7 +49,8 @@ class AirflowSystemRunner:
         self.dags_folder = dags_folder
         self.extra_configs = extra_airflow_configs
         self.mounts = mounts
-        self.yaml_parser = YamlPartialParser(yaml_file_dir=yaml_dags_dir)
+        self.yaml_parser = yaml_parser
+        self.additional_files_dir = additional_files_dir
         self.user = user
         self._password = SecretStr(secrets.token_urlsafe(16))
         self.airflow_config_file = os.path.join(self.airflow_home, "airflow.cfg")
@@ -132,7 +134,8 @@ class AirflowSystemRunner:
             "python_executable": self._python_exec,
             "airflow_home": self.airflow_home,
             "container_type": config.platform,
-            "yaml_dags_dir": self.yaml_parser.yaml_dir_path,
+            "additional_files_dir": self.additional_files_dir,
+            "workflow_yaml_file": self.yaml_parser.config_file_path,
             "dags_folder": self.dags_folder,
         }
 
