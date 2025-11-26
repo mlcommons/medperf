@@ -197,7 +197,7 @@ class AirflowParser(Parser):
         return self._has_metadata
 
     def is_metadata_specified(self):
-        return self._has_metadata
+        return self.has_metadata
 
     def is_container_encrypted(self):
         return False
