@@ -1,6 +1,6 @@
 *data/
 constants.py
 tmpmodel/
-additional_files/
+models/
 atlasImage_*.nii.gz
 container_config.yaml
