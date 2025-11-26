@@ -96,7 +96,7 @@ class DockerRunner(Runner):
         container_decryption_key_file: str = None,
     ):
         self.parser.check_task_schema(task)
-        run_args = self.parser.get_run_args(task, medperf_mounts)
+        run_args = self.parser.get_run_args(task)
         check_allowed_run_args(run_args)
 
         add_medperf_run_args(run_args)

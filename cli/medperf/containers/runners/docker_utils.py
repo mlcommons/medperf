@@ -75,6 +75,7 @@ def generate_unique_image_name(
 
 
 def volumes_to_cli_args(input_volumes: list, output_volumes: list):
+    # TODO: check that mount path should not be repeated
     logging.debug("Converting volumes to CLI args")
     args = []
     for volume in input_volumes:

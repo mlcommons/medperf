@@ -65,7 +65,7 @@ class SimpleContainerParser(Parser):
                 )
         return input_volumes, output_volumes
 
-    def get_run_args(self, task: str, medperf_mounts: dict):
+    def get_run_args(self, task: str):
         task_info = self.container_config["tasks"][task]
         run_args = task_info.get("run_args", {})
         logging.debug(f"run args: {run_args}")

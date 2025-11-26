@@ -19,7 +19,7 @@ class Parser(ABC):
         pass
 
     @abstractmethod
-    def get_run_args(self, task: str, medperf_mounts: dict):
+    def get_run_args(self, task: str):
         pass
 
     @abstractmethod

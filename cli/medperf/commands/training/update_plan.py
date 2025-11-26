@@ -33,7 +33,6 @@ class UpdatePlan:
         self.training_exp = TrainingExp.get(self.training_exp_id)
         self.ui.print(f"Training Experiment: {self.training_exp.name}")
         self.user_email: str = get_medperf_user_data()["email"]
-        self.temp_dir = generate_tmp_path()
 
     def prepare_plan(self):
         self.training_exp.prepare_plan()
@@ -69,7 +68,6 @@ class UpdatePlan:
             "node_cert_folder": self.admin_pki_assets,
             "ca_cert_folder": self.ca.pki_assets,
             "plan_path": self.training_exp.plan_path,
-            "temp_dir": self.temp_dir,
         }
 
         self.ui.text = "Updating plan"
