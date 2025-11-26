@@ -1,1 +1,1 @@
-python /mlcube_project/mlcube.py $@
+python /project/entrypoint.py $@

@@ -1,0 +1,71 @@
+container_type: DockerImage
+image: mlcommons/medperf-fl:1.0.1
+tasks:
+  generate_plan:
+    run_args:
+      command: generate_plan
+    input_volumes:
+      aggregator_config_path:
+        mount_path: /mlcommons/volumes/aggregator_config/aggregator_config.yaml
+        type: file
+      training_config_path:
+        mount_path: /mlcommons/volumes/training_config/training_config.yaml
+        type: file
+    output_volumes:
+      plan_path:
+        mount_path: /mlcommons/volumes/plan/plan.yaml
+        type: file
+  start_aggregator:
+    run_args:
+      command: start_aggregator
+    input_volumes:
+      additional_files:
+        mount_path: /mlcommons/volumes/additional_files
+        type: directory
+      ca_cert_folder:
+        mount_path: /mlcommons/volumes/ca_cert_folder
+        type: directory
+      collaborators:
+        mount_path: /mlcommons/volumes/collaborators/cols.yaml
+        type: file
+      node_cert_folder:
+        mount_path: /mlcommons/volumes/node_cert_folder
+        type: directory
+      plan_path:
+        mount_path: /mlcommons/volumes/plan/plan.yaml
+        type: file
+    output_volumes:
+      output_logs:
+        mount_path: /mlcommons/volumes/output_logs
+        type: directory
+      output_weights:
+        mount_path: /mlcommons/volumes/output_weights
+        type: directory
+      report_path:
+        mount_path: /mlcommons/volumes/report/report.yaml
+        type: file
+
+  train:
+    run_args:
+      command: train
+
+    input_volumes:
+      ca_cert_folder:
+        mount_path: /mlcommons/volumes/ca_cert_folder
+        type: directory
+      data_path:
+        mount_path: /mlcommons/volumes/data
+        type: directory
+      labels_path:
+        mount_path: /mlcommons/volumes/labels
+        type: directory
+      node_cert_folder:
+        mount_path: /mlcommons/volumes/node_cert_folder
+        type: directory
+      plan_path:
+        mount_path: /mlcommons/volumes/plan/plan.yaml
+        type: file
+    output_volumes:
+      output_logs:
+        mount_path: /mlcommons/volumes/output_logs
+        type: directory

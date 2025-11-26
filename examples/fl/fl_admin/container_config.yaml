@@ -1,0 +1,34 @@
+container_type: DockerImage
+image: mlcommons/medperf-fl-admin:1.0.1
+tasks:
+  get_experiment_status:
+    run_args:
+      command: get_experiment_status
+    input_volumes:
+      ca_cert_folder:
+        mount_path: /mlcommons/volumes/ca_cert_folder
+        type: directory
+      node_cert_folder:
+        mount_path: /mlcommons/volumes/node_cert_folder
+        type: directory
+      plan_path:
+        mount_path: /mlcommons/volumes/plan/plan.yaml
+        type: file
+    output_volumes:
+      output_status_file:
+        mount_path: /mlcommons/volumes/status/status.yaml
+        type: file
+
+  update_plan:
+    run_args:
+      command: update_plan
+    input_volumes:
+      ca_cert_folder:
+        mount_path: /mlcommons/volumes/ca_cert_folder
+        type: directory
+      node_cert_folder:
+        mount_path: /mlcommons/volumes/node_cert_folder
+        type: directory
+      plan_path:
+        mount_path: /mlcommons/volumes/plan/plan.yaml
+        type: file

@@ -17,13 +17,11 @@ done
 
 # validate arguments
 if [ -z "$ca_config" ]; then
-    echo "--ca_config is required"
-    exit 1
+    ca_config="/mlcommons/volumes/ca_config/ca_config.json"
 fi
 
 if [ -z "$pki_assets" ]; then
-    echo "--pki_assets is required"
-    exit 1
+    pki_assets="/mlcommons/volumes/pki_assets"
 fi
 
 if [ -z "$MEDPERF_INPUT_CN" ]; then
@@ -42,7 +40,7 @@ fi
 mkdir -p /tmp/root_ca
 
 # verify the ca first
-/bin/sh /mlcube_project/trust.sh --ca_config $ca_config --pki_assets /tmp/root_ca
+/bin/sh /project/trust.sh --ca_config $ca_config --pki_assets /tmp/root_ca
 
 EXITSTATUS="$?"
 if [ $EXITSTATUS -ne "0" ]; then

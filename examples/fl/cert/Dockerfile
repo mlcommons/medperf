@@ -7,6 +7,6 @@ RUN wget https://dl.smallstep.com/gh-release/cli/gh-release-header/v${VERSION}/s
     && tar -xf step_linux_${VERSION}_amd64.tar.gz \
     && cp step_${VERSION}/bin/step /usr/bin
 
-COPY . /mlcube_project
+COPY project /project
 
 ENTRYPOINT ["/bin/sh"]

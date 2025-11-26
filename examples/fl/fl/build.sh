@@ -13,4 +13,4 @@ if ${BUILD_BASE}; then
     cd ..
     rm -rf openfl
 fi
-mlcube configure --mlcube ./mlcube -Pdocker.build_strategy=always
+docker build -t mlcommons/medperf-fl:1.0.1 -f Dockerfile .

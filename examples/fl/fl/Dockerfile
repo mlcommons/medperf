@@ -13,10 +13,10 @@ RUN pip install --no-cache-dir torch==2.1.2 torchvision==0.16.2 torchaudio==2.1.
     cd GaNDLF && git checkout dd88b8883cb0e57a0ac615e9cb5be7416d0dada4 && \
     pip install --no-cache-dir -e .
 
-COPY ./requirements.txt /mlcube_project/requirements.txt
-RUN pip install --no-cache-dir -r /mlcube_project/requirements.txt
+COPY project/requirements.txt /project/requirements.txt
+RUN pip install --no-cache-dir -r /project/requirements.txt
 
 # Copy mlcube workspace
-COPY . /mlcube_project
+COPY project /project
 
-ENTRYPOINT ["sh", "/mlcube_project/entrypoint.sh"]
+ENTRYPOINT ["sh", "/project/entrypoint.sh"]

@@ -1,3 +1,3 @@
-rm -rf mlcube/workspace/data
-rm -rf mlcube/workspace/labels
-rm -rf mlcube/workspace/statistics.yaml
+rm -rf workspace/data
+rm -rf workspace/labels
+rm -rf workspace/statistics

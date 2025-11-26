@@ -13,7 +13,6 @@ while [ "${1:-}" != "" ]; do
         pki_assets="${1#*=}"
         ;;
     *)
-        task=$1
         ;;
     esac
     shift
@@ -21,18 +20,11 @@ done
 
 # validate arguments
 if [ -z "$ca_config" ]; then
-    echo "--ca_config is required"
-    exit 1
+    ca_config="/mlcommons/volumes/ca_config/ca_config.json"
 fi
 
 if [ -z "$pki_assets" ]; then
-    echo "--pki_assets is required"
-    exit 1
-fi
-
-if [ "$task" != "trust" ]; then
-    echo "Invalid task: Task should be 'trust'"
-    exit 1
+    pki_assets="/mlcommons/volumes/pki_assets"
 fi
 
 export STEPPATH=$pki_assets/.step

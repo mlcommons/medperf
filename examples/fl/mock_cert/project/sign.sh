@@ -18,8 +18,8 @@ if [ -z "$MEDPERF_INPUT_CN" ]; then
 fi
 
 mkdir -p $OUT
-cp /mlcube_project/csr.conf $OUT/
-cp -r /mlcube_project/ca $OUT/
+cp /project/csr.conf $OUT/
+cp -r /project/ca $OUT/
 CSR_CONF=$OUT/csr.conf
 CA_KEY=$OUT/ca/root.key
 CA_CERT=$OUT/ca/cert/root.crt

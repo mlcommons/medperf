@@ -17,12 +17,16 @@ app = typer.Typer()
 
 @app.command("train")
 def train(
-    data_path: str = typer.Option(..., "--data_path"),
-    labels_path: str = typer.Option(..., "--labels_path"),
-    node_cert_folder: str = typer.Option(..., "--node_cert_folder"),
-    ca_cert_folder: str = typer.Option(..., "--ca_cert_folder"),
-    plan_path: str = typer.Option(..., "--plan_path"),
-    output_logs: str = typer.Option(..., "--output_logs"),
+    data_path: str = typer.Option("/mlcommons/volumes/data", "--data_path"),
+    labels_path: str = typer.Option("/mlcommons/volumes/labels", "--labels_path"),
+    node_cert_folder: str = typer.Option(
+        "/mlcommons/volumes/node_cert_folder", "--node_cert_folder"
+    ),
+    ca_cert_folder: str = typer.Option(
+        "/mlcommons/volumes/ca_cert_folder", "--ca_cert_folder"
+    ),
+    plan_path: str = typer.Option("/mlcommons/volumes/plan/plan.yaml", "--plan_path"),
+    output_logs: str = typer.Option("/mlcommons/volumes/output_logs", "--output_logs"),
 ):
     workspace_folder = generic_setup(output_logs)
     setup_collaborator(
@@ -59,14 +63,26 @@ def train(
 
 @app.command("start_aggregator")
 def start_aggregator_(
-    input_weights: str = typer.Option(..., "--input_weights"),
-    node_cert_folder: str = typer.Option(..., "--node_cert_folder"),
-    ca_cert_folder: str = typer.Option(..., "--ca_cert_folder"),
-    output_logs: str = typer.Option(..., "--output_logs"),
-    output_weights: str = typer.Option(..., "--output_weights"),
-    plan_path: str = typer.Option(..., "--plan_path"),
-    collaborators: str = typer.Option(..., "--collaborators"),
-    report_path: str = typer.Option(..., "--report_path"),
+    input_weights: str = typer.Option(
+        "/mlcommons/volumes/additional_files/init_weights", "--input_weights"
+    ),
+    node_cert_folder: str = typer.Option(
+        "/mlcommons/volumes/node_cert_folder", "--node_cert_folder"
+    ),
+    ca_cert_folder: str = typer.Option(
+        "/mlcommons/volumes/ca_cert_folder", "--ca_cert_folder"
+    ),
+    output_logs: str = typer.Option("/mlcommons/volumes/output_logs", "--output_logs"),
+    output_weights: str = typer.Option(
+        "/mlcommons/volumes/output_weights", "--output_weights"
+    ),
+    plan_path: str = typer.Option("/mlcommons/volumes/plan/plan.yaml", "--plan_path"),
+    collaborators: str = typer.Option(
+        "/mlcommons/volumes/collaborators/cols.yaml", "--collaborators"
+    ),
+    report_path: str = typer.Option(
+        "/mlcommons/volumes/report/report.yaml", "--report_path"
+    ),
 ):
     workspace_folder = generic_setup(output_logs)
     setup_aggregator(
@@ -113,9 +129,15 @@ def start_aggregator_(
 
 @app.command("generate_plan")
 def generate_plan_(
-    training_config_path: str = typer.Option(..., "--training_config_path"),
-    aggregator_config_path: str = typer.Option(..., "--aggregator_config_path"),
-    plan_path: str = typer.Option(..., "--plan_path"),
+    training_config_path: str = typer.Option(
+        "/mlcommons/volumes/training_config/training_config.yaml",
+        "--training_config_path",
+    ),
+    aggregator_config_path: str = typer.Option(
+        "/mlcommons/volumes/aggregator_config/aggregator_config.yaml",
+        "--aggregator_config_path",
+    ),
+    plan_path: str = typer.Option("/mlcommons/volumes/plan/plan.yaml", "--plan_path"),
 ):
     # no _setup here since there is no writable output mounted volume.
     # later if need this we think of a solution. Currently the create_plam

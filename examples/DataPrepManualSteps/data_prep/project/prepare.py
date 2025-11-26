@@ -112,9 +112,9 @@ def transform_row(row: pd.Series):
         except:
             row["status"] = -4
             row["status_name"] = "LABEL_ERROR"
-            row[
-                "comment"
-            ] = 'Could not transform label. Check labels are either YES or NO and label name is "test_passed"'
+            row["comment"] = (
+                'Could not transform label. Check labels are either YES or NO and label name is "test_passed"'
+            )
         print(row["status"])
 
     if abs(row["status"]) == 5:
@@ -127,9 +127,9 @@ def transform_row(row: pd.Series):
             row["verified"] = 0
             row["status"] = -5
             row["status_name"] = "UNVERIFIED_ERROR"
-            row[
-                "comment"
-            ] = 'Ensure the sample looks correct, and manually change the "verified" flag to 1 if so'
+            row["comment"] = (
+                'Ensure the sample looks correct, and manually change the "verified" flag to 1 if so'
+            )
         print(row["status"])
 
     return row
@@ -208,25 +208,46 @@ def get_df(path):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser("Medperf Data Preparator Example")
     parser.add_argument(
-        "--data_path", dest="data", type=str, help="path containing raw data"
+        "--data_path",
+        dest="data",
+        type=str,
+        help="path containing raw data",
+        default="/mlcommons/volumes/raw_data",
     )
     parser.add_argument(
-        "--labels_path", dest="labels", type=str, help="path containing labels"
+        "--labels_path",
+        dest="labels",
+        type=str,
+        help="path containing labels",
+        default="/mlcommons/volumes/raw_labels",
     )
     parser.add_argument(
-        "--data_out", dest="data_out", type=str, help="path to store prepared data"
+        "--data_out",
+        dest="data_out",
+        type=str,
+        help="path to store prepared data",
+        default="/mlcommons/volumes/data",
     )
     parser.add_argument(
         "--labels_out",
         dest="labels_out",
         type=str,
         help="path to store prepared labels",
+        default="/mlcommons/volumes/labels",
     )
     parser.add_argument(
-        "--report", dest="report", type=str, help="path to the report csv file to store"
+        "--report",
+        dest="report",
+        type=str,
+        help="path to the report csv file to store",
+        default="/mlcommons/volumes/report/report.yaml",
     )
     parser.add_argument(
-        "--metadata_path", dest="metadata", type=str, help="path to the metadata"
+        "--metadata_path",
+        dest="metadata",
+        type=str,
+        help="path to the metadata",
+        default="/mlcommons/volumes/metadata",
     )
 
     args = parser.parse_args()

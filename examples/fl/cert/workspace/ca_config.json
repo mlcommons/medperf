@@ -1,7 +1,7 @@
 {
   "address": "https://flcerts.medperf.org",
   "port": 443,
-  "fingerprint": "",
+  "fingerprint": "2134ad46f56c61c4342eed48067c6a57bd59125bce033ca09389654b9f4446c1",
   "client_provisioner": "auth0",
   "server_provisioner": "acme"
 }
