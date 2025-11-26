@@ -1,0 +1,53 @@
+container_type: DockerImage
+image: hasan7/mock-prep-sep:0.0.1
+tasks:
+  prepare:
+    run_args:
+      command: /project/prepare_data.py
+    input_volumes:
+      data_path:
+        mount_path: /medperf_raw_data
+        type: directory
+      labels_path:
+        mount_path: /medperf_raw_labels
+        type: directory
+      parameters_file:
+        mount_path: /medperf_parameters.yaml
+        type: file
+    output_volumes:
+      output_path:
+        mount_path: /medperf_data
+        type: directory
+      output_labels_path:
+        mount_path: /medperf_labels
+        type: directory
+  sanity_check:
+    run_args:
+      command: /project/check.py
+    input_volumes:
+      data_path:
+        mount_path: /medperf_data
+        type: directory
+      labels_path:
+        mount_path: /medperf_labels
+        type: directory
+      parameters_file:
+        mount_path: /medperf_parameters.yaml
+        type: file
+  statistics:
+    run_args:
+      command: /project/statistics.py
+    input_volumes:
+      data_path:
+        mount_path: /medperf_data
+        type: directory
+      labels_path:
+        mount_path: /medperf_labels
+        type: directory
+      parameters_file:
+        mount_path: /medperf_parameters.yaml
+        type: file
+    output_volumes:
+      output_path:
+        mount_path: /medperf_statistics.yaml
+        type: file

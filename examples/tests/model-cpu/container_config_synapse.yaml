@@ -1,0 +1,19 @@
+container_type: DockerImage
+image: docker.synapse.org/syn51060790/mock-model-cpu:0.0.0
+
+tasks:
+  infer:
+    input_volumes:
+      data_path:
+        mount_path: /mlcommons/volumes/data
+        type: directory
+      parameters_file:
+        mount_path: /mlcommons/volumes/parameters/parameters.yaml
+        type: file
+      additional_files:
+        mount_path: /mlcommons/volumes/additional_files
+        type: directory
+    output_volumes:
+      output_path:
+        mount_path: /mlcommons/volumes/predictions
+        type: directory

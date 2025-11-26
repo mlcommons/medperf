@@ -39,22 +39,11 @@ echo "====================================="
 echo "Retrieving mock datasets"
 echo "====================================="
 echo "downloading files to $DIRECTORY"
-print_eval wget -P $DIRECTORY "$ASSETS_URL/assets/datasets/dataset_a.tar.gz"
+print_eval wget -P $DIRECTORY "$DSET_A_URL"
 print_eval tar -xzvf $DIRECTORY/dataset_a.tar.gz -C $DIRECTORY
-print_eval wget -P $DIRECTORY "$ASSETS_URL/assets/datasets/dataset_b.tar.gz"
+print_eval wget -P $DIRECTORY "$DSET_B_URL"
 print_eval tar -xzvf $DIRECTORY/dataset_b.tar.gz -C $DIRECTORY
 print_eval chmod -R a+w $DIRECTORY
-##########################################################
-
-echo "\n"
-
-##########################################################
-echo "====================================="
-echo "Retrieving containers decryption keys"
-echo "====================================="
-echo "downloading files to $DIRECTORY"
-print_eval wget -P $DIRECTORY "$ASSETS_URL/assets/docker_decryption_key.bin"
-print_eval wget -P $DIRECTORY "$ASSETS_URL/assets/singularity_decryption_key.bin"
 ##########################################################
 
 echo "\n"
@@ -117,13 +106,13 @@ MODEL1_UID=$(medperf container ls | grep model1 | head -n 1 | tr -s ' ' | cut -d
 echo "MODEL1_UID=$MODEL1_UID"
 
 # Encrypted model docker archive
-print_eval medperf container submit --name model2 -m $MODEL_ENCRYPTED_ARCHIVE_MLCUBE -p $MODEL2_PARAMS -a $MODEL_ADD --decryption-key $DIRECTORY/docker_decryption_key.bin --operational
+print_eval medperf container submit --name model2 -m $MODEL_ENCRYPTED_ARCHIVE_MLCUBE -p $MODEL2_PARAMS -a $MODEL_ADD --decryption-key $DOCKER_DECRYPTION_KEY --operational
 checkFailed "Model2 submission failed"
 MODEL2_UID=$(medperf container ls | grep model2 | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 echo "MODEL2_UID=$MODEL2_UID"
 
 # Encrypted model singularity file
-print_eval medperf --platform singularity container submit --name model3 -m $MODEL_ENCRYPTED_SINGULARITY_MLCUBE -p $MODEL3_PARAMS -a $MODEL_ADD --decryption-key $DIRECTORY/singularity_decryption_key.bin --operational
+print_eval medperf --platform singularity container submit --name model3 -m $MODEL_ENCRYPTED_SINGULARITY_MLCUBE -p $MODEL3_PARAMS -a $MODEL_ADD --decryption-key $SINGULARITY_DECRYPTION_KEY --operational
 checkFailed "Model3 submission failed"
 MODEL3_UID=$(medperf container ls | grep model3 | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 echo "MODEL3_UID=$MODEL3_UID"

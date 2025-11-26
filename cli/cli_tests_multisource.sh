@@ -8,7 +8,7 @@
 
 # overwrite some variables
 MODEL_ADD="synapse:syn51089171"
-MODEL_MLCUBE="$ASSETS_URL/model-cpu/mlcube/mlcube_private_docker.yaml"
+MODEL_MLCUBE="$MEDPERF_ROOT_REPO/examples/tests/model-cpu/container_config_synapse.yaml"
 
 ##########################################################
 ################### Start Testing ########################
@@ -34,9 +34,9 @@ echo "====================================="
 echo "Retrieving mock datasets"
 echo "====================================="
 echo "downloading files to $DIRECTORY"
-print_eval wget -P $DIRECTORY "$ASSETS_URL/assets/datasets/dataset_a.tar.gz"
+print_eval wget -P $DIRECTORY "$DSET_A_URL"
 print_eval tar -xzvf $DIRECTORY/dataset_a.tar.gz -C $DIRECTORY
-print_eval wget -P $DIRECTORY "$ASSETS_URL/assets/datasets/dataset_b.tar.gz"
+print_eval wget -P $DIRECTORY "$DSET_B_URL"
 print_eval tar -xzvf $DIRECTORY/dataset_b.tar.gz -C $DIRECTORY
 print_eval chmod -R a+w $DIRECTORY
 ##########################################################

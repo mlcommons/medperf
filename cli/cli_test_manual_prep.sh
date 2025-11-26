@@ -86,8 +86,8 @@ echo "====================================="
 echo "Submit containers"
 echo "====================================="
 
-PREP_MLCUBE="$(dirname $(dirname $(realpath "$0")))/examples/DataPrepManualSteps/data_prep/mlcube/mlcube.yaml"
-PREP_PARAMS="$(dirname $(dirname $(realpath "$0")))/examples/DataPrepManualSteps/data_prep/mlcube/workspace/parameters.yaml"
+PREP_MLCUBE="$MEDPERF_ROOT_REPO/examples/DataPrepManualSteps/data_prep/container_config.yaml"
+PREP_PARAMS="$MEDPERF_ROOT_REPO/examples/DataPrepManualSteps/data_prep/workspace/parameters.yaml"
 print_eval medperf container submit --name manprep -m $PREP_MLCUBE -p $PREP_PARAMS
 checkFailed "Prep submission failed"
 PREP_UID=$(medperf container ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
