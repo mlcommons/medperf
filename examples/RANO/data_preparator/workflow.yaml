@@ -115,6 +115,9 @@ steps:
         output_path:
           mount_path: /workspace/data
           type: directory
+        output_labels_path:
+          mount_path: /workspace/labels
+          type: directory 
     command: prepare_for_manual_review
     next: 
       if:
@@ -131,15 +134,24 @@ steps:
     <<: *BASE_STEP
     mounts:  
       input_volumes:
-        review_input:
+        review_input_data:
           mount_path: /workspace/data
           type: directory
           from:
             step: prepare_for_manual_review
             mount: output_path
+        review_input_labels:
+          mount_path: /workspace/labels
+          type: directory
+          from:
+            step: prepare_for_manual_review
+            mount: output_labels_path
       output_volumes:
         output_path:
           mount_path: /workspace/data
+          type: directory
+        output_labels_path:
+          mount_path: /workspace/labels
           type: directory
     command: rollback_to_brain_extract
     next: brain_extraction
@@ -149,16 +161,25 @@ steps:
     <<: *BASE_STEP
     mounts:  
       input_volumes:
-        review_input:
+        review_input_data:
           mount_path: /workspace/data
           type: directory
           from:
             step: prepare_for_manual_review
             mount: output_path
+        review_input_labels:
+          mount_path: /workspace/labels
+          type: directory
+          from:
+            step: prepare_for_manual_review
+            mount: output_labels_path
       output_volumes:
         output_path:
           mount_path: /workspace/data
           type: directory
+        output_labels_path:
+            mount_path: /workspace/labels
+            type: directory
     command: segmentation_comparison
     next: calculate_changed_voxels
     per_subject: true
@@ -167,16 +188,25 @@ steps:
     <<: *BASE_STEP
     mounts:  
       input_volumes:
-        segmentation_comparison_input:
+        segmentation_comparison_input_data:
           mount_path: /workspace/data
           type: directory
           from:
             step: segmentation_comparison
             mount: output_path
+        segmentation_comparison_input_labels:
+          mount_path: /workspace/labels
+          type: directory
+          from:
+            step: segmentation_comparison
+            mount: output_labels_path
       output_volumes:
         output_path:
           mount_path: /workspace/data
           type: directory
+        output_labels_path:
+            mount_path: /workspace/labels
+            type: directory
     command: calculate_changed_voxels
     next: final_confirmation
 
@@ -189,15 +219,24 @@ steps:
     <<: *BASE_STEP
     mounts:  
       input_volumes:
-        changed_voxels_input:
+        changed_voxels_input_data:
           mount_path: /workspace/data
           type: directory
           from:
             step: calculate_changed_voxels
             mount: output_path
+        changed_voxels_input_input_labels:
+          mount_path: /workspace/labels
+          type: directory
+          from:
+            step: calculate_changed_voxels
+            mount: output_labels_path
       output_volumes:
         output_path:
           mount_path: /workspace/data
+          type: directory
+        output_labels_path:
+          mount_path: /workspace/labels
           type: directory
     command: move_labeled_files
     next: consolidation_stage
@@ -207,18 +246,36 @@ steps:
     <<: *BASE_STEP
     mounts:  
       input_volumes:
-        move_labeled_files_input:
+        parameters_file:
+          mount_path: /workspace/parameters.yaml
+          type: file
+        move_labeled_files_input_data:
           mount_path: /workspace/data
           type: directory
           from:
             step: move_labeled_files
             mount: output_path
+        changed_voxels_input_input_labels:
+          mount_path: /workspace/labels
+          type: directory
+          from:
+            step: move_labeled_files
+            mount: output_labels_path
+        nifti_metadata:
+          mount_path: /workspace/metadata
+          type: directory
+          from: 
+            step: nifti_conversion
+            mount: metadata_path
       output_volumes:
         output_path:
           mount_path: /workspace/data
           type: directory
         output_labels_path:
-          mount_path: /workspace/data/labels
+          mount_path: /workspace/labels
+          type: directory
+        metadata_path:
+          mount_path: /workspace/metadata
           type: directory
     command: consolidation_stage
     next: sanity_check
@@ -227,12 +284,18 @@ steps:
     <<: *BASE_STEP
     mounts:  
       input_volumes:
-       consolidation_input:
+       consolidation_input_data:
           mount_path: /workspace/data
           type: directory
           from:
             step: consolidation_stage
             mount: output_path
+       consolidation_input_labels:
+          mount_path: /workspace/labels
+          type: directory
+          from:
+            step: consolidation_stage
+            mount: output_labels_path
     command: sanity_check
     next: metrics
 
@@ -250,8 +313,11 @@ steps:
         statistics_file:
           mount_path: /workspace/data/statistics.yaml
           type: file
+        metadata_path:
+          mount_path: /workspace/metadata
+          type: directory
         output_labels_path:
-          mount_path: /workspace/data/labels
+          mount_path: /workspace/labels
           type: directory
     command: metrics
     next: null
