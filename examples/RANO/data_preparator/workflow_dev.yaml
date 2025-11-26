@@ -1,0 +1,336 @@
+base_step: &BASE_STEP
+  - type: container
+    image: mlcommons/rano-data-prep-workflow-dev:0.0.1
+
+
+steps:
+  - id: setup
+    <<: *BASE_STEP
+    command: initial_setup
+    mounts:
+      input_volumes:
+        data_path:
+          mount_path: /workspace/input_data
+          type: directory
+      output_volumes:
+        output_path:
+          mount_path: /workspace/data
+          type: directory
+    next: make_csv
+    on_error: do_something
+    per_subject: false
+    
+  - id: make_csv
+    <<: *BASE_STEP
+    command: make_csv
+    mounts:
+      input_volumes:
+        data_path:
+          mount_path: /workspace/input_data
+          type: directory
+      output_volumes:
+        output_path:
+          mount_path: /workspace/data
+          type: directory
+    next: nifti_conversion
+    on_error: do_something
+    per_subject: true
+  
+  - id: nifti_conversion
+    <<: *BASE_STEP
+    mounts:  
+      input_volumes:
+        csv_input:
+          mount_path: /workspace/data
+          type: directory
+          from:
+            step: make_csv
+            mount: output_path
+      output_volumes:
+        output_path:
+          mount_path: /workspace/data
+          type: directory
+        metadata_path:
+          mount_path: /workspace/metadata
+          type: directory
+    command: convert_nifti
+    next: brain_extraction
+    on_error: do_something
+    per_subject: true
+  
+  - id: brain_extraction
+    <<: *BASE_STEP
+    mounts:  
+      input_volumes:
+        nifti_input:
+          mount_path: /workspace/data
+          type: directory
+          from:
+            step: nifti_conversion
+            mount: output_path
+      output_volumes:
+        output_path:
+          mount_path: /workspace/data
+          type: directory
+    command: extract_brain 
+    next: tumor_extraction
+    on_error: do_something
+    per_subject: true
+    limit: 2
+
+  - id: tumor_extraction
+    <<: *BASE_STEP
+    mounts:  
+      input_volumes:
+        brain_extraction_input:
+          mount_path: /workspace/data
+          type: directory
+          from:
+            step: brain_extraction
+            mount: output_path
+        additional_files:
+          mount_path: /workspace/additional_files
+          type: directory
+      output_volumes:
+        output_path:
+          mount_path: /workspace/data
+          type: directory
+    command: extract_tumor
+    next: prepare_for_manual_review
+    on_error: do_something
+    per_subject: true
+    limit: 2
+
+  - id: prepare_for_manual_review
+    <<: *BASE_STEP
+    mounts:  
+      input_volumes:
+        tumor_extraction_input:
+          mount_path: /workspace/data
+          type: directory
+          from:
+            step: tumor_extraction
+            mount: output_path
+      output_volumes:
+        output_path:
+          mount_path: /workspace/data
+          type: directory
+        output_labels_path:
+          mount_path: /workspace/labels
+          type: directory 
+    command: prepare_for_manual_review
+    next: 
+      if:
+        - condition: annotation_done
+          target: segmentation_comparison
+        - condition: brain_mask_changed
+          target: rollback_to_brain_extract
+      else: prepare_for_manual_review
+      wait: 60
+    on_error: do_something
+    per_subject: true
+  
+  - id: rollback_to_brain_extract
+    <<: *BASE_STEP
+    mounts:  
+      input_volumes:
+        review_input_data:
+          mount_path: /workspace/data
+          type: directory
+          from:
+            step: prepare_for_manual_review
+            mount: output_path
+        review_input_labels:
+          mount_path: /workspace/labels
+          type: directory
+          from:
+            step: prepare_for_manual_review
+            mount: output_labels_path
+      output_volumes:
+        output_path:
+          mount_path: /workspace/data
+          type: directory
+        output_labels_path:
+          mount_path: /workspace/labels
+          type: directory
+    command: rollback_to_brain_extract
+    next: brain_extraction
+    per_subject: true
+
+  - id: segmentation_comparison
+    <<: *BASE_STEP
+    mounts:  
+      input_volumes:
+        review_input_data:
+          mount_path: /workspace/data
+          type: directory
+          from:
+            step: prepare_for_manual_review
+            mount: output_path
+        review_input_labels:
+          mount_path: /workspace/labels
+          type: directory
+          from:
+            step: prepare_for_manual_review
+            mount: output_labels_path
+      output_volumes:
+        output_path:
+          mount_path: /workspace/data
+          type: directory
+        output_labels_path:
+            mount_path: /workspace/labels
+            type: directory
+    command: segmentation_comparison
+    next: calculate_changed_voxels
+    per_subject: true
+
+  - id: calculate_changed_voxels
+    <<: *BASE_STEP
+    mounts:  
+      input_volumes:
+        segmentation_comparison_input_data:
+          mount_path: /workspace/data
+          type: directory
+          from:
+            step: segmentation_comparison
+            mount: output_path
+        segmentation_comparison_input_labels:
+          mount_path: /workspace/labels
+          type: directory
+          from:
+            step: segmentation_comparison
+            mount: output_labels_path
+      output_volumes:
+        output_path:
+          mount_path: /workspace/data
+          type: directory
+        output_labels_path:
+            mount_path: /workspace/labels
+            type: directory
+    command: calculate_changed_voxels
+    next: final_confirmation
+
+  - id: final_confirmation
+    type: manual_approval
+    next: move_labeled_files
+
+  
+  - id: move_labeled_files
+    <<: *BASE_STEP
+    mounts:  
+      input_volumes:
+        changed_voxels_input_data:
+          mount_path: /workspace/data
+          type: directory
+          from:
+            step: calculate_changed_voxels
+            mount: output_path
+        changed_voxels_input_input_labels:
+          mount_path: /workspace/labels
+          type: directory
+          from:
+            step: calculate_changed_voxels
+            mount: output_labels_path
+      output_volumes:
+        output_path:
+          mount_path: /workspace/data
+          type: directory
+        output_labels_path:
+          mount_path: /workspace/labels
+          type: directory
+    command: move_labeled_files
+    next: consolidation_stage
+
+    
+  - id: consolidation_stage
+    <<: *BASE_STEP
+    mounts:  
+      input_volumes:
+        parameters_file:
+          mount_path: /workspace/parameters.yaml
+          type: file
+        move_labeled_files_input_data:
+          mount_path: /workspace/data
+          type: directory
+          from:
+            step: move_labeled_files
+            mount: output_path
+        changed_voxels_input_input_labels:
+          mount_path: /workspace/labels
+          type: directory
+          from:
+            step: move_labeled_files
+            mount: output_labels_path
+        nifti_metadata:
+          mount_path: /workspace/metadata
+          type: directory
+          from: 
+            step: nifti_conversion
+            mount: metadata_path
+      output_volumes:
+        output_path:
+          mount_path: /workspace/data
+          type: directory
+        output_labels_path:
+          mount_path: /workspace/labels
+          type: directory
+        metadata_path:
+          mount_path: /workspace/metadata
+          type: directory
+    command: consolidation_stage
+    next: sanity_check
+
+  - id: sanity_check
+    <<: *BASE_STEP
+    mounts:  
+      input_volumes:
+       consolidation_input_data:
+          mount_path: /workspace/data
+          type: directory
+          from:
+            step: consolidation_stage
+            mount: output_path
+       consolidation_input_labels:
+          mount_path: /workspace/labels
+          type: directory
+          from:
+            step: consolidation_stage
+            mount: output_labels_path
+    command: sanity_check
+    next: metrics
+
+  - id: metrics
+    <<: *BASE_STEP
+    mounts:  
+      input_volumes:
+        consolidation_input:
+          mount_path: /workspace/data
+          type: directory
+          from:
+            step: consolidation_stage
+            mount: output_path
+      output_volumes:
+        statistics_file:
+          mount_path: /workspace/data/statistics.yaml
+          type: file
+        metadata_path:
+          mount_path: /workspace/metadata
+          type: directory
+        output_labels_path:
+          mount_path: /workspace/labels
+          type: directory
+    command: metrics
+    next: null
+
+conditions:
+  - id: annotation_done
+    type: function
+    function_name: conditions.annotation_done
+
+  - id: brain_mask_changed
+    type: function
+    function_name: conditions.brain_mask_changed
+
+per_subject_def:
+  type: function
+  function_name: subject_definition.subject_definition
