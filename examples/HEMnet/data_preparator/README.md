@@ -1,6 +1,6 @@
 # HEMnet pipeline
 
-This pipeline runs the training data preparation procedure from [HEMnet](https://github.com/BiomedicalMachineLearning/HEMnet/tree/master). A modified version of their original [Docker image](https://hub.docker.com/layers/andrewsu1/hemnet/latest/images/sha256-5b371f828cfd41e223b46678cef157ec599847f17f0cf5711a0288908b287d5b) is used here, which splits the processing into separate steps that are chained together via CWL. This modified Docker image is available in DockerHub at [this link](), with the source code available in the `./project`subdirectory. The main modification of this version is splitting the pipeline into separate stages that can be executed by Airflow.
+This pipeline runs the training data preparation procedure from [HEMnet](https://github.com/BiomedicalMachineLearning/HEMnet/tree/master). A modified version of their original [Docker image](https://hub.docker.com/layers/andrewsu1/hemnet/latest/images/sha256-5b371f828cfd41e223b46678cef157ec599847f17f0cf5711a0288908b287d5b) is used here, which splits the processing into separate steps that are chained together via CWL. This modified Docker image is available in DockerHub at [this link](https://hub.docker.com/r/mlcommons/hemnet-airflow), with the source code available in the `./project`subdirectory. The main modification of this version is splitting the pipeline into separate stages that can be executed by Airflow.
 
 ## 1. Get the HEMnet data
 
