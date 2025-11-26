@@ -2,10 +2,10 @@ from __future__ import annotations
 from .operator_builder import OperatorBuilder
 from airflow.decorators import task
 from airflow.sensors.base import PokeReturnValue
-from pipeline_state import PipelineState
-from constants import ALWAYS_CONDITION
+from ..pipeline_state import PipelineState
+from ..constants import ALWAYS_CONDITION
 from datetime import timedelta
-from dag_utils import import_external_python_function
+from ..dag_utils import import_external_python_function
 
 DEFAULT_WAIT_TIME = timedelta(seconds=60)
 
