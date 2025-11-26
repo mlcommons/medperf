@@ -78,6 +78,8 @@ steps:
     command: python bspline_registration.py -v
     next: generate_masks
     per_subject: true
+    cpu_share: 4
+    mem_limit: 3g
     limit: 1
 
   - id: generate_masks
@@ -119,6 +121,7 @@ steps:
     command: python save_tiles.py -v
     next: consolidate_metrics
     per_subject: true
+    cpu_share: 3
     limit: 2
   
   - id: consolidate_metrics
