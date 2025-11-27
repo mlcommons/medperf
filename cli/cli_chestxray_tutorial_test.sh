@@ -231,8 +231,6 @@ echo "====================================="
 # Test offline compatibility test
 print_eval wget -P $MODEL_LOCAL/workspace/additional_files "https://storage.googleapis.com/medperf-storage/chestxray_tutorial/cnn_weights.tar.gz"
 print_eval tar -xzvf $MODEL_LOCAL/workspace/additional_files/cnn_weights.tar.gz -C $MODEL_LOCAL/workspace/additional_files
-print_eval mkdir -p $PRIVATE_MODEL_LOCAL/workspace/additional_files
-print_eval tar -xzvf $MODEL_LOCAL/workspace/additional_files/cnn_weights.tar.gz -C $PRIVATE_MODEL_LOCAL/workspace/additional_files
 
 ## Change the server and logout just to make sure this command will work without connecting to a server
 print_eval medperf profile activate noserver
@@ -244,7 +242,11 @@ print_eval medperf test run --offline --no-cache \
   --demo_dataset_hash "71faabd59139bee698010a0ae3a69e16d97bc4f2dde799d9e187b94ff9157c00" \
   -p $PREP_LOCAL/container_config.yaml \
   -m $MODEL_LOCAL/container_config.yaml \
-  -e $METRIC_LOCAL/container_config.yaml
+  -e $METRIC_LOCAL/container_config.yaml \
+  --data_preparator_parameters $PREP_LOCAL/workspace/parameters.yaml \
+  --model_parameters $MODEL_LOCAL/workspace/parameters.yaml \
+  --evaluation_parameters $METRIC_LOCAL/workspace/parameters.yaml \
+  --model_additional_files $MODEL_LOCAL/workspace/additional_files/
 
 checkFailed "offline compatibility test execution step failed - public model"
 ##########################################################
@@ -261,13 +263,16 @@ print_eval medperf test run --offline --no-cache \
   -p $PREP_LOCAL/container_config.yaml \
   -m $PRIVATE_MODEL_LOCAL/container_config.yaml \
   -e $METRIC_LOCAL/container_config.yaml \
-  -d $PRIVATE_MODEL_LOCAL/key.bin
+  -d $PRIVATE_MODEL_LOCAL/key.bin \
+  --data_preparator_parameters $PREP_LOCAL/workspace/parameters.yaml \
+  --model_parameters $MODEL_LOCAL/workspace/parameters.yaml \
+  --evaluation_parameters $METRIC_LOCAL/workspace/parameters.yaml \
+  --model_additional_files $MODEL_LOCAL/workspace/additional_files/
 
 checkFailed "offline compatibility test execution step failed - private model"
 
 print_eval rm $MODEL_LOCAL/workspace/additional_files/cnn_weights.tar.gz
 print_eval rm $MODEL_LOCAL/workspace/additional_files/cnn_weights.pth
-print_eval rm $PRIVATE_MODEL_LOCAL/workspace/additional_files/cnn_weights.pth
 ##########################################################
 
 echo "\n"
