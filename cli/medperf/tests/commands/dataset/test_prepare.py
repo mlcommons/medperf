@@ -44,6 +44,7 @@ def test_validate_fails_if_dataset_already_in_operation(mocker, data_preparation
 
 def test_get_prep_cube_downloads_cube_file(mocker, data_preparation, cube):
     # Arrange
+    data_preparation.cube = None
     spy = mocker.patch.object(cube, "download_run_files")
     mocker.patch(PATCH_REGISTER.format("Cube.get"), return_value=cube)
 
@@ -52,6 +53,21 @@ def test_get_prep_cube_downloads_cube_file(mocker, data_preparation, cube):
 
     # Assert
     spy.assert_called_once()
+
+
+def test_get_prep_cube_skips_download_if_cube_already_present(
+    mocker, data_preparation, cube
+):
+    # Arrange
+    spy = mocker.patch.object(cube, "download_run_files")
+    spy_get = mocker.patch(PATCH_REGISTER.format("Cube.get"))
+
+    # Act
+    data_preparation.get_prep_cube()
+
+    # Assert
+    spy.assert_not_called()
+    spy_get.assert_not_called()
 
 
 @pytest.mark.parametrize("dataset_for_test", [False, True])

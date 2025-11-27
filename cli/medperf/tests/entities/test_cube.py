@@ -60,26 +60,10 @@ class TestGetFiles:
 
         # Specify expected path for all downloaded files
         self.cube_path = os.path.join(config.cubes_folder, str(self.id))
-        self.manifest_path = os.path.join(self.cube_path, config.cube_filename)
-        self.params_path = os.path.join(
-            self.cube_path, config.workspace_path, config.params_filename
-        )
         self.add_path = os.path.join(
             self.cube_path, config.additional_path, config.tarball_filename
         )
-        self.config_files_paths = [self.manifest_path, self.params_path]
         self.run_files_paths = [self.add_path]
-
-    @pytest.mark.parametrize("setup", [{"remote": [DEFAULT_CUBE]}], indirect=True)
-    def test_get_cube_retrieves_files(self, fs, setup):
-        # Act
-        Cube.get(self.id)
-
-        # Assert
-        for file in self.config_files_paths:
-            assert os.path.exists(file) and os.path.isfile(file)
-        for file in self.run_files_paths:
-            assert not os.path.exists(file)
 
     @pytest.mark.parametrize("setup", [{"remote": [DEFAULT_CUBE]}], indirect=True)
     def test_download_run_files_retrieves_files(self, mocker, setup, runner):
@@ -90,7 +74,7 @@ class TestGetFiles:
         cube.download_run_files()
 
         # Assert
-        for file in self.config_files_paths + self.run_files_paths:
+        for file in self.run_files_paths:
             assert os.path.exists(file)
         assert spy.called_once()
 
@@ -153,7 +137,7 @@ def test_run_unencrypted_skips_decryption_key(mocker):
 # -------------------------------------------------------------------
 def test_get_key_not_logged_in_returns_local_and_no_destroy(mocker, fs):
     # Arrange
-    cube = Cube(id=1, name="c", owner=10, git_mlcube_url="x")
+    cube = TestCube(id=1, name="c", owner=10)
 
     mocker.patch(PATCH_CUBE.format("is_user_logged_in"), return_value=False)
     key_path = "/keylocal"
@@ -172,7 +156,7 @@ def test_get_key_not_logged_in_returns_local_and_no_destroy(mocker, fs):
 
 
 def test_get_key_logged_in_as_owner_returns_local(mocker, fs):
-    cube = Cube(id=1, name="c", owner=99, git_mlcube_url="x")
+    cube = TestCube(id=1, name="c", owner=99)
 
     mocker.patch(PATCH_CUBE.format("is_user_logged_in"), return_value=True)
     mocker.patch(PATCH_CUBE.format("get_medperf_user_data"), return_value={"id": 99})
@@ -193,7 +177,7 @@ def test_get_key_logged_in_as_owner_returns_local(mocker, fs):
 
 
 def test_get_key_logged_in_not_owner_returns_server_key(mocker):
-    cube = Cube(id=1, name="c", owner=123, git_mlcube_url="x")
+    cube = TestCube(id=1, name="c", owner=123)
 
     mocker.patch(PATCH_CUBE.format("is_user_logged_in"), return_value=True)
     mocker.patch(PATCH_CUBE.format("get_medperf_user_data"), return_value={"id": 999})
@@ -216,7 +200,7 @@ def test_get_key_logged_in_not_owner_returns_server_key(mocker):
 # __get_decryption_key_from_filesystem
 # -------------------------------------------------------------------
 def test_get_fs_key_exists(mocker, fs):
-    cube = Cube(id=1, name="c", git_mlcube_url="x", owner=5)
+    cube = TestCube(id=1, name="c", owner=5)
 
     key_path = "/keys/1.key"
     fs.create_file(key_path, contents="q")
@@ -231,7 +215,7 @@ def test_get_fs_key_exists(mocker, fs):
 
 
 def test_get_fs_key_missing_raises(mocker):
-    cube = Cube(id=1, name="c", git_mlcube_url="x", owner=5)
+    cube = TestCube(id=1, name="c", owner=5)
 
     mocker.patch(PATCH_CUBE.format("get_decryption_key_path"), return_value="/missing")
 
@@ -244,7 +228,7 @@ def test_get_fs_key_missing_raises(mocker):
 # __get_decryption_key_from_server
 # -------------------------------------------------------------------
 def test_get_key_from_server_calls_encryptedkey(mocker):
-    cube = Cube(id=1, name="c", git_mlcube_url="x", owner=5)
+    cube = TestCube(id=1, name="c", owner=5)
 
     mock_key = mocker.Mock()
     mock_key.decrypt.return_value = "/tmp/dec"

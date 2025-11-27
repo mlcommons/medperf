@@ -137,17 +137,13 @@ def submit(
         ...,
         "--container-config-file",
         "-m",
-        help="Container Config file. Preferably a local file in your computer. "
-        "May optionally be a remote file. See the description above. "
-        "Its contents will be uploaded to the MedPerf server.",
+        help="Container Config file.",
     ),
     parameters_file: str = typer.Option(
         "",
         "--parameters-file",
         "-p",
-        help="Local parameters file. Preferably a local file in your computer. "
-        "May optionally be a remote file. See the description above. "
-        "Its contents will be uploaded to the MedPerf server.",
+        help="container parameters file.",
     ),
     additional_file: str = typer.Option(
         "",
@@ -174,10 +170,7 @@ def submit(
     ),
 ):
     """Submits a new container to the platform.\n
-    The following assets:\n
-        - additional_file\n
-        - image_file\n
-    are expected to be given in the following format: <source_prefix:resource_identifier>
+    The additional files is expected to be given in the following format: <source_prefix:resource_identifier>
     where `source_prefix` instructs the client how to download the resource, and `resource_identifier`
     is the identifier used to download the asset. The following are supported:\n
     1. A direct link: "direct:<URL>"\n

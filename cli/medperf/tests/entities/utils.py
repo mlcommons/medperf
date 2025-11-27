@@ -103,7 +103,7 @@ def generate_cubefile_fn(fs, path, filename):
 def setup_cube_comms_downloads(mocker, fs):
     add_path = config.additional_path
     add_file = config.tarball_filename
-    img_path = config.image_path
+    img_path = "workspace/.image"
     img_file = "img.tar.gz"
 
     get_add_fn = generate_cubefile_fn(fs, add_path, add_file)
@@ -166,7 +166,9 @@ def setup_execution_fs(ents, fs):
         setup_dset_fs([dataset_id], fs)
 
         try:
-            fs.create_file(execution_file, contents=yaml.dump(execution_contents.todict()))
+            fs.create_file(
+                execution_file, contents=yaml.dump(execution_contents.todict())
+            )
         except FileExistsError:
             pass
 

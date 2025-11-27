@@ -1,11 +1,11 @@
 from medperf.commands.dataset.prepare import DataPreparation
 from medperf.commands.dataset.submit import DataCreation
 from medperf.utils import (
+    generate_tmp_path,
     get_folders_hash,
     sanitize_path,
     remove_path,
     generate_tmp_uid,
-    load_yaml_content,
     store_decryption_key,
 )
 from medperf.exceptions import InvalidArgumentError, InvalidEntityError
@@ -45,55 +45,53 @@ def download_demo_data(dset_url, dset_hash):
     return data_path, labels_path, metadata_path
 
 
-def prepare_local_cube(container_config_path):
-    path = os.path.dirname(container_config_path)
-    container_config = load_yaml_content(container_config_path)
-    temp_uid = "local_" + generate_tmp_uid()
-    cubes_folder = config.cubes_folder
-    dst = os.path.join(cubes_folder, temp_uid)
-    os.symlink(path, dst)
-    logging.info(f"local container will be linked to path: {dst}")
-    config.tmp_paths.append(dst)
-    cube_metadata_file = os.path.join(path, config.cube_metadata_filename)
-    if not os.path.exists(cube_metadata_file):
-        temp_metadata = {
-            "id": None,
-            "name": temp_uid,
-            "container_config": container_config,
-            "image_tarball_hash": "",
-            "additional_files_tarball_hash": "",
-            "for_test": True,
-        }
-        metadata = Cube(**temp_metadata).todict()
-        with open(cube_metadata_file, "w") as f:
-            yaml.dump(metadata, f)
-        config.tmp_paths.append(cube_metadata_file)
+def prepare_local_cube(container_config_path, parameters=None, additional=None):
+    parameters_config = None
+    if parameters is not None:
+        with open(parameters, "r") as f:
+            parameters_config = yaml.safe_load(f)
+    with open(container_config_path, "r") as f:
+        container_config = yaml.safe_load(f)
 
-    return temp_uid
+    temp_metadata = {
+        "id": None,
+        "name": "local_" + generate_tmp_uid(),
+        "container_config": container_config,
+        "parameters_config": parameters_config,
+        "image_tarball_hash": "",
+        "additional_files_tarball_hash": "",
+        "for_test": True,
+    }
+    cube = Cube(**temp_metadata)
+    cube.params_path = generate_tmp_path()
+    if additional is not None:
+        cube.additional_files_folder_path = additional
+
+    return cube
 
 
-def prepare_cube(cube_uid: str):
-    """Assigns the attr used for testing according to the initialization parameters.
-    If the value is a path, it will create a temporary uid and link the cube path to
-    the medperf storage path.
-
-    Arguments:
-        attr (str): Attribute to check and/or reassign.
-        fallback (any): Value to assign if attribute is empty. Defaults to None.
-    """
+def prepare_cube(
+    cube_uid: str,
+    parameters: str = None,
+    additional: str = None,
+    local_only: bool = False,
+    use_local_container_image: bool = False,
+    decryption_key_file_path: os.PathLike = None,
+):
 
     # Test if value looks like an mlcube_uid, if so skip path validation
     if str(cube_uid).isdigit():
         logging.info(f"Container identifier {cube_uid} resembles a server ID")
-        return cube_uid
+        cube = Cube.get(cube_uid, local_only=local_only)
+        return setup_cube(cube, use_local_container_image, decryption_key_file_path)
 
     # Check if value is a local mlcube
     path = sanitize_path(cube_uid)
 
     if os.path.isfile(path):
-        logging.info("local path provided. Creating symbolic link")
-        temp_uid = prepare_local_cube(path)
-        return temp_uid
+        logging.info("local path provided. Preparing local container")
+        tmp_cube = prepare_local_cube(path, parameters, additional)
+        return setup_cube(tmp_cube, use_local_container_image, decryption_key_file_path)
 
     logging.error(f"container {cube_uid} was not found")
     raise InvalidArgumentError(
@@ -101,25 +99,22 @@ def prepare_cube(cube_uid: str):
     )
 
 
-def get_cube(
-    uid: int,
-    name: str,
-    local_only: bool = False,
-    use_local_model_image: bool = False,
+def setup_cube(
+    cube: Cube,
+    use_local_container_image: bool = False,
     decryption_key_file_path: os.PathLike = None,
 ) -> Cube:
-    config.ui.text = f"Retrieving container '{name}'"
-    cube = Cube.get(uid, local_only=local_only)
 
     if decryption_key_file_path is not None:
         logging.debug(f"Model decryption key is provided: {decryption_key_file_path}")
-        decryption_key_path = store_decryption_key(uid, decryption_key_file_path)
+        decryption_key_path = store_decryption_key(
+            cube.identifier, decryption_key_file_path
+        )
         config.sensitive_tmp_paths.append(decryption_key_path)
 
-    if not use_local_model_image:
+    if not use_local_container_image:
         logging.debug("Downloading container run files")
         cube.download_run_files()
-    config.ui.print(f"> Container '{name}' download complete")
     return cube
 
 
@@ -135,7 +130,7 @@ def create_test_dataset(
     # create dataset object
     data_creation = DataCreation(
         benchmark_uid=None,
-        prep_cube_uid=data_prep_mlcube,
+        prep_cube_uid=data_prep_mlcube.identifier,
         data_path=data_path,
         labels_path=labels_path,
         metadata_path=metadata_path,
@@ -163,7 +158,7 @@ def create_test_dataset(
     old_path = dataset.path
 
     # prepare/check dataset
-    DataPreparation.run(dataset.generated_uid)
+    DataPreparation.run(dataset.generated_uid, data_preparation_cube=data_prep_mlcube)
 
     # update dataset generated_uid
     new_generated_uid = get_folders_hash([dataset.data_path, dataset.labels_path])

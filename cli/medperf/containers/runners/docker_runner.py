@@ -14,7 +14,6 @@ import logging
 from .docker_utils import (
     craft_docker_run_command,
     get_docker_image_hash,
-    generate_unique_image_name,
     get_repo_tags_from_archive,
     load_image,
     delete_images,
@@ -56,18 +55,11 @@ class DockerRunner(Runner):
         get_hash_timeout: int = None,
     ):
         docker_image = self.parser.get_setup_args()
-
-        unique_docker_image_name = generate_unique_image_name(
-            image_name_with_tag=docker_image, image_hash=expected_image_hash
-        )
-        command = ["docker", "pull", unique_docker_image_name]
+        command = ["docker", "pull", docker_image]
         logging.debug("Running pull command")
         run_command(command, timeout=download_timeout)
-        computed_image_hash = get_docker_image_hash(
-            unique_docker_image_name, get_hash_timeout
-        )
+        computed_image_hash = get_docker_image_hash(docker_image, get_hash_timeout)
         check_docker_image_hash(computed_image_hash, expected_image_hash)
-
         return computed_image_hash
 
     def _download_docker_archive(

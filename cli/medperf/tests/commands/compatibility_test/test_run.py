@@ -180,10 +180,14 @@ class TestPrepareCubes:
         self.new_model_uid = "new_model"
         self.new_eval_uid = "new_eval"
 
-        overriding_uids = [self.new_prep_uid, self.new_model_uid, self.new_eval_uid]
+        overriding_cubes = [
+            TestCube(id=None, name="new_prep"),
+            TestCube(id=None, name="new_model"),
+            TestCube(id=None, name="new_eval"),
+        ]
         self.prepare_spy = mocker.patch(
             PATCH_RUN.format("prepare_cube"),
-            side_effect=overriding_uids,
+            side_effect=overriding_cubes,
         )
 
         self.exec_instance = CompatibilityTestExecution(
@@ -194,53 +198,20 @@ class TestPrepareCubes:
     def test_cube_uids_are_prepared(self, mocker, data_source):
         # Arrange
         self.exec_instance.data_source = data_source
-        mocker.patch(PATCH_RUN.format("get_cube"))
 
         # Act
         self.exec_instance.prepare_cubes()
 
         # Assert
-        self.prepare_spy.assert_has_calls(
-            [call(self.prep_uid), call(self.model_uid), call(self.eval_uid)]
-        )
-        assert self.exec_instance.data_prep == self.new_prep_uid
-        assert self.exec_instance.model == self.new_model_uid
-        assert self.exec_instance.evaluator == self.new_eval_uid
+        calls = self.prepare_spy.call_args_list
+        assert len(calls) == 3
+        assert calls[0][0][0] == self.prep_uid  # First call, first positional arg
+        assert calls[1][0][0] == self.model_uid  # Second call, first positional arg
+        assert calls[2][0][0] == self.eval_uid  # Third call, first positional arg
 
-    @pytest.mark.parametrize("data_source", ["path"])
-    @pytest.mark.parametrize("offline", [True, False])
-    @pytest.mark.parametrize("model_decryption_key", ["/fake/path/to/file", None])
-    def test_model_and_eval_cubes_are_retrieved(
-        self, mocker, data_source, offline, model_decryption_key
-    ):
-        # Arrange
-        self.exec_instance.data_source = data_source
-        self.exec_instance.offline = offline
-        self.exec_instance.model_decryption_key = model_decryption_key
-        model_cube = "model_cube"
-        eval_cube = "eval_cube"
-        get_spy = mocker.patch(
-            PATCH_RUN.format("get_cube"), side_effect=[model_cube, eval_cube]
-        )
-
-        # Act
-        self.exec_instance.prepare_cubes()
-
-        # Assert
-        get_spy.assert_has_calls(
-            [
-                call(
-                    self.new_model_uid,
-                    "Model",
-                    local_only=offline,
-                    use_local_model_image=False,
-                    decryption_key_file_path=model_decryption_key,
-                ),
-                call(self.new_eval_uid, "Evaluator", local_only=offline),
-            ]
-        )
-        assert self.exec_instance.model_cube == "model_cube"
-        assert self.exec_instance.evaluator_cube == "eval_cube"
+        assert self.exec_instance.data_prep_cube.identifier == self.new_prep_uid
+        assert self.exec_instance.model_cube.identifier == self.new_model_uid
+        assert self.exec_instance.evaluator_cube.identifier == self.new_eval_uid
 
     def test_prep_cube_is_not_prepared_if_data_is_prepared(self, mocker):
         # Arrange
@@ -248,7 +219,6 @@ class TestPrepareCubes:
         exec_instance.data_source = "prepared"
 
         spy = mocker.patch(PATCH_RUN.format("prepare_cube"))
-        mocker.patch(PATCH_RUN.format("get_cube"))
 
         # Act
         exec_instance.prepare_cubes()

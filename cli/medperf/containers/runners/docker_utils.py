@@ -5,7 +5,6 @@ from medperf import config
 
 from medperf.utils import run_command
 import shlex
-from typing import Optional
 import json
 import tarfile
 import logging
@@ -25,53 +24,17 @@ def get_docker_image_hash(docker_image, timeout: int = None):
         '"{{json .Manifest}}"',
     ]
     image_manifest_str = run_command(command, timeout=timeout)
+    logging.debug(f"Docker image manifest string: {image_manifest_str}")
     image_manifest_str = image_manifest_str.strip().strip("\"'")
+    logging.debug(f"Docker image manifest stripped: {image_manifest_str}")
     image_manifest_dict = json.loads(image_manifest_str)
-
-    # TODO: logging
+    logging.debug(f"Docker image manifest dict: {image_manifest_dict}")
     image_hash = image_manifest_dict.get("digest", "")
+    logging.debug(f"Digest field: {image_hash}")
     if not image_hash.startswith("sha256:"):
-        raise InvalidContainerSpec(
-            "Invalid 'docker buildx imagetools inspect' output:", image_manifest_dict
-        )
+        raise InvalidContainerSpec("Could not retrieve valid docker image hash.")
 
     return image_hash
-
-
-def extract_docker_image_name(image_name_with_tag_and_hash: str) -> str:
-    hash_separator = "@"
-    tag_separator = ":"
-
-    if hash_separator in image_name_with_tag_and_hash:
-        image_name_with_tag = image_name_with_tag_and_hash.rsplit(
-            hash_separator, maxsplit=1
-        )[0]
-    else:
-        image_name_with_tag = image_name_with_tag_and_hash
-
-    try:
-        image_name = image_name_with_tag.rsplit(tag_separator, maxsplit=1)[0]
-        return image_name
-    except ValueError:
-        # If something unexpected happens, use name as is
-        return image_name_with_tag_and_hash
-
-
-def generate_unique_image_name(
-    image_name_with_tag: str, image_hash: Optional[str] = None
-):
-
-    if image_hash is None:
-        # If no hash (for example, when first uploading a container) use the name with tag as is
-        return image_name_with_tag
-
-    image_name = extract_docker_image_name(image_name_with_tag)
-
-    if image_name == image_name_with_tag:
-        return image_name
-
-    image_name_with_hash = f"{image_name}@{image_hash}"
-    return image_name_with_hash
 
 
 def volumes_to_cli_args(input_volumes: list, output_volumes: list):

@@ -2,10 +2,11 @@ import os
 from typing import Optional
 import medperf.config as config
 from medperf.entities.cube import Cube
-from medperf.comms.entity_resources.utils import load_yaml_content
 from medperf.exceptions import InvalidArgumentError
-from medperf.utils import remove_path, store_decryption_key
+from medperf.utils import remove_path, store_decryption_key, sanitize_path
 import logging
+
+import yaml
 
 
 class SubmitCube:
@@ -23,21 +24,14 @@ class SubmitCube:
             submit_info (dict): Dictionary containing the cube information.
         """
         ui = config.ui
-
-        cls.add_yaml_info_to_submit_info(
-            yaml_path=container_config, submit_info=submit_info, key="container_config"
+        submission = cls(
+            submit_info, container_config, parameters_config, decryption_key
         )
-        if parameters_config:
-            cls.add_yaml_info_to_submit_info(
-                yaml_path=parameters_config,
-                submit_info=submit_info,
-                key="parameters_config",
-            )
-        submission = cls(submit_info, decryption_key)
+        submission.read_config_files()
+        submission.create_cube_object()
 
         with ui.interactive():
             ui.text = "Validating Container can be downloaded"
-            submission.download_config_files()
             submission.validate()
             submission.download_run_files()
             ui.text = "Submitting Container to MedPerf"
@@ -47,21 +41,66 @@ class SubmitCube:
             submission.store_decryption_key()
         return submission.cube.id
 
-    @staticmethod
-    def add_yaml_info_to_submit_info(yaml_path: str, submit_info: dict, key: str):
-        """Note: modifies submit_info!"""
-        yaml_content = load_yaml_content(yaml_path)
-        submit_info[key] = yaml_content
-
-    def __init__(self, submit_info: dict, decryption_key: str = None):
+    def __init__(
+        self,
+        submit_info: dict,
+        container_config: str,
+        parameters_config: Optional[str] = None,
+        decryption_key: str = None,
+    ):
         self.comms = config.comms
         self.ui = config.ui
-        self.cube = Cube(**submit_info)
+        self.submit_info = submit_info
+        self.container_config_file = sanitize_path(container_config)
+        self.parameters_config_file = sanitize_path(parameters_config)
+        self.container_config = None
+        self.parameters_config = None
         self.decryption_key = decryption_key
-        config.tmp_paths.append(self.cube.path)
 
-    def download_config_files(self):
-        self.cube.download_config_files()
+    def read_config_files(self):
+        if not os.path.exists(self.container_config_file):
+            raise InvalidArgumentError(
+                f"Container config file {self.container_config_file} does not exist"
+            )
+        if not os.path.isfile(self.container_config_file):
+            raise InvalidArgumentError(
+                f"Container config file {self.container_config_file} is not a file"
+            )
+
+        if self.parameters_config_file:
+            if not os.path.exists(self.parameters_config_file):
+                raise InvalidArgumentError(
+                    f"Parameters config file {self.parameters_config_file} does not exist"
+                )
+            if not os.path.isfile(self.parameters_config_file):
+                raise InvalidArgumentError(
+                    f"Parameters config file {self.parameters_config_file} is not a file"
+                )
+
+        with open(self.container_config_file, "r") as f:
+            container_config_content = yaml.safe_load(f)
+        if container_config_content is None:
+            raise InvalidArgumentError(
+                f"Container config file {self.container_config_file} is empty"
+            )
+
+        parameters_config_content = None
+        if self.parameters_config_file:
+            with open(self.parameters_config_file, "r") as f:
+                parameters_config_content = yaml.safe_load(f)
+            if parameters_config_content is None:
+                parameters_config_content = dict()
+
+        self.container_config = container_config_content
+        self.parameters_config = parameters_config_content
+
+    def create_cube_object(self):
+        self.cube = Cube(
+            **self.submit_info,
+            container_config=self.container_config,
+            parameters=self.parameters_config,
+        )
+        config.tmp_paths.append(self.cube.path)
 
     def validate(self):
         if self.cube.is_encrypted() and not self.decryption_key:

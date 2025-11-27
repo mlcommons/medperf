@@ -5,7 +5,7 @@ from pydantic import Field
 
 from medperf.entities.interface import Entity
 from medperf.entities.schemas import DeployableSchema
-from medperf.exceptions import InvalidEntityError
+from medperf.exceptions import InvalidEntityError, MedperfException
 import medperf.config as config
 from medperf.comms.entity_resources import resources
 from medperf.account_management import get_medperf_user_data, is_user_logged_in
@@ -69,11 +69,9 @@ class Cube(Entity, DeployableSchema):
         """
         super().__init__(*args, **kwargs)
 
-        self.cube_path = os.path.join(self.path, config.cube_filename)
-        self.params_path = os.path.join(
-            self.path, config.workspace_path, config.params_filename
-        )
-        self.additiona_files_folder_path = os.path.join(
+        # Note: the paths can be arbitrary
+        self.params_path = os.path.join(self.path, config.params_filename)
+        self.additional_files_folder_path = os.path.join(
             self.path, config.additional_path
         )
         self._parser = None
@@ -88,7 +86,7 @@ class Cube(Entity, DeployableSchema):
     @property
     def runner(self):
         if self._runner is None:
-            self._runner = load_runner(self.parser, self.path)
+            self._runner = load_runner(self.parser)
         return self._runner
 
     @property
@@ -135,25 +133,17 @@ class Cube(Entity, DeployableSchema):
         cube = super().get(cube_uid, local_only)
         if not cube.is_valid and valid_only:
             raise InvalidEntityError("The requested container is marked as INVALID.")
-        cube.download_config_files()
         return cube
 
-    def download_mlcube(self):
-        if os.path.exists(self.cube_path):
-            return
-
-        os.makedirs(self.path, exist_ok=True)
-        with open(self.cube_path, "w") as f:
-            yaml.safe_dump(self.container_config, f, sort_keys=False)
-
-    def download_parameters(self):
-        if os.path.exists(self.params_path):
-            return
-
-        parameter_dir = os.path.normpath(os.path.join(self.params_path, ".."))
-        os.makedirs(parameter_dir, exist_ok=True)
+    def prepare_parameters_file(self):
+        if self.parameters_config is None:
+            raise MedperfException(
+                "Prepare parameters file called but no parameters set"
+            )
+        logging.debug(f"Writing parameters to file: {self.params_path}")
         with open(self.params_path, "w") as f:
-            yaml.safe_dump(self.parameters_config, f, sort_keys=False)
+            yaml.safe_dump(self.parameters_config, f)
+        return self.params_path
 
     def download_additional(self):
         url = self.additional_files_tarball_url
@@ -161,19 +151,8 @@ class Cube(Entity, DeployableSchema):
             path, file_hash = resources.get_cube_additional(
                 url, self.path, self.additional_files_tarball_hash
             )
-            self.additiona_files_folder_path = path
+            self.additional_files_folder_path = path
             self.additional_files_tarball_hash = file_hash
-
-    def download_config_files(self):
-        try:
-            self.download_mlcube()
-        except InvalidEntityError as e:
-            raise InvalidEntityError(f"Container {self.name} config file: {e}")
-
-        try:
-            self.download_parameters()
-        except InvalidEntityError as e:
-            raise InvalidEntityError(f"Container {self.name} parameters file: {e}")
 
     def download_run_files(self):
         try:
@@ -209,10 +188,12 @@ class Cube(Entity, DeployableSchema):
         if ports is None:
             ports = []
 
-        os.makedirs(self.additiona_files_folder_path, exist_ok=True)
+        os.makedirs(self.additional_files_folder_path, exist_ok=True)
+        if self.parameters_config is not None:
+            self.prepare_parameters_file()
         extra_mounts = {
             "parameters_file": self.params_path,
-            "additional_files": self.additiona_files_folder_path,
+            "additional_files": self.additional_files_folder_path,
         }
 
         extra_env = {}
@@ -314,7 +295,6 @@ class Cube(Entity, DeployableSchema):
         return {
             "UID": self.identifier,
             "Name": self.name,
-            "Config File": self.path,
             "State": self.state,
             "Created At": self.created_at,
             "Registered": self.is_registered,

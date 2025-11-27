@@ -16,7 +16,6 @@ def check_access_to_container(container_id: int):
         }
     """
     container = Cube.get(container_id)
-    container.download_config_files()
     if not container.is_encrypted():
         return_dict = {"has_access": True, "reason": "The container is public"}
         logging.debug(f"User access to container: {return_dict}")

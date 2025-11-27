@@ -76,8 +76,13 @@ class ReportSender:
 
 class DataPreparation:
     @classmethod
-    def run(cls, dataset_id: int, approve_sending_reports: bool = False):
-        preparation = cls(dataset_id, approve_sending_reports)
+    def run(
+        cls,
+        dataset_id: int,
+        approve_sending_reports: bool = False,
+        data_preparation_cube: Cube = None,
+    ):
+        preparation = cls(dataset_id, approve_sending_reports, data_preparation_cube)
         preparation.get_dataset()
         preparation.validate()
         with preparation.ui.interactive():
@@ -100,13 +105,18 @@ class DataPreparation:
 
         return preparation.dataset.id
 
-    def __init__(self, dataset_id: int, approve_sending_reports: bool):
+    def __init__(
+        self,
+        dataset_id: int,
+        approve_sending_reports: bool,
+        data_preparation_cube: Cube = None,
+    ):
         self.comms = config.comms
         self.ui = config.ui
         self.dataset_id = dataset_id
         self.allow_sending_reports = approve_sending_reports
         self.dataset = None
-        self.cube = None
+        self.cube = data_preparation_cube
         self.out_statistics_path = None
         self.out_datapath = None
         self.out_labelspath = None
@@ -137,12 +147,14 @@ class DataPreparation:
             raise InvalidArgumentError("This dataset is in operation mode")
 
     def get_prep_cube(self):
+        if self.cube is not None:
+            logging.debug("Using provided data preparation cube")
+            return
         self.ui.text = (
             "Retrieving and setting up data preparation Container. "
             "This may take some time."
         )
         self.cube = Cube.get(self.dataset.data_preparation_mlcube)
-        self.cube.download_parameters()
         self.cube.download_run_files()
         self.ui.print("> Preparation container download complete")
 

@@ -15,6 +15,12 @@ class CompatibilityTestParamsValidator:
         demo_dataset_url: str = None,
         demo_dataset_hash: str = None,
         data_uid: str = None,
+        data_prep_parameters: str = None,
+        model_parameters: str = None,
+        evaluator_parameters: str = None,
+        data_prep_additional: str = None,
+        model_additional: str = None,
+        evaluator_additional: str = None,
     ):
         self.benchmark_uid = benchmark
         self.data_prep = data_prep
@@ -25,6 +31,12 @@ class CompatibilityTestParamsValidator:
         self.demo_dataset_url = demo_dataset_url
         self.demo_dataset_hash = demo_dataset_hash
         self.data_uid = data_uid
+        self.data_prep_parameters = data_prep_parameters
+        self.model_parameters = model_parameters
+        self.evaluator_parameters = evaluator_parameters
+        self.data_prep_additional = data_prep_additional
+        self.model_additional = model_additional
+        self.evaluator_additional = evaluator_additional
 
     def __validate_cubes(self):
         if not self.model and not self.benchmark_uid:
@@ -123,6 +135,32 @@ class CompatibilityTestParamsValidator:
         ):
             raise InvalidArgumentError("The provided benchmark will not be used")
 
+    def __validate_local_container_files(self):
+        if self.data_prep is None or str(self.data_prep).isdigit():
+            if (
+                self.data_prep_parameters is not None
+                or self.data_prep_additional is not None
+            ):
+                raise InvalidArgumentError(
+                    "Data preparation parameters or additional files can only be"
+                    " provided when using a local data preparation container"
+                )
+        if self.model is None or str(self.model).isdigit():
+            if self.model_parameters is not None or self.model_additional is not None:
+                raise InvalidArgumentError(
+                    "Model parameters or additional files can only be"
+                    " provided when using a local model container"
+                )
+        if self.evaluator is None or str(self.evaluator).isdigit():
+            if (
+                self.evaluator_parameters is not None
+                or self.evaluator_additional is not None
+            ):
+                raise InvalidArgumentError(
+                    "Evaluator parameters or additional files can only be"
+                    " provided when using a local evaluator container"
+                )
+
     def validate(self):
         """Ensures test has been passed a valid combination of parameters.
         Raises `medperf.exceptions.InvalidArgumentError` when the parameters are
@@ -132,6 +170,7 @@ class CompatibilityTestParamsValidator:
         self.__validate_cubes()
         self.__validate_data_source()
         self.__validate_redundant_benchmark()
+        self.__validate_local_container_files()
 
     def get_data_source(self):
         """Parses the input parameters and returns a string, one of:

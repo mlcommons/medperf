@@ -27,9 +27,9 @@ import logging
 
 
 class SingularityRunner(Runner):
-    def __init__(self, container_config_parser, container_files_base_path):
+    def __init__(self, container_config_parser):
         self.parser = container_config_parser
-        self.container_files_base_path = container_files_base_path
+        self.converted_singularity_images = config.images_folder
         executable, runtime, version = get_singularity_executable_props()
         self.executable = executable
         self.runtime = runtime
@@ -173,10 +173,9 @@ class SingularityRunner(Runner):
         if self.image_file_path is None:
             raise MedperfException("Internal error: Run is called before download.")
 
-        sif_image_folder = os.path.join(
-            self.container_files_base_path, config.image_path
+        sif_image_file = os.path.join(
+            self.converted_singularity_images, f"{self.image_file_hash}.sif"
         )
-        sif_image_file = os.path.join(sif_image_folder, f"{self.image_file_hash}.sif")
 
         # convert
         convert_docker_image_to_sif(
@@ -193,10 +192,9 @@ class SingularityRunner(Runner):
         logging.debug("Running unencrypted docker image")
         docker_image = self.parser.get_setup_args()
 
-        sif_image_folder = os.path.join(
-            self.container_files_base_path, config.image_path
+        sif_image_file = os.path.join(
+            self.converted_singularity_images, f"{self.image_file_hash}.sif"
         )
-        sif_image_file = os.path.join(sif_image_folder, f"{self.image_file_hash}.sif")
 
         # convert
         convert_docker_image_to_sif(
@@ -244,10 +242,10 @@ class SingularityRunner(Runner):
             raise MedperfException(
                 "Container is encrypted but decryption key is not provided"
             )
-        sif_image_folder = os.path.join(
-            self.container_files_base_path, config.image_path
+
+        sif_image_file = os.path.join(
+            self.converted_singularity_images, f"{self.image_file_hash}.sif"
         )
-        sif_image_file = os.path.join(sif_image_folder, f"{self.image_file_hash}.sif")
         decrypted_archive_file = tmp_path_for_file_decryption()
         try:
             # decrypt file

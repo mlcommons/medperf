@@ -16,7 +16,7 @@ from pathlib import Path
 import shutil
 from pexpect import spawn
 from datetime import datetime
-from typing import List, Dict, Any
+from typing import List
 from colorama import Fore, Style
 from pexpect.exceptions import TIMEOUT
 from git import Repo, GitCommandError
@@ -600,17 +600,6 @@ def get_webui_properties():
     port = props["port"]
     security_token = props["security_token"]
     print_webui_props(host, port, security_token)
-
-
-def load_yaml_content(yaml_filepath: os.PathLike) -> Dict[str, Any]:
-    clean_path = sanitize_path(yaml_filepath)
-    with open(clean_path, "r") as f:
-        content = yaml.safe_load(f)
-
-    if content is None:
-        content = {}
-
-    return content
 
 
 def get_decryption_key_path(container_id):
