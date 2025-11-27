@@ -3,7 +3,7 @@ image: mlcommons/medperf-test-ca:0.0.2
 tasks:
   get_client_cert:
     run_args:
-      command: python3 entrypoint.py get_client_cert
+      command: python3 /project/entrypoint.py get_client_cert
     input_volumes:
       ca_config:
         mount_path: /mlcommons/volumes/ca_config/ca_config.json
@@ -14,7 +14,7 @@ tasks:
         type: directory
   get_server_cert:
     run_args:
-      command: python3 entrypoint.py get_server_cert
+      command: python3 /project/entrypoint.py get_server_cert
     input_volumes:
       ca_config:
         mount_path: /mlcommons/volumes/ca_config/ca_config.json
@@ -25,7 +25,7 @@ tasks:
         type: directory
   trust:
     run_args:
-      command: python3 entrypoint.py trust
+      command: python3 /project/entrypoint.py trust
     input_volumes:
       ca_config:
         mount_path: /mlcommons/volumes/ca_config/ca_config.json
@@ -36,7 +36,7 @@ tasks:
         type: directory
   verify_cert:
     run_args:
-      command: python3 entrypoint.py verify_cert
+      command: python3 /project/entrypoint.py verify_cert
     input_volumes:
       ca_config:
         mount_path: /mlcommons/volumes/ca_config/ca_config.json
