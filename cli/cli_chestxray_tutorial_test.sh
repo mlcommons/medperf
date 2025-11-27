@@ -245,7 +245,7 @@ print_eval medperf test run --offline --no-cache \
   -e $METRIC_LOCAL/container_config.yaml \
   --data_preparator_parameters $PREP_LOCAL/workspace/parameters.yaml \
   --model_parameters $MODEL_LOCAL/workspace/parameters.yaml \
-  --evaluation_parameters $METRIC_LOCAL/workspace/parameters.yaml \
+  --evaluator_parameters $METRIC_LOCAL/workspace/parameters.yaml \
   --model_additional_files $MODEL_LOCAL/workspace/additional_files/
 
 checkFailed "offline compatibility test execution step failed - public model"
@@ -266,7 +266,7 @@ print_eval medperf test run --offline --no-cache \
   -d $PRIVATE_MODEL_LOCAL/key.bin \
   --data_preparator_parameters $PREP_LOCAL/workspace/parameters.yaml \
   --model_parameters $MODEL_LOCAL/workspace/parameters.yaml \
-  --evaluation_parameters $METRIC_LOCAL/workspace/parameters.yaml \
+  --evaluator_parameters $METRIC_LOCAL/workspace/parameters.yaml \
   --model_additional_files $MODEL_LOCAL/workspace/additional_files/
 
 checkFailed "offline compatibility test execution step failed - private model"
