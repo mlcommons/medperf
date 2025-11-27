@@ -8,12 +8,15 @@ This script can only be invoked from its parent folder, that's because it
 executes Django code to set admin permissions for a test user."""
 
 import argparse
-from seed_utils import Server, set_user_as_admin, create_benchmark, create_model
+from seed_utils import (
+    Server,
+    set_user_as_admin,
+    create_benchmark,
+    create_model,
+    REPO_BASE_DIR,
+)
 from auth_provider_token import auth_provider_token
-from pathlib import Path
 import json
-
-REPO_BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 def populate_mock_benchmarks(api_server, admin_token):

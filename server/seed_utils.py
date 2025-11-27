@@ -8,18 +8,17 @@ import django
 from django.contrib.auth import get_user_model
 import yaml
 
-
-ASSETS_URL = (
-    "https://raw.githubusercontent.com/mlcommons/medperf/"
-    "9bfb828ab19caf4fd9a4a90be69c693d4e2ff29d/examples/chestxray_tutorial/"
-)
+REPO_BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-def _load_asset_content(file_relative_url: str):
-    asset_url = f"{ASSETS_URL}/{file_relative_url}"
+ASSETS_PATH = str(REPO_BASE_DIR / "examples" / "chestxray_tutorial")
 
-    response = requests.get(asset_url)
-    content = yaml.safe_load(response.content)
+
+def _load_asset_content(file_relative_path: str):
+    asset_path = f"{ASSETS_PATH}/{file_relative_path}"
+
+    with open(asset_path, "r") as f:
+        content = yaml.safe_load(f)
 
     return content
 
