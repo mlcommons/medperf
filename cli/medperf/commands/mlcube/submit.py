@@ -98,7 +98,7 @@ class SubmitCube:
         self.cube = Cube(
             **self.submit_info,
             container_config=self.container_config,
-            parameters=self.parameters_config,
+            parameters_config=self.parameters_config,
         )
         config.tmp_paths.append(self.cube.path)
 
