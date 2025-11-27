@@ -15,7 +15,8 @@ CLEANUP="${CLEANUP:-false}"
 FRESH="${FRESH:-false}"
 
 TEST_ROOT="/tmp/medperf_tests_$(date +%Y%m%d%H%M%S)"
-export MEDPERF_CONFIG_PATH="$TEST_ROOT/config.yaml" # env var
+export MEDPERF_CONFIG_STORAGE="$TEST_ROOT/medperf_config"
+MEDPERF_CONFIG_PATH="$MEDPERF_CONFIG_STORAGE/config.yaml" # env var
 MEDPERF_STORAGE="$TEST_ROOT/storage"
 SNAPSHOTS_FOLDER=$TEST_ROOT/snapshots
 
