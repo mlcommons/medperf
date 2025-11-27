@@ -33,6 +33,7 @@ class SubmitCube:
         self.comms = config.comms
         self.ui = config.ui
         self.cube = Cube(**submit_info)
+        self.decryption_key = decryption_key
         if decryption_key:
             self.decryption_key = sanitize_path(decryption_key)
         config.tmp_paths.append(self.cube.path)
