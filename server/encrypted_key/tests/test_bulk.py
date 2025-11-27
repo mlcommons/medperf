@@ -42,10 +42,14 @@ class EncryptedKeyTest(MedPerfTest):
 
         # create container mlcubes
         self.set_credentials(container_owner)
-        container1 = self.mock_mlcube(name="container1", mlcube_hash="container1hash")
+        container1 = self.mock_mlcube(
+            name="container1", container_config={"container1hash": "value"}
+        )
         container1 = self.create_mlcube(container1).data
 
-        container2 = self.mock_mlcube(name="container2", mlcube_hash="container2hash")
+        container2 = self.mock_mlcube(
+            name="container2", container_config={"container2hash": "value"}
+        )
         container2 = self.create_mlcube(container2).data
 
         # setup globals
@@ -513,7 +517,7 @@ class BulkPostPermissionTest(EncryptedKeyTest):
         # Arrange - create a container owned by other_user
         self.set_credentials(self.other_user)
         other_container = self.mock_mlcube(
-            name="other_container", mlcube_hash="otherhash"
+            name="other_container", container_config={"otherhash": "value"}
         )
         other_container = self.create_mlcube(other_container).data
 
@@ -608,7 +612,7 @@ class BulkPutPermissionTest(EncryptedKeyTest):
         # Arrange - create a key owned by other_user
         self.set_credentials(self.other_user)
         other_container = self.mock_mlcube(
-            name="other_container", mlcube_hash="otherhash"
+            name="other_container", container_config={"otherhash": "value"}
         )
         other_container = self.create_mlcube(other_container).data
 

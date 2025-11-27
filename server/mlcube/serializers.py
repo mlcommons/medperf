@@ -64,8 +64,6 @@ class MlCubeDetailSerializer(serializers.ModelSerializer):
                 "user_metadata",
                 "image_tarball_url",
                 "additional_files_tarball_url",
-                "container_config",
-                "parameters_config"
             ]
             for k, v in data.items():
                 if k not in editable_fields:
@@ -76,6 +74,8 @@ class MlCubeDetailSerializer(serializers.ModelSerializer):
 
         updated_dict = {}
         for key in [
+            "container_config",
+            "parameters_config",
             "additional_files_tarball_url",
             "additional_files_tarball_hash",
             "image_hash",

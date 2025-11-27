@@ -30,7 +30,9 @@ class EncryptedKeyTest(MedPerfTest):
 
         # create container mlcube
         self.set_credentials(container_owner)
-        container = self.mock_mlcube(name="container", mlcube_hash="containerhash")
+        container = self.mock_mlcube(
+            name="container", container_config={"containerhash": "value"}
+        )
         container = self.create_mlcube(container).data
 
         # setup globals
