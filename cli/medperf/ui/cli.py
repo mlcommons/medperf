@@ -1,3 +1,4 @@
+import re
 import typer
 from getpass import getpass
 from yaspin import yaspin
@@ -10,6 +11,32 @@ class CLI(UI):
     def __init__(self):
         self.spinner = yaspin(color="green")
         self.is_interactive = False
+        self.is_regex = False
+
+    def print_url_message(self, message: str):
+        match = re.search(r"https?://[^\s]+", message)
+
+        url = match.group(0)
+        start, end = match.span()
+
+        before = message[:start].strip()
+        after = message[end:].strip()
+
+        if before.strip():
+            self._print(before)
+
+        self.print_url(url)
+
+        if after.strip():
+            self._print(after)
+
+    def contains_url(self, message: str):
+        return bool(re.search(r"https?://[^\s]+", message))
+
+    def is_code(self, message: str):
+        ansi_escape = re.compile(r"\x1b\[[0-9;]*m")
+        message = ansi_escape.sub("", message.strip())
+        return bool(re.fullmatch(r"[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}", message))
 
     def print(self, msg: str = ""):
         """Display a message on the command line
@@ -17,7 +44,15 @@ class CLI(UI):
         Args:
             msg (str): message to print
         """
-        self._print(msg)
+        if self.is_regex:
+            if self.is_code(msg):
+                self.print_code(msg)
+            elif self.contains_url(msg):
+                self.print_url_message(msg)
+            else:
+                self._print(msg)
+        else:
+            self._print(msg)
 
     def print_error(self, msg: str):
         """Display an error message on the command line
@@ -80,6 +115,31 @@ class CLI(UI):
                 yield self
             finally:
                 self.stop_interactive()
+
+    def start_regex(self):
+        """Start a regex session where messages will be displayed based on regular expressions"""
+        self.is_regex = True
+
+    def stop_regex(self):
+        """Stop the regex session"""
+        self.is_regex = False
+
+    @contextmanager
+    def regex(self):
+        """Context managed regex session.
+
+        Yields:
+            CLI: Yields the current CLI instance with a regex session initialized
+        """
+        if self.is_regex:
+            # if already regex, do nothing
+            yield self
+        else:
+            self.start_regex()
+            try:
+                yield self
+            finally:
+                self.stop_regex()
 
     @property
     def text(self):
