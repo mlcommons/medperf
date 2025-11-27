@@ -37,19 +37,19 @@ def get_client_cert(
     pki_assets: str = typer.Option("/mlcommons/volumes/pki_assets", "--pki_assets"),
 ):
     asserts(ca_config)
-    assert os.environ.get(["MEDPERF_INPUT_CN"], None) is not None
+    assert os.environ.get("MEDPERF_INPUT_CN", None) is not None
     os.system(f"sh /project/sign.sh -o {pki_assets}")
 
 
 @app.command("get_server_cert")
 def get_server_cert(
     ca_config: str = typer.Option(
-        "/mlcommons/volumes/ca_config/ca_config.json" "--ca_config"
+        "/mlcommons/volumes/ca_config/ca_config.json", "--ca_config"
     ),
-    pki_assets: str = typer.Option("/mlcommons/volumes/pki_assets" "--pki_assets"),
+    pki_assets: str = typer.Option("/mlcommons/volumes/pki_assets", "--pki_assets"),
 ):
     asserts(ca_config)
-    assert os.environ.get(["MEDPERF_INPUT_CN"], None) is not None
+    assert os.environ.get("MEDPERF_INPUT_CN", None) is not None
     os.system(f"sh /project/sign.sh -o {pki_assets} -s")
 
 
@@ -61,7 +61,7 @@ def verify_cert(
     pki_assets: str = typer.Option("/mlcommons/volumes/pki_assets", "--pki_assets"),
 ):
     asserts(ca_config)
-    assert os.environ.get(["MEDPERF_INPUT_CN"], None) is not None
+    assert os.environ.get("MEDPERF_INPUT_CN", None) is not None
     assert os.path.exists(os.path.join(pki_assets, "crt.crt"))
 
 
