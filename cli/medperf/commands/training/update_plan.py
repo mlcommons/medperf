@@ -3,7 +3,7 @@ from medperf.account_management.account_management import get_medperf_user_data
 from medperf.entities.ca import CA
 from medperf.entities.training_exp import TrainingExp
 from medperf.entities.cube import Cube
-from medperf.utils import get_pki_assets_path, generate_tmp_path
+from medperf.utils import get_pki_assets_path
 from medperf.certificates import verify_certificate_authority
 
 

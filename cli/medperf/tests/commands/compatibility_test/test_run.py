@@ -1,4 +1,4 @@
-from unittest.mock import ANY, call
+from unittest.mock import ANY
 from medperf.exceptions import InvalidArgumentError
 from medperf.tests.mocks.report import TestTestReport
 from medperf.tests.mocks.cube import TestCube
