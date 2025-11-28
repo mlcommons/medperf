@@ -16,6 +16,7 @@ from medperf.web_ui.common import (
     check_user_api,
     check_user_ui,
     initialize_state_task,
+    is_logged_in,
     reset_state_task,
     templates,
 )
@@ -28,14 +29,14 @@ router = APIRouter()
 
 @router.get("/", response_class=HTMLResponse)
 def settings_ui(request: Request, current_user: bool = Depends(check_user_ui)):
-
     config_p = read_config()
-    cas = CA.all()
-    cas = {c.id: c.name for c in cas}
-    default_ca = config_p.active_profile["certificate_authority_id"]
-    default_fingerprint = config_p.active_profile["certificate_authority_fingerprint"]
+    cas = None
+    certificate_status = None
 
-    certificate_status = current_user_certificate_status()
+    if is_logged_in():
+        cas = CA.all()
+        cas = {c.id: c.name for c in cas}
+        certificate_status = current_user_certificate_status()
 
     return templates.TemplateResponse(
         "settings.html",
@@ -45,8 +46,8 @@ def settings_ui(request: Request, current_user: bool = Depends(check_user_ui)):
             "default_gpus": config.gpus if config.gpus else "0",
             "default_platform": config.platform,
             "cas": cas,
-            "default_ca": default_ca,
-            "default_fingerprint": default_fingerprint,
+            "default_ca": config.certificate_authority_id,
+            "default_fingerprint": config.certificate_authority_fingerprint,
             "certificate_status": certificate_status,
         },
     )
@@ -71,17 +72,30 @@ def activate_profile(
 def edit_profile(
     gpus: str = Form(None),
     platform: str = Form(None),
+    ca: int = Form(None),
+    fingerprint: str = Form(None),
     current_user: bool = Depends(check_user_api),
 ):
     if platform is None:
         platform = config.platform
     if gpus is None:
         gpus = config.gpus
+    if ca is None:
+        ca = config.certificate_authority_id
+    if fingerprint is None:
+        fingerprint = config.certificate_authority_fingerprint
 
     try:
         config_p = read_config()
         profile_config = config_p.active_profile.copy()
-        profile_config.update({"gpus": gpus, "platform": platform})
+        profile_config.update(
+            {
+                "gpus": gpus,
+                "platform": platform,
+                "certificate_authority_id": ca,
+                "certificate_authority_fingerprint": fingerprint,
+            }
+        )
         set_profile_args(profile_config)
         initialize(for_webui=True)
         return {"status": "success", "error": ""}
@@ -115,34 +129,6 @@ def view_profile(
         logger.exception(exp)
 
     return return_response
-
-
-@router.post("/edit_certificate", response_class=JSONResponse)
-def edit_certificate(
-    ca: int = Form(None),
-    fingerprint: str = Form(None),
-    current_user: bool = Depends(check_user_api),
-):
-    if ca is None:
-        ca = config.certificate_authority_id
-    if fingerprint is None:
-        fingerprint = config.certificate_authority_fingerprint
-
-    try:
-        config_p = read_config()
-        profile_config = config_p.active_profile.copy()
-        profile_config.update(
-            {
-                "certificate_authority_id": ca,
-                "certificate_authority_fingerprint": fingerprint,
-            }
-        )
-        initialize(for_webui=True)
-        set_profile_args(profile_config)
-        return {"status": "success", "error": ""}
-    except Exception as exp:
-        logger.exception(exp)
-        return {"status": "failed", "error": str(exp)}
 
 
 @router.post("/get_certificate", response_class=JSONResponse)

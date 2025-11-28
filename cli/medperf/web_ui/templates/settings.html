@@ -26,7 +26,7 @@
                         Select Profile
                     </label>
                     <div class="col-sm-6">
-                        <select name="profile" id="profile" class="form-select">
+                        <select name="profile" id="profile" class="form-select" {% if task_running %}disabled{% endif %}>
                             <option value="" disabled>Select Profile</option>
                             {% for profile in profiles %}
                             <option
@@ -41,7 +41,7 @@
                 </div>
                 <div class="text-center mt-5">
                     <button type="button" class="btn btn-primary mx-3" id="activate-profile-btn" disabled>Activate Profile</button>
-                    <button type="button" class="btn btn-secondary mx-3" id="view-profile-btn">View Profile</button>
+                    <button type="button" class="btn btn-secondary mx-3" id="view-profile-btn" {% if task_running %}disabled{% endif %}>View Profile</button>
                 </div>
             </form>
         </div>
@@ -50,13 +50,45 @@
                 <div class="row mb-4">
                     <label for="gpus" class="col-sm-3 col-form-label h5 text-end">GPUs</label>
                     <div class="col-sm-6">
-                        <input type="text" id="gpus" name="gpus" class="form-control" value="{{ default_gpus }}">
+                        <input type="text" id="gpus" name="gpus" class="form-control" value="{{ default_gpus }}" {% if task_running %}disabled{% endif %}>
                     </div>
                 </div>
                 <div class="row mb-4">
                     <label for="platform" class="col-sm-3 col-form-label h5 text-end">Platform</label>
                     <div class="col-sm-6">
-                        <input type="text" id="platform" name="platform" class="form-control" value="{{ default_platform }}">
+                        <input type="text" id="platform" name="platform" class="form-control" value="{{ default_platform }}" {% if task_running %}disabled{% endif %}>
+                    </div>
+                </div>
+                <div class="row mb-4">
+                    <label for="ca" class="col-sm-3 col-form-label h5 text-end">Certificate Authority</label>
+                    <div class="col-sm-6">
+                        <select name="ca" id="ca" class="form-select" {% if not logged_in or task_running %}disabled{% endif %}>
+                            {% if not logged_in %}
+                            <option value="">Log in to select CA</option>
+                            {% else %}
+                            <option value="" disabled>Select CA</option>
+                            {% for ca in cas %}
+                            <option
+                                value="{{ ca }}"
+                                {% if ca == default_ca %}
+                                selected
+                                {% endif %}
+                            >{{ cas[ca] }}</option>
+                            {% endfor %}
+                            {% endif %}
+                        </select>
+                    </div>
+                </div>
+                <div class="row mb-4">
+                    <label for="fingerprint" class="col-sm-3 col-form-label h5 text-end">Fingerprint</label>
+                    <div class="col-sm-6">
+                        <input
+                            type="text"
+                            id="fingerprint"
+                            name="fingerprint"
+                            class="form-control"
+                            {% if not logged_in or task_running %}disabled{% endif %}
+                            value="{% if not logged_in %}Log in to change fingerprint{% else %}{{ default_fingerprint }}{% endif %}">
                     </div>
                 </div>
                 <div class="text-center mt-4">
@@ -67,50 +99,15 @@
     </div>
 </div>
 
-<div id="edit-certs-container" class="container hidden-element">
-    <div class="row mt-3">
+<div id="user-certificate" class="container">
+    <div class="row my-5">
         <div class="col-12 mt-4">
             <h4 class="text-end col-sm-3">Certificate Settings</h4>
         </div>
-        <div class="col-12 mt-5">
-            <h4 class="text-center">
-                Selected Certificate Authority (CA): 
-                <strong data-testid="current-ca">{{ cas.get(default_ca, None) }}</strong>
-            </h4>
-            <form id="edit-certs-form">
-                <div class="row mb-4">
-                    <label for="ca" class="col-sm-3 col-form-label h5 text-end">Select CA</label>
-                    <div class="col-sm-6">
-                        <select name="ca" id="ca" class="form-select">
-                            <option value="" disabled>Select CA</option>
-                            {% for ca in cas %}
-                            <option
-                                value="{{ ca }}"
-                                {% if ca == default_ca %}
-                                selected
-                                {% endif %}
-                            >{{ cas[ca] }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                </div>
-                <div class="row mb-4">
-                    <label for="fingerprint" class="col-sm-3 col-form-label h5 text-end">Fingerprint</label>
-                    <div class="col-sm-6">
-                        <input type="text" id="fingerprint" name="fingerprint" class="form-control" value="{{ default_fingerprint }}">
-                    </div>
-                </div>
-                <div class="text-center mt-4">
-                    <button type="button" id="apply-cert-changes-btn" class="btn btn-primary" disabled>Apply Changes</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<div id="user-certificate" class="container">
-    <div class="row my-5">
-        <div id="certificate-status" class="col-12 my-5 text-center">
+        <div id="certificate-settings" class="col-12 my-5 text-center">
+            {% if not logged_in %}
+            <h5>Log in to view certificate settings</h5>
+            {% else %}
             {% if certificate_status["no_certs_found"] %}
             <h5>No Certificate Found</h5>
             <button
@@ -157,6 +154,7 @@
                 <strong>Status:</strong> 
                 <span class="badge bg-success" data-testid="cert-status">valid</span>
             </p>
+            {% endif %}
             {% endif %}
             {% endif %}
         </div>

@@ -24,8 +24,7 @@ function activateProfile(activateProfileBtn) {
     const formData = new FormData($("#profiles-form")[0]);
     
     disableElements("#profiles-form select, #profiles-form button");
-    disableElements("#edit-config-form input, #edit-config-form button");
-    disableElements("#edit-certs-form input, #edit-certs-form select, #edit-certs-form button");
+    disableElements("#edit-config-form input, #edit-config-form button, #edit-config-form select");
     disableElements("#user-certificate button");
     
     ajaxRequest(
@@ -78,8 +77,7 @@ function editProfile(editProfileBtn) {
     const formData = new FormData($("#edit-config-form")[0]);
 
     disableElements("#profiles-form select, #profiles-form button");
-    disableElements("#edit-config-form input, #edit-config-form button");
-    disableElements("#edit-certs-form input, #edit-certs-form select, #edit-certs-form button");
+    disableElements("#edit-config-form input, #edit-config-form button, #edit-config-form select");
     disableElements("#user-certificate button");
 
     ajaxRequest(
@@ -89,42 +87,15 @@ function editProfile(editProfileBtn) {
         (response) => {
             if (response.status === "success"){
                 showReloadModal({
-                    title: "Profile Edited Successfully",
+                    title: "Profile Settings Edited Successfully",
                     seconds: 3
                 });
             }
             else {
-                showErrorModal("Failed to Edit Profile", response);
+                showErrorModal("Failed to Edit Profile Settings", response);
             }
         },
         "Error editing profile:"
-    );
-}
-
-function editCertificate(editCertBtn) {
-    const formData = new FormData($("#edit-certs-form")[0]);
-
-    disableElements("#profiles-form select, #profiles-form button");
-    disableElements("#edit-config-form input, #edit-config-form button");
-    disableElements("#edit-certs-form input, #edit-certs-form select, #edit-certs-form button");
-    disableElements("#user-certificate button");
-
-    ajaxRequest(
-        "/settings/edit_certificate",
-        "POST",
-        formData,
-        (response) => {
-            if (response.status === "success"){
-                showReloadModal({
-                    title: "Certificate Settings Edited Successfully",
-                    seconds: 3
-                });
-            }
-            else {
-                showErrorModal("Failed to Edit Certificate Settings", response);
-            }
-        },
-        "Error editing certificate settings:"
     );
 }
 
@@ -168,9 +139,8 @@ async function getCertificate(getCertBtn){
     addSpinner(getCertBtn);
 
     disableElements("#profiles-form select, #profiles-form button");
-    disableElements("#edit-config-form input, #edit-config-form button");
-    disableElements("#edit-certs-form input, #edit-certs-form select, #edit-certs-form button");
-    disableElements("#certificate-status button");
+    disableElements("#edit-config-form input, #edit-config-form button, #edit-config-form select");
+    disableElements("#certificate-settings button");
 
     ajaxRequest(
         "/settings/get_certificate",
@@ -189,9 +159,8 @@ async function deleteCertificate(deleteCertBtn){
     addSpinner(deleteCertBtn);
 
     disableElements("#profiles-form select, #profiles-form button");
-    disableElements("#edit-config-form input, #edit-config-form button");
-    disableElements("#edit-certs-form input, #edit-certs-form select, #edit-certs-form button");
-    disableElements("#certificate-status button");
+    disableElements("#edit-config-form input, #edit-config-form button, #edit-config-form select");
+    disableElements("#certificate-settings button");
 
     ajaxRequest(
         "/settings/delete_certificate",
@@ -210,9 +179,8 @@ async function submitCertificate(submitCertBtn){
     addSpinner(submitCertBtn);
     
     disableElements("#profiles-form select, #profiles-form button");
-    disableElements("#edit-config-form input, #edit-config-form button");
-    disableElements("#edit-certs-form input, #edit-certs-form select, #edit-certs-form button");
-    disableElements("#certificate-status button");
+    disableElements("#edit-config-form input, #edit-config-form button, #edit-config-form select");
+    disableElements("#certificate-settings button");
 
     ajaxRequest(
         "/settings/submit_certificate",
@@ -230,11 +198,16 @@ async function submitCertificate(submitCertBtn){
 function checkForProfileEditChanges() {
     const gpusVal = $('#gpus').val();
     const platformVal = $('#platform').val();
+    const caVal = $('#ca').val();
+    const fingerprintVal = $('#fingerprint').val();
 
     const gpusChanged = gpusVal !== window.currentSettings.defaultGpus;
     const platformChanged = platformVal !== window.currentSettings.defaultPlatform;
+    const caChanged = caVal !== window.currentSettings.defaultCA;
+    const fingerprintChanged = fingerprintVal !== window.currentSettings.defaultFingerprint;
 
-    $('#apply-profile-changes-btn').prop('disabled', !(gpusChanged || platformChanged));
+
+    $('#apply-profile-changes-btn').prop('disabled', !(gpusChanged || platformChanged || caChanged || fingerprintChanged));
 }
 
 function checkProfileMatch() {
@@ -242,24 +215,13 @@ function checkProfileMatch() {
 
     if (selectedProfile === window.currentSettings.activeProfile) {
         $('#edit-config-container').show();
-        $('#edit-certs-container').show();
         $('#activate-profile-btn').prop('disabled', true);
     } else {
         $('#edit-config-container').hide();
-        $('#edit-certs-container').hide();
         $('#activate-profile-btn').prop('disabled', false);
     }
 }
 
-function checkForCertificateEditChanges() {
-    const caVal = $('#ca').val();
-    const fingerprintVal = $('#fingerprint').val().trim();
-
-    const caChanged = caVal !== window.currentSettings.defaultCA;
-    const fingerprintChanged = fingerprintVal !== window.currentSettings.defaultFingerprint;
-
-    $('#apply-cert-changes-btn').prop('disabled', !(caChanged || fingerprintChanged));
-}
 
 $(document).ready(() => {
     $("#activate-profile-btn").on("click", (e) => {
@@ -272,10 +234,6 @@ $(document).ready(() => {
 
     $("#apply-profile-changes-btn").on("click", (e) => {
         showConfirmModal(e.currentTarget, editProfile, "edit this profile?");
-    });
-
-    $("#apply-cert-changes-btn").on("click", (e) => {
-        showConfirmModal(e.currentTarget, editCertificate, "modify certificate settings?");
     });
 
     $("#get-cert-btn").on("click", (e) => {
@@ -291,11 +249,9 @@ $(document).ready(() => {
     });
 
     $('#profile').on('change', checkProfileMatch);
-    $('#gpus, #platform').on('input', checkForProfileEditChanges);
-    $('#ca, #fingerprint').on('input', checkForCertificateEditChanges);
+    $('#gpus, #platform, #ca, #fingerprint').on('input', checkForProfileEditChanges);
 
     // Run initial state checks
     checkProfileMatch();
     checkForProfileEditChanges();
-    checkForCertificateEditChanges();
 });
