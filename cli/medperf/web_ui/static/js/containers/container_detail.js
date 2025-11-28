@@ -1,8 +1,10 @@
 function onContainerAssociationRequestSuccess(response){
     markAllStagesAsComplete();
     if(response.status === "success"){
-        showReloadModal("Association Requested Successfully");
-        timer(3);
+        showReloadModal({
+            title: "Association Requested Successfully",
+            seconds: 3,
+        });
     }
     else{
         showErrorModal("Association Request Failed", response);

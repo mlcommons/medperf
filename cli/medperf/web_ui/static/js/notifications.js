@@ -129,30 +129,15 @@ function addNotification(notification){
     });
 }
 
-function getNotifications() {
-    $.ajax({
-        url: "/notifications",
-        type: "GET",
-        dataType: "json",
-        async: true,
-        success: function(response) {
-            if (Array.isArray(response)) {
-                response.forEach(function(notification) {
-                    let bg = "text-bg-primary";
-                    if (notification.type === "success")
-                        bg = "text-bg-success";
-                    else if (notification.type === "failed")
-                        bg = "text-bg-danger";
+function processNotification(notification){
+    let bg = "text-bg-primary";
+    if (notification.type === "success")
+        bg = "text-bg-success";
+    else if (notification.type === "failed")
+        bg = "text-bg-danger";
 
-                    showToast("New Notification", notification.message, bg);
-                    addNotification(notification);
-                });
-            }
-        },
-        error: function(xhr, status, error) {
-            console.error('Error fetching notifications:', error);
-        }
-    });
+    showToast("New Notification", notification.message, bg);
+    addNotification(notification);
 }
 
 function deleteNotification(notification_id){

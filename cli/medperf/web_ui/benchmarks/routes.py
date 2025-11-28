@@ -15,15 +15,14 @@ from medperf.entities.cube import Cube
 from medperf.account_management import get_medperf_user_data
 from medperf.entities.execution import Execution
 from medperf.web_ui.common import (
-    add_notification,
     check_user_api,
     initialize_state_task,
     reset_state_task,
     templates,
     sort_associations_display,
     check_user_ui,
-    get_container_type,
 )
+from medperf.web_ui.utils import get_container_type
 
 from medperf.commands.association.approval import Approval
 from medperf.enums import Status
@@ -216,8 +215,7 @@ def test_benchmark(
 
     config.ui.end_task(return_response)
     reset_state_task(request)
-    add_notification(
-        request,
+    config.ui.add_notification(
         message=notification_message,
         return_response=return_response,
         url="/benchmarks/register/ui",
@@ -267,8 +265,7 @@ def register_benchmark(
 
     config.ui.end_task(return_response)
     reset_state_task(request)
-    add_notification(
-        request,
+    config.ui.add_notification(
         message=notification_message,
         return_response=return_response,
         url=f"/benchmarks/ui/display/{benchmark_id}" if benchmark_id else "",
@@ -303,8 +300,7 @@ def approve(
 
     config.ui.end_task(return_response)
     reset_state_task(request)
-    add_notification(
-        request,
+    config.ui.add_notification(
         message=notification_message,
         return_response=return_response,
         url=f"/benchmarks/ui/display/{benchmark_id}",
@@ -339,8 +335,7 @@ def reject(
 
     config.ui.end_task(return_response)
     reset_state_task(request)
-    add_notification(
-        request,
+    config.ui.add_notification(
         message=notification_message,
         return_response=return_response,
         url=f"/benchmarks/ui/display/{benchmark_id}",
@@ -378,8 +373,7 @@ def update_associations_policy(
 
     config.ui.end_task(return_response)
     reset_state_task(request)
-    add_notification(
-        request,
+    config.ui.add_notification(
         message=notification_message,
         return_response=return_response,
         url=f"/benchmarks/ui/display/{benchmark_id}",

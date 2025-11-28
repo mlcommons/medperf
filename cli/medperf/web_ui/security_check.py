@@ -2,10 +2,9 @@ from fastapi import Query, Request, Form, APIRouter, status, Security
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 from medperf.web_ui.auth import security_token, AUTH_COOKIE_NAME
-from medperf.web_ui.common import templates, api_key_cookie
+from medperf.web_ui.common import templates, api_key_cookie, sanitize_redirect_url
 from medperf.utils import print_webui_props
 
-from urllib.parse import urlparse
 
 router = APIRouter()
 
@@ -24,15 +23,6 @@ def redirect_with_auth_cookie(security_token, sanitized_redirect_url):
         max_age=60 * 60 * 24 * 365,  # 1 year
     )
     return response
-
-
-def sanitize_redirect_url(url: str, fallback: str = "/") -> bool:
-    """Validate that the URL is a relative path or matches allowed hosts."""
-    normalized_url = url.replace("\\", "")  # Normalize backslashes
-    parsed = urlparse(normalized_url)
-    if not parsed.netloc and not parsed.scheme:
-        return normalized_url
-    return fallback
 
 
 # security check page GET endpoint

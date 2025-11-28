@@ -3,7 +3,7 @@ from typing import Optional
 import medperf.config as config
 from medperf.entities.cube import Cube
 from medperf.exceptions import InvalidArgumentError
-from medperf.utils import remove_path, store_decryption_key, sanitize_path
+from medperf.utils import remove_path, sanitize_path, store_decryption_key
 import logging
 
 import yaml
@@ -55,7 +55,7 @@ class SubmitCube:
         self.parameters_config_file = sanitize_path(parameters_config)
         self.container_config = None
         self.parameters_config = None
-        self.decryption_key = decryption_key
+        self.decryption_key = sanitize_path(decryption_key)
 
     def read_config_files(self):
         if not os.path.exists(self.container_config_file):
@@ -113,6 +113,16 @@ class SubmitCube:
             raise InvalidArgumentError(
                 "Container is not encrypted, but a decryption key is provided"
             )
+
+        if self.decryption_key is not None:
+            if not os.path.exists(self.decryption_key):
+                raise InvalidArgumentError(
+                    f"Decryption key does not exist at path {self.decryption_key}"
+                )
+            if os.path.isdir(self.decryption_key):
+                raise InvalidArgumentError(
+                    f"The provided decryption key path {self.decryption_key} is a directory!"
+                )
 
     def download_run_files(self):
         self.cube.download_run_files()

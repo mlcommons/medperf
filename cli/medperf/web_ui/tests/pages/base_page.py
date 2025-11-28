@@ -6,12 +6,10 @@ from selenium.webdriver.support import expected_conditions as EC
 class BasePage:
     NAVBAR = (By.CSS_SELECTOR, "nav.navbar")
     LOGOUT_BTN = (By.ID, "logout-btn")
-    CONFIRM_MODAL = (By.ID, "confirm-modal")
+    PAGE_MODAL = (By.ID, "page-modal")
+    PAGE_MODAL_TITLE = (By.ID, "page-modal-title")
+    CONFIRM_TEXT = (By.ID, "confirm-text")
     CONFIRM_BTN = (By.ID, "confirmation-btn")
-    POPUP_MODAL = (By.ID, "popup-modal")
-    POPUP_TITLE = (By.ID, "popup-modal-title")
-    ERROR_MODAL = (By.ID, "error-modal")
-    ERROR_TITLE = (By.ID, "error-modal-title")
     ERROR_TEXT = (By.ID, "error-text")
     ERROR_HIDE = (By.CSS_SELECTOR, '.modal-footer [data-bs-dismiss="modal"]')
     ERROR_RELOAD = (By.CSS_SELECTOR, '.modal-body [onclick="reloadPage();"]')
@@ -74,7 +72,7 @@ class BasePage:
 
     def confirm_run_task(self):
         self.click(self.CONFIRM_BTN)
-        self.wait.until(EC.invisibility_of_element_located(self.CONFIRM_MODAL))
+        self.wait.until(EC.invisibility_of_element_located(self.CONFIRM_BTN))
 
     def __scroll_into_view(self, element):
         self.driver.execute_script(
@@ -107,6 +105,9 @@ class BasePage:
 
     def get_events_count(self):
         return self.driver.execute_script("return window.evSourceSpy.count")
+
+    def is_confirmation_modal(self):
+        return self.get_text(self.PAGE_MODAL_TITLE) == "Confirmation Prompt"
 
     def patch_event_source(self):
         return self.driver.execute_script(

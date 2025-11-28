@@ -36,7 +36,7 @@ class CompatibilityTestExecution:
         data_prep_additional: str = None,
         model_additional: str = None,
         evaluator_additional: str = None,
-    ) -> (str, dict):
+    ) -> tuple[str, dict]:
         """Execute a test workflow. Components of a complete workflow should be passed.
         When only the benchmark is provided, it implies the following workflow will be used:
         - the benchmark's demo dataset is used as the raw data
@@ -169,7 +169,7 @@ class CompatibilityTestExecution:
         self.evaluator_cube = None
 
         # Decryption key is used for compatibility test of encrypted containers
-        self.model_decryption_key = model_decryption_key
+        self.model_decryption_key = sanitize_path(model_decryption_key)
 
         self.validator = CompatibilityTestParamsValidator(
             self.benchmark_uid,

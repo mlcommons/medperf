@@ -329,6 +329,21 @@
 					<li class="list-group-item d-flex justify-content-between align-items-center">
 						<!-- Left section: Model info -->
 						<div class="model-info d-flex flex-column">
+                            {% if model._encrypted %}
+                            <div>
+                            <small class="text-muted">&nbsp;Encrypted Model</small>
+                            {% if model.access_status["has_access"] %}
+                            <small class="text-success fw-bold">&nbsp;Access Granted</small>
+                            {% else %}
+                            <small
+                                class="text-danger text-decoration-underline"
+                                data-bs-toggle="tooltip"
+                                data-bs-placement="top"
+                                data-bs-title="{{ model.access_status['reason'] }}"
+                                >&nbsp;Access Pending</small>
+                            {% endif %}
+                            </div>
+                            {% endif %}
 							{{ container_macros.container_link(model) }}
 						</div>
 						<div class="d-flex align-items-center">
@@ -342,7 +357,7 @@
 									data-model-name="{{ model.name }}"
 									id="run-{{ assoc }}-{{ model.id }}"
                                     {% if results_exist %} rerun="true" {% endif %}
-                                    {% if task_running %} disabled {% endif %}
+                                    {% if task_running or (model._encrypted and not model.access_status["has_access"]) %} disabled {% endif %}
 								>
 									▶️ {% if results_exist %} Rerun {% else %} Run {% endif %}
 								</button>
@@ -401,13 +416,6 @@
 {% include "partials/yaml_container.html" %}
 {% include "partials/prompt_container.html" %}
 
-{{ modal_macros.add_modal(
-    modal_id="result-modal",
-    modal_class="modal-lg",
-    modal_body='<pre id="result-content" class="language-yaml"></pre>',
-    modal_footer=True,
-    close_button='<button type="button" class="btn btn-primary" data-bs-dismiss="modal" aria-label="Close">Close</button>',
-) }}
 {% endblock detail_panel %}
 
 {% block extra_js %}

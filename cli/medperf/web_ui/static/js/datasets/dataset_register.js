@@ -1,8 +1,11 @@
 function onDatasetRegisterSuccess(response){
     markAllStagesAsComplete();
     if(response.status === "success"){
-        showReloadModal("Dataset Registered Successfully");
-        timer(3, "/datasets/ui/display/"+response.dataset_id);
+        showReloadModal({
+            title: "Dataset Registered Successfully",
+            seconds: 3,
+            url: "/datasets/ui/display/"+response.dataset_id
+        });
     }
     else{
         showErrorModal("Failed to Register Dataset", response)

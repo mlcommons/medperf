@@ -29,6 +29,8 @@ if [ -z "$MEDPERF_INPUT_CN" ]; then
     exit 1
 fi
 
+pki_assets=${pki_assets%/}
+
 export STEPPATH=$pki_assets/.step
 
 CERT_PATH=$pki_assets/crt.crt
@@ -40,7 +42,7 @@ fi
 mkdir -p /tmp/root_ca
 
 # verify the ca first
-/bin/sh /project/trust.sh --ca_config $ca_config --pki_assets /tmp/root_ca
+/bin/sh /project/trust.sh --ca_config=$ca_config --pki_assets=/tmp/root_ca
 
 EXITSTATUS="$?"
 if [ $EXITSTATUS -ne "0" ]; then
@@ -61,12 +63,12 @@ if [ $EXITSTATUS -ne "0" ]; then
     exit 1
 fi
 
-CN=$(step certificate inspect --short --format json "$CERT_PATH" | jq -r '.subject.cn')
+CNS=$(step certificate inspect --format json "$CERT_PATH" | jq -r '.subject.common_name[]')
 
-if [ "$CN" = "$MEDPERF_INPUT_CN" ]; then
+if echo "$CNS" | grep -Fxq "$MEDPERF_INPUT_CN"; then
     echo "✅ Certificate CN matches expected value."
 else
-    echo "❌ CN mismatch! Found: $CN, Expected: $MEDPERF_INPUT_CN"
+    echo "❌ CN mismatch! Found: $CNS, Expected: $MEDPERF_INPUT_CN"
     exit 1
 fi
 

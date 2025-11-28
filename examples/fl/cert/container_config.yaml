@@ -41,7 +41,6 @@ tasks:
       ca_config:
         mount_path: /mlcommons/volumes/ca_config/ca_config.json
         type: file
-    output_volumes:
       pki_assets:
         mount_path: /mlcommons/volumes/pki_assets
         type: directory

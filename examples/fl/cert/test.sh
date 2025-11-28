@@ -1,17 +1,17 @@
 $DIR=$(dirname "$0")
 medperf container run_test --container ./container_config.yaml \
-    --task trust \
+    --task trust --allow_network \
     --mounts "ca_config=$DIR/workspace/ca_config.json,pki_assets=$DIR/workspace/pki_assets"
 
 medperf container run_test --container ./container_config.yaml \
-    --task get_client_cert -e MEDPERF_INPUT_CN=hasan.kassem@mlcommons.org \
+    --task get_client_cert -e MEDPERF_INPUT_CN=hasan.kassem@mlcommons.org --allow_network \
     --mounts "ca_config=$DIR/workspace/ca_config.json,pki_assets=$DIR/workspace/pki_assets"
 
 
 medperf container run_test --container ./container_config.yaml \
-    --task get_server_cert -e MEDPERF_INPUT_CN=34.41.173.238 -P 80 \
+    --task get_server_cert -e MEDPERF_INPUT_CN=34.41.173.238 -P 80 --allow_network \
     --mounts "ca_config=$DIR/workspace/ca_config.json,pki_assets=$DIR/workspace/pki_assets"
 
 medperf container run_test --container ./container_config.yaml \
-    --task verify_cert -e MEDPERF_INPUT_CN=hasan.kassem@mlcommons.org \
+    --task verify_cert -e MEDPERF_INPUT_CN=hasan.kassem@mlcommons.org --allow_network \
     --mounts "ca_config=$DIR/workspace/ca_config.json,pki_assets=$DIR/workspace/pki_assets"

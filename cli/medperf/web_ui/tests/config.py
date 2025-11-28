@@ -70,6 +70,18 @@ CONTAINER = {
     "additional": "https://storage.googleapis.com/medperf-storage/chestxray_tutorial/mobilenetv2_weights.tar.gz",
 }
 
+# Encrypted Container Registration Inputs
+ENCRYPTED_CONTAINER = {
+    "name": "my-encrypted-model",
+    "manifest": "https://raw.githubusercontent.com/RodriguesRBruno/medperf/0f1113bca1c2eef6a3c40b83032a9982b008effd"
+    + "/examples/chestxray_tutorial/model_custom_cnn_encrypted/container_config.yaml",
+    "parameters": "https://raw.githubusercontent.com/RodriguesRBruno/medperf/0f1113bca1c2eef6a3c40b83032a9982b008effd"
+    + "/examples/chestxray_tutorial/model_custom_cnn_encrypted/workspace/parameters.yaml",
+    "additional": "https://storage.googleapis.com/medperf-storage/chestxray_tutorial/cnn_weights.tar.gz",
+}
+
+DECRYPTION_KEY_PATH = "examples/chestxray_tutorial/model_custom_cnn_encrypted/key.bin"
+
 # Dataset Registration Inputs
 DATASET_NAME = "mytestdata"
 DATASET_DESC = "A tutorial dataset"
