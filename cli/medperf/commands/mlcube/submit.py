@@ -101,6 +101,7 @@ class SubmitCube:
             parameters_config=self.parameters_config,
         )
         config.tmp_paths.append(self.cube.path)
+        os.makedirs(self.cube.path, exist_ok=True)
 
     def validate(self):
         if self.cube.is_encrypted() and not self.decryption_key:
