@@ -1,3 +1,22 @@
+function showProfileModal(profileName, profileData){
+
+    const modalTitle = "View Profile";
+    const modalBody = `
+    <h5 class="text-center">Profile Name: ${profileName}</h5>
+    <pre id="profile-yaml" class="language-yaml">${profileData}</pre>
+    `;
+    const modalFooter = '<button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>';
+    const extra_fn = () => { Prism.highlightElement($("#profile-yaml")[0]); };
+
+    showModal({
+        title: modalTitle,
+        body: modalBody,
+        footer: modalFooter,
+        modalClasses: "modal-lg",
+        extra_func: extra_fn
+    });
+}
+
 
 function activateProfile(activateProfileBtn) {
     addSpinner(activateProfileBtn);
@@ -15,8 +34,10 @@ function activateProfile(activateProfileBtn) {
         formData,
         (response) => {
             if (response.status === "success"){
-                showReloadModal("Profile Activated Successfully");
-                timer(3);
+                showReloadModal({
+                    title: "Profile Activated Successfully",
+                    seconds: 3
+                });
             }
             else {
                 showErrorModal("Failed to Activate Profile", response);
@@ -37,13 +58,11 @@ function viewProfile(viewProfileBtn){
         formData,
         (response) => {
             if (response.status === "success"){
-                $("#view-profile-modal-title").html("View Profile");
-                $("#view-profile-name").text("Profile Name: "+ response.profile);
-                $("#profile-yaml").html(response.profile_dict);
-                Prism.highlightElement(document.getElementById("profile-yaml"));
+                const profileName = response.profile;
+                const profileData = response.profile_dict;
 
-                $("#view-profile-modal").modal("show");
-                
+                showProfileModal(profileName, profileData);
+
                 enableElements("#profiles-form select, #profiles-form button");
                 checkProfileMatch();
             }
@@ -69,8 +88,10 @@ function editProfile(editProfileBtn) {
         formData,
         (response) => {
             if (response.status === "success"){
-                showReloadModal("Profile Edited Successfully");
-                timer(3);
+                showReloadModal({
+                    title: "Profile Edited Successfully",
+                    seconds: 3
+                });
             }
             else {
                 showErrorModal("Failed to Edit Profile", response);
@@ -94,8 +115,10 @@ function editCertificate(editCertBtn) {
         formData,
         (response) => {
             if (response.status === "success"){
-                showReloadModal("Certificate Settings Edited Successfully");
-                timer(3);
+                showReloadModal({
+                    title: "Certificate Settings Edited Successfully",
+                    seconds: 3
+                });
             }
             else {
                 showErrorModal("Failed to Edit Certificate Settings", response);
@@ -107,8 +130,10 @@ function editCertificate(editCertBtn) {
 
 function onGetCertSuccess(response){
     if (response.status === "success"){
-        showReloadModal("Certificate Retrieved Successfully");
-        timer(3);
+        showReloadModal({
+            title: "Certificate Retrieved Successfully",
+            seconds: 3
+        });
     }
     else {
         showErrorModal("Failed to Get Certificate", response);
@@ -117,8 +142,10 @@ function onGetCertSuccess(response){
 
 function onDeleteCertSuccess(response){
     if (response.status === "success"){
-        showReloadModal("Certificate Deleted Successfully");
-        timer(3);
+        showReloadModal({
+            title: "Certificate Deleted Successfully",
+            seconds: 3
+        });
     }
     else {
         showErrorModal("Failed to Delete Certificate", response);
@@ -127,8 +154,10 @@ function onDeleteCertSuccess(response){
 
 function onSubmitCertSuccess(response){
     if (response.status === "success"){
-        showReloadModal("Certificate Submitted Successfully");
-        timer(3);
+        showReloadModal({
+            title: "Certificate Submitted Successfully",
+            seconds: 3
+        });
     }
     else {
         showErrorModal("Failed to Submit Certificate", response);
@@ -136,6 +165,8 @@ function onSubmitCertSuccess(response){
 }
 
 async function getCertificate(getCertBtn){
+    addSpinner(getCertBtn);
+
     disableElements("#profiles-form select, #profiles-form button");
     disableElements("#edit-config-form input, #edit-config-form button");
     disableElements("#edit-certs-form input, #edit-certs-form select, #edit-certs-form button");
@@ -146,15 +177,17 @@ async function getCertificate(getCertBtn){
         "POST",
         null,
         onGetCertSuccess,
-        "Error generating certificate:"
+        "Error getting certificate:"
     );
 
-    showPanel(`Generating Client Certificate...`);
+    showPanel(`Getting Client Certificate...`);
     window.runningTaskId = await getTaskId();
     streamEvents(logPanel, stagesList, currentStageElement);
 }
 
 async function deleteCertificate(deleteCertBtn){
+    addSpinner(deleteCertBtn);
+
     disableElements("#profiles-form select, #profiles-form button");
     disableElements("#edit-config-form input, #edit-config-form button");
     disableElements("#edit-certs-form input, #edit-certs-form select, #edit-certs-form button");
@@ -174,6 +207,8 @@ async function deleteCertificate(deleteCertBtn){
 }
 
 async function submitCertificate(submitCertBtn){
+    addSpinner(submitCertBtn);
+    
     disableElements("#profiles-form select, #profiles-form button");
     disableElements("#edit-config-form input, #edit-config-form button");
     disableElements("#edit-certs-form input, #edit-certs-form select, #edit-certs-form button");
@@ -244,7 +279,7 @@ $(document).ready(() => {
     });
 
     $("#get-cert-btn").on("click", (e) => {
-        showConfirmModal(e.currentTarget, getCertificate, "generate a new certificate?");
+        showConfirmModal(e.currentTarget, getCertificate, "get a new certificate?");
     });
 
     $("#delete-cert-btn").on("click", (e) => {

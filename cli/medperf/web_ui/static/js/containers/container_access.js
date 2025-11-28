@@ -40,8 +40,10 @@ function checkAutoAccessForm(){
 
 function onGrantAccessSuccess(response){
     if(response.status === "success"){
-        showReloadModal("Successfully Granted Access to the Selected Users");
-        timer(3);
+        showReloadModal({
+            title: "Successfully Granted Access to the Selected Users",
+            seconds: 3,
+        });
     }
     else{
         showErrorModal("Failed to Grant Access", response);
@@ -90,8 +92,10 @@ function startAutoGrant(startBtn){
         formData,
         (response) => {
             if(response.status === "success"){
-                showReloadModal("Successfully Started Auto Grant Access");
-                timer(2);
+                showReloadModal({
+                    title: "Successfully Started Auto Grant Access",
+                    seconds: 2,
+                });
             }
             else{
                 showErrorModal("Failed to Start Auto Grant Access", response);
@@ -114,8 +118,10 @@ async function stopAutoGrant(stopBtn){
         formData,
         (response) => {
             if(response.status === "success"){
-                showReloadModal("Successfully Stopped Auto Grant Access");
-                timer(2);
+                showReloadModal({
+                    title: "Successfully Stopped Auto Grant Access",
+                    seconds: 2,
+                });
             }
             else{
                 showErrorModal("Failed to Stop Auto Grant Access", response);
@@ -127,8 +133,10 @@ async function stopAutoGrant(stopBtn){
 
 function onrevokeUserAccessSuccess(response){
     if(response.status === "success"){
-        showReloadModal("Successfully Revoked User Access");
-        timer(3);
+        showReloadModal({
+            title: "Successfully Revoked User Access",
+            seconds: 3,
+        });
     }
     else{
         showErrorModal("Failed to Revoke User Access", response);
@@ -153,15 +161,16 @@ async function revokeUserAccess(revokeAccessBtn){
         "Failed to revoke user access"
     );
 
-    showPanel(`Revoking User Access...`);
     window.runningTaskId = await getTaskId();
     streamEvents(logPanel, stagesList, currentStageElement);
 }
 
 function onDeleteKeysSuccess(response){
     if(response.status === "success"){
-        showReloadModal("Successfully Deleted Keys");
-        timer(3);
+        showReloadModal({
+            title: "Successfully Deleted Keys",
+            seconds: 3,
+        });
     }
     else{
         showErrorModal("Failed to Delete Keys", response);
@@ -185,7 +194,6 @@ async function deleteKeys(deleteKeysBtn){
         "Failed to delete keys"
     );
 
-    showPanel(`Deleting Keys...`);
     window.runningTaskId = await getTaskId();
     streamEvents(logPanel, stagesList, currentStageElement);
 }
@@ -263,27 +271,27 @@ $(document).ready(() => {
 
     $("#grant-access-btn").on("click", (e) => {
         if(checkAccessForm()){
-            showConfirmModal(e.currentTarget, grantAccess, "want to grant access to the emails added?");
+            showConfirmModal(e.currentTarget, grantAccess, "grant access to the emails added?");
         }
     });
 
     $("#start-auto-access-btn").on("click", (e) => {
         if(checkAutoAccessForm()){
-            showConfirmModal(e.currentTarget, startAutoGrant, "want to start automatic grant access for the selected benchmark?");
+            showConfirmModal(e.currentTarget, startAutoGrant, "start automatic grant access for the selected benchmark?");
         }
     });
 
     $("#stop-auto-access-btn").on("click", (e) => {
-        showConfirmModal(e.currentTarget, stopAutoGrant, "want to stop automatic grant access?");
+        showConfirmModal(e.currentTarget, stopAutoGrant, "stop automatic grant access?");
     });
 
     $(".revoke-access-btn").on("click", (e) => {
-        showConfirmModal(e.currentTarget, revokeUserAccess, "want to revoke access for the selected user?");
+        showConfirmModal(e.currentTarget, revokeUserAccess, "revoke access for the selected user?");
 
     });
 
     $("#delete-keys-btn").on("click", (e) => {
-        showConfirmModal(e.currentTarget, deleteKeys, "want to delete all keys?");
+        showConfirmModal(e.currentTarget, deleteKeys, "delete all keys?");
 
     });
 });

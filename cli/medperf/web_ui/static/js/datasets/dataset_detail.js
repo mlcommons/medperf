@@ -2,8 +2,10 @@
 function onDatasetPrepareSuccess(response){
     markAllStagesAsComplete();
     if(response.status === "success"){
-        showReloadModal("Dataset Prepared Successfully");
-        timer(3);
+        showReloadModal({
+            title: "Dataset Prepared Successfully",
+            seconds: 3,
+        });
     }
     else{
         showErrorModal("Failed to Prepare Dataset", response);
@@ -36,8 +38,10 @@ async function prepareDataset(prepareButton) {
 function onDatasetSetOperationSuccess(response){
     markAllStagesAsComplete();
     if(response.status === "success"){
-        showReloadModal("Dataset Set to Operation Successfully");
-        timer(3);
+        showReloadModal({
+            title: "Dataset Set to Operation Successfully",
+            seconds: 3,
+        });
     }
     else{
         showErrorModal("Failed to Set Dataset to Operation", response);
@@ -69,8 +73,10 @@ async function setDatasetToOperation(setOperationButton){
 function onDatasetAssociationRequestSuccess(response){
     markAllStagesAsComplete();
     if(response.status === "success"){
-        showReloadModal("Association Requested Successfully");
-        timer(3);
+        showReloadModal({
+            title: "Association Requested Successfully",
+            seconds: 3,
+        });
     }
     else{
         showErrorModal("Association Request Failed", response);
@@ -106,8 +112,10 @@ async function requestDatasetAssociation(requestAssociationButton){
 function onDatasetBenchmarkExecutionSuccess(response){
     markAllStagesAsComplete();
     if(response.status === "success"){
-        showReloadModal("Execution Ran Successfully");
-        timer(3);
+        showReloadModal({
+            title: "Execution Ran Successfully",
+            seconds: 3,
+        });
     }
     else{
         showErrorModal("Execution Failed", response);
@@ -164,8 +172,10 @@ async function runBenchmarkExecution(executeBenchmarkButton){
 function onResultSubmitSuccess(response){
     markAllStagesAsComplete();
     if(response.status === "success"){
-        showReloadModal("Results Successfully Submitted");
-        timer(3);
+        showReloadModal({
+            title: "Results Successfully Submitted",
+            seconds: 3,
+        });
     }
     else{
         showErrorModal("Results Submission Failed", response);

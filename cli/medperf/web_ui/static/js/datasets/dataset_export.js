@@ -1,8 +1,11 @@
 function onDatasetExportSuccess(response){
     markAllStagesAsComplete();
     if(response.status === "success"){
-        showReloadModal("Dataset Exported Successfully");
-        timer(3, "/datasets/ui/display/"+response.dataset_id);
+        showReloadModal({
+            title: "Dataset Exported Successfully",
+            seconds: 3,
+            url: "/datasets/ui/display/"+response.dataset_id
+        });
     }
     else{
         showErrorModal("Failed to Export Dataset", response)

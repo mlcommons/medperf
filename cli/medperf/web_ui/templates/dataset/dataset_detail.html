@@ -357,7 +357,7 @@
 									data-model-name="{{ model.name }}"
 									id="run-{{ assoc }}-{{ model.id }}"
                                     {% if results_exist %} rerun="true" {% endif %}
-                                    {% if task_running or not model.access_status["has_access"] %} disabled {% endif %}
+                                    {% if task_running or (model._encrypted and not model.access_status["has_access"]) %} disabled {% endif %}
 								>
 									▶️ {% if results_exist %} Rerun {% else %} Run {% endif %}
 								</button>
@@ -416,13 +416,6 @@
 {% include "partials/yaml_container.html" %}
 {% include "partials/prompt_container.html" %}
 
-{{ modal_macros.add_modal(
-    modal_id="result-modal",
-    modal_class="modal-lg",
-    modal_body='<pre id="result-content" class="language-yaml"></pre>',
-    modal_footer=True,
-    close_button='<button type="button" class="btn btn-primary" data-bs-dismiss="modal" aria-label="Close">Close</button>',
-) }}
 {% endblock detail_panel %}
 
 {% block extra_js %}

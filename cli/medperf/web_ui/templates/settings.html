@@ -127,7 +127,7 @@
             {% if certificate_status["should_be_submitted"] %}
             <p class="fs-5">
                 <strong>Status:</strong> 
-                <span class="badge bg-warning">to be uploaded</span>
+                <span class="badge bg-warning" data-testid="cert-status">to be uploaded</span>
             </p>
             <button
                 id="submit-cert-btn"
@@ -141,7 +141,7 @@
             {% elif certificate_status["should_be_invalidated"] %}
             <p class="fs-5">
                 <strong>Status:</strong> 
-                <span class="badge bg-danger">invalid</span>
+                <span class="badge bg-danger" data-testid="cert-status">invalid</span>
             </p>
             <button
                 id="delete-cert-btn"
@@ -155,24 +155,18 @@
             {% else %}
             <p class="fs-5">
                 <strong>Status:</strong> 
-                <span class="badge bg-success">valid</span>
+                <span class="badge bg-success" data-testid="cert-status">valid</span>
             </p>
             {% endif %}
             {% endif %}
         </div>
     </div>
     {% include "partials/panel_container.html" %}
-    {% include "partials/text_content_container.html" %}
+    <div class="text-center">
+        {% include "partials/text_content_container.html" %}
+    </div>
     {% include "partials/prompt_container.html" %}
 </div>
-
-{{ modal_macros.add_modal(
-    modal_id="view-profile-modal",
-    modal_class="modal-lg",
-    modal_body='<h5 id="view-profile-name" class="text-center"></h5><pre id="profile-yaml" class="language-yaml"></pre>',
-    modal_footer=True,
-    close_button='<button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>',
-) }}
 
 {% endblock content %}
 
@@ -205,7 +199,7 @@
     $(document).ready(() => {
         resumeRunningTask(
             "#delete-cert-btn",
-            null,
+            "Deleting Client Certificate...",
             onDeleteCertSuccess
         );
     });
@@ -215,7 +209,7 @@
     $(document).ready(() => {
         resumeRunningTask(
             "#submit-cert-btn",
-            null,
+            "Submitting Client Certificate...",
             onSubmitCertSuccess
         );
     });

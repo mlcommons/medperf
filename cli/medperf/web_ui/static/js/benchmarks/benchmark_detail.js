@@ -5,24 +5,11 @@ function showConfirmationPrompt(approveRejectBtn){
     const benchmarkId = approveRejectBtn.getAttribute("data-benchmark-id");
     const entityId = approveRejectBtn.getAttribute(`data-${entityType}-id`);
 
-    $("#confirmation-btn").off("click").on("click", () => {
+    let message = actionName + " this association?<br><span class='fs-5 text-danger fw-bold'>This action cannot be undone.</span>";
+    const callback = () => {
         approveRejectAssociation(actionName, benchmarkId, entityId, entityType, approveRejectBtn);
-    });
-
-    if(actionName==="approve"){
-        $("#confirm-modal-title").text("Approval Confirmation");
-        $("#confirm-text").html("Are you sure you want to approve this association?<br><span class='fs-5 text-danger fw-bold'>This action cannot be undone.</span>");
-    }
-    else{
-        $("#confirm-modal-title").text("Rejection Confirmation");
-        $("#confirm-text").html("Are you sure you want to reject this association?<br><span class='text-danger fw-bold'>This action cannot be undone.</span>");
-    }
-
-    const modal = new bootstrap.Modal('#confirm-modal', {
-        keyboard: false,
-        backdrop: "static"
-    })
-    modal.show();
+    };
+    showConfirmModal(approveRejectBtn, callback, message);
 }
 
 function onApproveRejectAssociationSuccess(response, actionName){
@@ -32,8 +19,10 @@ function onApproveRejectAssociationSuccess(response, actionName){
             title = "Association Approved Successfully";
         else
             title = "Association Rejected Successfully";
-        showReloadModal(title);
-        timer(3);
+        showReloadModal({
+            title: title,
+            seconds: 3
+        });
     }
     else{
         if(actionName === "approve")
@@ -42,10 +31,6 @@ function onApproveRejectAssociationSuccess(response, actionName){
             title = "Failed to Reject Association";
         showErrorModal(title, response)
     }
-}
-function onApproveRejectAssociationError(xhr, status, error, actionName){
-    console.log("Error approving/rejecting associtation:", error);
-    console.error("Error:", xhr.responseText);
 }
 
 async function approveRejectAssociation(actionName, benchmarkId, entityId, entityType, approveRejectBtn){
@@ -142,8 +127,10 @@ function checkUpdateAssociationsPolicyForm(){
 
 function onUpdateAssociationsPolicySuccess(response){
     if(response.status === "success"){
-        showReloadModal("Benchmark Associations Policy Successfully Updated");
-        timer(3);
+        showReloadModal({
+            title: "Benchmark Associations Policy Successfully Updated",
+            seconds: 3
+        });
     }
     else{
         showErrorModal("Failed to Update Benchmark Associations Policy", response);
@@ -251,7 +238,7 @@ $(document).ready(() => {
 
     $("#save-policy-btn").on("click", (e) => {
         if(checkUpdateAssociationsPolicyForm()){
-            showConfirmModal(e.currentTarget, updateAssociationsPolicy, "want to update benchmark associations policy?");
+            showConfirmModal(e.currentTarget, updateAssociationsPolicy, "update benchmark associations policy?");
         }
     });
 

@@ -46,31 +46,17 @@
             {% block content %}{% endblock %}
         </div>
     </div>
-
-    {{ modal_macros.add_modal(
-        modal_id="popup-modal",
-        modal_body='<p id="popup-text"></p>',
-        modal_footer=False,
-    ) }}
-
-    {{ modal_macros.add_modal(
-        modal_id="error-modal",
-        modal_body=(
-            '<p id="error-text" class="fs-5 text-danger fw-bold"></p>'
-            '<p class="text-end mt-3"><button type="button" class="btn" onclick="reloadPage();">Click here to reload</button></p>'
-        ),
-        modal_footer=True,
-        close_button='<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Hide</button>',
-    ) }}
-
-    {{ modal_macros.add_modal(
-        modal_id="confirm-modal",
-        modal_body='<p id="confirm-text" class="fs-5"></p>',
-        modal_footer=True,
-        close_button='<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>',
-        success_button='<button id="confirmation-btn" type="button" class="btn btn-success" data-bs-dismiss="modal" >Confirm</button>'
-    
-    ) }}
+    <div class="modal fade" id="page-modal" tabindex="-1">
+        <div class="modal-dialog" id="page-modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fs-5" id="page-modal-title"></h5>
+                </div>
+                <div class="modal-body" id="page-modal-body"></div>
+                <div class="modal-footer" id="page-modal-footer"></div>
+            </div>
+        </div>
+    </div>
 
     <div id="toast-container" class="position-fixed top-0 start-50 translate-middle-x mt-3 z-3"></div>
     {% include "partials/footer.html" %}
@@ -88,10 +74,26 @@
     <script src="{{ url_for('static', path='js/notifications.js') }}"></script>
     <script src="{{ url_for('static', path='js/common.js') }}"></script>
     {% if task_running %}
-    <script data-testid="notifications-script">
-        getNotifications();
-        // Fetch notifications every 5 seconds
-        setInterval(getNotifications, 5000);
+    <script data-testid="global-event-source-script">
+    if (!window.globalEventSource) {
+        window.globalEventSource = new EventSource("/events/global");
+
+        window.globalEventSource.addEventListener("notification", function(e) {
+            const data = JSON.parse(e.data);
+            processNotification(data);
+        });
+
+        window.globalEventSource.addEventListener("event", function(e) {
+            const data = JSON.parse(e.data);
+            showCriticalPopup(data);
+        });
+    }
+    $(window).on("beforeunload pagehide", () => {
+        if(window.globalEventSource){
+            window.globalEventSource.close();
+            window.globalEventSource = null;
+        }
+    });
     </script>
     {% endif %}
     {% block extra_js %} {% endblock extra_js %}
