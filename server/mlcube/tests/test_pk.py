@@ -115,8 +115,6 @@ class MlCubePutTest(MlCubeTest):
 
         newtestmlcube = {
             "additional_files_tarball_url": "newurl",
-            "container_config": {"newkey": "newval"},
-            "parameters_config": {"newkey": "newval"},
             "is_valid": False,
             "user_metadata": {"newkey": "newval"},
         }
