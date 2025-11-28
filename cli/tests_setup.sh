@@ -179,12 +179,27 @@ echo "creating config at $MEDPERF_CONFIG_PATH"
 print_eval medperf profile ls
 checkFailed "Creating config failed"
 
+# for test resuming
+LAST_ENV_FILE="$(dirname $(realpath "$0"))/last_env.sh"
+touch "$LAST_ENV_FILE"
+
 if ! "${RESUME_TEST}"; then
   echo "Moving storage setting to a new folder: ${MEDPERF_STORAGE}"
   python $MEDPERF_ROOT_REPO/cli/cli_tests_move_storage.py $MEDPERF_CONFIG_PATH $MEDPERF_STORAGE
   checkFailed "Moving storage failed"
+else
+  if [ -z "$TEST_FROM_LINE" ]; then
+      echo "No line number provided to continue from"
+      exit 1
+  fi
+  TMP_TEST_FILE="$(dirname $(realpath "$0"))/tmp_test.sh"
+  echo '. "$(dirname $(realpath "$0"))/tests_setup.sh"' > "$TMP_TEST_FILE"
+  cat "$LAST_ENV_FILE" >> "$TMP_TEST_FILE"
+  echo >> "$TMP_TEST_FILE"
+  tail -n +$TEST_FROM_LINE "$0" >> "$TMP_TEST_FILE"
+  echo >> "$TMP_TEST_FILE"
+  echo "Continuing test from line $TEST_FROM_LINE"
+  sh "$TMP_TEST_FILE" -r
+  exit $?
 fi
 
-# for test resuming
-LAST_ENV_FILE="$(dirname $(realpath "$0"))/last_env.sh"
-touch "$LAST_ENV_FILE"
