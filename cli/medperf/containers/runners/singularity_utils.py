@@ -6,7 +6,7 @@ import requests
 import semver
 from .docker_utils import volumes_to_cli_args as docker_volumes_to_cli_args
 import shlex
-from medperf.utils import remove_path, run_command
+from medperf.utils import run_command
 import logging
 
 
