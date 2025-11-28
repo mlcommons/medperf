@@ -54,10 +54,13 @@ async function runContainerCompatibilityTest(runCompTestButton){
 function checkCompTestFormValidity() {
     const containerPath = $("#container-path").val().trim();
     const runTestButton = $("#run-comp-test-btn");
+    const isEncrypted = $("input[name='model_encrypted']:checked").val();
+    const decryptionPath = $("#decryption-file").val().trim();
     const isValid = Boolean(
         $("#benchmark").val() &&
         containerPath.length > 0 &&
-        containerPath.endsWith(".yaml")
+        containerPath.endsWith(".yaml") &&
+        (isEncrypted === "true" ? decryptionPath.length > 0 : isEncrypted === "false")
     );
 
     runTestButton.prop("disabled", !isValid);
@@ -73,6 +76,21 @@ $(document).ready(() => {
     });
 
     $("#container-comp-test-form input, #container-comp-test-form select").on("change keyup", checkCompTestFormValidity);
+
+    $("#browse-decryption-btn").on("click", () => {
+        browseWithFiles = true;
+        browseFolderHandler("decryption-file");
+    });
+
+    $("input[name='model_encrypted']").on("change", () => {
+        if($("#with-encryption").is(":checked")){
+            $("#decryption-file-container").show();
+        }
+        else{
+            $("#decryption-file-container").hide();
+            $("#decryption-file").val("");
+        }
+    });
 
     $("#browse-container-btn").on("click", () => {
         browseWithFiles = true;

@@ -56,7 +56,46 @@
                 ></i>
             </div>
         </div>
-
+        <div class="form-group mt-3 d-flex flex-row justify-content-evenly">
+            <div>
+                <input class="form-check-input border-black" type="radio" name="model_encrypted" id="without-encryption" value="false">
+                <label class="form-check-label" for="without-encryption">Not Encrypted Model</label>
+            </div>
+            <div>
+                <input class="form-check-input border-black" type="radio" name="model_encrypted" id="with-encryption" value="true">
+                <label class="form-check-label" for="with-encryption">Encrypted Model</label>
+            </div>
+        </div>
+        <div id="decryption-file-container" class="form-group my-3 hidden-element">
+            <label for="decryption-file" class="form-label h4">Decryption Key File Path</label>
+            <div class="input-group mb-3">
+                <input
+                    type="text"
+                    id="decryption-file"
+                    name="decryption_file"
+                    class="form-control"
+                    placeholder="{{ placeholders.register_container_decryption_file }}"
+                    {% if task_running %} disabled {% endif %}
+                    {% if container_register_running %}
+                    value="{{ task_formData.get('decryption_file', '') }}"
+                    {% endif %}
+                >
+                <div class="input-group-append">
+                    <button
+                        type="button"
+                        class="btn btn-outline-secondary"
+                        id="browse-decryption-btn"
+                        {% if task_running %} disabled {% endif %}
+                    >Browse</button>
+                </div>
+                <i
+                    class="tooltip-info input-group-text fa fa-info-circle fs-4"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    data-bs-title="{{ tooltips.register_container_decryption_file }}"
+                ></i>
+            </div>
+        </div>
         <div class="text-center mt-4">
             <button id="run-comp-test-btn" type="button" class="btn btn-success mx-3" disabled>
                 Run compatibility test

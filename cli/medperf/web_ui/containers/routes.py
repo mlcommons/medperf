@@ -165,13 +165,16 @@ def test_container(
     request: Request,
     benchmark: int = Form(...),
     container_path: str = Form(...),
+    decryption_file: str = Form(None),
     current_user: bool = Depends(check_user_api),
 ):
     initialize_state_task(request, task_name="container_compatibility_test")
     return_response = {"status": "", "error": "", "results": None}
     try:
         _, results = CompatibilityTestExecution.run(
-            benchmark=benchmark, model=container_path
+            benchmark=benchmark,
+            model=container_path,
+            model_decryption_key=decryption_file,
         )
         return_response["status"] = "success"
         return_response["results"] = results
