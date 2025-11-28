@@ -2,6 +2,8 @@ container_type: DockerImage
 image: mlcommons/data-prep-manual:0.0.1
 tasks:
   prepare:
+    run_args:
+      command: python3 /project/prepare.py
     input_volumes:
       data_path:
         mount_path: /mlcommons/volumes/raw_data
@@ -22,8 +24,6 @@ tasks:
       report_file:
         mount_path: /mlcommons/volumes/report/report.yaml
         type: file
-    run_args:
-      command: python3 /project/prepare.py
   sanity_check:
     run_args:
       command: python3 /project/sanity_check.py

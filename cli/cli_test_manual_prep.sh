@@ -42,6 +42,12 @@ LABELS_PATH="$(dirname $(dirname $(realpath "$0")))/examples/DataPrepManualSteps
 
 PREPARED_DATA_PATH="$(dirname $(dirname $(realpath "$0")))/examples/DataPrepManualSteps/data_prep/workspace/prepared_data_example/data"
 PREPARED_LABELS_PATH="$(dirname $(dirname $(realpath "$0")))/examples/DataPrepManualSteps/data_prep/workspace/prepared_data_example/labels"
+
+echo "DATA_PATH=$DATA_PATH" >> $LAST_ENV_FILE
+echo "LABELS_PATH=$LABELS_PATH" >> $LAST_ENV_FILE
+echo "PREPARED_DATA_PATH=$PREPARED_DATA_PATH" >> $LAST_ENV_FILE
+echo "PREPARED_LABELS_PATH=$PREPARED_LABELS_PATH" >> $LAST_ENV_FILE
+
 ##########################################################
 
 echo "\n"
@@ -88,10 +94,13 @@ echo "====================================="
 
 PREP_MLCUBE="$MEDPERF_ROOT_REPO/examples/DataPrepManualSteps/data_prep/container_config.yaml"
 PREP_PARAMS="$MEDPERF_ROOT_REPO/examples/DataPrepManualSteps/data_prep/workspace/parameters.yaml"
+echo "PREP_MLCUBE=$PREP_MLCUBE" >> $LAST_ENV_FILE
+echo "PREP_PARAMS=$PREP_PARAMS" >> $LAST_ENV_FILE
+
 print_eval medperf container submit --name manprep -m $PREP_MLCUBE -p $PREP_PARAMS
 checkFailed "Prep submission failed"
 PREP_UID=$(medperf container ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
-echo "PREP_UID=$PREP_UID"
+echo "PREP_UID=$PREP_UID" >> $LAST_ENV_FILE
 
 ##########################################################
 
@@ -114,7 +123,7 @@ echo "====================================="
 print_eval "medperf dataset submit -p $PREP_UID -d $DATA_PATH -l $LABELS_PATH --name='manual_a' --description='mock manual a' --location='mock location a' -y"
 checkFailed "Data submission step failed"
 DSET_A_UID=$(medperf dataset ls | grep manual_a | tr -s ' ' | cut -d ' ' -f 2)
-echo "DSET_A_UID=$DSET_A_UID"
+echo "DSET_A_UID=$DSET_A_UID" >> $LAST_ENV_FILE
 
 ##########################################################
 
@@ -187,7 +196,7 @@ echo "====================================="
 print_eval "medperf dataset submit -p $PREP_UID -d $PREPARED_DATA_PATH -l $PREPARED_LABELS_PATH --name='already_a' --description='mock already a' --location='mock location a' -y --submit-as-prepared"
 checkFailed "Data submission step failed"
 DSET_A_UID=$(medperf dataset ls | grep already_a | tr -s ' ' | cut -d ' ' -f 2)
-echo "DSET_A_UID=$DSET_A_UID"
+echo "DSET_A_UID=$DSET_A_UID" >> $LAST_ENV_FILE
 ##########################################################
 
 echo "\n"

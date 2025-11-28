@@ -268,8 +268,10 @@ if __name__ == "__main__":
     if os.path.exists(args.report):
         with open(args.report, "r") as f:
             report_dict = yaml.safe_load(f)
-
-        report = pd.DataFrame(data=report_dict)
+        if report_dict:
+            report = pd.DataFrame(data=report_dict)
+        else:
+            report = generate_report(data_df)
     else:
         report = generate_report(data_df)
 
