@@ -1,6 +1,7 @@
 import json
 from queue import Queue
 import threading
+from medperf.web_ui.utils import generate_uuid
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict
 import time
@@ -80,9 +81,6 @@ class WebUITask(BaseModel):
         self.last_event_id += 1
         log.id = self.last_event_id
 
-    def _is_log_event(self, log: EventBase):
-        return log.interactive and log.type == "print"
-
     def _remove_excess_logs(self):
         if self.log_events_count <= self.max_log_events:
             return
@@ -91,7 +89,7 @@ class WebUITask(BaseModel):
             if self.log_events_count <= self.max_log_events:
                 break
             if event.kind == "event":
-                if self._is_log_event(event):
+                if event.is_chunkable:
                     self.logs.remove(event)
                     self.log_events_count -= 1
             else:
@@ -106,7 +104,7 @@ class WebUITask(BaseModel):
 
     def _process_events_count(self, log: EventBase):
         if log.kind == "event":
-            if self._is_log_event(log):
+            if log.is_chunkable:
                 self.log_events_count += 1
         else:
             self.log_events_count += len(log.events)
@@ -122,6 +120,92 @@ class WebUITask(BaseModel):
 
     def to_json(self):
         return self.dict()
+
+
+class GlobalEventsManager:
+    def __init__(self):
+        self.events_counter = 0
+        self.notifications: List[Notification] = list()
+        self.new_notifications: List[Notification] = list()
+        self.events: List[Event] = list()
+        self.waiting_ack: List[Event] = list()
+
+    def add_event(self, event: Event) -> None:
+        """Add an event into the events list.
+
+        Args:
+            event (Event): The event to be added.
+        """
+        self.events_counter += 1
+        self.events.append(event)
+
+    def get_event(self) -> Optional[Event]:
+        """Return the next event from the list."""
+
+        if self.events:
+            event = self.events.pop(0)
+            self.waiting_ack.append(event)
+            return event
+
+    def acknowledge_event(self, event_id: int) -> None:
+        for event in self.waiting_ack:
+            if event.id == event_id:
+                self.waiting_ack.remove(event)
+                return
+
+    def reset_waiting_events(self) -> None:
+        self.events = self.waiting_ack + self.events
+        self.waiting_ack.clear()
+
+    def add_notification(self, message: str, return_response: dict, url: str) -> None:
+        if return_response["status"] == "failed":
+            message += f": {return_response['error']}"
+
+        notification = Notification(
+            id=generate_uuid(),
+            message=message,
+            type=return_response["status"],
+            url=url,
+        )
+        self.new_notifications.append(notification)
+
+    def clear_notifications(self) -> None:
+        self.notifications.clear()
+
+    def clear_new_notifications(self) -> None:
+        self.new_notifications.clear()
+
+    def get_new_notification(self) -> Optional[Notification]:
+        if not self.new_notifications:
+            return
+
+        oldest_notification = self.new_notifications[0]
+        self.new_notifications.remove(oldest_notification)
+        self.notifications.append(oldest_notification)
+
+        return oldest_notification
+
+    def get_all_notifications(self) -> List[Notification]:
+        if self.new_notifications:
+            self.notifications.extend(self.new_notifications)
+            self.clear_new_notifications()
+
+        return self.notifications
+
+    def get_unread_count(self) -> int:
+        return len([i for i in self.notifications if not i.read])
+
+    def delete_notification(self, notification_id: str) -> None:
+        for notification in self.notifications:
+            if notification.id == notification_id:
+                self.notifications.remove(notification)
+                return
+
+    def mark_notification_as_read(self, notification_id) -> None:
+        for notification in self.notifications:
+            if notification.id == notification_id:
+                notification.read = True
+                return
 
 
 class EventsManager:

@@ -1,11 +1,10 @@
 from queue import Queue
 from contextlib import contextmanager
-from medperf.web_ui.common import add_notification
 from yaspin import yaspin
 import typer
 
 from medperf.ui.cli import CLI
-from medperf.web_ui.schemas import Event, EventsManager
+from medperf.web_ui.schemas import Event, EventsManager, GlobalEventsManager
 
 
 class WebUI(CLI):
@@ -15,16 +14,8 @@ class WebUI(CLI):
         self.is_interactive = False
         self.spinner = yaspin(color="green")
         self.task_id = None
-        self.request = None
         self.events_manager = EventsManager()
-
-    def print(self, msg: str = ""):
-        """Display a message on the command line
-
-        Args:
-            msg (str): message to print
-        """
-        self._print(msg, "print")
+        self.global_events_manager = GlobalEventsManager()
 
     def print_error(self, msg: str):
         """Display an error message on the command line
@@ -136,8 +127,7 @@ class WebUI(CLI):
                 end=False,
             )
         )
-        add_notification(
-            self.request,
+        self.add_notification(
             message="A prompt is waiting for your response in the current running task",
             return_response={"status": "info"},
         )
@@ -179,6 +169,16 @@ class WebUI(CLI):
     def print_code(self, msg: str):
         self._print(msg, "code")
 
+    def print_critical(self, msg: str):
+        self.global_events_manager.add_event(
+            Event(
+                type="critical",
+                message=msg,
+                interactive=False,
+                end=False,
+            )
+        )
+
     def set_event(self, event: Event):
         self.events_manager.process_event(event)
 
@@ -205,21 +205,44 @@ class WebUI(CLI):
             )
         )
         self.unset_task_id()
-        self.unset_request()
 
-    def start_task(self, task_id: str, request):
+    def start_task(self, task_id: str):
         self.set_task_id(task_id)
-        self.set_request(request)
         self.events_manager.start_buffering()
 
     def set_task_id(self, task_id):
         self.task_id = task_id
 
-    def set_request(self, request):
-        self.request = request
-
-    def unset_request(self):
-        self.request = None
-
     def unset_task_id(self):
         self.task_id = None
+
+    def add_notification(self, message, return_response, url=""):
+        self.global_events_manager.add_notification(message, return_response, url)
+
+    def clear_notifications(self):
+        self.global_events_manager.clear_notifications()
+        self.global_events_manager.clear_new_notifications()
+
+    def delete_notification(self, notification_id: str):
+        self.global_events_manager.delete_notification(notification_id)
+
+    def get_all_notifications(self):
+        return self.global_events_manager.get_all_notifications()
+
+    def get_notification(self):
+        return self.global_events_manager.get_new_notification()
+
+    def read_notification(self, notification_id):
+        self.global_events_manager.mark_notification_as_read(notification_id)
+
+    def get_global_event(self):
+        return self.global_events_manager.get_event()
+
+    def acknowledge_event(self, event_id):
+        self.global_events_manager.acknowledge_event(event_id)
+
+    def get_unread_notifications_count(self):
+        return self.global_events_manager.get_unread_count()
+
+    def reset_global_waiting_events(self):
+        self.global_events_manager.reset_waiting_events()

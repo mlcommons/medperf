@@ -13,7 +13,6 @@ from medperf.exceptions import InvalidArgumentError
 from medperf.utils import make_pretty_dict
 from medperf.init import initialize
 from medperf.web_ui.common import (
-    add_notification,
     check_user_api,
     check_user_ui,
     initialize_state_task,
@@ -166,8 +165,7 @@ def get_certificate(
 
     config.ui.end_task(return_response)
     reset_state_task(request)
-    add_notification(
-        request,
+    config.ui.add_notification(
         message=notification_message,
         return_response=return_response,
     )
@@ -194,8 +192,7 @@ def delete_certificate(
 
     config.ui.end_task(return_response)
     reset_state_task(request)
-    add_notification(
-        request,
+    config.ui.add_notification(
         message=notification_message,
         return_response=return_response,
     )
@@ -222,8 +219,7 @@ def submit_certificate(
 
     config.ui.end_task(return_response)
     reset_state_task(request)
-    add_notification(
-        request,
+    config.ui.add_notification(
         message=notification_message,
         return_response=return_response,
     )

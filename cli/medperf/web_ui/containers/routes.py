@@ -17,7 +17,6 @@ from medperf.commands.mlcube.submit import SubmitCube
 import medperf.config as config
 from medperf.entities.encrypted_key import EncryptedKey
 from medperf.web_ui.common import (
-    add_notification,
     check_user_api,
     initialize_state_task,
     reset_state_task,
@@ -153,8 +152,7 @@ def register_container(
 
     config.ui.end_task(return_response)
     reset_state_task(request)
-    add_notification(
-        request,
+    config.ui.add_notification(
         message=notification_message,
         return_response=return_response,
         url=f"/containers/ui/display/{container_id}" if container_id else "",
@@ -186,8 +184,7 @@ def test_container(
 
     config.ui.end_task(return_response)
     reset_state_task(request)
-    add_notification(
-        request,
+    config.ui.add_notification(
         message=notification_message,
         return_response=return_response,
         url="/containers/register/ui",
@@ -216,8 +213,7 @@ def associate(
 
     config.ui.end_task(return_response)
     reset_state_task(request)
-    add_notification(
-        request,
+    config.ui.add_notification(
         message=notification_message,
         return_response=return_response,
         url=f"/containers/ui/display/{container_id}",
@@ -317,8 +313,7 @@ def grant_access(
 
     config.ui.end_task(return_response)
     reset_state_task(request)
-    add_notification(
-        request,
+    config.ui.add_notification(
         message=notification_message,
         return_response=return_response,
         url=f"/containers/ui/display/{model_id}/access",
@@ -378,8 +373,7 @@ def start_auto_access(
         notification_message = "Failed to start automatic grant access."
         logger.exception(exp)
 
-    add_notification(
-        request,
+    config.ui.add_notification(
         message=notification_message,
         return_response=return_response,
         url=f"/containers/ui/display/{model_id}/access",
@@ -421,8 +415,7 @@ def stop_auto_access(
         notification_message = "Failed to stop automatic grant access."
         logger.exception(exp)
 
-    add_notification(
-        request,
+    config.ui.add_notification(
         message=notification_message,
         return_response=return_response,
         url=f"/containers/ui/display/{model_id}/access",
@@ -463,8 +456,7 @@ def revoke_user_access(
 
     config.ui.end_task(return_response)
     reset_state_task(request)
-    add_notification(
-        request,
+    config.ui.add_notification(
         message=notification_message,
         return_response=return_response,
         url=f"/containers/ui/display/{model_id}/access",
@@ -493,8 +485,7 @@ def delete_keys(
 
     config.ui.end_task(return_response)
     reset_state_task(request)
-    add_notification(
-        request,
+    config.ui.add_notification(
         message=notification_message,
         return_response=return_response,
         url=f"/containers/ui/display/{model_id}/access",

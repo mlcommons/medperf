@@ -2,7 +2,6 @@ from fastapi import Request, Form, APIRouter, Depends
 from fastapi.responses import HTMLResponse, JSONResponse
 
 from medperf.web_ui.common import (
-    add_notification,
     initialize_state_task,
     reset_state_task,
     templates,
@@ -78,8 +77,7 @@ def login(
 
     config.ui.end_task(return_response)
     reset_state_task(request)
-    add_notification(
-        request,
+    config.ui.add_notification(
         message=notification_message,
         return_response=return_response,
         url="" if success else "/medperf_login",
@@ -100,8 +98,7 @@ def logout(
         templates.env.globals["logged_in"] = False
         return_response["status"] = "success"
         notification_message = "Successfully Logged Out"
-        request.app.state.notifications.clear()
-        request.app.state.new_notifications.clear()
+        config.ui.clear_notifications()
     except Exception as e:
         return_response["status"] = "failed"
         return_response["error"] = str(e)
@@ -110,8 +107,7 @@ def logout(
 
     config.ui.end_task(return_response)
     reset_state_task(request)
-    add_notification(
-        request,
+    config.ui.add_notification(
         message=notification_message,
         return_response=return_response,
     )

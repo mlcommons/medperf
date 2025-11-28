@@ -57,9 +57,6 @@ def startup_event():
     # List of [schemas.Notification] will appear in the notifications tab
     web_app.state.notifications = []
 
-    # List of [schemas.Notification] that will be sent to the user as (popups)
-    web_app.state.new_notifications = []
-
     # Container auto grant access initial values
     web_app.state.model_auto_give_access = {
         "running": False,

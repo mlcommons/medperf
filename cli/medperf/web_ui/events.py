@@ -12,28 +12,13 @@ import anyio
 router = APIRouter()
 
 
-@router.get("/notifications", response_class=JSONResponse)
-def get_notifications(
-    request: Request,
-    current_user: bool = Depends(check_user_api),
-):
-    new_notifications = request.app.state.new_notifications.copy()
-    request.app.state.notifications.extend(new_notifications)
-    request.app.state.new_notifications.clear()
-
-    return new_notifications
-
-
 @router.post("/notifications/mark_read")
 def read_notification(
     request: Request,
     notification_id: str = Form(...),
     current_user: bool = Depends(check_user_api),
 ):
-    for notification in request.app.state.notifications:
-        if notification.id == notification_id:
-            notification.mark_read()
-            return
+    config.ui.read_notification(notification_id)
 
 
 @router.post("/notifications/delete")
@@ -42,12 +27,7 @@ def delete_notification(
     notification_id: str = Form(...),
     current_user: bool = Depends(check_user_api),
 ):
-    notifications = request.app.state.notifications
-
-    for notification in notifications:
-        if notification.id == notification_id:
-            notifications.remove(notification)
-            return
+    config.ui.delete_notification(notification_id)
 
 
 @router.get("/current_task", response_class=JSONResponse)
@@ -117,6 +97,46 @@ def stream_events(
         event_generator(request, stream_old),
         media_type="text/event-stream; charset=utf-8",
     )
+
+
+def global_event_generator(request: Request):
+    config.ui.reset_global_waiting_events()
+    while True:
+        if anyio.from_thread.run(request.is_disconnected):
+            break
+        try:
+            notification = config.ui.get_notification()
+            if notification:
+                yield f"id: {notification.id}\nevent: notification\ndata: {notification.json()}\n\n"
+
+            event = config.ui.get_global_event()
+            if event:
+                yield f"id: {event.id}\nevent: event\ndata: {event.json()}\n\n"
+
+        except (BrokenPipeError, ConnectionResetError, GeneratorExit):
+            break
+        time.sleep(1)
+
+
+@router.get("/events/global", response_class=StreamingResponse)
+def stream_global_events(
+    request: Request,
+    current_user: bool = Depends(check_user_api),
+):
+    return StreamingResponse(
+        global_event_generator(request),
+        media_type="text/event-stream; charset=utf-8",
+    )
+
+
+@router.post("/events/acknowledge_event", response_class=JSONResponse)
+def acknowledge_event(
+    request: Request,
+    event_id: int = Form(...),
+    current_user: bool = Depends(check_user_api),
+):
+    config.ui.acknowledge_event(event_id)
+    return {"status": "success"}
 
 
 @router.post("/events")
