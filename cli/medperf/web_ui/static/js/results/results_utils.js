@@ -1,12 +1,17 @@
 function showResult(element){
     const result = JSON.parse(element.getAttribute("data-result"));
+    const resultPrettified = JSON.stringify(result, null, 2);
 
-    $("#result-content").html(JSON.stringify(result, null, 2));
-    $("#result-modal-title").html(`Results`);
-    const resultModal = new bootstrap.Modal('#result-modal', {
-        keyboard: false,
-        backdrop: "static"
-    })
-    resultModal.show();
-    Prism.highlightElement($("#result-content")[0]);
+    const modalTitle = "Results";
+    const modalBody = `<pre id="result-content" class="language-yaml">${resultPrettified}</pre>`
+    const modalFooter = '<button type="button" class="btn btn-primary" data-bs-dismiss="modal" aria-label="Close">Close</button>';
+    const extra_fn = () => { Prism.highlightElement($("#result-content")[0]); }
+
+    showModal({
+        title: modalTitle,
+        body: modalBody,
+        footer: modalFooter,
+        modalClasses: "modal-lg",
+        extra_func: extra_fn
+    });
 }

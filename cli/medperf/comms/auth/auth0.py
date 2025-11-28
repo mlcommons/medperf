@@ -174,11 +174,15 @@ class Auth0(Auth):
             except sqlite3.OperationalError:
                 msg = "Another process is using the database. Try again later"
                 raise CommunicationError(msg)
-            token = self._access_token
+
             # Sqlite will automatically execute COMMIT and close the connection
             # if an exception is raised during the retrieval of the access token.
-            db.execute("COMMIT")
-            db.close()
+
+            try:
+                token = self._access_token
+            finally:
+                db.execute("COMMIT")
+                db.close()
 
             return token
 

@@ -9,29 +9,26 @@ def login(page: BasePage, url: str, email: str):
     assert "You are not logged in" in page.get_text(page.NOT_LOGGED_IN_ALERT)
     assert page.find(page.LOGIN).is_enabled() is False
 
-    confirm_modal = page.find(page.CONFIRM_MODAL)
-    popup_modal = page.find(page.POPUP_MODAL)
-    error_modal = page.find(page.ERROR_MODAL)
+    page_modal = page.find(page.PAGE_MODAL)
 
-    assert confirm_modal.is_displayed() is False
-    assert popup_modal.is_displayed() is False
-    assert error_modal.is_displayed() is False
+    assert page_modal.is_displayed() is False
 
     page.login(email=email)
-    page.wait_for_visibility_element(confirm_modal)
 
+    page.wait_for_visibility_element(page_modal)
+
+    assert page.get_text(page.PAGE_MODAL_TITLE) == "Confirmation Prompt"
     assert email in page.get_text(page.CONFIRM_TEXT)
 
     old_url = page.current_url
     page.confirm_run_task()
 
-    while not popup_modal.is_displayed() and not error_modal.is_displayed():
+    while not page_modal.is_displayed():
         time.sleep(0.2)
 
-    assert popup_modal.is_displayed() is True
-    assert page.get_text(page.POPUP_TITLE) == "Successfully Logged In"
+    assert page.get_text(page.PAGE_MODAL_TITLE) == "Successfully Logged In"
 
-    page.wait_for_staleness_element(popup_modal)
+    page.wait_for_staleness_element(page_modal)
     page.wait_for_url_change(old_url)
 
     assert "/benchmarks/ui" in page.current_url
@@ -39,27 +36,26 @@ def login(page: BasePage, url: str, email: str):
 
 
 def logout(page: BasePage):
-    confirm_modal = page.find(page.CONFIRM_MODAL)
-    popup_modal = page.find(page.POPUP_MODAL)
-    error_modal = page.find(page.ERROR_MODAL)
+    page_modal = page.find(page.PAGE_MODAL)
 
-    assert confirm_modal.is_displayed() is False
-    assert popup_modal.is_displayed() is False
-    assert error_modal.is_displayed() is False
+    assert page_modal.is_displayed() is False
 
     page.click(page.LOGOUT_BTN)
-    page.wait_for_visibility_element(confirm_modal)
+
+    page.wait_for_visibility_element(page_modal)
+
+    assert page.get_text(page.PAGE_MODAL_TITLE) == "Confirmation Prompt"
+    assert "logout?" in page.get_text(page.CONFIRM_TEXT)
 
     old_url = page.current_url
     page.confirm_run_task()
 
-    while not popup_modal.is_displayed() and not error_modal.is_displayed():
+    while not page.find(page.PAGE_MODAL).is_displayed():
         time.sleep(0.2)
 
-    assert popup_modal.is_displayed() is True
-    assert page.get_text(page.POPUP_TITLE) == "Successfully Logged Out"
+    assert page.get_text(page.PAGE_MODAL_TITLE) == "Successfully Logged Out"
 
-    page.wait_for_staleness_element(popup_modal)
+    page.wait_for_staleness_element(page_modal)
     page.wait_for_url_change(old_url)
 
     current_url = page.current_url

@@ -7,6 +7,7 @@ from fastapi import Request, APIRouter, Depends, Form
 
 from medperf import config
 from medperf.account_management import get_medperf_user_data
+from medperf.commands.mlcube.utils import check_access_to_container
 from medperf.commands.dataset.associate import AssociateDataset
 from medperf.commands.dataset.export_dataset import ExportDataset
 from medperf.commands.dataset.import_dataset import ImportDataset
@@ -26,7 +27,6 @@ from medperf.web_ui.common import (
     check_user_api,
     initialize_state_task,
     reset_state_task,
-    add_notification,
 )
 
 logger = logging.getLogger(__name__)
@@ -60,7 +60,7 @@ def datasets_ui(
 
 
 @router.get("/ui/display/{dataset_id}", response_class=HTMLResponse)
-def dataset_detail_ui(
+def dataset_detail_ui(  # noqa
     request: Request,
     dataset_id: int,
     current_user: bool = Depends(check_user_ui),
@@ -118,6 +118,9 @@ def dataset_detail_ui(
         for model in models + [
             valid_benchmarks[assoc["benchmark"]].reference_model_mlcube
         ]:
+            model._encrypted = model.is_encrypted()
+            if model._encrypted:
+                model.access_status = check_access_to_container(model.id)
             model.result = None
             for result in results:
                 if (
@@ -202,8 +205,7 @@ def register_dataset(
 
     config.ui.end_task(return_response)
     reset_state_task(request)
-    add_notification(
-        request,
+    config.ui.add_notification(
         message=notification_message,
         return_response=return_response,
         url=(
@@ -237,8 +239,7 @@ def prepare(
 
     config.ui.end_task(return_response)
     reset_state_task(request)
-    add_notification(
-        request,
+    config.ui.add_notification(
         message=notification_message,
         return_response=return_response,
         url=f"/datasets/ui/display/{dataset_id}",
@@ -268,8 +269,7 @@ def set_operational(
 
     config.ui.end_task(return_response)
     reset_state_task(request)
-    add_notification(
-        request,
+    config.ui.add_notification(
         message=notification_message,
         return_response=return_response,
         url=f"/datasets/ui/display/{dataset_id}",
@@ -299,8 +299,7 @@ def associate(
 
     config.ui.end_task(return_response)
     reset_state_task(request)
-    add_notification(
-        request,
+    config.ui.add_notification(
         message=notification_message,
         return_response=return_response,
         url=f"/datasets/ui/display/{dataset_id}",
@@ -338,8 +337,7 @@ def run(
 
     config.ui.end_task(return_response)
     reset_state_task(request)
-    add_notification(
-        request,
+    config.ui.add_notification(
         message=notification_message,
         return_response=return_response,
         url=f"/datasets/ui/display/{dataset_id}",
@@ -368,8 +366,7 @@ def submit_result(
 
     config.ui.end_task(return_response)
     reset_state_task(request)
-    add_notification(
-        request,
+    config.ui.add_notification(
         message=notification_message,
         return_response=return_response,
     )
@@ -426,8 +423,7 @@ def export_dataset(
 
     config.ui.end_task(return_response)
     reset_state_task(request)
-    add_notification(
-        request,
+    config.ui.add_notification(
         message=notification_message,
         return_response=return_response,
     )
@@ -472,8 +468,7 @@ def import_dataset(
 
     config.ui.end_task(return_response)
     reset_state_task(request)
-    add_notification(
-        request,
+    config.ui.add_notification(
         message=notification_message,
         return_response=return_response,
         url=f"/datasets/ui/display/{dataset_id}" if dataset_id else "",

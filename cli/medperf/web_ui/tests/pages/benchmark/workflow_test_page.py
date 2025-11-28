@@ -11,8 +11,6 @@ class WorkflowTestPage(BasePage):
     DATA = (By.ID, "data-path")
     LABELS = (By.ID, "labels-path")
     RUN_TEST_BTN = (By.ID, "run-workflow-test-btn")
-    NEXT_MODAL = (By.ID, "next-modal")
-    NEXT_TITLE = (By.ID, "next-modal-title")
     CONTINUE_BTN = (By.CSS_SELECTOR, "button.btn-success")
 
     def run_test(

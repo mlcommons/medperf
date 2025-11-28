@@ -21,7 +21,6 @@ class DatasetDetailsPage(BasePage):
     DROPDOWN_BTN = (By.ID, "associate-dropdown-btn")
     ASSOCIATION_CARDS = (By.CSS_SELECTOR, "div.benchmark-section li a")
 
-    RESULT_MODAL = (By.ID, "result-modal")
     CLOSE_BTN = (By.CSS_SELECTOR, 'button[data-bs-dismiss="modal"][aria-label="Close"]')
 
     def __init__(self, driver, dataset, benchmark=""):
@@ -68,9 +67,10 @@ class DatasetDetailsPage(BasePage):
     def __view_result(self, view_btn):
         self.ensure_element_ready(view_btn)
         view_btn.click()
-        view_modal = self.find(self.RESULT_MODAL)
+        view_modal = self.find(self.PAGE_MODAL)
         self.wait_for_visibility_element(view_modal)
         view_modal.find_element(*self.CLOSE_BTN).click()
+        self.wait_for_invisibility_element(view_modal)
 
     def view_results(self):
         view_btns = self.driver.find_elements(*self.VIEW_BTNS)

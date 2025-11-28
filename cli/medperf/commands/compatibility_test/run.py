@@ -6,6 +6,7 @@ from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
 from medperf.entities.report import TestReport
 from medperf.exceptions import InvalidArgumentError
+from medperf.utils import sanitize_path
 from .validate_params import CompatibilityTestParamsValidator
 from .utils import download_demo_data, prepare_cube, get_cube, create_test_dataset
 import medperf.config as config
@@ -29,7 +30,7 @@ class CompatibilityTestExecution:
         skip_data_preparation_step: bool = False,
         use_local_model_image: bool = False,
         model_decryption_key: Path = None,
-    ) -> (str, dict):
+    ) -> tuple[str, dict]:
         """Execute a test workflow. Components of a complete workflow should be passed.
         When only the benchmark is provided, it implies the following workflow will be used:
         - the benchmark's demo dataset is used as the raw data
@@ -143,7 +144,7 @@ class CompatibilityTestExecution:
         self.evaluator_cube = None
 
         # Decryption key is used for compatibility test of encrypted containers
-        self.model_decryption_key = model_decryption_key
+        self.model_decryption_key = sanitize_path(model_decryption_key)
 
         self.validator = CompatibilityTestParamsValidator(
             self.benchmark_uid,
