@@ -6,6 +6,7 @@ from fastapi import HTTPException, Security
 from fastapi.security import APIKeyCookie, APIKeyHeader
 from fastapi.templating import Jinja2Templates
 from importlib import resources
+from urllib.parse import urlparse
 
 from fastapi.requests import Request
 from medperf import config
@@ -143,3 +144,12 @@ def check_user_api(
         return True
 
     raise HTTPException(status_code=401, detail="Not authorized")
+
+
+def sanitize_redirect_url(url: str, fallback: str = "/") -> bool:
+    """Validate that the URL is a relative path or matches allowed hosts."""
+    normalized_url = url.replace("\\", "")  # Normalize backslashes
+    parsed = urlparse(normalized_url)
+    if not parsed.netloc and not parsed.scheme:
+        return normalized_url
+    return fallback

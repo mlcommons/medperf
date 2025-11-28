@@ -22,6 +22,7 @@ from medperf.web_ui.common import (
     reset_state_task,
     templates,
     check_user_ui,
+    sanitize_redirect_url,
 )
 
 router = APIRouter()
@@ -244,7 +245,8 @@ def container_access_ui(
         )
 
     if not container.is_encrypted():
-        return RedirectResponse(url=f"/containers/ui/display/{container_id}")
+        redirect_url = sanitize_redirect_url(f"/containers/ui/display/{container_id}")
+        return RedirectResponse(url=redirect_url)
 
     benchmark_assocs = Cube.get_benchmarks_associations(mlcube_uid=container_id)
 

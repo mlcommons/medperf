@@ -85,18 +85,14 @@ def edit_profile(
     if fingerprint is None:
         fingerprint = config.certificate_authority_fingerprint
 
+    args = {
+        "gpus": gpus,
+        "platform": platform,
+        "certificate_authority_id": ca,
+        "certificate_authority_fingerprint": fingerprint,
+    }
     try:
-        config_p = read_config()
-        profile_config = config_p.active_profile.copy()
-        profile_config.update(
-            {
-                "gpus": gpus,
-                "platform": platform,
-                "certificate_authority_id": ca,
-                "certificate_authority_fingerprint": fingerprint,
-            }
-        )
-        set_profile_args(profile_config)
+        set_profile_args(args)
         initialize(for_webui=True)
         return {"status": "success", "error": ""}
     except Exception as exp:

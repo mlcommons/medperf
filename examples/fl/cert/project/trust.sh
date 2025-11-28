@@ -35,6 +35,8 @@ if [ "$task" != "trust" ]; then
     exit 1
 fi
 
+pki_assets=${pki_assets%/}
+
 export STEPPATH=$pki_assets/.step
 
 CA_ADDRESS=$(jq -r '.address' $ca_config)
@@ -54,6 +56,7 @@ step ca root $ROOT_CERT_PATH --ca-url $CA_ADDRESS:$CA_PORT \
     --fingerprint $CA_FINGERPRINT
 
 if [ "$?" -eq "0" ]; then
+    echo "Root cert retrieved successfully using step ca root."
     # cleanup
     rm -rf $STEPPATH
     exit 0
@@ -61,6 +64,9 @@ fi
 
 # if the above fails, it could be that the CA is reachable via https using system trusted certs.
 # Try to fetch the root cert using curl then verify the fingerprint.
+# NOTE: code below isn't tested yet.
+
+echo "Trying to retrieve the root cert using curl..."
 
 curl -o $ROOT_CERT_PATH $CA_ADDRESS:$CA_PORT/roots.pem
 
@@ -70,6 +76,8 @@ if [ "$?" -ne "0" ]; then
     rm -rf $STEPPATH
     exit 1
 fi
+
+echo "Verifying the fingerprint..."
 
 FINGERPRINT_CALC=$(step certificate fingerprint "$ROOT_CERT_PATH")
 if [ "$FINGERPRINT_CALC" != "$CA_FINGERPRINT" ]; then

@@ -41,5 +41,4 @@ tasks:
     parameters:
       inputs:
         ca_config: ca_config.json
-      outputs:
         pki_assets: pki_assets/
