@@ -264,7 +264,6 @@ async function logout(){
 }
 
 function showCriticalPopup(data){
-
     const modalTitle = "Critical Warning";
     const modalTitleClasses = "fw-bold text-danger";
     const modalBody = `<p id="warning-text" class="fs-5 fw-bold text-danger">${data.message}</p>`;

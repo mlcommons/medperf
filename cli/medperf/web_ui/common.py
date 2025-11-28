@@ -116,6 +116,8 @@ def check_user_ui(
 ):
     request.app.state.logged_in = is_logged_in()
     process_notifications(request)
+    if not request.app.state.task_running:
+        request.app.state.global_events = config.ui.get_all_global_events()
 
     if token == security_token:
         return True

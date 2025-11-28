@@ -241,6 +241,9 @@ class WebUI(CLI):
     def acknowledge_event(self, event_id):
         self.global_events_manager.acknowledge_event(event_id)
 
+    def get_all_global_events(self):
+        return self.global_events_manager.get_all_events()
+
     def get_unread_notifications_count(self):
         return self.global_events_manager.get_unread_count()
 

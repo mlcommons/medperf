@@ -95,6 +95,14 @@
         }
     });
     </script>
+    {% else %}
+    <script data-testid="global-events-script">
+        const data = `{{ request.app.state.global_events | tojson | safe }}`;
+        const events = JSON.parse(data);
+        events.forEach(event => {
+           showCriticalPopup(event); 
+        });
+    </script>
     {% endif %}
     {% block extra_js %} {% endblock extra_js %}
 </body>
