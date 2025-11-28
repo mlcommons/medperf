@@ -14,9 +14,7 @@ def _check_and_clean_certificate_corruption(local_cert_folder):
     private_key_exists = os.path.exists(private_key_path)
     certificate_exists = os.path.exists(certificate_path)
 
-    certificate_corrupted = (private_key_exists and not certificate_exists) or (
-        certificate_exists and not private_key_exists
-    )
+    certificate_corrupted = not private_key_exists or not certificate_exists
 
     if certificate_corrupted:
         remove_path(local_cert_folder, sensitive=True)
