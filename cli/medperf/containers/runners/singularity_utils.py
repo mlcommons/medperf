@@ -42,7 +42,7 @@ def get_docker_image_hash_from_dockerhub(docker_image, timeout: int = None):
         raise CommunicationError(f"Failed to get manifest: {response.status_code}")
 
     try:
-        hash_ = response.headers['docker-content-digest']
+        hash_ = response.headers["docker-content-digest"]
     except KeyError:
         logging.debug(f"Response: {response.json()}")
         raise CommunicationError("Unexpected response in get manifest.")
@@ -167,7 +167,6 @@ def convert_docker_image_to_sif(
         logging.debug(f"SIF image already exists: {output_sif}")
         return
     sif_image_folder = os.path.dirname(output_sif)
-    remove_path(sif_image_folder)
     os.makedirs(sif_image_folder, exist_ok=True)
 
     command = [
