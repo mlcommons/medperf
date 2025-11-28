@@ -155,7 +155,7 @@
                         <th>Key ID</th>
                         <th>User ID</th>
                         <th>Email</th>
-                        <th class="text-end">Actions</th>
+                        <th class="text-center">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -164,7 +164,7 @@
                         <td>{{ key_id }}</td>
                         <td>{{ keys[key_id].id }}</td>
                         <td>{{ keys[key_id].email }}</td>
-                        <td class="text-end">
+                        <td class="text-center">
                             <button
                                 id="revoke-btn-{{ key_id }}"
                                 class="btn btn-outline-danger btn-sm revoke-access-btn"
@@ -226,7 +226,7 @@
         const key_id = "{{ task_formData.get('key_id', '') }}";
         resumeRunningTask(
             `#revoke-btn-${key_id}`,
-            `Revoking User Access...`,
+            null,
             onRevokeUserAccessSuccess
         );
     });
@@ -236,7 +236,7 @@
     $(document).ready(() => {
         resumeRunningTask(
             "#delete-keys-btn",
-            `Deleting Keys...`,
+            null,
             onDeleteKeysSuccess
         );
     });
