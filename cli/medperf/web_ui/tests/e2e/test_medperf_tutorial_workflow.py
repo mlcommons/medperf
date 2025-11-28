@@ -66,7 +66,7 @@ def test_activate_local_profiile(driver):
 
     page.activate_profile(profile_name=tests_config.LOCAL_PROFILE)
 
-    page.wait_for_visibility_element(page.PAGE_MODAL)
+    page.wait_for_visibility_element(page_modal)
 
     assert page.is_confirmation_modal() is True
     assert "activate this profile?" in page.get_text(page.CONFIRM_TEXT)
