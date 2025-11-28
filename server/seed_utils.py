@@ -8,14 +8,9 @@ import django
 from django.contrib.auth import get_user_model
 import yaml
 
-REPO_BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-ASSETS_PATH = str(REPO_BASE_DIR / "examples" / "chestxray_tutorial")
-
-
-def _load_asset_content(file_relative_path: str):
-    asset_path = f"{ASSETS_PATH}/{file_relative_path}"
+def _load_asset_content(assets_path: str, file_relative_path: str):
+    asset_path = f"{assets_path}/{file_relative_path}"
 
     with open(asset_path, "r") as f:
         content = yaml.safe_load(f)
@@ -23,12 +18,12 @@ def _load_asset_content(file_relative_path: str):
     return content
 
 
-def load_container_config(dirname: str):
-    return _load_asset_content(f"{dirname}/container_config.yaml")
+def load_container_config(assets_path: str, dirname: str):
+    return _load_asset_content(assets_path, f"{dirname}/container_config.yaml")
 
 
-def load_parameters_config(dirname: str):
-    return _load_asset_content(f"{dirname}/workspace/parameters.yaml")
+def load_parameters_config(assets_path: str, dirname: str):
+    return _load_asset_content(assets_path, f"{dirname}/workspace/parameters.yaml")
 
 
 class Server:
@@ -110,11 +105,11 @@ def set_user_as_admin(api_server, access_token):
     os.chdir(cwd)
 
 
-def create_benchmark(api_server, benchmark_owner_token, admin_token):
+def create_benchmark(api_server, benchmark_owner_token, assets_path):
     print("##########################BENCHMARK OWNER##########################")
 
-    data_prep_config = load_container_config("data_preparator")
-    data_prep_params = load_parameters_config("data_preparator")
+    data_prep_config = load_container_config(assets_path, "data_preparator")
+    data_prep_params = load_parameters_config(assets_path, "data_preparator")
     # Create a Data preprocessor MLCube by Benchmark Owner
     data_preprocessor_mlcube = api_server.request(
         "/mlcubes/",
@@ -152,8 +147,10 @@ def create_benchmark(api_server, benchmark_owner_token, admin_token):
         "by Benchmark Owner",
     )
 
-    model_cnn_container_config = load_container_config("model_custom_cnn")
-    model_cnn_parameters_config = load_parameters_config("model_custom_cnn")
+    model_cnn_container_config = load_container_config(assets_path, "model_custom_cnn")
+    model_cnn_parameters_config = load_parameters_config(
+        assets_path, "model_custom_cnn"
+    )
     # Create a reference model executor mlcube by Benchmark Owner
     reference_model_executor_mlcube = api_server.request(
         "/mlcubes/",
@@ -194,8 +191,8 @@ def create_benchmark(api_server, benchmark_owner_token, admin_token):
         "by Benchmark Owner",
     )
 
-    evaluator_container_config = load_container_config("metrics")
-    evaluator_parameters_config = load_parameters_config("metrics")
+    evaluator_container_config = load_container_config(assets_path, "metrics")
+    evaluator_parameters_config = load_parameters_config(assets_path, "metrics")
     # Create a Data evalutor MLCube by Benchmark Owner
     data_evaluator_mlcube = api_server.request(
         "/mlcubes/",
@@ -266,12 +263,16 @@ def create_benchmark(api_server, benchmark_owner_token, admin_token):
     return benchmark
 
 
-def create_model(api_server, model_owner_token, benchmark_owner_token, benchmark):
+def create_model(
+    api_server, model_owner_token, benchmark_owner_token, benchmark, assets_path
+):
     print("##########################MODEL OWNER##########################")
     # Model Owner Interaction
 
-    mobilenet_container_config = load_container_config("model_mobilenetv2")
-    mobilenet_parameters_config = load_parameters_config("model_mobilenetv2")
+    mobilenet_container_config = load_container_config(assets_path, "model_mobilenetv2")
+    mobilenet_parameters_config = load_parameters_config(
+        assets_path, "model_mobilenetv2"
+    )
 
     # Create a model mlcube by Model Owner
     model_executor1_mlcube = api_server.request(

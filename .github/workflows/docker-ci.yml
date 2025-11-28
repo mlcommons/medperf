@@ -55,6 +55,7 @@ jobs:
       working-directory: ./server
       run: |
         cp ../mock_tokens/tokens.json tokens.json
+        cp -r ../examples/chestxray_tutorial/ .
         docker build -t ${{ env.IMAGE_NAME }} -f Dockerfile.gha .
 
     - name: Run server in background
@@ -63,7 +64,7 @@ jobs:
 
     - name: Run server integration tests
       working-directory: ./server
-      run: docker exec medperf_api sh -c "pip install -r test-requirements.txt && python seed.py --server https://127.0.0.1:8080 --cert cert.crt --tokens tokens.json"
+      run: docker exec medperf_api sh -c "pip install -r test-requirements.txt && python seed.py --server https://127.0.0.1:8080 --cert cert.crt --tokens tokens.json --containers-assets-path chestxray_tutorial"
 
     - name: Run chestxray demo
       working-directory: .
