@@ -50,7 +50,7 @@ if __name__ == "__main__":
         "--data_path",
         "--data-path",
         type=str,
-        required=True,
+        required=False,
         help="Location of data",
         default="/mlcommons/volumes/data",
     )
@@ -59,7 +59,7 @@ if __name__ == "__main__":
         "--weights",
         "--weights",
         type=str,
-        required=True,
+        required=False,
         help="Location of mstcn model weights",
         default="/mlcommons/volumes/additional_files/weights",
     )
@@ -68,7 +68,7 @@ if __name__ == "__main__":
         "--params_file",
         "--params-file",
         type=str,
-        required=True,
+        required=False,
         help="Configuration file for the inference step",
         default="/mlcommons/volumes/parameters/parameters.yaml",
     )
@@ -77,7 +77,7 @@ if __name__ == "__main__":
         "--output_path",
         "--output-path",
         type=str,
-        required=True,
+        required=False,
         help="Location to store the predictions",
         default="/mlcommons/volumes/predictions",
     )
