@@ -11,7 +11,7 @@ class CLI(UI):
     def __init__(self):
         self.spinner = yaspin(color="green")
         self.is_interactive = False
-        self.is_regex = False
+        self.is_parsed_output = False
 
     def print_url_message(self, message: str):
         match = re.search(r"https?://[^\s]+", message)
@@ -44,7 +44,7 @@ class CLI(UI):
         Args:
             msg (str): message to print
         """
-        if self.is_regex:
+        if self.is_parsed_output:
             if self.is_code(msg):
                 self.print_code(msg)
             elif self.contains_url(msg):
@@ -116,30 +116,30 @@ class CLI(UI):
             finally:
                 self.stop_interactive()
 
-    def start_regex(self):
-        """Start a regex session where messages will be displayed based on regular expressions"""
-        self.is_regex = True
+    def start_parsed_output(self):
+        """Start a parsed output session where messages will be displayed based on regular expressions"""
+        self.is_parsed_output = True
 
-    def stop_regex(self):
-        """Stop the regex session"""
-        self.is_regex = False
+    def stop_parsed_output(self):
+        """Stop the parsed output session"""
+        self.is_parsed_output = False
 
     @contextmanager
-    def regex(self):
-        """Context managed regex session.
+    def parsed_output(self):
+        """Context managed parsed output session.
 
         Yields:
-            CLI: Yields the current CLI instance with a regex session initialized
+            CLI: Yields the current CLI instance with a parsed output session initialized
         """
-        if self.is_regex:
-            # if already regex, do nothing
+        if self.is_parsed_output:
+            # if already parsed output, do nothing
             yield self
         else:
-            self.start_regex()
+            self.start_parsed_output()
             try:
                 yield self
             finally:
-                self.stop_regex()
+                self.stop_parsed_output()
 
     @property
     def text(self):

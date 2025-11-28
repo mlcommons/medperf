@@ -27,5 +27,5 @@ class GetUserCertificate:
 
         with ui.interactive():
             ui.text = "Getting Certificate"
-            with ui.regex():
+            with ui.parsed_output():
                 get_client_cert(ca, email, output_path)
