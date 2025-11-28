@@ -38,6 +38,8 @@ CA_FINGERPRINT=$(jq -r '.fingerprint' $ca_config)
 CA_CLIENT_PROVISIONER=$(jq -r '.client_provisioner' $ca_config)
 CA_SERVER_PROVISIONER=$(jq -r '.server_provisioner' $ca_config)
 
+pki_assets=${pki_assets%/}
+
 export STEPPATH=$pki_assets/.step
 
 if [ "$task" = "get_server_cert" ]; then
@@ -75,20 +77,16 @@ fi
 # First, try to bootstrap the root cert using step-ca. This will also verify the fingerprint.
 step ca bootstrap --ca-url $CA_ADDRESS:$CA_PORT \
         --fingerprint $CA_FINGERPRINT
-if [ "$?" -eq "0" ]; then
-    ROOT=$STEPPATH/certs/root_ca.crt
-else
-    # if the above fails, it could be that the CA is reachable via https using system trusted certs.
-    mkdir -p /tmp/root_ca
-    /bin/sh /mlcube_project/trust.sh --ca_config $ca_config --pki_assets /tmp/root_ca
-    if [ "$?" -ne "0" ]; then
-        echo "Failed to verify the root certificate"
-        # cleanup
-        rm -rf $STEPPATH
-        exit 1
-    fi
-    ROOT=/etc/ssl/certs/ca-certificates.crt
-fi
+
+ADDRESS_LOWER=`echo "$CA_ADDRESS" | tr '[:upper:]' '[:lower:]'`
+case "$ADDRESS_LOWER" in
+    https://*)
+        ROOT=/etc/ssl/certs/ca-certificates.crt
+        ;;
+    *)
+        ROOT=$STEPPATH/certs/root_ca.crt
+        ;;
+esac
 
 # generate private key and ask for a certificate
 step ca certificate --ca-url $CA_ADDRESS:$CA_PORT \
