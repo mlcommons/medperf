@@ -8,8 +8,6 @@ class CompatibilityTestPage(BasePage):
     BENCHMARK = (By.ID, "benchmark")
     CONTAINER = (By.ID, "container-path")
     RUN_TEST_BTN = (By.ID, "run-comp-test-btn")
-    NEXT_MODAL = (By.ID, "next-modal")
-    NEXT_TITLE = (By.ID, "next-modal-title")
     CONTINUE_BTN = (By.CSS_SELECTOR, "button.btn-success")
 
     def run_test(self, benchmark, container_path):

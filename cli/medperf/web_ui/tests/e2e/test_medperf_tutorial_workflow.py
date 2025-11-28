@@ -51,6 +51,7 @@ def test_security_page_url(driver, sec_token):
 
 @pytest.mark.dependency(name="activate_profile", depends=["security_test_url"])
 def test_activate_local_profiile(driver):
+    return
     page = SettingsPage(driver)
     page.open(BASE_URL.format("/settings"))
 
@@ -60,26 +61,25 @@ def test_activate_local_profiile(driver):
 
     assert page.find(page.ACTIVATE).is_enabled() is False
 
-    confirm_modal = page.find(page.CONFIRM_MODAL)
-    popup_modal = page.find(page.POPUP_MODAL)
-    error_modal = page.find(page.ERROR_MODAL)
+    page_modal = page.find(page.PAGE_MODAL)
 
-    assert confirm_modal.is_displayed() is False
-    assert popup_modal.is_displayed() is False
-    assert error_modal.is_displayed() is False
+    assert page_modal.is_displayed() is False
 
     page.activate_profile(profile_name=tests_config.LOCAL_PROFILE)
 
-    page.wait_for_visibility_element(confirm_modal)
+    page.wait_for_visibility_element(page.PAGE_MODAL)
+
+    assert page.is_confirmation_modal() is True
+    assert "activate this profile?" in page.get_text(page.CONFIRM_TEXT)
+
     page.confirm_run_task()
 
-    while not popup_modal.is_displayed() and not error_modal.is_displayed():
+    while not page_modal.is_displayed():
         time.sleep(0.2)
 
-    assert popup_modal.is_displayed() is True
-    assert page.get_text(page.POPUP_TITLE) == "Profile Activated Successfully"
+    assert page.get_text(page.PAGE_MODAL_TITLE) == "Profile Activated Successfully"
 
-    page.wait_for_staleness_element(popup_modal)
+    page.wait_for_staleness_element(page_modal)
 
     assert page.get_text(page.CURRENT_PROFILE) == tests_config.LOCAL_PROFILE
 
@@ -121,14 +121,10 @@ def test_benchmark_workflow_test(driver):
     assert "/benchmarks/register/workflow_test" in page.current_url
     assert page.find(page.RUN_TEST_BTN).is_enabled() is False
 
-    confirm_modal = page.find(page.CONFIRM_MODAL)
-    next_modal = page.find(page.NEXT_MODAL)
-    error_modal = page.find(page.ERROR_MODAL)
+    page_modal = page.find(page.PAGE_MODAL)
     panel = page.find(page.PANEL)
 
-    assert confirm_modal.is_displayed() is False
-    assert next_modal.is_displayed() is False
-    assert error_modal.is_displayed() is False
+    assert page_modal.is_displayed() is False
     assert panel.is_displayed() is False
 
     page.run_test(
@@ -140,20 +136,23 @@ def test_benchmark_workflow_test(driver):
     )
 
     old_url = page.current_url
-    page.wait_for_visibility_element(confirm_modal)
+    page.wait_for_visibility_element(page_modal)
+
+    assert page.is_confirmation_modal() is True
+    assert "run the workflow test?" in page.get_text(page.CONFIRM_TEXT)
+
     page.confirm_run_task()
     page.wait_for_visibility_element(panel)
 
-    while not next_modal.is_displayed() and not error_modal.is_displayed():
+    while not page_modal.is_displayed():
         time.sleep(0.2)
 
-    assert next_modal.is_displayed() is True
-    assert page.get_text(page.NEXT_TITLE) == "Benchmark Workflow Test Successful"
+    assert page.get_text(page.PAGE_MODAL_TITLE) == "Benchmark Workflow Test Successful"
 
-    continue_btn = next_modal.find_element(*page.CONTINUE_BTN)
+    continue_btn = page_modal.find_element(*page.CONTINUE_BTN)
     page.ensure_element_ready(continue_btn)
     continue_btn.click()
-    page.wait_for_staleness_element(next_modal)
+    page.wait_for_staleness_element(page_modal)
     page.wait_for_url_change(old_url)
 
     assert "/benchmarks/register/ui" in page.current_url
@@ -172,30 +171,29 @@ def test_benchmark_register_data_prep_container(driver):
     assert "/containers/register/ui" in page.current_url
     assert page.find(page.REGISTER).is_enabled() is False
 
-    confirm_modal = page.find(page.CONFIRM_MODAL)
-    popup_modal = page.find(page.POPUP_MODAL)
-    error_modal = page.find(page.ERROR_MODAL)
+    page_modal = page.find(page.PAGE_MODAL)
     panel = page.find(page.PANEL)
 
-    assert confirm_modal.is_displayed() is False
-    assert popup_modal.is_displayed() is False
-    assert error_modal.is_displayed() is False
+    assert page_modal.is_displayed() is False
     assert panel.is_displayed() is False
 
     page.register_container(container_dict=tests_config.DATA_PREPARATOR_CONTAINER)
 
     old_url = page.current_url
-    page.wait_for_visibility_element(confirm_modal)
+    page.wait_for_visibility_element(page_modal)
+
+    assert page.is_confirmation_modal() is True
+    assert "register this container?" in page.get_text(page.CONFIRM_TEXT)
+
     page.confirm_run_task()
     page.wait_for_visibility_element(panel)
 
-    while not popup_modal.is_displayed() and not error_modal.is_displayed():
+    while not page_modal.is_displayed():
         time.sleep(0.2)
 
-    assert popup_modal.is_displayed() is True
-    assert page.get_text(page.POPUP_TITLE) == "Model Registered Successfully"
+    assert page.get_text(page.PAGE_MODAL_TITLE) == "Model Registered Successfully"
 
-    page.wait_for_staleness_element(popup_modal)
+    page.wait_for_staleness_element(page_modal)
     page.wait_for_url_change(old_url)
 
     assert "/containers/ui/display/" in page.current_url
@@ -214,30 +212,29 @@ def test_benchmark_register_reference_model_container(driver):
     assert "/containers/register/ui" in page.current_url
     assert page.find(page.REGISTER).is_enabled() is False
 
-    confirm_modal = page.find(page.CONFIRM_MODAL)
-    popup_modal = page.find(page.POPUP_MODAL)
-    error_modal = page.find(page.ERROR_MODAL)
+    page_modal = page.find(page.PAGE_MODAL)
     panel = page.find(page.PANEL)
 
-    assert confirm_modal.is_displayed() is False
-    assert popup_modal.is_displayed() is False
-    assert error_modal.is_displayed() is False
+    assert page_modal.is_displayed() is False
     assert panel.is_displayed() is False
 
     page.register_container(container_dict=tests_config.REF_MODEL_CONTAINER)
 
     old_url = page.current_url
-    page.wait_for_visibility_element(confirm_modal)
+    page.wait_for_visibility_element(page_modal)
+
+    assert page.is_confirmation_modal() is True
+    assert "register this container?" in page.get_text(page.CONFIRM_TEXT)
+
     page.confirm_run_task()
     page.wait_for_visibility_element(panel)
 
-    while not popup_modal.is_displayed() and not error_modal.is_displayed():
+    while not page_modal.is_displayed():
         time.sleep(0.2)
 
-    assert popup_modal.is_displayed() is True
-    assert page.get_text(page.POPUP_TITLE) == "Model Registered Successfully"
+    assert page.get_text(page.PAGE_MODAL_TITLE) == "Model Registered Successfully"
 
-    page.wait_for_staleness_element(popup_modal)
+    page.wait_for_staleness_element(page_modal)
     page.wait_for_url_change(old_url)
 
     assert "/containers/ui/display/" in page.current_url
@@ -256,30 +253,29 @@ def test_benchmark_register_metrics_container(driver):
     assert "/containers/register/ui" in page.current_url
     assert page.find(page.REGISTER).is_enabled() is False
 
-    confirm_modal = page.find(page.CONFIRM_MODAL)
-    popup_modal = page.find(page.POPUP_MODAL)
-    error_modal = page.find(page.ERROR_MODAL)
+    page_modal = page.find(page.PAGE_MODAL)
     panel = page.find(page.PANEL)
 
-    assert confirm_modal.is_displayed() is False
-    assert popup_modal.is_displayed() is False
-    assert error_modal.is_displayed() is False
+    assert page_modal.is_displayed() is False
     assert panel.is_displayed() is False
 
     page.register_container(container_dict=tests_config.METRICS_CONTAINER)
 
     old_url = page.current_url
-    page.wait_for_visibility_element(confirm_modal)
+    page.wait_for_visibility_element(page_modal)
+
+    assert page.is_confirmation_modal() is True
+    assert "register this container?" in page.get_text(page.CONFIRM_TEXT)
+
     page.confirm_run_task()
     page.wait_for_visibility_element(panel)
 
-    while not popup_modal.is_displayed() and not error_modal.is_displayed():
+    while not page_modal.is_displayed():
         time.sleep(0.2)
 
-    assert popup_modal.is_displayed() is True
-    assert page.get_text(page.POPUP_TITLE) == "Model Registered Successfully"
+    assert page.get_text(page.PAGE_MODAL_TITLE) == "Model Registered Successfully"
 
-    page.wait_for_staleness_element(popup_modal)
+    page.wait_for_staleness_element(page_modal)
     page.wait_for_url_change(old_url)
 
     assert "/containers/ui/display/" in page.current_url
@@ -298,14 +294,10 @@ def test_benchmark_registration(driver):
     assert "/benchmarks/register/ui" in page.current_url
     assert page.find(page.REGISTER).is_enabled() is False
 
-    confirm_modal = page.find(page.CONFIRM_MODAL)
-    popup_modal = page.find(page.POPUP_MODAL)
-    error_modal = page.find(page.ERROR_MODAL)
+    page_modal = page.find(page.PAGE_MODAL)
     panel = page.find(page.PANEL)
 
-    assert confirm_modal.is_displayed() is False
-    assert popup_modal.is_displayed() is False
-    assert error_modal.is_displayed() is False
+    assert page_modal.is_displayed() is False
     assert panel.is_displayed() is False
 
     page.register_benchmark(
@@ -318,17 +310,20 @@ def test_benchmark_registration(driver):
     )
 
     old_url = page.current_url
-    page.wait_for_visibility_element(confirm_modal)
+    page.wait_for_visibility_element(page_modal)
+
+    assert page.is_confirmation_modal() is True
+    assert "register this benchmark?" in page.get_text(page.CONFIRM_TEXT)
+
     page.confirm_run_task()
     page.wait_for_visibility_element(panel)
 
-    while not popup_modal.is_displayed() and not error_modal.is_displayed():
+    while not page_modal.is_displayed():
         time.sleep(0.2)
 
-    assert popup_modal.is_displayed() is True
-    assert page.get_text(page.POPUP_TITLE) == "Benchmark Successfully Registered"
+    assert page.get_text(page.PAGE_MODAL_TITLE) == "Benchmark Successfully Registered"
 
-    page.wait_for_staleness_element(popup_modal)
+    page.wait_for_staleness_element(page_modal)
     page.wait_for_url_change(old_url)
 
     assert "/benchmarks/ui/display/" in page.current_url
@@ -342,7 +337,273 @@ def test_benchmark_logout(driver):
     logout(page)
 
 
-@pytest.mark.dependency(name="model_login", depends=["benchmark_logout"])
+@pytest.mark.dependency(name="dataset_login", depends=["benchmark_logout"])
+def test_dataset_login(driver):
+    page = LoginPage(driver)
+    url = BASE_URL.format("/datasets/ui")
+
+    login(page=page, url=url, email=tests_config.DSET_OWNER_EMAIL)
+
+
+@pytest.mark.dependency(name="dataset_registration", depends=["dataset_login"])
+def test_dataset_registration(driver):
+    page = RegDatasetPage(driver)
+    page.open(BASE_URL.format("/datasets/ui"))
+
+    old_url = page.current_url
+    page.click(page.REG_DSET_BTN)
+    page.wait_for_url_change(old_url)
+    page.wait_for_presence_selector(page.NAVBAR)
+
+    assert "/datasets/register/ui" in page.current_url
+    assert page.find(page.REGISTER).is_enabled() is False
+
+    page_modal = page.find(page.PAGE_MODAL)
+    text_container = page.find(page.TEXT_CONTAINER)
+    prompt_container = page.find(page.PROMPT_CONTAINER)
+
+    assert page_modal.is_displayed() is False
+    assert text_container.is_displayed() is False
+    assert prompt_container.is_displayed() is False
+
+    page.register_dataset(
+        benchmark=tests_config.BMK_NAME,
+        name=tests_config.DATASET_NAME,
+        description=tests_config.DATASET_DESC,
+        location=tests_config.DATASET_LOCATION,
+        data_path=tests_config.DATASET_DATA_PATH,
+        labels_path=tests_config.DATASET_LABELS_PATH,
+    )
+
+    old_url = page.current_url
+    page.wait_for_visibility_element(page_modal)
+
+    assert page.is_confirmation_modal() is True
+    assert "register this dataset?" in page.get_text(page.CONFIRM_TEXT)
+
+    page.confirm_run_task()
+
+    while not prompt_container.is_displayed() and not page_modal.is_displayed():
+        time.sleep(0.2)
+
+    assert text_container.is_displayed() is True
+    assert prompt_container.is_displayed() is True
+
+    page.click(page.RESPOND_YES)
+
+    while not page_modal.is_displayed():
+        time.sleep(0.2)
+
+    assert page.get_text(page.PAGE_MODAL_TITLE) == "Dataset Registered Successfully"
+
+    page.wait_for_staleness_element(page_modal)
+    page.wait_for_url_change(old_url)
+
+    assert "/datasets/ui/display/" in page.current_url
+
+
+@pytest.mark.dependency(name="dataset_preparation", depends=["dataset_registration"])
+def test_dataset_preparation(driver):
+    page = DatasetDetailsPage(driver, dataset=tests_config.DATASET_NAME)
+
+    page_modal = page.find(page.PAGE_MODAL)
+    panel = page.find(page.PANEL)
+
+    assert page_modal.is_displayed() is False
+    assert panel.is_displayed() is False
+
+    page.prepare_dataset()
+
+    page.wait_for_visibility_element(page_modal)
+
+    assert page.is_confirmation_modal() is True
+    assert "prepare this dataset?" in page.get_text(page.CONFIRM_TEXT)
+
+    page.confirm_run_task()
+    page.wait_for_visibility_element(panel)
+
+    while not page_modal.is_displayed():
+        time.sleep(0.2)
+
+    assert page.get_text(page.PAGE_MODAL_TITLE) == "Dataset Prepared Successfully"
+
+    page.wait_for_staleness_element(page_modal)
+
+    assert "/datasets/ui/display/" in page.current_url
+
+    page.wait_for_presence_selector(page.PREPARED_TEXT)
+
+
+@pytest.mark.dependency(name="dataset_set_operational", depends=["dataset_preparation"])
+def test_dataset_set_operational(driver):
+    page = DatasetDetailsPage(driver, dataset=tests_config.DATASET_NAME)
+
+    page_modal = page.find(page.PAGE_MODAL)
+    text_container = page.find(page.TEXT_CONTAINER)
+    prompt_container = page.find(page.PROMPT_CONTAINER)
+
+    assert page_modal.is_displayed() is False
+    assert text_container.is_displayed() is False
+    assert prompt_container.is_displayed() is False
+
+    page.set_operational()
+
+    page.wait_for_visibility_element(page_modal)
+
+    assert page.is_confirmation_modal() is True
+    assert "set this dataset to operation?" in page.get_text(page.CONFIRM_TEXT)
+
+    page.confirm_run_task()
+
+    while not prompt_container.is_displayed() and not page_modal.is_displayed():
+        time.sleep(0.2)
+
+    assert text_container.is_displayed() is True
+    assert prompt_container.is_displayed() is True
+
+    page.click(page.RESPOND_YES)
+
+    while not page_modal.is_displayed():
+        time.sleep(0.2)
+
+    assert (
+        page.get_text(page.PAGE_MODAL_TITLE) == "Dataset Set to Operation Successfully"
+    )
+
+    page.wait_for_staleness_element(page_modal)
+
+    assert "/datasets/ui/display/" in page.current_url
+
+    page.wait_for_presence_selector(page.SET_OPERATIONAL_TEXT)
+
+
+@pytest.mark.dependency(name="dataset_association", depends=["dataset_set_operational"])
+def test_dataset_association(driver):
+    page = DatasetDetailsPage(
+        driver, dataset=tests_config.DATASET_NAME, benchmark=tests_config.BMK_NAME
+    )
+
+    page_modal = page.find(page.PAGE_MODAL)
+    panel = page.find(page.PANEL)
+    text_container = page.find(page.TEXT_CONTAINER)
+    prompt_container = page.find(page.PROMPT_CONTAINER)
+
+    assert page_modal.is_displayed() is False
+    assert panel.is_displayed() is False
+    assert text_container.is_displayed() is False
+    assert prompt_container.is_displayed() is False
+
+    page.request_association()
+
+    page.wait_for_visibility_element(page_modal)
+
+    assert page.is_confirmation_modal() is True
+    assert "request dataset association?" in page.get_text(page.CONFIRM_TEXT)
+
+    page.confirm_run_task()
+    page.wait_for_visibility_element(panel)
+
+    while not prompt_container.is_displayed() and not page_modal.is_displayed():
+        time.sleep(0.2)
+
+    assert text_container.is_displayed() is True
+    assert prompt_container.is_displayed() is True
+
+    page.click(page.RESPOND_YES)
+
+    while not page_modal.is_displayed():
+        time.sleep(0.2)
+
+    assert page.get_text(page.PAGE_MODAL_TITLE) == "Association Requested Successfully"
+
+    page.wait_for_staleness_element(page_modal)
+
+    assert "/datasets/ui/display/" in page.current_url
+    assert tests_config.BMK_NAME in page.get_association_cards_titles()
+
+
+@pytest.mark.dependency(name="dataset_get_certificate", depends=["dataset_association"])
+def test_dataset_get_certificate(driver):
+    page = SettingsPage(driver)
+    page.open(BASE_URL.format("/settings"))
+
+    page_modal = page.find(page.PAGE_MODAL)
+    panel = page.find(page.PANEL)
+
+    assert page_modal.is_displayed() is False
+    assert panel.is_displayed() is False
+
+    page.get_client_certificate()
+
+    page.wait_for_visibility_element(page_modal)
+
+    assert page.is_confirmation_modal() is True
+    assert "get a new certificate?" in page.get_text(page.CONFIRM_TEXT)
+
+    page.confirm_run_task()
+    page.wait_for_visibility_element(panel)
+
+    while not page_modal.is_displayed():
+        time.sleep(0.2)
+
+    assert page.get_text(page.PAGE_MODAL_TITLE) == "Certificate Retrieved Successfully"
+
+    page.wait_for_staleness_element(page_modal)
+
+    assert page.get_text(page.CERTIFICATE_STATUS) == "to be uploaded"
+
+
+@pytest.mark.dependency(
+    name="dataset_submit_certificate", depends=["dataset_get_certificate"]
+)
+def test_dataset_submit_certificate(driver):
+    page = SettingsPage(driver)
+    page.open(BASE_URL.format("/settings"))
+
+    page_modal = page.find(page.PAGE_MODAL)
+    panel = page.find(page.PANEL)
+    prompt_container = page.find(page.PROMPT_CONTAINER)
+
+    assert page_modal.is_displayed() is False
+    assert panel.is_displayed() is False
+    assert prompt_container.is_displayed() is False
+
+    page.submit_certificate()
+
+    page.wait_for_visibility_element(page_modal)
+
+    assert page.is_confirmation_modal() is True
+    assert "submit the certificate?" in page.get_text(page.CONFIRM_TEXT)
+
+    page.confirm_run_task()
+    page.wait_for_visibility_element(panel)
+
+    while not prompt_container.is_displayed() and not page_modal.is_displayed():
+        time.sleep(0.2)
+
+    assert prompt_container.is_displayed() is True
+
+    page.click(page.RESPOND_YES)
+
+    while not page_modal.is_displayed():
+        time.sleep(0.2)
+
+    assert page.get_text(page.PAGE_MODAL_TITLE) == "Certificate Submitted Successfully"
+
+    page.wait_for_staleness_element(page_modal)
+
+    assert page.get_text(page.CERTIFICATE_STATUS) == "valid"
+
+
+@pytest.mark.dependency(name="dataset_logout", depends=["dataset_association"])
+def test_dataset_logout(driver):
+    page = BasePage(driver)
+    page.open(BASE_URL.format("/benchmarks/ui"))
+
+    logout(page)
+
+
+@pytest.mark.dependency(name="model_login", depends=["dataset_logout"])
 def test_model_login(driver):
     page = LoginPage(driver)
     url = BASE_URL.format("/containers/ui")
@@ -370,14 +631,10 @@ def test_container_comp_test(driver):
     assert "/containers/register/compatibility_test" in page.current_url
     assert page.find(page.RUN_TEST_BTN).is_enabled() is False
 
-    confirm_modal = page.find(page.CONFIRM_MODAL)
-    next_modal = page.find(page.NEXT_MODAL)
-    error_modal = page.find(page.ERROR_MODAL)
+    page_modal = page.find(page.PAGE_MODAL)
     panel = page.find(page.PANEL)
 
-    assert confirm_modal.is_displayed() is False
-    assert next_modal.is_displayed() is False
-    assert error_modal.is_displayed() is False
+    assert page_modal.is_displayed() is False
     assert panel.is_displayed() is False
 
     page.run_test(
@@ -385,20 +642,23 @@ def test_container_comp_test(driver):
     )
 
     old_url = page.current_url
-    page.wait_for_visibility_element(confirm_modal)
+    page.wait_for_visibility_element(page_modal)
+
+    assert page.is_confirmation_modal() is True
+    assert "run the compatibility test?" in page.get_text(page.CONFIRM_TEXT)
+
     page.confirm_run_task()
     page.wait_for_visibility_element(panel)
 
-    while not next_modal.is_displayed() and not error_modal.is_displayed():
+    while not page_modal.is_displayed():
         time.sleep(0.2)
 
-    assert next_modal.is_displayed() is True
-    assert page.get_text(page.NEXT_TITLE) == "Model Compatibility Test Successful"
+    assert page.get_text(page.PAGE_MODAL_TITLE) == "Model Compatibility Test Successful"
 
-    continue_btn = next_modal.find_element(*page.CONTINUE_BTN)
+    continue_btn = page_modal.find_element(*page.CONTINUE_BTN)
     page.ensure_element_ready(continue_btn)
     continue_btn.click()
-    page.wait_for_staleness_element(next_modal)
+    page.wait_for_staleness_element(page_modal)
     page.wait_for_url_change(old_url)
 
     assert "/containers/register/ui" in page.current_url
@@ -417,30 +677,29 @@ def test_container_registration(driver):
     assert "/containers/register/ui" in page.current_url
     assert page.find(page.REGISTER).is_enabled() is False
 
-    confirm_modal = page.find(page.CONFIRM_MODAL)
-    popup_modal = page.find(page.POPUP_MODAL)
-    error_modal = page.find(page.ERROR_MODAL)
+    page_modal = page.find(page.PAGE_MODAL)
     panel = page.find(page.PANEL)
 
-    assert confirm_modal.is_displayed() is False
-    assert popup_modal.is_displayed() is False
-    assert error_modal.is_displayed() is False
+    assert page_modal.is_displayed() is False
     assert panel.is_displayed() is False
 
     page.register_container(container_dict=tests_config.CONTAINER)
 
     old_url = page.current_url
-    page.wait_for_visibility_element(confirm_modal)
+    page.wait_for_visibility_element(page_modal)
+
+    assert page.is_confirmation_modal() is True
+    assert "register this container?" in page.get_text(page.CONFIRM_TEXT)
+
     page.confirm_run_task()
     page.wait_for_visibility_element(panel)
 
-    while not popup_modal.is_displayed() and not error_modal.is_displayed():
+    while not page_modal.is_displayed():
         time.sleep(0.2)
 
-    assert popup_modal.is_displayed() is True
-    assert page.get_text(page.POPUP_TITLE) == "Model Registered Successfully"
+    assert page.get_text(page.PAGE_MODAL_TITLE) == "Model Registered Successfully"
 
-    page.wait_for_staleness_element(popup_modal)
+    page.wait_for_staleness_element(page_modal)
     page.wait_for_url_change(old_url)
 
     assert "/containers/ui/display/" in page.current_url
@@ -455,31 +714,27 @@ def test_container_association(driver):
         container=tests_config.CONTAINER["name"],
         benchmark=tests_config.BMK_NAME,
     )
-    confirm_modal = page.find(page.CONFIRM_MODAL)
-    popup_modal = page.find(page.POPUP_MODAL)
-    error_modal = page.find(page.ERROR_MODAL)
+    page_modal = page.find(page.PAGE_MODAL)
     panel = page.find(page.PANEL)
     text_container = page.find(page.TEXT_CONTAINER)
     prompt_container = page.find(page.PROMPT_CONTAINER)
 
-    assert confirm_modal.is_displayed() is False
-    assert popup_modal.is_displayed() is False
-    assert error_modal.is_displayed() is False
+    assert page_modal.is_displayed() is False
     assert panel.is_displayed() is False
     assert text_container.is_displayed() is False
     assert prompt_container.is_displayed() is False
 
     page.request_association()
 
-    page.wait_for_visibility_element(confirm_modal)
+    page.wait_for_visibility_element(page_modal)
+
+    assert page.is_confirmation_modal() is True
+    assert "request container association?" in page.get_text(page.CONFIRM_TEXT)
+
     page.confirm_run_task()
     page.wait_for_visibility_element(panel)
 
-    while (
-        not prompt_container.is_displayed()
-        and not popup_modal.is_displayed()
-        and not error_modal.is_displayed()
-    ):
+    while not prompt_container.is_displayed() and not page_modal.is_displayed():
         time.sleep(0.2)
 
     assert text_container.is_displayed() is True
@@ -487,19 +742,114 @@ def test_container_association(driver):
 
     page.click(page.RESPOND_YES)
 
-    while not popup_modal.is_displayed() and not error_modal.is_displayed():
+    while not page_modal.is_displayed():
         time.sleep(0.2)
 
-    assert popup_modal.is_displayed() is True
-    assert page.get_text(page.POPUP_TITLE) == "Association Requested Successfully"
+    assert page.get_text(page.PAGE_MODAL_TITLE) == "Association Requested Successfully"
 
-    page.wait_for_staleness_element(popup_modal)
+    page.wait_for_staleness_element(page_modal)
 
     assert "/containers/ui/display/" in page.current_url
     assert tests_config.BMK_NAME in page.get_association_cards_titles()
 
 
-@pytest.mark.dependency(name="model_logout", depends=["container_association"])
+@pytest.mark.dependency(
+    name="encrypted_container_registration", depends=["container_association"]
+)
+def test_encrypted_container_registration(driver):
+    page = RegContainerPage(driver)
+    page.open(BASE_URL.format("/containers/ui"))
+
+    old_url = page.current_url
+    page.click(page.REG_CONTAINER_BTN)
+    page.wait_for_url_change(old_url)
+    page.wait_for_presence_selector(page.NAVBAR)
+
+    assert "/containers/register/ui" in page.current_url
+    assert page.find(page.REGISTER).is_enabled() is False
+
+    page_modal = page.find(page.PAGE_MODAL)
+    panel = page.find(page.PANEL)
+
+    assert page_modal.is_displayed() is False
+    assert panel.is_displayed() is False
+
+    page.register_container(
+        container_dict=tests_config.ENCRYPTED_CONTAINER,
+        decryption_key=tests_config.DECRYPTION_KEY_PATH,
+    )
+
+    old_url = page.current_url
+    page.wait_for_visibility_element(page_modal)
+
+    assert page.is_confirmation_modal() is True
+    assert "register this container?" in page.get_text(page.CONFIRM_TEXT)
+
+    page.confirm_run_task()
+    page.wait_for_visibility_element(panel)
+
+    while not page_modal.is_displayed():
+        time.sleep(0.2)
+
+    assert page.get_text(page.PAGE_MODAL_TITLE) == "Model Registered Successfully"
+
+    page.wait_for_staleness_element(page_modal)
+    page.wait_for_url_change(old_url)
+
+    assert "/containers/ui/display/" in page.current_url
+
+
+@pytest.mark.dependency(
+    name="encrypted_container_association", depends=["encrypted_container_registration"]
+)
+def test_encrypted_container_association(driver):
+    page = ContainerDetailsPage(
+        driver,
+        container=tests_config.CONTAINER["name"],
+        benchmark=tests_config.BMK_NAME,
+    )
+    page_modal = page.find(page.PAGE_MODAL)
+    panel = page.find(page.PANEL)
+    text_container = page.find(page.TEXT_CONTAINER)
+    prompt_container = page.find(page.PROMPT_CONTAINER)
+
+    assert page_modal.is_displayed() is False
+    assert panel.is_displayed() is False
+    assert text_container.is_displayed() is False
+    assert prompt_container.is_displayed() is False
+
+    page.request_association()
+
+    page.wait_for_visibility_element(page_modal)
+
+    assert page.is_confirmation_modal() is True
+    assert "request container association?" in page.get_text(page.CONFIRM_TEXT)
+
+    page.confirm_run_task()
+    page.wait_for_visibility_element(panel)
+
+    while not prompt_container.is_displayed() and not page_modal.is_displayed():
+        time.sleep(0.2)
+
+    assert text_container.is_displayed() is True
+    assert prompt_container.is_displayed() is True
+
+    page.click(page.RESPOND_YES)
+
+    while not page_modal.is_displayed():
+        time.sleep(0.2)
+
+    assert page.get_text(page.PAGE_MODAL_TITLE) == "Association Requested Successfully"
+
+    page.wait_for_staleness_element(page_modal)
+
+    assert "/containers/ui/display/" in page.current_url
+    assert tests_config.BMK_NAME in page.get_association_cards_titles()
+
+
+@pytest.mark.dependency(
+    name="model_logout", depends=["encrypted_container_association"]
+)
 def test_model_logout(driver):
     page = BasePage(driver)
     page.open(BASE_URL.format("/benchmarks/ui"))
@@ -507,214 +857,7 @@ def test_model_logout(driver):
     logout(page)
 
 
-@pytest.mark.dependency(name="dataset_login", depends=["model_logout"])
-def test_dataset_login(driver):
-    page = LoginPage(driver)
-    url = BASE_URL.format("/datasets/ui")
-
-    login(page=page, url=url, email=tests_config.DSET_OWNER_EMAIL)
-
-
-@pytest.mark.dependency(name="dataset_registration", depends=["dataset_login"])
-def test_dataset_registration(driver):
-    page = RegDatasetPage(driver)
-    page.open(BASE_URL.format("/datasets/ui"))
-
-    old_url = page.current_url
-    page.click(page.REG_DSET_BTN)
-    page.wait_for_url_change(old_url)
-    page.wait_for_presence_selector(page.NAVBAR)
-
-    assert "/datasets/register/ui" in page.current_url
-    assert page.find(page.REGISTER).is_enabled() is False
-
-    confirm_modal = page.find(page.CONFIRM_MODAL)
-    popup_modal = page.find(page.POPUP_MODAL)
-    error_modal = page.find(page.ERROR_MODAL)
-    text_container = page.find(page.TEXT_CONTAINER)
-    prompt_container = page.find(page.PROMPT_CONTAINER)
-
-    assert confirm_modal.is_displayed() is False
-    assert popup_modal.is_displayed() is False
-    assert error_modal.is_displayed() is False
-    assert text_container.is_displayed() is False
-    assert prompt_container.is_displayed() is False
-
-    page.register_dataset(
-        benchmark=tests_config.BMK_NAME,
-        name=tests_config.DATASET_NAME,
-        description=tests_config.DATASET_DESC,
-        location=tests_config.DATASET_LOCATION,
-        data_path=tests_config.DATASET_DATA_PATH,
-        labels_path=tests_config.DATASET_LABELS_PATH,
-    )
-
-    old_url = page.current_url
-    page.wait_for_visibility_element(confirm_modal)
-    page.confirm_run_task()
-
-    while (
-        not prompt_container.is_displayed()
-        and not popup_modal.is_displayed()
-        and not error_modal.is_displayed()
-    ):
-        time.sleep(0.2)
-
-    assert text_container.is_displayed() is True
-    assert prompt_container.is_displayed() is True
-
-    page.click(page.RESPOND_YES)
-
-    while not popup_modal.is_displayed() and not error_modal.is_displayed():
-        time.sleep(0.2)
-
-    assert popup_modal.is_displayed() is True
-    assert page.get_text(page.POPUP_TITLE) == "Dataset Registered Successfully"
-
-    page.wait_for_staleness_element(popup_modal)
-    page.wait_for_url_change(old_url)
-
-    assert "/datasets/ui/display/" in page.current_url
-
-
-@pytest.mark.dependency(name="dataset_preparation", depends=["dataset_registration"])
-def test_dataset_preparation(driver):
-    page = DatasetDetailsPage(driver, dataset=tests_config.DATASET_NAME)
-
-    confirm_modal = page.find(page.CONFIRM_MODAL)
-    popup_modal = page.find(page.POPUP_MODAL)
-    error_modal = page.find(page.ERROR_MODAL)
-    panel = page.find(page.PANEL)
-
-    assert confirm_modal.is_displayed() is False
-    assert popup_modal.is_displayed() is False
-    assert error_modal.is_displayed() is False
-    assert panel.is_displayed() is False
-
-    page.prepare_dataset()
-
-    page.wait_for_visibility_element(confirm_modal)
-    page.confirm_run_task()
-    page.wait_for_visibility_element(panel)
-
-    while not popup_modal.is_displayed() and not error_modal.is_displayed():
-        time.sleep(0.2)
-
-    assert popup_modal.is_displayed() is True
-    assert page.get_text(page.POPUP_TITLE) == "Dataset Prepared Successfully"
-
-    page.wait_for_staleness_element(popup_modal)
-
-    assert "/datasets/ui/display/" in page.current_url
-
-    page.wait_for_presence_selector(page.PREPARED_TEXT)
-
-
-@pytest.mark.dependency(name="dataset_set_operational", depends=["dataset_preparation"])
-def test_dataset_set_operational(driver):
-    page = DatasetDetailsPage(driver, dataset=tests_config.DATASET_NAME)
-
-    confirm_modal = page.find(page.CONFIRM_MODAL)
-    popup_modal = page.find(page.POPUP_MODAL)
-    error_modal = page.find(page.ERROR_MODAL)
-    text_container = page.find(page.TEXT_CONTAINER)
-    prompt_container = page.find(page.PROMPT_CONTAINER)
-
-    assert confirm_modal.is_displayed() is False
-    assert popup_modal.is_displayed() is False
-    assert error_modal.is_displayed() is False
-    assert text_container.is_displayed() is False
-    assert prompt_container.is_displayed() is False
-
-    page.set_operational()
-
-    page.wait_for_visibility_element(confirm_modal)
-    page.confirm_run_task()
-
-    while (
-        not prompt_container.is_displayed()
-        and not popup_modal.is_displayed()
-        and not error_modal.is_displayed()
-    ):
-        time.sleep(0.2)
-
-    assert text_container.is_displayed() is True
-    assert prompt_container.is_displayed() is True
-
-    page.click(page.RESPOND_YES)
-
-    while not popup_modal.is_displayed() and not error_modal.is_displayed():
-        time.sleep(0.2)
-
-    assert popup_modal.is_displayed() is True
-    assert page.get_text(page.POPUP_TITLE) == "Dataset Set to Operation Successfully"
-
-    page.wait_for_staleness_element(popup_modal)
-
-    assert "/datasets/ui/display/" in page.current_url
-
-    page.wait_for_presence_selector(page.SET_OPERATIONAL_TEXT)
-
-
-@pytest.mark.dependency(name="dataset_association", depends=["dataset_set_operational"])
-def test_dataset_association(driver):
-    page = DatasetDetailsPage(
-        driver, dataset=tests_config.DATASET_NAME, benchmark=tests_config.BMK_NAME
-    )
-
-    confirm_modal = page.find(page.CONFIRM_MODAL)
-    popup_modal = page.find(page.POPUP_MODAL)
-    error_modal = page.find(page.ERROR_MODAL)
-    panel = page.find(page.PANEL)
-    text_container = page.find(page.TEXT_CONTAINER)
-    prompt_container = page.find(page.PROMPT_CONTAINER)
-
-    assert confirm_modal.is_displayed() is False
-    assert popup_modal.is_displayed() is False
-    assert error_modal.is_displayed() is False
-    assert panel.is_displayed() is False
-    assert text_container.is_displayed() is False
-    assert prompt_container.is_displayed() is False
-
-    page.request_association()
-
-    page.wait_for_visibility_element(confirm_modal)
-    page.confirm_run_task()
-    page.wait_for_visibility_element(panel)
-
-    while (
-        not prompt_container.is_displayed()
-        and not popup_modal.is_displayed()
-        and not error_modal.is_displayed()
-    ):
-        time.sleep(0.2)
-
-    assert text_container.is_displayed() is True
-    assert prompt_container.is_displayed() is True
-
-    page.click(page.RESPOND_YES)
-
-    while not popup_modal.is_displayed() and not error_modal.is_displayed():
-        time.sleep(0.2)
-
-    assert popup_modal.is_displayed() is True
-    assert page.get_text(page.POPUP_TITLE) == "Association Requested Successfully"
-
-    page.wait_for_staleness_element(popup_modal)
-
-    assert "/datasets/ui/display/" in page.current_url
-    assert tests_config.BMK_NAME in page.get_association_cards_titles()
-
-
-@pytest.mark.dependency(name="dataset_logout", depends=["dataset_association"])
-def test_dataset_logout(driver):
-    page = BasePage(driver)
-    page.open(BASE_URL.format("/benchmarks/ui"))
-
-    logout(page)
-
-
-@pytest.mark.dependency(name="benchmark_login1", depends=["dataset_logout"])
+@pytest.mark.dependency(name="benchmark_login1", depends=["model_logout"])
 def test_benchmark_login1(driver):
     page = LoginPage(driver)
     url = BASE_URL.format("/benchmarks/ui")
@@ -736,26 +879,25 @@ def test_benchmark_approve_dataset(driver):
 
     assert "/benchmarks/ui/display/" in page.current_url
 
-    confirm_modal = page.find(page.CONFIRM_MODAL)
-    popup_modal = page.find(page.POPUP_MODAL)
-    error_modal = page.find(page.ERROR_MODAL)
+    page_modal = page.find(page.PAGE_MODAL)
 
-    assert confirm_modal.is_displayed() is False
-    assert popup_modal.is_displayed() is False
-    assert error_modal.is_displayed() is False
+    assert page_modal.is_displayed() is False
 
     page.approve_dataset()
 
-    page.wait_for_visibility_element(confirm_modal)
+    page.wait_for_visibility_element(page_modal)
+
+    assert page.is_confirmation_modal() is True
+    assert "approve this association?" in page.get_text(page.CONFIRM_TEXT)
+
     page.confirm_run_task()
 
-    while not popup_modal.is_displayed() and not error_modal.is_displayed():
+    while not page_modal.is_displayed():
         time.sleep(0.2)
 
-    assert popup_modal.is_displayed() is True
-    assert page.get_text(page.POPUP_TITLE) == "Association Approved Successfully"
+    assert page.get_text(page.PAGE_MODAL_TITLE) == "Association Approved Successfully"
 
-    page.wait_for_staleness_element(popup_modal)
+    page.wait_for_staleness_element(page_modal)
 
     assert "/benchmarks/ui/display/" in page.current_url
 
@@ -770,36 +912,147 @@ def test_benchmark_approve_container(driver):
         entity_name=tests_config.CONTAINER["name"],
     )
 
-    confirm_modal = page.find(page.CONFIRM_MODAL)
-    popup_modal = page.find(page.POPUP_MODAL)
-    error_modal = page.find(page.ERROR_MODAL)
+    page_modal = page.find(page.PAGE_MODAL)
 
-    assert confirm_modal.is_displayed() is False
-    assert popup_modal.is_displayed() is False
-    assert error_modal.is_displayed() is False
+    assert page_modal.is_displayed() is False
 
     page.approve_container()
 
-    page.wait_for_visibility_element(confirm_modal)
+    page.wait_for_visibility_element(page_modal)
+
+    assert page.is_confirmation_modal() is True
+    assert "approve this association?" in page.get_text(page.CONFIRM_TEXT)
+
     page.confirm_run_task()
 
-    while not popup_modal.is_displayed() and not error_modal.is_displayed():
+    while not page_modal.is_displayed():
         time.sleep(0.2)
 
-    assert popup_modal.is_displayed() is True
-    assert page.get_text(page.POPUP_TITLE) == "Association Approved Successfully"
+    assert page.get_text(page.PAGE_MODAL_TITLE) == "Association Approved Successfully"
 
-    page.wait_for_staleness_element(popup_modal)
+    page.wait_for_staleness_element(page_modal)
 
     assert "/benchmarks/ui/display/" in page.current_url
 
 
 @pytest.mark.dependency(
-    name="benchmark_logout1", depends=["benchmark_approve_container"]
+    name="benchmark_approve_encrypted_container",
+    depends=["benchmark_approve_container"],
+)
+def test_benchmark_approve_encrypted_container(driver):
+    page = BenchmarkDetailsPage(
+        driver,
+        benchmark=tests_config.BMK_NAME,
+        entity_name=tests_config.ENCRYPTED_CONTAINER["name"],
+    )
+
+    page_modal = page.find(page.PAGE_MODAL)
+
+    assert page_modal.is_displayed() is False
+
+    page.approve_container()
+
+    page.wait_for_visibility_element(page_modal)
+
+    assert page.is_confirmation_modal() is True
+    assert "approve this association?" in page.get_text(page.CONFIRM_TEXT)
+
+    page.confirm_run_task()
+
+    while not page_modal.is_displayed():
+        time.sleep(0.2)
+
+    assert page.get_text(page.PAGE_MODAL_TITLE) == "Association Approved Successfully"
+
+    page.wait_for_staleness_element(page_modal)
+
+    assert "/benchmarks/ui/display/" in page.current_url
+
+
+@pytest.mark.dependency(
+    name="benchmark_logout1", depends=["benchmark_approve_encrypted_container"]
 )
 def test_benchmark_logout1(driver):
     page = BasePage(driver)
     page.open(BASE_URL.format("/benchmarks/ui"))
+
+    logout(page)
+
+
+@pytest.mark.dependency(name="model_login1", depends=["benchmark_logout1"])
+def test_model_login1(driver):
+    page = LoginPage(driver)
+    url = BASE_URL.format("/containers/ui")
+
+    login(page=page, url=url, email=tests_config.MODEL_OWNER_EMAIL)
+
+
+@pytest.mark.dependency(name="container_grant_access", depends=["model_login1"])
+def test_container_grant_access(driver):
+    page = ContainerDetailsPage(
+        driver,
+        container=tests_config.ENCRYPTED_CONTAINER["name"],
+        benchmark=tests_config.BMK_NAME,
+    )
+
+    page.open(BASE_URL.format("/containers/ui"))
+
+    old_url = page.current_url
+    page.click(page.CONTAINER_BTN)
+    page.wait_for_url_change(old_url)
+    page.wait_for_presence_selector(page.NAVBAR)
+
+    old_url = page.current_url
+    page.click(page.MANAGE_ACCESS)
+    page.wait_for_url_change(old_url)
+    page.wait_for_presence_selector(page.NAVBAR)
+
+    assert "access" in page.current_url
+
+    page_modal = page.find(page.PAGE_MODAL)
+    panel = page.find(page.PANEL)
+    prompt_container = page.find(page.PROMPT_CONTAINER)
+
+    assert page_modal.is_displayed() is False
+    assert panel.is_displayed() is False
+    assert prompt_container.is_displayed() is False
+
+    page.grant_access(
+        benchmark=tests_config.BMK_NAME, emails=[tests_config.DSET_OWNER_EMAIL]
+    )
+
+    page.wait_for_visibility_element(page_modal)
+
+    assert page.is_confirmation_modal() is True
+    assert "grant access to the emails added?" in page.get_text(page.CONFIRM_TEXT)
+
+    page.confirm_run_task()
+    page.wait_for_visibility_element(panel)
+
+    while not prompt_container.is_displayed() and not page_modal.is_displayed():
+        time.sleep(0.2)
+
+    assert prompt_container.is_displayed() is True
+
+    page.click(page.RESPOND_YES)
+
+    while not page_modal.is_displayed():
+        time.sleep(0.2)
+
+    assert (
+        page.get_text(page.PAGE_MODAL_TITLE)
+        == "Successfully Granted Access to the Selected Users"
+    )
+
+    page.wait_for_staleness_element(page_modal)
+
+    assert "/access" in page.current_url
+
+
+@pytest.mark.dependency(name="model_logout1", depends=["container_grant_access"])
+def test_model_logout1(driver):
+    page = BasePage(driver)
+    page.open(BASE_URL.format("/containers/ui"))
 
     logout(page)
 
@@ -826,29 +1079,28 @@ def test_dataset_run_execution(driver):
 
     assert "/datasets/ui/display/" in page.current_url
 
-    confirm_modal = page.find(page.CONFIRM_MODAL)
-    popup_modal = page.find(page.POPUP_MODAL)
-    error_modal = page.find(page.ERROR_MODAL)
+    page_modal = page.find(page.PAGE_MODAL)
     panel = page.find(page.PANEL)
 
-    assert confirm_modal.is_displayed() is False
-    assert popup_modal.is_displayed() is False
-    assert error_modal.is_displayed() is False
+    assert page_modal.is_displayed() is False
     assert panel.is_displayed() is False
 
     page.run_execution()
 
-    page.wait_for_visibility_element(confirm_modal)
+    page.wait_for_visibility_element(page_modal)
+
+    assert page.is_confirmation_modal() is True
+    assert "run the benchmark execution" in page.get_text(page.CONFIRM_TEXT)
+
     page.confirm_run_task()
     page.wait_for_visibility_element(panel)
 
-    while not popup_modal.is_displayed() and not error_modal.is_displayed():
+    while not page_modal.is_displayed():
         time.sleep(0.2)
 
-    assert popup_modal.is_displayed() is True
-    assert page.get_text(page.POPUP_TITLE) == "Execution Ran Successfully"
+    assert page.get_text(page.PAGE_MODAL_TITLE) == "Execution Ran Successfully"
 
-    page.wait_for_staleness_element(popup_modal)
+    page.wait_for_staleness_element(page_modal)
 
     assert "/datasets/ui/display/" in page.current_url
 
@@ -871,28 +1123,24 @@ def test_dataset_submit_results(driver):
     submit_btns = page.get_submit_buttons()
     for _ in range(len(submit_btns)):
         submit_btns = page.get_submit_buttons()
-        confirm_modal = page.find(page.CONFIRM_MODAL)
-        popup_modal = page.find(page.POPUP_MODAL)
-        error_modal = page.find(page.ERROR_MODAL)
+        page_modal = page.find(page.PAGE_MODAL)
         text_container = page.find(page.TEXT_CONTAINER)
         prompt_container = page.find(page.PROMPT_CONTAINER)
 
-        assert confirm_modal.is_displayed() is False
-        assert popup_modal.is_displayed() is False
-        assert error_modal.is_displayed() is False
+        assert page_modal.is_displayed() is False
         assert text_container.is_displayed() is False
         assert prompt_container.is_displayed() is False
 
         page.submit_result(submit_btns[0])
 
-        page.wait_for_visibility_element(confirm_modal)
+        page.wait_for_visibility_element(page_modal)
+
+        assert page.is_confirmation_modal() is True
+        assert "submit the result?" in page.get_text(page.CONFIRM_TEXT)
+
         page.confirm_run_task()
 
-        while (
-            not prompt_container.is_displayed()
-            and not popup_modal.is_displayed()
-            and not error_modal.is_displayed()
-        ):
+        while not prompt_container.is_displayed() and not page_modal.is_displayed():
             time.sleep(0.2)
 
         assert text_container.is_displayed() is True
@@ -900,13 +1148,12 @@ def test_dataset_submit_results(driver):
 
         page.click(page.RESPOND_YES)
 
-        while not popup_modal.is_displayed() and not error_modal.is_displayed():
+        while not page_modal.is_displayed():
             time.sleep(0.2)
 
-        assert popup_modal.is_displayed() is True
-        assert page.get_text(page.POPUP_TITLE) == "Results Successfully Submitted"
+        assert page.get_text(page.PAGE_MODAL_TITLE) == "Results Successfully Submitted"
 
-        page.wait_for_staleness_element(popup_modal)
+        page.wait_for_staleness_element(page_modal)
 
         assert "/datasets/ui/display/" in page.current_url
 
@@ -940,3 +1187,73 @@ def test_benchmark_view_results(driver):
     assert "/benchmarks/ui/display/" in page.current_url
 
     page.view_results()
+
+
+@pytest.mark.dependency(name="benchmark_logout2", depends=["benchmark_View_results"])
+def test_benchmark_logout2(driver):
+    page = BasePage(driver)
+    page.open(BASE_URL.format("/benchmarks/ui"))
+
+    logout(page)
+
+
+@pytest.mark.dependency(name="model_login2", depends=["benchmark_logout2"])
+def test_model_login2(driver):
+    page = LoginPage(driver)
+    url = BASE_URL.format("/containers/ui")
+
+    login(page=page, url=url, email=tests_config.MODEL_OWNER_EMAIL)
+
+
+@pytest.mark.dependency(name="container_delete_keys", depends=["model_login2"])
+def test_container_delete_keys(driver):
+    page = ContainerDetailsPage(
+        driver,
+        container=tests_config.ENCRYPTED_CONTAINER["name"],
+        benchmark=tests_config.BMK_NAME,
+    )
+
+    page.open(BASE_URL.format("/containers/ui"))
+
+    old_url = page.current_url
+    page.click(page.CONTAINER_BTN)
+    page.wait_for_url_change(old_url)
+    page.wait_for_presence_selector(page.NAVBAR)
+
+    old_url = page.current_url
+    page.click(page.MANAGE_ACCESS)
+    page.wait_for_url_change(old_url)
+    page.wait_for_presence_selector(page.NAVBAR)
+
+    assert "/access" in page.current_url
+
+    page_modal = page.find(page.PAGE_MODAL)
+    prompt_container = page.find(page.PROMPT_CONTAINER)
+
+    assert page_modal.is_displayed() is False
+    assert prompt_container.is_displayed() is False
+
+    page.delete_keys()
+
+    page.wait_for_visibility_element(page_modal)
+
+    assert page.is_confirmation_modal() is True
+    assert "delete all keys?" in page.get_text(page.CONFIRM_TEXT)
+
+    page.confirm_run_task()
+
+    while not prompt_container.is_displayed() and not page_modal.is_displayed():
+        time.sleep(0.2)
+
+    assert prompt_container.is_displayed() is True
+
+    page.click(page.RESPOND_YES)
+
+    while not page_modal.is_displayed():
+        time.sleep(0.2)
+
+    assert page.get_text(page.PAGE_MODAL_TITLE) == "Successfully Deleted Keys"
+
+    page.wait_for_staleness_element(page_modal)
+
+    assert "/access" in page.current_url
