@@ -190,16 +190,16 @@ if ! "${RESUME_TEST}"; then
 else
   if [ -z "$TEST_FROM_LINE" ]; then
       echo "No line number provided to continue from"
-      exit 1
+  else
+    TMP_TEST_FILE="$(dirname $(realpath "$0"))/tmp_test.sh"
+    echo '. "$(dirname $(realpath "$0"))/tests_setup.sh"' > "$TMP_TEST_FILE"
+    cat "$LAST_ENV_FILE" >> "$TMP_TEST_FILE"
+    echo >> "$TMP_TEST_FILE"
+    tail -n +$TEST_FROM_LINE "$0" >> "$TMP_TEST_FILE"
+    echo >> "$TMP_TEST_FILE"
+    echo "Continuing test from line $TEST_FROM_LINE"
+    sh "$TMP_TEST_FILE" -r
+    exit $?
   fi
-  TMP_TEST_FILE="$(dirname $(realpath "$0"))/tmp_test.sh"
-  echo '. "$(dirname $(realpath "$0"))/tests_setup.sh"' > "$TMP_TEST_FILE"
-  cat "$LAST_ENV_FILE" >> "$TMP_TEST_FILE"
-  echo >> "$TMP_TEST_FILE"
-  tail -n +$TEST_FROM_LINE "$0" >> "$TMP_TEST_FILE"
-  echo >> "$TMP_TEST_FILE"
-  echo "Continuing test from line $TEST_FROM_LINE"
-  sh "$TMP_TEST_FILE" -r
-  exit $?
 fi
 
