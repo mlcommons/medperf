@@ -1,20 +1,35 @@
-#! /bin/bash
-while getopts s:d:c:ft: flag; do
+#! /bin/sh
+while getopts s:d:c:ft:rl: flag; do
   case "${flag}" in
   s) SERVER_URL=${OPTARG} ;;
   d) DIRECTORY=${OPTARG} ;;
   c) CLEANUP="true" ;;
   f) FRESH="true" ;;
   t) TIMEOUT=${OPTARG} ;;
+  r) RESUME_TEST="true" ;;
+  l) TEST_FROM_LINE=${OPTARG} ;;
   esac
 done
 
 SERVER_URL="${SERVER_URL:-https://localhost:8000}"
 DIRECTORY="${DIRECTORY:-/tmp/medperf_test_files}"
 CLEANUP="${CLEANUP:-false}"
+RESUME_TEST="${RESUME_TEST:-false}"
 FRESH="${FRESH:-false}"
 
-TEST_ROOT="/tmp/medperf_tests_$(date +%Y%m%d%H%M%S)"
+# if resume test, read the test root from local file
+if "${RESUME_TEST}"; then
+  if [ -f "$(dirname $(realpath "$0"))/last_test_root.sh" ]; then
+    . "$(dirname $(realpath "$0"))/last_test_root.sh"
+    echo "Resuming test with test root: $TEST_ROOT"
+  else
+    echo "No last_test_root.sh file found to resume test"
+    exit 1
+  fi
+else
+  TEST_ROOT="/tmp/medperf_tests_$(date +%Y%m%d%H%M%S)"
+  echo "TEST_ROOT=$TEST_ROOT" >"$(dirname $(realpath "$0"))/last_test_root.sh"
+fi
 export MEDPERF_CONFIG_STORAGE="$TEST_ROOT/medperf_config"
 MEDPERF_CONFIG_PATH="$MEDPERF_CONFIG_STORAGE/config.yaml" # env var
 MEDPERF_STORAGE="$TEST_ROOT/storage"
@@ -164,6 +179,12 @@ echo "creating config at $MEDPERF_CONFIG_PATH"
 print_eval medperf profile ls
 checkFailed "Creating config failed"
 
-echo "Moving storage setting to a new folder: ${MEDPERF_STORAGE}"
-python $MEDPERF_ROOT_REPO/cli/cli_tests_move_storage.py $MEDPERF_CONFIG_PATH $MEDPERF_STORAGE
-checkFailed "Moving storage failed"
+if ! "${RESUME_TEST}"; then
+  echo "Moving storage setting to a new folder: ${MEDPERF_STORAGE}"
+  python $MEDPERF_ROOT_REPO/cli/cli_tests_move_storage.py $MEDPERF_CONFIG_PATH $MEDPERF_STORAGE
+  checkFailed "Moving storage failed"
+fi
+
+# for test resuming
+LAST_ENV_FILE="$(dirname $(realpath "$0"))/last_env.sh"
+touch "$LAST_ENV_FILE"

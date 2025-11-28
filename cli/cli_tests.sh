@@ -1,6 +1,27 @@
 # import setup
 . "$(dirname $(realpath "$0"))/tests_setup.sh"
 
+if "${RESUME_TEST}"; then
+  if [ -f "$LAST_ENV_FILE" ]; then
+    if [ -z "$TEST_FROM_LINE" ]; then
+        echo "No line number provided to continue from"
+        exit 1
+    fi
+    TMP_TEST_FILE="$(dirname $(realpath "$0"))/tmp_test.sh"
+    echo '. "$(dirname $(realpath "$0"))/tests_setup.sh"' > "$TMP_TEST_FILE"
+    cat "$LAST_ENV_FILE" >> "$TMP_TEST_FILE"
+    echo >> "$TMP_TEST_FILE"
+    tail -n +$TEST_FROM_LINE "$0" >> "$TMP_TEST_FILE"
+    echo >> "$TMP_TEST_FILE"
+    echo "Continuing test from line $TEST_FROM_LINE"
+    sh "$TMP_TEST_FILE" -r
+    exit $?
+  else
+      echo "No env file to source"
+      exit 1
+  fi
+fi
+
 ##########################################################
 ################### Start Testing ########################
 ##########################################################
@@ -114,33 +135,33 @@ echo "====================================="
 print_eval medperf container submit --name mock-prep -m $PREP_MLCUBE -p $PREP_PARAMS --operational
 checkFailed "Prep submission failed"
 PREP_UID=$(medperf container ls | grep mock-prep | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
-echo "PREP_UID=$PREP_UID"
+echo "PREP_UID=$PREP_UID" >> "$LAST_ENV_FILE"
 
 print_eval medperf container submit --name model1 -m $MODEL_MLCUBE -p $MODEL1_PARAMS -a $MODEL_ADD --operational
 checkFailed "Model1 submission failed"
 MODEL1_UID=$(medperf container ls | grep model1 | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
-echo "MODEL1_UID=$MODEL1_UID"
+echo "MODEL1_UID=$MODEL1_UID" >> "$LAST_ENV_FILE"
 
 print_eval medperf container submit --name model2 -m $MODEL_ARCHIVE_MLCUBE -p $MODEL2_PARAMS -a $MODEL_ADD --operational
 checkFailed "Model2 submission failed"
 MODEL2_UID=$(medperf container ls | grep model2 | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
-echo "MODEL2_UID=$MODEL2_UID"
+echo "MODEL2_UID=$MODEL2_UID" >> "$LAST_ENV_FILE"
 
 # Container with singularity section
 print_eval medperf --platform singularity container submit --name model3 -m $MODEL_WITH_SINGULARITY -p $MODEL3_PARAMS -a $MODEL_ADD --operational
 checkFailed "Model3 submission failed"
 MODEL3_UID=$(medperf container ls | grep model3 | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
-echo "MODEL3_UID=$MODEL3_UID"
+echo "MODEL3_UID=$MODEL3_UID" >> "$LAST_ENV_FILE"
 
 print_eval medperf container submit --name model-fail -m $FAILING_MODEL_MLCUBE -p $MODEL4_PARAMS -a $MODEL_ADD --operational
 checkFailed "failing model submission failed"
 FAILING_MODEL_UID=$(medperf container ls | grep model-fail | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
-echo "FAILING_MODEL_UID=$FAILING_MODEL_UID"
+echo "FAILING_MODEL_UID=$FAILING_MODEL_UID" >> "$LAST_ENV_FILE"
 
 print_eval medperf container submit --name mock-metrics -m $METRIC_MLCUBE -p $METRIC_PARAMS --operational
 checkFailed "Metrics submission failed"
 METRICS_UID=$(medperf container ls | grep mock-metrics | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
-echo "METRICS_UID=$METRICS_UID"
+echo "METRICS_UID=$METRICS_UID" >> "$LAST_ENV_FILE"
 ##########################################################
 
 echo "\n"
@@ -162,7 +183,7 @@ echo "====================================="
 print_eval medperf benchmark submit --name bmk --description bmk --demo-url $DEMO_URL --data-preparation-container $PREP_UID --reference-model-container $MODEL1_UID --evaluator-container $METRICS_UID --operational
 checkFailed "Benchmark submission failed"
 BMK_UID=$(medperf benchmark ls | grep bmk | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
-echo "BMK_UID=$BMK_UID"
+echo "BMK_UID=$BMK_UID" >> "$LAST_ENV_FILE"
 ##########################################################
 
 echo "\n"
@@ -196,7 +217,7 @@ echo "====================================="
 print_eval "medperf dataset submit -p $PREP_UID -d $DIRECTORY/dataset_a -l $DIRECTORY/dataset_a --name='dataset_a' --description='mock dataset a' --location='mock location a' -y"
 checkFailed "Data submission step failed"
 DSET_A_UID=$(medperf dataset ls | grep dataset_a | tr -s ' ' | awk '{$1=$1;print}' | cut -d ' ' -f 1)
-echo "DSET_A_UID=$DSET_A_UID"
+echo "DSET_A_UID=$DSET_A_UID" >> "$LAST_ENV_FILE"
 ##########################################################
 
 echo "\n"
@@ -239,7 +260,7 @@ echo "====================================="
 print_eval medperf dataset set_operational -d $DSET_A_UID -y
 checkFailed "Data set operational step failed"
 DSET_A_GENUID=$(medperf dataset view $DSET_A_UID | grep generated_uid | cut -d " " -f 2)
-echo "DSET_A_GENUID=$DSET_A_GENUID"
+echo "DSET_A_GENUID=$DSET_A_GENUID" >> "$LAST_ENV_FILE"
 ##########################################################
 
 echo "\n"
@@ -292,7 +313,7 @@ echo "====================================="
 print_eval "medperf dataset submit -p $PREP_UID -d $DIRECTORY/dataset_b -l $DIRECTORY/dataset_b --name='dataset_b' --description='mock dataset b' --location='mock location b' -y"
 checkFailed "Data2 submission step failed"
 DSET_B_UID=$(medperf dataset ls | grep dataset_b | tr -s ' ' | awk '{$1=$1;print}' | cut -d ' ' -f 1)
-echo "DSET_B_UID=$DSET_B_UID"
+echo "DSET_B_UID=$DSET_B_UID" >> "$LAST_ENV_FILE"
 ##########################################################
 
 echo "\n"
@@ -313,7 +334,7 @@ echo "====================================="
 print_eval medperf dataset set_operational -d $DSET_B_UID -y
 checkFailed "Data2 set operational step failed"
 DSET_B_GENUID=$(medperf dataset view $DSET_B_UID | grep generated_uid | cut -d " " -f 2)
-echo "DSET_B_GENUID=$DSET_B_GENUID"
+echo "DSET_B_GENUID=$DSET_B_GENUID" >> "$LAST_ENV_FILE"
 ##########################################################
 
 echo "\n"
@@ -493,7 +514,7 @@ echo "====================================================================="
 echo "View local result"
 echo "====================================================================="
 FAILING_MODEL_RESULT_ID=$(medperf result ls --mine | grep b${BMK_UID}m${FAILING_MODEL_UID}d${DSET_A_UID} | tr -s ' ' | awk '{$1=$1;print}' | cut -d ' ' -f 1)
-echo "FAILING_MODEL_RESULT_ID=$FAILING_MODEL_RESULT_ID"
+echo "FAILING_MODEL_RESULT_ID=$FAILING_MODEL_RESULT_ID" >> "$LAST_ENV_FILE"
 print_eval medperf result show_local_results $FAILING_MODEL_RESULT_ID
 checkFailed "show_local_results failed"
 ##########################################################
