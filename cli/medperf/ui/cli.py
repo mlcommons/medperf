@@ -23,12 +23,12 @@ class CLI(UI):
         after = message[end:].strip()
 
         if before.strip():
-            self._print(before)
+            self.print(before)
 
         self.print_url(url)
 
         if after.strip():
-            self._print(after)
+            self.print(after)
 
     def contains_url(self, message: str):
         return bool(re.search(r"https?://[^\s]+", message))
@@ -38,8 +38,8 @@ class CLI(UI):
         message = ansi_escape.sub("", message.strip())
         return bool(re.fullmatch(r"[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}", message))
 
-    def print(self, msg: str = ""):
-        """Display a message on the command line
+    def print_subprocess_logs(self, msg: str):
+        """Display subprocess logs on the command line
 
         Args:
             msg (str): message to print
@@ -50,9 +50,18 @@ class CLI(UI):
             elif self.contains_url(msg):
                 self.print_url_message(msg)
             else:
-                self._print(msg)
+                self.print(msg)
         else:
-            self._print(msg)
+            self.print(msg)
+
+    def print(self, msg: str = ""):
+        """Display a message on the command line
+
+        Args:
+            msg (str): message to print
+        """
+
+        self._print(msg)
 
     def print_error(self, msg: str):
         """Display an error message on the command line

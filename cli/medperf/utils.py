@@ -339,7 +339,9 @@ def combine_proc_sp_text(proc: spawn) -> str:
         logging.debug(line)
         proc_out += line
         if not log_filter.check_line(line):
-            ui.print(f"{Fore.WHITE}{Style.DIM}{line.strip()}{Style.RESET_ALL}")
+            ui.print_subprocess_logs(
+                f"{Fore.WHITE}{Style.DIM}{line.strip()}{Style.RESET_ALL}"
+            )
 
     logging.debug("Container process finished")
     logging.debug(proc_out)
