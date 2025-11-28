@@ -51,7 +51,6 @@ def test_security_page_url(driver, sec_token):
 
 @pytest.mark.dependency(name="activate_profile", depends=["security_test_url"])
 def test_activate_local_profiile(driver):
-    return
     page = SettingsPage(driver)
     page.open(BASE_URL.format("/settings"))
 
