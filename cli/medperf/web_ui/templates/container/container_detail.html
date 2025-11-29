@@ -28,24 +28,25 @@
                 </p>
                 <p class="card-text">
                     <strong>Container Manifest:</strong> 
-                    <span
-                        data-id="{{ entity.id }}"
-                        data-field="container_config"
-                        data-entity="container"
-                        style="cursor: pointer; color: blue; text-decoration: underline;"
-                        class="text-primary yaml-link">Click to display Container Configuration
-                    </span>
+                    <button
+                        data-field="Container Config"
+                        data-yaml-data='{{ entity.container_config | tojson }}'
+                        class="btn btn-link text-primary yaml-link text-decoration-underline m-0 p-0"
+                        >Click to display Container Configuration
+                    </button>
                 </p>
                 <p class="card-text">
-                    <strong>Parameters:</strong> 
-                    <span
-                        data-id="{{ entity.id }}"
-                        data-field="parameters_config"
-                        data-entity="container"
-                        style="cursor: pointer; color: blue; text-decoration: underline;"
-                        class="text-primary yaml-link">
-                        Click to display Parameters File
-                    </span>
+                    <strong>Parameters:</strong>
+                    {% if entity.parameters_config is none %} 
+                    <span>Not Available</span>
+                    {% else %}
+                    <button
+                        data-field="Parameters"
+                        data-yaml-data='{{ entity.parameters_config | tojson }}'
+                        class="btn btn-link text-primary yaml-link text-decoration-underline m-0 p-0"
+                        >Click to display Parameters
+                    </button>
+                    {% endif %}
                 </p>
                 {% if entity.image_tarball_url %}
                 <p class="card-text">
