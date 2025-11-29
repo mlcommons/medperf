@@ -1,1 +1,1 @@
-mlcube configure --mlcube ./mlcube -Pdocker.build_strategy=always
+docker build -t mlcommons/fl-test-prep:0.0.1 -f Dockerfile .

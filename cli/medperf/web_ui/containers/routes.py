@@ -119,20 +119,17 @@ def register_container(
     request: Request,
     name: str = Form(...),
     container_file: str = Form(...),
-    parameters_file: str = Form(""),
+    parameters_file: str = Form(None),
     additional_file: str = Form(""),
     model_encrypted: bool = Form(...),
     decryption_file: str = Form(None),
     current_user: bool = Depends(check_user_api),
 ):
     initialize_state_task(request, task_name="container_registration")
+
     return_response = {"status": "", "error": "", "container_id": None}
     container_info = {
         "name": name,
-        "git_mlcube_url": container_file,
-        "git_mlcube_hash": "",
-        "git_parameters_url": parameters_file,
-        "parameters_hash": "",
         "image_tarball_url": "",
         "image_tarball_hash": "",
         "additional_files_tarball_url": additional_file,
@@ -141,7 +138,12 @@ def register_container(
     }
     container_id = None
     try:
-        container_id = SubmitCube.run(container_info, decryption_key=decryption_file)
+        container_id = SubmitCube.run(
+            container_info,
+            container_config=container_file,
+            parameters_config=parameters_file,
+            decryption_key=decryption_file,
+        )
         return_response["status"] = "success"
         return_response["container_id"] = container_id
         notification_message = "Container successfully registered"
@@ -165,7 +167,10 @@ def register_container(
 def test_container(
     request: Request,
     benchmark: int = Form(...),
-    container_path: str = Form(...),
+    container_file: str = Form(...),
+    parameters_file: str = Form(None),
+    additional_file: str = Form(None),
+    model_encrypted: bool = Form(...),
     decryption_file: str = Form(None),
     current_user: bool = Depends(check_user_api),
 ):
@@ -174,7 +179,9 @@ def test_container(
     try:
         _, results = CompatibilityTestExecution.run(
             benchmark=benchmark,
-            model=container_path,
+            model=container_file,
+            model_parameters=parameters_file,
+            model_additional=additional_file,
             model_decryption_key=decryption_file,
         )
         return_response["status"] = "success"

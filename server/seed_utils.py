@@ -6,11 +6,24 @@ import curlify
 import os
 import django
 from django.contrib.auth import get_user_model
+import yaml
 
-ASSETS_URL = (
-    "https://raw.githubusercontent.com/mlcommons/medperf/"
-    "9bfb828ab19caf4fd9a4a90be69c693d4e2ff29d/examples/chestxray_tutorial/"
-)
+
+def _load_asset_content(assets_path: str, file_relative_path: str):
+    asset_path = f"{assets_path}/{file_relative_path}"
+
+    with open(asset_path, "r") as f:
+        content = yaml.safe_load(f)
+
+    return content
+
+
+def load_container_config(assets_path: str, dirname: str):
+    return _load_asset_content(assets_path, f"{dirname}/container_config.yaml")
+
+
+def load_parameters_config(assets_path: str, dirname: str):
+    return _load_asset_content(assets_path, f"{dirname}/workspace/parameters.yaml")
 
 
 class Server:
@@ -92,9 +105,11 @@ def set_user_as_admin(api_server, access_token):
     os.chdir(cwd)
 
 
-def create_benchmark(api_server, benchmark_owner_token, admin_token):
+def create_benchmark(api_server, benchmark_owner_token, assets_path):
     print("##########################BENCHMARK OWNER##########################")
 
+    data_prep_config = load_container_config(assets_path, "data_preparator")
+    data_prep_params = load_parameters_config(assets_path, "data_preparator")
     # Create a Data preprocessor MLCube by Benchmark Owner
     data_preprocessor_mlcube = api_server.request(
         "/mlcubes/",
@@ -102,20 +117,14 @@ def create_benchmark(api_server, benchmark_owner_token, admin_token):
         benchmark_owner_token,
         {
             "name": "chestxray_prep",
-            "git_mlcube_url": (ASSETS_URL + "data_preparator/container_config.yaml"),
-            "mlcube_hash": "173d593918abdde0e008dc4dbad12393e9b26cd27787570337f7ef4923946e31",
-            "git_parameters_url": (
-                ASSETS_URL + "data_preparator/workspace/parameters.yaml"
-            ),
-            "parameters_hash": "1541e05437040745d2489e8d2cf14795d4839eecc15c1ac959c84f6b77c1a5df",
+            "container_config": data_prep_config,
+            "parameters_config": data_prep_params,
             "image_tarball_url": "",
             "image_tarball_hash": "",
-            "image_hash": "d941e09d160bba3cf5c09b48f490e3b9e891597341e560954ff7512478eaef22",
+            "image_hash": "sha256:f8697dc1c646395ad1ac54b8c0373195dbcfde0c4ef5913d4330a5fe481ae9a4",
             "additional_files_tarball_url": "",
             "additional_files_tarball_hash": "",
-            "metadata": {
-                "digest": "f8697dc1c646395ad1ac54b8c0373195dbcfde0c4ef5913d4330a5fe481ae9a4"
-            },
+            "metadata": {},
         },
         "id",
     )
@@ -138,6 +147,10 @@ def create_benchmark(api_server, benchmark_owner_token, admin_token):
         "by Benchmark Owner",
     )
 
+    model_cnn_container_config = load_container_config(assets_path, "model_custom_cnn")
+    model_cnn_parameters_config = load_parameters_config(
+        assets_path, "model_custom_cnn"
+    )
     # Create a reference model executor mlcube by Benchmark Owner
     reference_model_executor_mlcube = api_server.request(
         "/mlcubes/",
@@ -145,23 +158,17 @@ def create_benchmark(api_server, benchmark_owner_token, admin_token):
         benchmark_owner_token,
         {
             "name": "chestxray_cnn",
-            "git_mlcube_url": (ASSETS_URL + "model_custom_cnn/container_config.yaml"),
-            "mlcube_hash": "7ffb958bf83841b5f601a2538d004740216c336872c824a2fc3b9b346c6291dc",
-            "git_parameters_url": (
-                ASSETS_URL + "model_custom_cnn/workspace/parameters.yaml"
-            ),
-            "parameters_hash": "af0aed4735b5075c198f8b49b3afbf7a0d7eaaaaa2a2b914d5931f0bee51d3f6",
+            "container_config": model_cnn_container_config,
+            "parameters_config": model_cnn_parameters_config,
             "additional_files_tarball_url": (
                 "https://storage.googleapis.com/medperf-storage/"
                 "chestxray_tutorial/cnn_weights.tar.gz"
             ),
             "additional_files_tarball_hash": "bff003e244759c3d7c8b9784af0819c7f252da8626745671ccf7f46b8f19a0ca",
-            "image_hash": "877b8df79678215dfdcb63fe6bc1dab58e9c29113437c2c5627442551e3087c5",
+            "image_hash": "sha256:a1bdddce05b9d156df359dd570de8031fdd1ea5a858f755139bed4a95fad19d1",
             "image_tarball_url": "",
             "image_tarball_hash": "",
-            "metadata": {
-                "digest": "a1bdddce05b9d156df359dd570de8031fdd1ea5a858f755139bed4a95fad19d1"
-            },
+            "metadata": {},
         },
         "id",
     )
@@ -184,6 +191,8 @@ def create_benchmark(api_server, benchmark_owner_token, admin_token):
         "by Benchmark Owner",
     )
 
+    evaluator_container_config = load_container_config(assets_path, "metrics")
+    evaluator_parameters_config = load_parameters_config(assets_path, "metrics")
     # Create a Data evalutor MLCube by Benchmark Owner
     data_evaluator_mlcube = api_server.request(
         "/mlcubes/",
@@ -191,18 +200,14 @@ def create_benchmark(api_server, benchmark_owner_token, admin_token):
         benchmark_owner_token,
         {
             "name": "chestxray_metrics",
-            "git_mlcube_url": (ASSETS_URL + "metrics/container_config.yaml"),
-            "mlcube_hash": "1617c231a9a9cc596664222056e19718ef860552ab8cf99a97f52318e0d566f7",
-            "git_parameters_url": (ASSETS_URL + "metrics/workspace/parameters.yaml"),
-            "parameters_hash": "16cad451c54b801a5b50d999330465d7f68ab5f6d30a0674268d2d17c7f26b73",
+            "container_config": evaluator_container_config,
+            "parameters_config": evaluator_parameters_config,
             "image_tarball_url": "",
             "image_tarball_hash": "",
-            "image_hash": "c61b4079be59ba3bb31090bdf89f7f603023f77d28ca0475b5320efaa36866aa",
+            "image_hash": "sha256:d33904c1104d0a3df314f29c603901a8584fec01e58b90d7ae54c8d74d32986c",
             "additional_files_tarball_url": "",
             "additional_files_tarball_hash": "",
-            "metadata": {
-                "digest": "d33904c1104d0a3df314f29c603901a8584fec01e58b90d7ae54c8d74d32986c"
-            },
+            "metadata": {},
         },
         "id",
     )
@@ -258,9 +263,16 @@ def create_benchmark(api_server, benchmark_owner_token, admin_token):
     return benchmark
 
 
-def create_model(api_server, model_owner_token, benchmark_owner_token, benchmark):
+def create_model(
+    api_server, model_owner_token, benchmark_owner_token, benchmark, assets_path
+):
     print("##########################MODEL OWNER##########################")
     # Model Owner Interaction
+
+    mobilenet_container_config = load_container_config(assets_path, "model_mobilenetv2")
+    mobilenet_parameters_config = load_parameters_config(
+        assets_path, "model_mobilenetv2"
+    )
 
     # Create a model mlcube by Model Owner
     model_executor1_mlcube = api_server.request(
@@ -269,12 +281,8 @@ def create_model(api_server, model_owner_token, benchmark_owner_token, benchmark
         model_owner_token,
         {
             "name": "chestxray_mobilenet",
-            "git_mlcube_url": (ASSETS_URL + "model_mobilenetv2/container_config.yaml"),
-            "mlcube_hash": "618ce7ef9f2b0dbdb0f361823aa4e2efc32e3ef9b29334466bd33eb3eca2aa02",
-            "git_parameters_url": (
-                ASSETS_URL + "model_mobilenetv2/workspace/parameters.yaml"
-            ),
-            "parameters_hash": "81a7e5c2006a8f54c4c2bd16d751df44d3cde3feb1a0c12768df095744a76c60",
+            "container_config": mobilenet_container_config,
+            "parameters_config": mobilenet_parameters_config,
             "additional_files_tarball_url": (
                 "https://storage.googleapis.com/medperf-storage/"
                 "chestxray_tutorial/mobilenetv2_weights.tar.gz"
@@ -282,10 +290,8 @@ def create_model(api_server, model_owner_token, benchmark_owner_token, benchmark
             "additional_files_tarball_hash": "771f67bba92a11c83d16a522f0ba1018020ff758e2277d33f49056680c788892",
             "image_tarball_url": "",
             "image_tarball_hash": "",
-            "image_hash": "33d26c8e266be9fe072081fb157313bfa51778b2934ab64bd622c8f0cd52dfa1",
-            "metadata": {
-                "digest": "f27deb052eafd48ad1e350ceef7b0b9600aef0ea3f8cba47baee2b1d17411a83"
-            },
+            "image_hash": "sha256:f27deb052eafd48ad1e350ceef7b0b9600aef0ea3f8cba47baee2b1d17411a83",
+            "metadata": {},
         },
         "id",
     )

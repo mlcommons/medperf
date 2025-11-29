@@ -27,9 +27,9 @@ echo "====================================="
 echo "Retrieving mock datasets"
 echo "====================================="
 echo "downloading files to $DIRECTORY"
-wget -P $DIRECTORY "$ASSETS_URL/assets/datasets/dataset_a.tar.gz"
+wget -P $DIRECTORY "$DSET_A_URL"
 tar -xzvf $DIRECTORY/dataset_a.tar.gz -C $DIRECTORY
-wget -P $DIRECTORY "$ASSETS_URL/assets/datasets/dataset_b.tar.gz"
+wget -P $DIRECTORY "$DSET_B_URL"
 tar -xzvf $DIRECTORY/dataset_b.tar.gz -C $DIRECTORY
 chmod -R a+w $DIRECTORY
 ##########################################################

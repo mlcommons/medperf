@@ -1,1 +1,1 @@
-rm -rf ./mlcube_admin
+rm -rf ./workspace_admin

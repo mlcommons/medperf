@@ -1,1 +1,1 @@
-mlcube configure --mlcube ./mlcube -Pdocker.build_strategy=always
+docker build -t mlcommons/medperf-step-cli:0.0.2 -f Dockerfile .

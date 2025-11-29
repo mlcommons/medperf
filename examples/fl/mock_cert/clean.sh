@@ -1,1 +1,1 @@
-rm -rf mlcube/workspace/pki_assets
+rm -rf workspace/pki_assets

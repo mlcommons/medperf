@@ -157,3 +157,8 @@ server/keys
 !examples/fl/mock_cert/project/ca/cert/root.crt
 !flca/dev_assets/intermediate_ca.crt
 !flca/dev_assets/root_ca.crt
+
+# ignore test tmp files
+cli/last_env.sh
+cli/last_test_root.sh
+cli/tmp_test.sh

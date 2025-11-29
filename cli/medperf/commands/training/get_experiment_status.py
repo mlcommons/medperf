@@ -42,7 +42,6 @@ class GetExperimentStatus:
         self.ui.print(f"Training Experiment: {self.training_exp.name}")
         self.user_email: str = get_medperf_user_data()["email"]
         self.status_output = generate_tmp_path()
-        self.temp_dir = generate_tmp_path()
 
     def prepare_plan(self):
         self.training_exp.prepare_plan()
@@ -74,7 +73,6 @@ class GetExperimentStatus:
             "ca_cert_folder": self.ca.pki_assets,
             "plan_path": self.training_exp.plan_path,
             "output_status_file": self.status_output,
-            "temp_dir": self.temp_dir,
         }
 
         self.ui.text = "Getting training experiment status"

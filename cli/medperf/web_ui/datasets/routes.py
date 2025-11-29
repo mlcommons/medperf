@@ -388,6 +388,8 @@ def export_dataset_ui(
     dataset_is_prepared = (
         dataset.submitted_as_prepared or dataset.is_ready() or dataset_is_operational
     )
+    report_exists = os.path.exists(dataset.report_path)
+
     return templates.TemplateResponse(
         "dataset/export_dataset.html",
         {
@@ -396,6 +398,7 @@ def export_dataset_ui(
             "prep_cube": prep_cube,
             "dataset_is_prepared": dataset_is_prepared,
             "dataset_is_operational": dataset_is_operational,
+            "report_exists": report_exists,
         },
     )
 

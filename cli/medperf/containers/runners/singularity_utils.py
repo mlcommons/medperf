@@ -6,7 +6,7 @@ import requests
 import semver
 from .docker_utils import volumes_to_cli_args as docker_volumes_to_cli_args
 import shlex
-from medperf.utils import remove_path, run_command
+from medperf.utils import run_command
 import logging
 
 
@@ -40,8 +40,9 @@ def get_docker_image_hash_from_dockerhub(docker_image, timeout: int = None):
 
     if response.status_code != 200:
         raise CommunicationError(f"Failed to get manifest: {response.status_code}")
+
     try:
-        hash_ = response.json()["config"]["digest"]
+        hash_ = response.headers["docker-content-digest"]
     except KeyError:
         logging.debug(f"Response: {response.json()}")
         raise CommunicationError("Unexpected response in get manifest.")
@@ -50,7 +51,6 @@ def get_docker_image_hash_from_dockerhub(docker_image, timeout: int = None):
     if not hash_.startswith("sha256:"):
         raise CommunicationError("Unexpected hash format in get manifest.")
 
-    hash_ = hash_[len("sha256:") :]  # noqa
     return hash_
 
 
@@ -167,7 +167,6 @@ def convert_docker_image_to_sif(
         logging.debug(f"SIF image already exists: {output_sif}")
         return
     sif_image_folder = os.path.dirname(output_sif)
-    remove_path(sif_image_folder)
     os.makedirs(sif_image_folder, exist_ok=True)
 
     command = [

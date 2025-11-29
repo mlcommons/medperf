@@ -20,30 +20,24 @@ LABELS_PATH = "medperf_tutorial/demo_data/labels"
 # Benchmark Owner Data_Preparator Container Registration Inputs
 DATA_PREPARATOR_CONTAINER = {
     "name": "my-prep",
-    "manifest": "https://raw.githubusercontent.com/mlcommons/medperf/main/examples"
-    + "/chestxray_tutorial/data_preparator/container_config.yaml",
-    "parameters": "https://raw.githubusercontent.com/mlcommons/medperf/main/examples"
-    + "/chestxray_tutorial/data_preparator/workspace/parameters.yaml",
+    "manifest": DATA_PREP_PATH,
+    "parameters": "medperf_tutorial/data_preparator/workspace/parameters.yaml",
     "additional": None,
 }
 
 # Benchmark Owner Reference_Model Container Registration Inputs
 REF_MODEL_CONTAINER = {
     "name": "my-refmodel",
-    "manifest": "https://raw.githubusercontent.com/mlcommons/medperf/main/examples"
-    + "/chestxray_tutorial/model_custom_cnn/container_config.yaml",
-    "parameters": "https://raw.githubusercontent.com/mlcommons/medperf/main/examples"
-    + "/chestxray_tutorial/model_custom_cnn/workspace/parameters.yaml",
+    "manifest": MODEL_PATH,
+    "parameters": "medperf_tutorial/model_custom_cnn/workspace/parameters.yaml",
     "additional": "https://storage.googleapis.com/medperf-storage/chestxray_tutorial/cnn_weights.tar.gz",
 }
 
 # Benchmark Owner Metrics Container Registration Inputs
 METRICS_CONTAINER = {
     "name": "my-metrics",
-    "manifest": "https://raw.githubusercontent.com/mlcommons/medperf/main/examples"
-    + "/chestxray_tutorial/metrics/container_config.yaml",
-    "parameters": "https://raw.githubusercontent.com/mlcommons/medperf/main/examples"
-    + "/chestxray_tutorial/metrics/workspace/parameters.yaml",
+    "manifest": EVALUATOR_PATH,
+    "parameters": "medperf_tutorial/metrics/workspace/parameters.yaml",
     "additional": None,
 }
 
@@ -63,20 +57,16 @@ CONTAINER_PATH = "medperf_tutorial/model_mobilenetv2/container_config.yaml"
 # Container Registration Inputs
 CONTAINER = {
     "name": "my-model",
-    "manifest": "https://raw.githubusercontent.com/mlcommons/medperf/main/examples"
-    + "/chestxray_tutorial/model_mobilenetv2/container_config.yaml",
-    "parameters": "https://raw.githubusercontent.com/mlcommons/medperf/main/examples"
-    + "/chestxray_tutorial/model_mobilenetv2/workspace/parameters.yaml",
+    "manifest": CONTAINER_PATH,
+    "parameters": "medperf_tutorial/model_mobilenetv2/workspace/parameters.yaml",
     "additional": "https://storage.googleapis.com/medperf-storage/chestxray_tutorial/mobilenetv2_weights.tar.gz",
 }
 
 # Encrypted Container Registration Inputs
 ENCRYPTED_CONTAINER = {
     "name": "my-encrypted-model",
-    "manifest": "https://raw.githubusercontent.com/RodriguesRBruno/medperf/0f1113bca1c2eef6a3c40b83032a9982b008effd"
-    + "/examples/chestxray_tutorial/model_custom_cnn_encrypted/container_config.yaml",
-    "parameters": "https://raw.githubusercontent.com/RodriguesRBruno/medperf/0f1113bca1c2eef6a3c40b83032a9982b008effd"
-    + "/examples/chestxray_tutorial/model_custom_cnn_encrypted/workspace/parameters.yaml",
+    "manifest": "examples/chestxray_tutorial/model_custom_cnn_encrypted/container_config.yaml",
+    "parameters": "examples/chestxray_tutorial/model_custom_cnn_encrypted/workspace/parameters.yaml",
     "additional": "https://storage.googleapis.com/medperf-storage/chestxray_tutorial/cnn_weights.tar.gz",
 }
 

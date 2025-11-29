@@ -48,25 +48,23 @@
                     {% if dataset.generated_metadata %}
                     <p class="card-text">
                         <strong>Statistics:</strong> 
-                        <a
-                            href="#"
-                            class="text-primary yaml-link"
-                            data-id="{{ dataset.id }}"
-                            data-field="statistics_path"
-                            data-entity="dataset"
-                        >View Statistics</a>
+                        <button
+                            data-field="Statistics"
+                            data-yaml-data='{{ dataset.generated_metadata | tojson }}'
+                            class="btn btn-link text-primary yaml-link text-decoration-underline m-0 p-0"
+                            >View Statistics
+                        </button>
                     </p>
                     {% endif %}
-                    {% if dataset.report %}
+                    {% if report_exists %}
                     <p class="card-text">
                         <strong>Report:</strong> 
-                        <a
-                            href="#"
-                            class="text-primary yaml-link"
-                            data-id="{{ dataset.id }}"
-                            data-field="report_path"
-                            data-entity="dataset"
-                        >View Report</a>
+                        <button
+                            data-field="Report"
+                            data-yaml-data='{{ dataset.report | tojson }}'
+                            class="btn btn-link text-primary yaml-link text-decoration-underline m-0 p-0"
+                            >View Report
+                        </button>
                     </p>
                     {% endif %}
                 </div>

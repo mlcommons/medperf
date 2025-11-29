@@ -102,14 +102,17 @@ echo "====================================="
 print_eval medperf container submit --name trainprep -m $PREP_TRAINING_MLCUBE --operational
 checkFailed "Train prep submission failed"
 PREP_UID=$(medperf container ls | grep trainprep | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+echo "PREP_UID=$PREP_UID" >> "$LAST_ENV_FILE"
 
 print_eval medperf container submit --name traincube -m $TRAIN_MLCUBE -a $TRAIN_WEIGHTS --operational
 checkFailed "fl container submission failed"
 TRAINCUBE_UID=$(medperf container ls | grep traincube | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+echo "TRAINCUBE_UID=$TRAINCUBE_UID" >> "$LAST_ENV_FILE"
 
 print_eval medperf container submit --name fladmincube -m $FLADMIN_MLCUBE --operational
 checkFailed "fladmin container submission failed"
 FLADMINCUBE_UID=$(medperf container ls | grep fladmincube | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+echo "FLADMINCUBE_UID=$FLADMINCUBE_UID" >> "$LAST_ENV_FILE"
 
 ##########################################################
 
@@ -122,10 +125,13 @@ echo "====================================="
 print_eval medperf training submit -n trainexp -d trainexp -p $PREP_UID -m $TRAINCUBE_UID -a $FLADMINCUBE_UID
 checkFailed "Training exp submission failed"
 TRAINING_UID=$(medperf training ls | grep trainexp | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+echo "TRAINING_UID=$TRAINING_UID" >> "$LAST_ENV_FILE"
 
 # Approve benchmark
 ADMIN_TOKEN=$(jq -r --arg ADMIN $ADMIN '.[$ADMIN]' $MOCK_TOKENS_FILE)
 checkFailed "Retrieving admin token failed"
+echo "ADMIN_TOKEN=$ADMIN_TOKEN" >> "$LAST_ENV_FILE"
+
 curl -sk -X PUT $SERVER_URL$VERSION_PREFIX/training/$TRAINING_UID/ -d '{"approval_status": "APPROVED"}' -H 'Content-Type: application/json' -H "Authorization: Bearer $ADMIN_TOKEN"
 checkFailed "training exp approval failed"
 ##########################################################
@@ -147,10 +153,12 @@ echo "====================================="
 echo "Running aggregator submission step"
 echo "====================================="
 HOSTNAME_=$(hostname -I | cut -d " " -f 1)
+echo "HOSTNAME_=$HOSTNAME_" >> "$LAST_ENV_FILE"
 # HOSTNAME_=$(hostname -A | cut -d " " -f 1)  # fqdn on github CI runner doesn't resolve from inside containers
 print_eval medperf aggregator submit -n aggreg -a $HOSTNAME_ -p 50273 -m $TRAINCUBE_UID
 checkFailed "aggregator submission step failed"
 AGG_UID=$(medperf aggregator ls | grep aggreg | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+echo "AGG_UID=$AGG_UID" >> "$LAST_ENV_FILE"
 ##########################################################
 
 echo "\n"
@@ -236,6 +244,7 @@ echo "Starting aggregator"
 echo "====================================="
 print_eval medperf aggregator start -t $TRAINING_UID -p $HOSTNAME_ </dev/null >agg.log 2>&1 &
 AGG_PID=$!
+echo "AGG_PID=$AGG_PID" >> "$LAST_ENV_FILE"
 
 # sleep so that the container is run before we change profiles
 sleep 7
@@ -265,6 +274,7 @@ echo "====================================="
 print_eval medperf dataset submit -p $PREP_UID -d $DIRECTORY/col1 -l $DIRECTORY/col1 --name="col1" --description="col1data" --location="col1location" -y
 checkFailed "Data1 submission step failed"
 DSET_1_UID=$(medperf dataset ls | grep col1 | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+echo "DSET_1_UID=$DSET_1_UID" >> "$LAST_ENV_FILE"
 ##########################################################
 
 echo "\n"
@@ -315,6 +325,7 @@ echo "Starting training with data1"
 echo "====================================="
 print_eval medperf dataset train -d $DSET_1_UID -t $TRAINING_UID -y </dev/null >col1.log 2>&1 &
 COL1_PID=$!
+echo "COL1_PID=$COL1_PID" >> "$LAST_ENV_FILE"
 
 # sleep so that the container is run before we change profiles
 sleep 7
@@ -344,6 +355,7 @@ echo "====================================="
 print_eval medperf dataset submit -p $PREP_UID -d $DIRECTORY/col2 -l $DIRECTORY/col2 --name="col2" --description="col2data" --location="col2location" -y
 checkFailed "Data2 submission step failed"
 DSET_2_UID=$(medperf dataset ls | grep col2 | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+echo "DSET_2_UID=$DSET_2_UID" >> "$LAST_ENV_FILE"
 ##########################################################
 
 echo "\n"
@@ -394,6 +406,7 @@ echo "Starting training with data2"
 echo "====================================="
 print_eval medperf dataset train -d $DSET_2_UID -t $TRAINING_UID -y </dev/null >col2.log 2>&1 &
 COL2_PID=$!
+echo "COL2_PID=$COL2_PID" >> "$LAST_ENV_FILE"
 
 # sleep so that the container is run before we change profiles
 sleep 7

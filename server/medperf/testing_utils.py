@@ -57,10 +57,8 @@ def setup_api_admin(username):
 def mock_mlcube(**kwargs):
     data = {
         "name": "testmlcube",
-        "git_mlcube_url": "string",
-        "mlcube_hash": "string",
-        "git_parameters_url": "string",
-        "parameters_hash": "string",
+        "container_config": {"key": "value"},
+        "parameters_config": {},
         "image_tarball_url": "",
         "image_tarball_hash": "",
         "image_hash": "string",
