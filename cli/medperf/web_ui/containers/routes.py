@@ -167,7 +167,10 @@ def register_container(
 def test_container(
     request: Request,
     benchmark: int = Form(...),
-    container_path: str = Form(...),
+    container_file: str = Form(...),
+    parameters_file: str = Form(None),
+    additional_file: str = Form(None),
+    model_encrypted: bool = Form(...),
     decryption_file: str = Form(None),
     current_user: bool = Depends(check_user_api),
 ):
@@ -176,7 +179,9 @@ def test_container(
     try:
         _, results = CompatibilityTestExecution.run(
             benchmark=benchmark,
-            model=container_path,
+            model=container_file,
+            model_parameters=parameters_file,
+            model_additional=additional_file,
             model_decryption_key=decryption_file,
         )
         return_response["status"] = "success"

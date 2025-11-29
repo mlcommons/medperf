@@ -1,11 +1,11 @@
 {# ./cli/medperf/web_ui/templates/constants/tooltips.html #}
 
 {# Tooltips for benchmarks pages #}
-{% set workflow_test_data_preparation_container = "Path of the data preparation container" %}
-{% set workflow_test_reference_model_path = "Path of the reference model" %}
-{% set workflow_test_metrics_container_path = "Path of the metrics container" %}
-{% set workflow_test_reference_dataset_data_path = "Path of the reference dataset data folder" %}
-{% set workflow_test_reference_dataset_labels_path = "Path of the reference dataset labels folder" %}
+{% set workflow_test_data_preparation_container = "Path to the data preparation container" %}
+{% set workflow_test_reference_model_path = "Path to the reference model" %}
+{% set workflow_test_metrics_container_path = "Path to the metrics container" %}
+{% set workflow_test_reference_dataset_data_path = "Path to the reference dataset data folder" %}
+{% set workflow_test_reference_dataset_labels_path = "Path to the reference dataset labels folder" %}
 
 {% set register_benchmark_name = "Name of the benchmark you are registering" %}
 {% set register_benchmark_description = "Description of the benchmark you are registering" %}
@@ -14,31 +14,32 @@
 {% set register_benchmark_reference_model_id = "ID of the reference model" %}
 {% set register_benchmark_metrics_container_id = "ID of the metrics container" %}
 
-{% set benchmark_dataset_allow_list_file_input = "Path of the emails allowed list file for dataset associations" %}
-{% set benchmark_model_allow_list_file_input = "Path of the emails allowed list file for model associations" %}
+{% set benchmark_dataset_allow_list_file_input = "Path to the emails allowed list file for dataset associations" %}
+{% set benchmark_model_allow_list_file_input = "Path to the emails allowed list file for model associations" %}
 
 {# Tooltips for datasets pages #}
 {% set register_dataset_name = "Name of the dataset you are registering" %}
 {% set register_dataset_description = "Description of the dataset you are registering" %}
 {% set register_dataset_location = "Location of the dataset you are registering" %}
-{% set register_dataset_data_path = "Path of the data folder" %}
-{% set register_dataset_labels_path = "Path of the labels folder" %}
+{% set register_dataset_data_path = "Path to the data folder" %}
+{% set register_dataset_labels_path = "Path to the labels folder" %}
 
-{% set export_dataset_output_path = "Path of the folder that will contain the tar.gz dataset backup" %}
+{% set export_dataset_output_path = "Path to the folder that will contain the tar.gz dataset backup" %}
 
 {% set import_dataset_id = "Dataset UID to be imported" %}
-{% set import_dataset_input_path = "Path of the tar.gz file (dataset backup) to be imported" %}
-{% set import_dataset_raw_path = "New path of the DEVELOPMENT dataset raw data to be saved. Directory should be empty or
-doesn't exist" %}
+{% set import_dataset_input_path = "Path to the tar.gz file (dataset backup) to be imported" %}
+{% set import_dataset_raw_path = "New path to the DEVELOPMENT dataset raw data to be saved. Directory should be empty or doesn't exist" %}
 
 {# Tooltips for containers pages #}
-{% set compatibility_test_container_path = "Relative or absolute path of the container you want to test" %}
+{% set compatibility_test_container_file = "Path to the container you want to test" %}
+{% set compatibility_test_parameters_file = "Path to the parameters file for the container you want to test" %}
+{% set compatibility_test_additional_file = "Path to the additional file for the container you want to test" %}
 
 {% set register_container_name = "Name of the container you are registering" %}
 {% set register_container_manifest_file = "Path to the container config file for the container you are registering" %}
 {% set register_container_parameters_file = "Path to the parameters file for the container you are registering" %}
 {% set register_container_additional_file = "URL of the additional file for the container you are registering" %}
-{% set register_container_decryption_file = "Relative or absoulte path of the model's decryption key" %}
+{% set register_container_decryption_file = "Path to the model's decryption key" %}
 
 {# Tooltips for settings page #}
 {% set get_client_certificate_btn = "Get client certificate" %}

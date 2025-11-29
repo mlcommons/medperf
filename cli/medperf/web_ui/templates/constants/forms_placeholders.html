@@ -1,11 +1,11 @@
 {# ./cli/medperf/web_ui/templates/constants/forms_placeholders.html #}
 
 {# Forms placeholders for benchmarks pages #}
-{% set workflow_test_data_preparation_container = "Path of the data preparation container" %}
-{% set workflow_test_reference_model_path = "Path of the reference model" %}
-{% set workflow_test_metrics_container_path = "Path of the metrics container" %}
-{% set workflow_test_reference_dataset_data_path = "Path of the reference dataset data folder" %}
-{% set workflow_test_reference_dataset_labels_path = "Path of the referebce dataset labels folder" %}
+{% set workflow_test_data_preparation_container = "Path to the data preparation container" %}
+{% set workflow_test_reference_model_path = "Path to the reference model" %}
+{% set workflow_test_metrics_container_path = "Path to the metrics container" %}
+{% set workflow_test_reference_dataset_data_path = "Path to the reference dataset data folder" %}
+{% set workflow_test_reference_dataset_labels_path = "Path to the reference dataset labels folder" %}
 
 {% set register_benchmark_name = "Example Benchmark" %}
 {% set register_benchmark_description = "Example Description" %}
@@ -32,7 +32,9 @@
 {% set import_dataset_raw_path = "/home/example/new_raw_data_folder_for_DEVELOPMENT_datasets" %}
 
 {# Forms placeholders for containers pages #}
-{% set compatibility_test_container_path = "Path of the container you want to test" %}
+{% set compatibility_test_container_file = "Path to the container you want to test" %}
+{% set compatibility_test_parameters_file = "Path to the parameters file for the container you want to test" %}
+{% set compatibility_test_additional_file = "Path to the additional file for the container you want to test" %}
 
 {% set register_container_name = "Example Container" %}
 {% set register_container_manifest_file = "Path to the Container Config file" %}
