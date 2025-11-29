@@ -1,7 +1,7 @@
 ---
 demo_url: https://storage.googleapis.com/medperf-storage/chestxray_tutorial/demo_data.tar.gz
 model_add: https://storage.googleapis.com/medperf-storage/chestxray_tutorial/cnn_weights.tar.gz
-assets_url: https://raw.githubusercontent.com/mlcommons/medperf/main/examples/chestxray_tutorial/
+assets_path: medperf_tutorial/
 tutorial_id: benchmark
 email: testbo@example.com
 hide:
@@ -11,12 +11,12 @@ hide:
 
 # Hands-on Tutorial for Bechmark Committee
 
-{% set prep_container = assets_url+"data_preparator/container_config.yaml" %}
-{% set prep_params = assets_url+"data_preparator/workspace/parameters.yaml" %}
-{% set model_container = assets_url+"model_custom_cnn/container_config.yaml" %}
-{% set model_params = assets_url+"model_custom_cnn/workspace/parameters.yaml" %}
-{% set metrics_container = assets_url+"metrics/container_config.yaml" %}
-{% set metrics_params = assets_url+"metrics/workspace/parameters.yaml" %}
+{% set prep_container = assets_path+"data_preparator/container_config.yaml" %}
+{% set prep_params = assets_path+"data_preparator/workspace/parameters.yaml" %}
+{% set model_container = assets_path+"model_custom_cnn/container_config.yaml" %}
+{% set model_params = assets_path+"model_custom_cnn/workspace/parameters.yaml" %}
+{% set metrics_container = assets_path+"metrics/container_config.yaml" %}
+{% set metrics_params = assets_path+"metrics/workspace/parameters.yaml" %}
 
 ## Overview
 
@@ -63,19 +63,30 @@ You can test the workflow now that you have the three containers and the demo da
 
 MedPerf provides a single command to test an inference workflow. To test your workflow with local containers and local data, the following need to be passed to the command:
 
-1. Path to the data preparation container config file: `medperf_tutorial/data_preparator/container_config.yaml`.
-2. Path to the model container config file: `medperf_tutorial/model_custom_cnn/container_config.yaml`.
-3. Path to the metrics container config file: `medperf_tutorial/metrics/container_config.yaml`.
+1. Path to the data preparation container config file: `{{ prep_container }}`.
+2. Path to the model container config file: `{{ model_container }}`.
+3. Path to the metrics container config file: `{{ metrics_container }}`.
 4. Path to the demo dataset data records: `medperf_tutorial/demo_data/images`.
 5. Path to the demo dataset data labels. `medperf_tutorial/demo_data/labels`.
+
+Additionally, you will need to provide the parameters files of each container, and the additional files of the model container which include its weights:
+
+1. Path to the data preparation parameters file: `{{ prep_params }}`.
+2. Path to the model parameters file: `{{ model_params }}`.
+3. Path to the metrics parameters file: `{{ metrics_params }}`.
+4. Path to the model additional files: `medperf_tutorial/model_custom_cnn/workspace/additional_files`.
 
 Run the following command to execute the test ensuring you are in MedPerf's root folder:
 
 ```bash
 medperf test run \
-   --data_preparator "medperf_tutorial/data_preparator/container_config.yaml" \
-   --model "medperf_tutorial/model_custom_cnn/container_config.yaml" \
-   --evaluator "medperf_tutorial/metrics/container_config.yaml" \
+   --data_preparator "{{ prep_container }}" \
+   --model "{{ model_container }}" \
+   --evaluator "{{ metrics_container }}" \
+   --data_preparator_parameters "{{ prep_params }}" \
+   --model_parameters "{{ model_params }}" \
+   --evaluator_parameters "{{ metrics_params }}" \
+   --model_additional_files "medperf_tutorial/model_custom_cnn/workspace/additional_files" \
    --data_path "medperf_tutorial/demo_data/images" \
    --labels_path "medperf_tutorial/demo_data/labels"
 ```
@@ -156,14 +167,14 @@ If you wish to host it by yourself, you can find the list of supported options a
 ![Benchmark Committee submits the Data Preparator Container](../tutorial_images/bc-4-bc-submits-data-preparator.png){class="tutorial-sticky-image-content"}
 In this tutorial, for the Data Preparator container, the submission should include:
 
-- The URL to the hosted container configuration file, which is:
+- The path to the container configuration file, which is:
 
     ```text
     {{ prep_container }}
 
     ```
 
-- The URL to the hosted parameters file, which is:
+- The path to the parameters file, which is:
 
     ```text
     {{ prep_params }}
@@ -184,13 +195,13 @@ medperf container submit \
 ![Benchmark Committee submits the reference Model Container](../tutorial_images/bc-5-bc-submits-ref-model.png){class="tutorial-sticky-image-content"}
 In this tutorial, for the Reference Model container, the submission should include:
 
-- The URL to the hosted container configuration file:
+- The path to the container configuration file:
 
     ```text
     {{ model_container }}
     ```
 
-- The URL to the hosted parameters file:
+- The path to the parameters file:
 
     ```text
     {{ model_params }}
@@ -218,13 +229,13 @@ medperf container submit \
 ![Benchmark Committee submits the Evaluation Metrics Container](../tutorial_images/bc-6-bc-submits-evalmetrics.png){class="tutorial-sticky-image-content"}
 In this tutorial, for the Metrics container, the submission should include:
 
-- The URL to the hosted container configuration file:
+- The path to the container configuration file:
 
     ```text
     {{ metrics_container }}
     ```
 
-- The URL to the hosted parameters file:
+- The path to the parameters file:
 
     ```text
     {{ metrics_params }}
