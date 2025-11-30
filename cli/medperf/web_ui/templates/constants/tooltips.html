@@ -2,8 +2,14 @@
 
 {# Tooltips for benchmarks pages #}
 {% set workflow_test_data_preparation_container = "Path to the data preparation container" %}
+{% set workflow_test_data_preparation_parameters = "Path to the data preparation parameters file (Optional)" %}
+{% set workflow_test_data_preparation_additional = "Path to the data preparation additional files folder (Optional)" %}
 {% set workflow_test_reference_model_path = "Path to the reference model" %}
+{% set workflow_test_reference_model_parameters = "Path to the reference model parameters file (Optional)" %}
+{% set workflow_test_reference_model_additional = "Path to the reference model additional files folder (Optional)" %}
 {% set workflow_test_metrics_container_path = "Path to the metrics container" %}
+{% set workflow_test_metrics_container_parameters = "Path to the metrics container parameters file (Optional)" %}
+{% set workflow_test_metrics_container_additional = "Path to the metrics container additional files folder (Optional)" %}
 {% set workflow_test_reference_dataset_data_path = "Path to the reference dataset data folder" %}
 {% set workflow_test_reference_dataset_labels_path = "Path to the reference dataset labels folder" %}
 
@@ -32,14 +38,14 @@
 
 {# Tooltips for containers pages #}
 {% set compatibility_test_container_file = "Path to the config file for the model you want to test" %}
-{% set compatibility_test_parameters_file = "Path to the parameters file for the model you want to test" %}
-{% set compatibility_test_additional_file = "Path to the additional files' folder for the model you want to test" %}
+{% set compatibility_test_parameters_file = "Path to the parameters file for the model you want to test (Optional)" %}
+{% set compatibility_test_additional_file = "Path to the additional files' folder for the model you want to test (Optional)" %}
 {% set compatibility_test_decryption_file = "Path to the decryption key file for the model you want to test" %}
 
 {% set register_container_name = "Name of the container you are registering" %}
 {% set register_container_manifest_file = "Path to the container config file for the container you are registering" %}
-{% set register_container_parameters_file = "Path to the parameters file for the container you are registering" %}
-{% set register_container_additional_file = "URL of the additional files tarball for the container you are registering" %}
+{% set register_container_parameters_file = "Path to the parameters file for the container you are registering (Optional)" %}
+{% set register_container_additional_file = "URL of the additional files tarball for the container you are registering (Optional)" %}
 {% set register_container_decryption_file = "Path to decryption key for the container you are registering" %}
 
 {# Tooltips for settings page #}
