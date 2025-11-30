@@ -5,12 +5,12 @@
 {% import "constants/forms_placeholders.html" as placeholders %}
 {% import "constants/tooltips.html" as tooltips %}
 
-{% block title %}Container Compatibility Test{% endblock %}
+{% block title %}Model Compatibility Test{% endblock %}
 
 {% block content %}
 {% set comp_test_running = (task_running and request.app.state.task.name == "container_compatibility_test") %}
 <div class="container mt-5">
-    <h1 class="text-center">Test your Container Compatibility</h1>
+    <h1 class="text-center">Test your Model Compatibility</h1>
     <form class="my-5" id="container-comp-test-form">
         <div class="form-group my-5">
             <label class="form-label h4" for="benchmark">Select Benchmark</label>
@@ -27,7 +27,7 @@
             </select>
         </div>
         <div class="form-group my-5">
-            <label for="container-file" class="form-label h4">Container Config File</label>
+            <label for="container-file" class="form-label h4">Model Config File</label>
             <div class="input-group">
                 <input
                     name="container_file"
