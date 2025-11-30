@@ -66,7 +66,7 @@
                     id="parameters-file"
                     placeholder="{{ placeholders.compatibility_test_parameters_file }}"
                     {% if task_running %} disabled {% endif %}
-                    {% if container_register_running %}
+                    {% if comp_test_running %}
                     value="{{ task_formData.get('parameters_file', '') }}"
                     {% endif %}
                 >
@@ -96,7 +96,7 @@
                     id="additional-file"
                     placeholder="{{ placeholders.compatibility_test_additional_file }}"
                     {% if task_running %} disabled {% endif %}
-                    {% if container_register_running %}
+                    {% if comp_test_running %}
                     value="{{ task_formData.get('additional_file', '') }}"
                     {% endif %}
                 >
@@ -134,9 +134,9 @@
                     id="decryption-file"
                     name="decryption_file"
                     class="form-control"
-                    placeholder="{{ placeholders.register_container_decryption_file }}"
+                    placeholder="{{ placeholders.compatibility_test_decryption_file }}"
                     {% if task_running %} disabled {% endif %}
-                    {% if container_register_running %}
+                    {% if comp_test_running %}
                     value="{{ task_formData.get('decryption_file', '') }}"
                     {% endif %}
                 >
@@ -152,7 +152,7 @@
                     class="tooltip-info input-group-text fa fa-info-circle fs-4"
                     data-bs-toggle="tooltip"
                     data-bs-placement="top"
-                    data-bs-title="{{ tooltips.register_container_decryption_file }}"
+                    data-bs-title="{{ tooltips.compatibility_test_decryption_file }}"
                 ></i>
             </div>
         </div>
