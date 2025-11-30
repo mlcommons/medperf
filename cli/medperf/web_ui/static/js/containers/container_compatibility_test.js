@@ -101,7 +101,7 @@ $(document).ready(() => {
         browseFolderHandler("parameters-file");
     });
     $("#browse-additional-btn").on("click", () => {
-        browseWithFiles = true;
+        browseWithFiles = false;
         browseFolderHandler("additional-file");
     });
 });
