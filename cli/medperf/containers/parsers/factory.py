@@ -23,7 +23,6 @@ def _is_airflow_yaml_file(airflow_config: dict):
 def load_parser(container_config: dict, container_files_base_path: str) -> Parser:
 
     if _is_airflow_yaml_file(container_config):
-        # TODO add modifications to use container hashes rather than tags for download
         parser = AirflowParser(
             airflow_config=container_config,
             allowed_runners=["docker", "singularity"],
