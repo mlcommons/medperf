@@ -19,14 +19,11 @@ def convert_image_hash_from_json_to_str(apps, schema_editor):
 
 class Migration(migrations.Migration):
 
-    replaces = [
-        ("mlcube", "0003_add_mlcube_hash_tmp"),
-        ("mlcube", "0004_alter_mlcube_unique_together_mlcube_image_hash_tmp_and_more"),
-        ("mlcube", "0005_rename_image_hash_tmp_mlcube_image_hash_and_more"),
-    ]
-
     dependencies = [
-        ("mlcube", "0002_alter_mlcube_unique_together"),
+        (
+            "mlcube",
+            "0004_alter_mlcube_unique_together_mlcube_container_config_and_more",
+        ),
     ]
 
     operations = [
@@ -51,8 +48,8 @@ class Migration(migrations.Migration):
                     "image_tarball_hash",
                     "image_hash_tmp",
                     "additional_files_tarball_hash",
-                    "mlcube_hash",
-                    "parameters_hash",
+                    "container_config",
+                    "parameters_config",
                 )
             },
         ),
@@ -72,8 +69,8 @@ class Migration(migrations.Migration):
                     "image_tarball_hash",
                     "image_hash",
                     "additional_files_tarball_hash",
-                    "mlcube_hash",
-                    "parameters_hash",
+                    "container_config",
+                    "parameters_config",
                 )
             },
         ),
