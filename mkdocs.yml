@@ -29,6 +29,7 @@ nav:
   - Hosting Files: concepts/hosting_files.md
   - Transferring to another Machine: concepts/import_export_data.md
   - Encrypted Models: concepts/encrypted_models.md
+  - Certificates: concepts/certificates.md
   #  - Benchmark Associations: concepts/associations.md
   #  - Model Priority: concepts/priorities.md
   #  - Running Specific Models: concepts/single_run.md
