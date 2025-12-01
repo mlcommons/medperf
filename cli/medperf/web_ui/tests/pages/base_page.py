@@ -5,6 +5,7 @@ from selenium.webdriver.support import expected_conditions as EC
 
 class BasePage:
     NAVBAR = (By.CSS_SELECTOR, "nav.navbar")
+    USER_DROPDOWN = (By.ID, "userDropdown")
     LOGOUT_BTN = (By.ID, "logout-btn")
     PAGE_MODAL = (By.ID, "page-modal")
     PAGE_MODAL_TITLE = (By.ID, "page-modal-title")
