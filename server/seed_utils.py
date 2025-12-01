@@ -126,7 +126,7 @@ def create_benchmark(api_server, benchmark_owner_token, assets_path):
             "image_tarball_url": "",
             "image_tarball_hash": "",
             "image_hash": {
-                "default": "sha256:f8697dc1c646395ad1ac54b8c0373195dbcfde0c4ef5913d4330a5fe481ae9a4"
+                "mlcommons/chestxray-tutorial-prep:0.0.1": "sha256:f8697dc1c646395ad1ac54b8c0373195dbcfde0c4ef5913d4330a5fe481ae9a4"
             },
             "additional_files_tarball_url": "",
             "additional_files_tarball_hash": "",
@@ -172,7 +172,7 @@ def create_benchmark(api_server, benchmark_owner_token, assets_path):
             ),
             "additional_files_tarball_hash": "bff003e244759c3d7c8b9784af0819c7f252da8626745671ccf7f46b8f19a0ca",
             "image_hash": {
-                "default": "877b8df79678215dfdcb63fe6bc1dab58e9c29113437c2c5627442551e3087c5"
+                "mlcommons/chestxray-tutorial-cnn:0.0.1": "877b8df79678215dfdcb63fe6bc1dab58e9c29113437c2c5627442551e3087c5"
             },
             "image_tarball_url": "",
             "image_tarball_hash": "",
@@ -213,7 +213,7 @@ def create_benchmark(api_server, benchmark_owner_token, assets_path):
             "image_tarball_url": "",
             "image_tarball_hash": "",
             "image_hash": {
-                "default": "c61b4079be59ba3bb31090bdf89f7f603023f77d28ca0475b5320efaa36866aa"
+                "mlcommons/chestxray-tutorial-metrics:0.0.1": "c61b4079be59ba3bb31090bdf89f7f603023f77d28ca0475b5320efaa36866aa"
             },
             "additional_files_tarball_url": "",
             "additional_files_tarball_hash": "",
@@ -290,7 +290,7 @@ def create_workflow_benchmark(api_server, benchmark_owner_token, assets_path):
             "image_tarball_url": "",
             "image_tarball_hash": "",
             "image_hash": {
-                "default": "sha256:f8697dc1c646395ad1ac54b8c0373195dbcfde0c4ef5913d4330a5fe481ae9a4"
+                "mlcommons/chestxray-tutorial-prep:0.0.1": "sha256:f8697dc1c646395ad1ac54b8c0373195dbcfde0c4ef5913d4330a5fe481ae9a4"
             },
             "additional_files_tarball_url": "",
             "additional_files_tarball_hash": "",
@@ -336,7 +336,7 @@ def create_workflow_benchmark(api_server, benchmark_owner_token, assets_path):
             ),
             "additional_files_tarball_hash": "bff003e244759c3d7c8b9784af0819c7f252da8626745671ccf7f46b8f19a0ca",
             "image_hash": {
-                "default": "sha256:a1bdddce05b9d156df359dd570de8031fdd1ea5a858f755139bed4a95fad19d1"
+                "mlcommons/chestxray-tutorial-cnn:0.0.1": "sha256:a1bdddce05b9d156df359dd570de8031fdd1ea5a858f755139bed4a95fad19d1"
             },
             "image_tarball_url": "",
             "image_tarball_hash": "",
@@ -377,7 +377,7 @@ def create_workflow_benchmark(api_server, benchmark_owner_token, assets_path):
             "image_tarball_url": "",
             "image_tarball_hash": "",
             "image_hash": {
-                "default": "sha256:d33904c1104d0a3df314f29c603901a8584fec01e58b90d7ae54c8d74d32986c"
+                "mlcommons/chestxray-tutorial-metrics:0.0.1": "sha256:d33904c1104d0a3df314f29c603901a8584fec01e58b90d7ae54c8d74d32986c"
             },
             "additional_files_tarball_url": "",
             "additional_files_tarball_hash": "",
@@ -465,7 +465,7 @@ def create_model(
             "image_tarball_url": "",
             "image_tarball_hash": "",
             "image_hash": {
-                "default": "sha256:f27deb052eafd48ad1e350ceef7b0b9600aef0ea3f8cba47baee2b1d17411a83"
+                "mlcommons/chestxray-tutorial-mobilenetv2:0.0.1": "sha256:f27deb052eafd48ad1e350ceef7b0b9600aef0ea3f8cba47baee2b1d17411a83"
             },
             "metadata": {},
         },

@@ -6,7 +6,8 @@ from django.db import migrations, models
 def convert_image_hash_from_string_to_json(apps, schema_editor):
     MlCube = apps.get_model("mlcube", "MlCube")
     for mlcube in MlCube.objects.all():
-        mlcube.image_hash_tmp = {"default": mlcube.image_hash}
+        image_name = mlcube.container_config.get("image", "default")
+        mlcube.image_hash_tmp = {image_name: mlcube.image_hash}
         mlcube.save()
 
 
