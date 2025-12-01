@@ -32,13 +32,16 @@ def login(page: BasePage, url: str, email: str):
     page.wait_for_url_change(old_url)
 
     assert "/benchmarks/ui" in page.current_url
-    assert "Logout" in page.get_text(page.LOGOUT_BTN)
+
+    page.find(page.USER_DROPDOWN)
 
 
 def logout(page: BasePage):
     page_modal = page.find(page.PAGE_MODAL)
 
     assert page_modal.is_displayed() is False
+
+    page.click(page.USER_DROPDOWN)
 
     page.click(page.LOGOUT_BTN)
 

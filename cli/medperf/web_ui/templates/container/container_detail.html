@@ -48,21 +48,6 @@
                     </button>
                     {% endif %}
                 </p>
-                {% if entity.image_tarball_url %}
-                <p class="card-text">
-                    <strong>Image Tarball:</strong> 
-                    <a
-                        href="{{ entity.image_tarball_url }}"
-                        class="text-primary"
-                        target="_blank">Click to Download the File
-                    </a>
-                </p>
-                {% else %}
-                <p class="card-text">
-                    <strong>Image Tarball:</strong> 
-                    Not Available
-                </p>
-                {% endif %}
                 {% if entity.additional_files_tarball_url %}
                 <p class="card-text">
                     <strong>Additional Files:</strong> 

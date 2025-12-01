@@ -127,11 +127,11 @@ def test_benchmark_workflow_test(driver):
     assert panel.is_displayed() is False
 
     page.run_test(
-        data_prep_path=tests_config.DATA_PREP_PATH,
-        model_path=tests_config.MODEL_PATH,
-        evaluator_path=tests_config.EVALUATOR_PATH,
-        data_path=tests_config.DATA_PATH,
-        labels_path=tests_config.LABELS_PATH,
+        data_prep=tests_config.BMK_DATA_PREP,
+        ref_model=tests_config.BMK_REF_MODEL,
+        evaluator=tests_config.BMK_EVALUATOR,
+        data_path=tests_config.BMK_DATA_PATH,
+        labels_path=tests_config.BMK_LABELS_PATH,
     )
 
     old_url = page.current_url
@@ -176,7 +176,7 @@ def test_benchmark_register_data_prep_container(driver):
     assert page_modal.is_displayed() is False
     assert panel.is_displayed() is False
 
-    page.register_container(container_dict=tests_config.DATA_PREPARATOR_CONTAINER)
+    page.register_container(container=tests_config.BMK_DATA_PREP)
 
     old_url = page.current_url
     page.wait_for_visibility_element(page_modal)
@@ -217,7 +217,7 @@ def test_benchmark_register_reference_model_container(driver):
     assert page_modal.is_displayed() is False
     assert panel.is_displayed() is False
 
-    page.register_container(container_dict=tests_config.REF_MODEL_CONTAINER)
+    page.register_container(container=tests_config.BMK_REF_MODEL)
 
     old_url = page.current_url
     page.wait_for_visibility_element(page_modal)
@@ -258,7 +258,7 @@ def test_benchmark_register_metrics_container(driver):
     assert page_modal.is_displayed() is False
     assert panel.is_displayed() is False
 
-    page.register_container(container_dict=tests_config.METRICS_CONTAINER)
+    page.register_container(container=tests_config.BMK_EVALUATOR)
 
     old_url = page.current_url
     page.wait_for_visibility_element(page_modal)
@@ -636,9 +636,7 @@ def test_container_comp_test(driver):
     assert page_modal.is_displayed() is False
     assert panel.is_displayed() is False
 
-    page.run_test(
-        benchmark=tests_config.BMK_NAME, container_path=tests_config.CONTAINER_PATH
-    )
+    page.run_test(benchmark=tests_config.BMK_NAME, model=tests_config.MODEL)
 
     old_url = page.current_url
     page.wait_for_visibility_element(page_modal)
@@ -682,7 +680,7 @@ def test_container_registration(driver):
     assert page_modal.is_displayed() is False
     assert panel.is_displayed() is False
 
-    page.register_container(container_dict=tests_config.CONTAINER)
+    page.register_container(container=tests_config.MODEL)
 
     old_url = page.current_url
     page.wait_for_visibility_element(page_modal)
@@ -710,7 +708,7 @@ def test_container_registration(driver):
 def test_container_association(driver):
     page = ContainerDetailsPage(
         driver,
-        container=tests_config.CONTAINER["name"],
+        container=tests_config.MODEL.name,
         benchmark=tests_config.BMK_NAME,
     )
     page_modal = page.find(page.PAGE_MODAL)
@@ -774,7 +772,7 @@ def test_encrypted_container_registration(driver):
     assert panel.is_displayed() is False
 
     page.register_container(
-        container_dict=tests_config.ENCRYPTED_CONTAINER,
+        container=tests_config.ENCRYPTED_MODEL,
         decryption_key=tests_config.DECRYPTION_KEY_PATH,
     )
 
@@ -804,7 +802,7 @@ def test_encrypted_container_registration(driver):
 def test_encrypted_container_association(driver):
     page = ContainerDetailsPage(
         driver,
-        container=tests_config.CONTAINER["name"],
+        container=tests_config.ENCRYPTED_MODEL.name,
         benchmark=tests_config.BMK_NAME,
     )
     page_modal = page.find(page.PAGE_MODAL)
@@ -908,7 +906,7 @@ def test_benchmark_approve_container(driver):
     page = BenchmarkDetailsPage(
         driver,
         benchmark=tests_config.BMK_NAME,
-        entity_name=tests_config.CONTAINER["name"],
+        entity_name=tests_config.MODEL.name,
     )
 
     page_modal = page.find(page.PAGE_MODAL)
@@ -942,7 +940,7 @@ def test_benchmark_approve_encrypted_container(driver):
     page = BenchmarkDetailsPage(
         driver,
         benchmark=tests_config.BMK_NAME,
-        entity_name=tests_config.ENCRYPTED_CONTAINER["name"],
+        entity_name=tests_config.ENCRYPTED_MODEL.name,
     )
 
     page_modal = page.find(page.PAGE_MODAL)
@@ -990,7 +988,7 @@ def test_model_login1(driver):
 def test_container_grant_access(driver):
     page = ContainerDetailsPage(
         driver,
-        container=tests_config.ENCRYPTED_CONTAINER["name"],
+        container=tests_config.ENCRYPTED_MODEL.name,
         benchmark=tests_config.BMK_NAME,
     )
 
@@ -1208,7 +1206,7 @@ def test_model_login2(driver):
 def test_container_delete_keys(driver):
     page = ContainerDetailsPage(
         driver,
-        container=tests_config.ENCRYPTED_CONTAINER["name"],
+        container=tests_config.ENCRYPTED_MODEL.name,
         benchmark=tests_config.BMK_NAME,
     )
 

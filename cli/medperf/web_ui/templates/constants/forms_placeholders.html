@@ -1,11 +1,17 @@
 {# ./cli/medperf/web_ui/templates/constants/forms_placeholders.html #}
 
 {# Forms placeholders for benchmarks pages #}
-{% set workflow_test_data_preparation_container = "Path to the data preparation container" %}
-{% set workflow_test_reference_model_path = "Path to the reference model" %}
-{% set workflow_test_metrics_container_path = "Path to the metrics container" %}
-{% set workflow_test_reference_dataset_data_path = "Path to the reference dataset data folder" %}
-{% set workflow_test_reference_dataset_labels_path = "Path to the reference dataset labels folder" %}
+{% set workflow_test_data_preparation_container = "/home/user/data_preparation_container_config.yaml" %}
+{% set workflow_test_data_preparation_parameters = "/home/user/data_preparation_container_parameters.yaml (Optional)" %}
+{% set workflow_test_data_preparation_additional = "/home/user/data_preparation_container_additional_files_folder/ (Optional)" %}
+{% set workflow_test_reference_model_path = "/home/user/reference_model_config.yaml" %}
+{% set workflow_test_reference_model_parameters = "/home/user/reference_model_parameters.yaml (Optional)" %}
+{% set workflow_test_reference_model_additional = "/home/user/reference_model_additional_files_folder/ (Optional)" %}
+{% set workflow_test_metrics_container_path = "/home/user/metrics_container_config.yaml" %}
+{% set workflow_test_metrics_container_parameters = "/home/user/metrics_container_parameters.yaml (Optional)" %}
+{% set workflow_test_metrics_container_additional = "/home/user/metrics_container_additional_files_folder/ (Optional)" %}
+{% set workflow_test_reference_dataset_data_path = "/home/user/reference_dataset_data/" %}
+{% set workflow_test_reference_dataset_labels_path = "/home/user/reference_dataset_labels/" %}
 
 {% set register_benchmark_name = "Example Benchmark" %}
 {% set register_benchmark_description = "Example Description" %}
@@ -15,29 +21,30 @@
 {% set register_benchmark_reference_model_id = "Reference model id, e.g; 2" %}
 {% set register_benchmark_metrics_container_id = "Metrics container id, e.g; 3" %}
 
-{% set benchmark_dataset_allow_list_file_input = "/home/example/emails_allowed_list_file_for_datasets" %}
-{% set benchmark_model_allow_list_file_input = "/home/example/emails_allowed_list_file_for_models" %}
+{% set benchmark_dataset_allow_list_file_input = "/home/user/dataset_allowed_emails_list_file.txt" %}
+{% set benchmark_model_allow_list_file_input = "/home/user/model_allowed_emails_list_file.txt" %}
 
 {# Forms placeholders for datasets pages #}
 {% set register_dataset_name = "Example Dataset" %}
 {% set register_dataset_description = "Example Description" %}
 {% set register_dataset_location = "Example Location" %}
-{% set register_dataset_data_path = "/home/example/data_folder" %}
-{% set register_dataset_labels_path = "/home/example/labels_folder" %}
+{% set register_dataset_data_path = "/home/user/data_folder/" %}
+{% set register_dataset_labels_path = "/home/user/labels_folder/" %}
 
-{% set export_dataset_output_path = "/home/example/output_folder" %}
+{% set export_dataset_output_path = "/home/user/output_folder/" %}
 
 {% set import_dataset_id = "Exported dataset id, e.g; 1" %}
-{% set import_dataset_input_path = "/home/example/X.tar.gz" %}
-{% set import_dataset_raw_path = "/home/example/new_raw_data_folder_for_DEVELOPMENT_datasets" %}
+{% set import_dataset_input_path = "/home/user/1.tar.gz" %}
+{% set import_dataset_raw_path = "/home/user/new_raw_data_folder_for_DEVELOPMENT_datasets/" %}
 
 {# Forms placeholders for containers pages #}
-{% set compatibility_test_container_file = "Path to the container you want to test" %}
-{% set compatibility_test_parameters_file = "Path to the parameters file for the container you want to test" %}
-{% set compatibility_test_additional_file = "Path to the additional file for the container you want to test" %}
+{% set compatibility_test_container_file = "/home/user/model_config_file.yaml" %}
+{% set compatibility_test_parameters_file = "/home/user/model_parameters_file.yaml (Optional)" %}
+{% set compatibility_test_additional_file = "/home/user/model_additional_files_folder/ (Optional)" %}
+{% set compatibility_test_decryption_file = "/home/user/model_decryption_key.key" %}
 
 {% set register_container_name = "Example Container" %}
-{% set register_container_manifest_file = "Path to the Container Config file" %}
-{% set register_container_parameters_file = "Path to the parameters file (Optional)" %}
-{% set register_container_additional_file = "URL of the container's additional file (Optional)" %}
-{% set register_container_decryption_file = "Path to the model's decryption key file" %}
+{% set register_container_manifest_file = "/home/user/container_config_file.yaml" %}
+{% set register_container_parameters_file = "/home/user/container_parameters_file.yaml (Optional)" %}
+{% set register_container_additional_file = "https://www.example.com/container_additional_files.tar (Optional)" %}
+{% set register_container_decryption_file = "/home/user/container_decryption_key.key" %}
