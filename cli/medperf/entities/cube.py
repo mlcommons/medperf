@@ -157,12 +157,6 @@ class Cube(Entity, DeployableSchema):
             raise InvalidEntityError("The requested container is marked as INVALID.")
         return cube
 
-    def prepare_container_config_file(self):
-        """Workflow executions need the container config available as a local file so that Airflow can read it"""
-        with open(self.container_config_path, "w") as f:
-            yaml.safe_dump(self.container_config, f)
-        return self.container_config_path
-
     def prepare_parameters_file(self):
         if self.parameters_config is None:
             raise MedperfException(
