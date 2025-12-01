@@ -76,7 +76,9 @@ def seed(args):
     benchmark_owner_token = get_token("testbo@example.com")
     if args.workflow:
         benchmark = create_workflow_benchmark(
-            api_server, benchmark_owner_token, admin_token
+            api_server,
+            benchmark_owner_token,
+            args.containers_assets_path,
         )
     else:
         benchmark = create_benchmark(
@@ -125,9 +127,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "--demo",
         type=str,
-        help="Seed for a tutorial: 'benchmark', 'model', or 'data'.",
+        help="Seed for a tutorial: 'benchmark', 'model', 'data', 'tutorial' or 'workflow'.",
         default="data",
-        choices=["benchmark", "model", "data", "tutorial"],
+        choices=["benchmark", "model", "data", "tutorial", "workflow"],
     )
     parser.add_argument(
         "--tokens",
