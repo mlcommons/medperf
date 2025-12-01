@@ -1,6 +1,9 @@
 from typing import Dict, Union, Literal, Set
 from medperf.exceptions import InvalidContainerSpec
 from medperf.containers.parsers.parser import Parser
+import os
+import yaml
+from medperf import config
 
 
 class ContainerForAirflow:
@@ -36,11 +39,18 @@ class AirflowParser(Parser):
     """
 
     def __init__(
-        self, airflow_config: dict, allowed_runners: list, config_file_path: str
+        self,
+        airflow_config: dict,
+        allowed_runners: list,
+        container_files_base_path: str,
     ):
         self.airflow_config = airflow_config
         self.allowed_runners = allowed_runners
-        self.config_file_path = config_file_path
+        self.config_file_path = os.path.join(
+            container_files_base_path, config.cube_filename
+        )
+        with open(self.config_file_path, "w") as f:
+            yaml.safe_dump(self.airflow_config, f, sort_keys=False)
 
         # The following variables are set when calling check_schema for the first time
         self._steps = []

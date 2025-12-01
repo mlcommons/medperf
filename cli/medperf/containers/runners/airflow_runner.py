@@ -24,11 +24,9 @@ class AirflowRunner(Runner):
     def __init__(
         self,
         airflow_config_parser: AirflowParser,
-        container_files_base_path,
         workflow_name,
     ):
         self.parser = airflow_config_parser
-        self.container_dir = container_files_base_path
         self.workflow_name = workflow_name
 
     def download(
@@ -49,9 +47,7 @@ class AirflowRunner(Runner):
                 computed_image_hash = get_docker_image_hash(
                     container.image, get_hash_timeout
                 )
-                check_docker_image_hash(
-                    computed_image_hash, expected_image_hash, alternative_image_hash
-                )
+                check_docker_image_hash(computed_image_hash, expected_image_hash)
                 hashes_dict[container.image] = computed_image_hash
             elif container.platform == "singularity":
                 expected_image_hash = hashes_dict.get(container.image)
@@ -85,9 +81,6 @@ class AirflowRunner(Runner):
 
         logging.debug(
             f"Starting Airflow runner with the following airflow home directory: {airflow_home}."
-        )
-        logging.debug(
-            f"Airflow execution based on the following YAML file: {self.parser.config_file_path}"
         )
         with AirflowSystemRunner(
             airflow_home=airflow_home,

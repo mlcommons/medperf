@@ -35,7 +35,7 @@ class Cube(Entity, DeployableSchema):
     parameters_config: Optional[dict] = Field(default_factory=dict)
     image_tarball_url: Optional[str] = None
     image_tarball_hash: Optional[str] = None
-    image_hash: Optional[str] = None
+    image_hash: Optional[dict] = Field(default_factory=dict)
     additional_files_tarball_url: Optional[str] = Field(None, alias="tarball_url")
     additional_files_tarball_hash: Optional[str] = Field(None, alias="tarball_hash")
     metadata: dict = Field(default_factory=dict)
@@ -80,13 +80,13 @@ class Cube(Entity, DeployableSchema):
     @property
     def parser(self):
         if self._parser is None:
-            self._parser = load_parser(self.container_config)
+            self._parser = load_parser(self.container_config, self.path)
         return self._parser
 
     @property
     def runner(self):
         if self._runner is None:
-            self._runner = load_runner(self.parser, self.path, self.name)
+            self._runner = load_runner(self.parser, self.name)
         return self._runner
 
     @property
@@ -138,6 +138,12 @@ class Cube(Entity, DeployableSchema):
         if not cube.is_valid and valid_only:
             raise InvalidEntityError("The requested container is marked as INVALID.")
         return cube
+
+    def prepare_container_config_file(self):
+        """Workflow executions need the container config available as a local file so that Airflow can read it"""
+        with open(self.container_config_path, "w") as f:
+            yaml.safe_dump(self.container_config, f)
+        return self.container_config_path
 
     def prepare_parameters_file(self):
         if self.parameters_config is None:
