@@ -8,6 +8,7 @@ from .utils import (
     add_network_config,
     add_medperf_tmp_folder,
     check_docker_image_hash,
+    get_expected_hash,
 )
 from .runner import Runner
 import logging
@@ -56,7 +57,7 @@ class DockerRunner(Runner):
         get_hash_timeout: int = None,
     ) -> Dict[str, str]:
         docker_image = self.parser.get_setup_args()
-        expected_image_hash = hashes_dict.get(docker_image)
+        expected_image_hash = get_expected_hash(hashes_dict, docker_image)
         command = ["docker", "pull", docker_image]
         logging.debug("Running pull command")
         run_command(command, timeout=download_timeout)
@@ -71,7 +72,7 @@ class DockerRunner(Runner):
         get_hash_timeout: int = None,
     ):
         file_url = self.parser.get_setup_args()
-        expected_image_hash = hashes_dict.get(file_url)
+        expected_image_hash = get_expected_hash(hashes_dict, file_url)
         image_path, computed_image_hash = resources.get_cube_image(
             file_url, expected_image_hash
         )  # Hash checking happens in resources

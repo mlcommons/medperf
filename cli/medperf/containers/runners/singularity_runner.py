@@ -9,6 +9,7 @@ from .utils import (
     add_network_config,
     add_medperf_tmp_folder,
     check_docker_image_hash,
+    get_expected_hash,
 )
 from .singularity_utils import (
     cleanup_singularity_cache,
@@ -89,13 +90,13 @@ class SingularityRunner(Runner):
         get_hash_timeout: int = None,
     ):
         image_file_url = self.parser.get_setup_args()
-        expected_image_hash = hashes_dict.get(sif_url)
+        expected_image_hash = get_expected_hash(hashes_dict, image_file_url)
         image_file_path, computed_image_hash = resources.get_cube_image(
             image_file_url, expected_image_hash
         )  # Hash checking happens in resources
         self.image_file_path = image_file_path
         self.image_file_hash = computed_image_hash
-        return {sif_url: computed_image_hash}
+        return {image_file_url: computed_image_hash}
 
     def _check_docker_image(
         self,
@@ -103,7 +104,7 @@ class SingularityRunner(Runner):
         get_hash_timeout: int = None,
     ):
         docker_image = self.parser.get_setup_args()
-        expected_image_hash = hashes_dict.get(docker_image)
+        expected_image_hash = get_expected_hash(hashes_dict, docker_image)
         computed_image_hash = get_docker_image_hash_from_dockerhub(
             docker_image, get_hash_timeout
         )
