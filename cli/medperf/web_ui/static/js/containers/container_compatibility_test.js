@@ -52,7 +52,7 @@ async function runContainerCompatibilityTest(runCompTestButton){
 }
 
 function checkCompTestFormValidity() {
-    const containerPath = $("#container-path").val().trim();
+    const containerPath = $("#container-file").val().trim();
     const runTestButton = $("#run-comp-test-btn");
     const isEncrypted = $("input[name='model_encrypted']:checked").val();
     const decryptionPath = $("#decryption-file").val().trim();
@@ -94,6 +94,14 @@ $(document).ready(() => {
 
     $("#browse-container-btn").on("click", () => {
         browseWithFiles = true;
-        browseFolderHandler("container-path");
+        browseFolderHandler("container-file");
+    });
+    $("#browse-parameters-btn").on("click", () => {
+        browseWithFiles = true;
+        browseFolderHandler("parameters-file");
+    });
+    $("#browse-additional-btn").on("click", () => {
+        browseWithFiles = false;
+        browseFolderHandler("additional-file");
     });
 });

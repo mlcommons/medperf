@@ -18,13 +18,11 @@ done
 
 # validate arguments
 if [ -z "$ca_config" ]; then
-    echo "--ca_config is required"
-    exit 1
+    ca_config="/mlcommons/volumes/ca_config/ca_config.json"
 fi
 
 if [ -z "$pki_assets" ]; then
-    echo "--pki_assets is required"
-    exit 1
+    pki_assets="/mlcommons/volumes/pki_assets"
 fi
 
 if [ -z "$MEDPERF_INPUT_CN" ]; then

@@ -188,8 +188,14 @@ def workflow_test_ui(
 def test_benchmark(
     request: Request,
     data_preparation: str = Form(...),
+    data_preparation_parameters: str = Form(None),
+    data_preparation_additional: str = Form(None),
     model_path: str = Form(...),
+    model_parameters_path: str = Form(None),
+    model_additional_path: str = Form(None),
     evaluator_path: str = Form(...),
+    evaluator_parameters_path: str = Form(None),
+    evaluator_additional_path: str = Form(None),
     data_path: str = Form(...),
     labels_path: str = Form(...),
     current_user: bool = Depends(check_user_api),
@@ -199,8 +205,14 @@ def test_benchmark(
     try:
         _, results = CompatibilityTestExecution.run(
             data_prep=data_preparation,
+            data_prep_parameters=data_preparation_parameters,
+            data_prep_additional=data_preparation_additional,
             model=model_path,
+            model_parameters=model_parameters_path,
+            model_additional=model_additional_path,
             evaluator=evaluator_path,
+            evaluator_parameters=evaluator_parameters_path,
+            evaluator_additional=evaluator_additional_path,
             data_path=data_path,
             labels_path=labels_path,
         )

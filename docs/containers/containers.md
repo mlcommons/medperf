@@ -30,7 +30,7 @@ The Metrics Container is used for computing metrics on the model predictions by 
 
 ## Extra mounts
 
-When creating a container, you may want to separate some assets from the container main code (e.g., your model weights, your model hyperparameters, some model weights used for annotation during data preparation, ...). MedPerf has a notion of an `additional_files` folder and a `parameters` file. When you submit a container metadata to the MedPerf server, you can put these assets inside a compressed folder `additional_files.tar.gz` file, and/or you can write your parameters to a `parameters.yaml` file. Then host these files and provide their URLs when submitting the container metadata. Instead of being baked inside the docker image, the contents of the archive `additional_files.tar.gz` file and the contents of the `parameters.yaml` file will be mounted by MedPerf to your container during runtime when your container is executed, as follows:
+When creating a container, you may want to separate some assets from the container main code (e.g., your model weights, your model hyperparameters, some model weights used for annotation during data preparation, ...). MedPerf has a notion of an `additional_files` folder and a `parameters` file. When you submit a container metadata to the MedPerf server, you can put these assets inside a compressed folder `additional_files.tar.gz` file, and/or you can write your parameters to a `parameters.yaml` file. You can then provide the `parameters.yaml` file during container submission so that its contents are uploaded with the container metadata. For the `additional_files.tar.gz` file, you should host this file and provide its URL when submitting the container metadata. Instead of being baked inside the docker image, the contents of the archive `additional_files.tar.gz` file and the contents of the `parameters.yaml` file will be mounted by MedPerf to your container during runtime when your container is executed, as follows:
 
 - **Additional files:** The contents of the `additional_files.tar.gz` archive will be uncompressed and available in `/mlcommons/volumes/additional_files` inside the container.
 - **Parameters file:** Your parameters file will be available as `/mlcommons/volumes/parameters/parameters.yaml` inside the container.
@@ -55,6 +55,6 @@ By default, as mentioned in previous sections, MedPerf mounts input and output v
 
 - Containers will not have network access during runtime. Any download or upload attempt inside the container during running it will result in an error.
 
-- Containers will be run as a non-root user. Creating files and folders in the container filesystem outside the mounted predictions folder and outside the `/tmp` folder will result in permission error by default (unless you change filesystem permissions when building the container).
+- Containers will be run as a non-root user. Creating files and folders in the container filesystem outside the mounted output volumes and outside the `/tmp` folder will result in permission error by default (unless you change filesystem permissions when building the container).
 
 - Input volumes are mounted as read-only. Attempting to modify or delete them will result in an error.

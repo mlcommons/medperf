@@ -45,12 +45,14 @@ if __name__ == "__main__":
         dest="data",
         type=str,
         help="directory containing the prepared data",
+        default="/mlcommons/volumes/data",
     )
     parser.add_argument(
         "--labels_path",
         dest="labels",
         type=str,
         help="directory containing the prepared labels",
+        default="/mlcommons/volumes/labels",
     )
 
     args = parser.parse_args()

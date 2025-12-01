@@ -65,4 +65,12 @@ $(document).ready(() => {
             $("#decryption-file").val("");
         }
     });
+    $("#browse-container-btn").on("click", () => {
+        browseWithFiles = true;
+        browseFolderHandler("container-file");
+    });
+    $("#browse-parameters-btn").on("click", () => {
+        browseWithFiles = true;
+        browseFolderHandler("parameters-file");
+    });
 });

@@ -11,18 +11,7 @@
 
 # How to build
 
-- Build the openfl base image:
-
-```bash
-git clone https://github.com/securefederatedai/openfl.git
-cd openfl
-git checkout e6f3f5fd4462307b2c9431184190167aa43d962f
-docker build -t local/openfl:local -f openfl-docker/Dockerfile.base .
-cd ..
-rm -rf openfl
-```
-
-- Build the MLCube
+- Build the container (use `-b` for building the base as well)
 
 ```bash
 cd ..

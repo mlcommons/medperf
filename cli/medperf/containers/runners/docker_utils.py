@@ -5,25 +5,40 @@ from medperf import config
 
 from medperf.utils import run_command
 import shlex
-import tarfile
 import json
+import tarfile
 import logging
 
 
 def get_docker_image_hash(docker_image, timeout: int = None):
     logging.debug(f"Getting docker image hash of {docker_image}")
-    command = ["docker", "inspect", "--format", "{{.Id}}", docker_image]
+
     logging.debug("Running docker inspect command")
-    image_id = run_command(command, timeout=timeout)
-    image_id = image_id.strip()
-    logging.debug(f"Image ID: {image_id}")
-    if image_id.startswith("sha256:"):
-        image_id = image_id[len("sha256:") :]  # noqa
-        return image_id
-    raise InvalidContainerSpec("Invalid inspect output:", image_id)
+    command = [
+        "docker",
+        "buildx",
+        "imagetools",
+        "inspect",
+        docker_image,
+        "--format",
+        '"{{json .Manifest}}"',
+    ]
+    image_manifest_str = run_command(command, timeout=timeout)
+    logging.debug(f"Docker image manifest string: {image_manifest_str}")
+    image_manifest_str = image_manifest_str.strip().strip("\"'")
+    logging.debug(f"Docker image manifest stripped: {image_manifest_str}")
+    image_manifest_dict = json.loads(image_manifest_str)
+    logging.debug(f"Docker image manifest dict: {image_manifest_dict}")
+    image_hash = image_manifest_dict.get("digest", "")
+    logging.debug(f"Digest field: {image_hash}")
+    if not image_hash.startswith("sha256:"):
+        raise InvalidContainerSpec("Could not retrieve valid docker image hash.")
+
+    return image_hash
 
 
 def volumes_to_cli_args(input_volumes: list, output_volumes: list):
+    # TODO: check that mount path should not be repeated
     logging.debug("Converting volumes to CLI args")
     args = []
     for volume in input_volumes:

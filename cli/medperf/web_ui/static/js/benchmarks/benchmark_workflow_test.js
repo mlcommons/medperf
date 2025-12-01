@@ -90,14 +90,44 @@ $(document).ready(() => {
         browseFolderHandler("data-preparation");
     });
 
+    $("#browse-data-prep-parameters-btn").on("click", () => {
+        browseWithFiles = true;
+        browseFolderHandler("data-preparation-parameters");
+    });
+
+    $("#browse-data-prep-additional-btn").on("click", () => {
+        browseWithFiles = false;
+        browseFolderHandler("data-preparation-additional");
+    });
+
     $("#browse-ref-btn").on("click", () => {
         browseWithFiles = true;
         browseFolderHandler("model-path");
+    });
+
+    $("#browse-ref-parameters-btn").on("click", () => {
+        browseWithFiles = true;
+        browseFolderHandler("model-parameters-path");
+    });
+
+    $("#browse-ref-additional-btn").on("click", () => {
+        browseWithFiles = false;
+        browseFolderHandler("model-additional-path");
     });
     
     $("#browse-metrics-btn").on("click", () => {
         browseWithFiles = true;
         browseFolderHandler("evaluator-path");
+    });
+
+    $("#browse-metrics-parameters-btn").on("click", () => {
+        browseWithFiles = true;
+        browseFolderHandler("evaluator-parameters-path");
+    });
+
+    $("#browse-metrics-additional-btn").on("click", () => {
+        browseWithFiles = false;
+        browseFolderHandler("evaluator-additional-path");
     });
 
     $("#browse-data-btn").on("click", () => {

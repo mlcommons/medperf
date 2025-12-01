@@ -21,7 +21,10 @@ from medperf.web_ui.auth import (
     NotAuthenticatedException,
 )
 
-from medperf.account_management.account_management import read_user_account
+from medperf.account_management.account_management import (
+    get_medperf_user_data,
+    read_user_account,
+)
 from medperf.web_ui.schemas import WebUITask
 
 from medperf.web_ui.utils import generate_uuid
@@ -115,7 +118,11 @@ def check_user_ui(
     request: Request,
     token: str = Security(api_key_cookie),
 ):
-    request.app.state.logged_in = is_logged_in()
+    logged_in = is_logged_in()
+    request.app.state.logged_in = logged_in
+    request.app.state.user_email = (
+        get_medperf_user_data().get("email") if logged_in else None
+    )
     process_notifications(request)
     if not request.app.state.task_running:
         request.app.state.global_events = config.ui.get_all_global_events()

@@ -34,7 +34,6 @@ class DockerRunner(Runner):
         expected_image_hash,
         download_timeout: int = None,
         get_hash_timeout: int = None,
-        alternative_image_hash: str = None,
     ):
         if self.parser.is_docker_archive():
             logging.debug("Downloading Docker archive")
@@ -46,10 +45,7 @@ class DockerRunner(Runner):
         else:
             logging.debug("Downloading Docker image")
             return self._download_docker_image(
-                expected_image_hash,
-                download_timeout,
-                get_hash_timeout,
-                alternative_image_hash,
+                expected_image_hash, download_timeout, get_hash_timeout
             )
 
     def _download_docker_image(
@@ -57,16 +53,13 @@ class DockerRunner(Runner):
         expected_image_hash,
         download_timeout: int = None,
         get_hash_timeout: int = None,
-        alternative_image_hash: str = None,
     ):
         docker_image = self.parser.get_setup_args()
         command = ["docker", "pull", docker_image]
         logging.debug("Running pull command")
         run_command(command, timeout=download_timeout)
         computed_image_hash = get_docker_image_hash(docker_image, get_hash_timeout)
-        check_docker_image_hash(
-            computed_image_hash, expected_image_hash, alternative_image_hash
-        )
+        check_docker_image_hash(computed_image_hash, expected_image_hash)
         return computed_image_hash
 
     def _download_docker_archive(
@@ -95,7 +88,7 @@ class DockerRunner(Runner):
         container_decryption_key_file: str = None,
     ):
         self.parser.check_task_schema(task)
-        run_args = self.parser.get_run_args(task, medperf_mounts)
+        run_args = self.parser.get_run_args(task)
         check_allowed_run_args(run_args)
 
         add_medperf_run_args(run_args)

@@ -1,0 +1,18 @@
+container_type: DockerArchive
+image: https://storage.googleapis.com/medperf-storage/model_archive.tar
+tasks:
+  infer:
+    input_volumes:
+      data_path:
+        mount_path: /medperf_data
+        type: directory
+      parameters_file:
+        mount_path: /medperf_parameters.yaml
+        type: file
+      additional_files:
+        mount_path: /medperf_additional_files
+        type: directory
+    output_volumes:
+      output_path:
+        mount_path: /medperf_predictions
+        type: directory

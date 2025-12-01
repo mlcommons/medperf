@@ -371,26 +371,23 @@ $(document).ready(() => {
     });
 
     $(".yaml-link").on("click", (e) => {
-        e.preventDefault();
-        const entity = $(e.currentTarget).data("entity");
-        const id = $(e.currentTarget).data("id");
-        const field = $(e.currentTarget).data("field");
-        $("#yaml-panel").show();
-        $(".detail-container").addClass("yaml-panel-visible");
-        $("#loading-indicator").show();
-        $("#yaml-code").hide();
-        $.get("/fetch-yaml", {entity: entity, entity_uid: id, field_to_fetch: field}, function(data) {
-            $("#yaml-code").html(data.content);
-            Prism.highlightElement($("#yaml-code")[0]);
-            $("#loading-indicator").hide();
-            $("#yaml-code").show();
-            $("#hide-yaml").show();
-        }).fail(function(e) {
-            $("#yaml-code").text(e.responseJSON.detail);
-            $("#loading-indicator").hide();
-            $("#yaml-code").show();
-            $("#hide-yaml").show();
+        const fieldName = e.currentTarget.getAttribute("data-field");
+        const yamlData = JSON.parse(e.currentTarget.getAttribute("data-yaml-data"));
+        const yamlDataPrettified = JSON.stringify(yamlData, null, 2);
+
+        const modalTitle = fieldName;
+        const modalBody = `<pre id="modal-yaml-content" class="language-yaml">${yamlDataPrettified}</pre>`
+        const modalFooter = '<button type="button" class="btn btn-primary" data-bs-dismiss="modal" aria-label="Close">Close</button>';
+        const extra_fn = () => { Prism.highlightElement($("#modal-yaml-content")[0]); }
+
+        showModal({
+            title: modalTitle,
+            body: modalBody,
+            footer: modalFooter,
+            modalClasses: "modal-lg",
+            extra_func: extra_fn
         });
+
     });
 
     $("#logout-btn").on("click", (e) => {

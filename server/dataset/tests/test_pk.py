@@ -120,7 +120,7 @@ class DatasetPutTest(DatasetTest):
         testdataset = self.create_dataset(testdataset).data
 
         new_data_preproc_mlcube = self.mock_mlcube(
-            name="new name", mlcube_hash="new hash"
+            name="new name", container_config={"new hash": "new hash"}
         )
         new_prep_id = self.create_mlcube(new_data_preproc_mlcube).data["id"]
         newtestdataset = {
@@ -176,7 +176,7 @@ class DatasetPutTest(DatasetTest):
         testdataset = self.create_dataset(testdataset).data
 
         new_data_preproc_mlcube = self.mock_mlcube(
-            name="new name", mlcube_hash="new hash"
+            name="new name", container_config={"new hash": "new hash"}
         )
         new_prep_id = self.create_mlcube(new_data_preproc_mlcube).data["id"]
         newtestdataset = {
@@ -328,7 +328,7 @@ class PermissionTest(DatasetTest):
         # Arrange
         self.set_credentials(self.prep_mlcube_owner)
         new_data_preproc_mlcube = self.mock_mlcube(
-            name="new name", mlcube_hash="new hash"
+            name="new name", container_config={"new hash": "new hash"}
         )
         new_prep_id = self.create_mlcube(new_data_preproc_mlcube).data["id"]
         newtestdataset = {

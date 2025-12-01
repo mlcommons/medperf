@@ -133,34 +133,28 @@ def create(
 @clean_except
 def submit(
     name: str = typer.Option(..., "--name", "-n", help="Name of the container"),
-    mlcube_file: str = typer.Option(
+    container_config_file: str = typer.Option(
         ...,
         "--container-config-file",
         "-m",
-        help="Identifier to download the container config file. See the description above",
-    ),
-    mlcube_hash: str = typer.Option(
-        "", "--container-config-hash", help="hash of container config file"
+        help="Container Config file.",
     ),
     parameters_file: str = typer.Option(
-        "",
+        None,
         "--parameters-file",
         "-p",
-        help="Identifier to download the parameters file. See the description above",
-    ),
-    parameters_hash: str = typer.Option(
-        "", "--parameters-hash", help="hash of parameters file"
+        help="container parameters file.",
     ),
     additional_file: str = typer.Option(
-        "",
+        None,
         "--additional-file",
         "-a",
         help="Identifier to download the additional files tarball. See the description above",
     ),
     additional_hash: str = typer.Option(
-        "", "--additional-hash", help="hash of additional file"
+        None, "--additional-hash", help="hash of additional file"
     ),
-    image_hash: str = typer.Option("", "--image-hash", help="hash of image file"),
+    image_hash: str = typer.Option(None, "--image-hash", help="hash of image file"),
     operational: bool = typer.Option(
         False,
         "--operational",
@@ -176,12 +170,7 @@ def submit(
     ),
 ):
     """Submits a new container to the platform.\n
-    The following assets:\n
-        - container config file\n
-        - parameters_file\n
-        - additional_file\n
-        - image_file\n
-    are expected to be given in the following format: <source_prefix:resource_identifier>
+    The additional files is expected to be given in the following format: <source_prefix:resource_identifier>
     where `source_prefix` instructs the client how to download the resource, and `resource_identifier`
     is the identifier used to download the asset. The following are supported:\n
     1. A direct link: "direct:<URL>"\n
@@ -194,16 +183,17 @@ def submit(
     """
     mlcube_info = {
         "name": name,
-        "git_mlcube_url": mlcube_file,
-        "git_mlcube_hash": mlcube_hash,
-        "git_parameters_url": parameters_file,
-        "parameters_hash": parameters_hash,
         "image_hash": image_hash,
         "additional_files_tarball_url": additional_file,
         "additional_files_tarball_hash": additional_hash,
         "state": "OPERATION" if operational else "DEVELOPMENT",
     }
-    SubmitCube.run(mlcube_info, decryption_key=decryption_key)
+    SubmitCube.run(
+        mlcube_info,
+        container_config=container_config_file,
+        parameters_config=parameters_file,
+        decryption_key=decryption_key,
+    )
     config.ui.print("✅ Done!")
 
 

@@ -66,6 +66,36 @@ def run(
             " Optional. Defaults to benchmark evaluator."
         ),
     ),
+    data_prep_parameters: str = typer.Option(
+        None,
+        "--data_preparator_parameters",
+        help="local path to the data preparation parameters config file.",
+    ),
+    model_parameters: str = typer.Option(
+        None,
+        "--model_parameters",
+        help="local path to the model parameters config file.",
+    ),
+    evaluator_parameters: str = typer.Option(
+        None,
+        "--evaluator_parameters",
+        help="local path to the evaluator parameters config file.",
+    ),
+    data_prep_additional: str = typer.Option(
+        None,
+        "--data_preparator_additional_files",
+        help="local path to the data preparation additional files.",
+    ),
+    model_additional: str = typer.Option(
+        None,
+        "--model_additional_files",
+        help="local path to the model additional files.",
+    ),
+    evaluator_additional: str = typer.Option(
+        None,
+        "--evaluator_additional_files",
+        help="local path to the evaluator additional files.",
+    ),
     no_cache: bool = typer.Option(
         False, "--no-cache", help="Execute the test even if results already exist"
     ),
@@ -115,6 +145,12 @@ def run(
         skip_data_preparation_step=skip_data_preparation_step,
         use_local_model_image=use_local_model_image,
         model_decryption_key=model_decryption_key,
+        data_prep_parameters=data_prep_parameters,
+        model_parameters=model_parameters,
+        evaluator_parameters=evaluator_parameters,
+        data_prep_additional=data_prep_additional,
+        model_additional=model_additional,
+        evaluator_additional=evaluator_additional,
     )
     config.ui.print("✅ Done!")
 
