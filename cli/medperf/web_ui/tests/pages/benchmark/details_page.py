@@ -44,9 +44,10 @@ class BenchmarkDetailsPage(BasePage):
     def __view_result(self, result_btn):
         self.ensure_element_ready(result_btn)
         result_btn.click()
-        view_modal = self.find(self.RESULT_MODAL)
+        view_modal = self.find(self.PAGE_MODAL)
         self.wait_for_visibility_element(view_modal)
         view_modal.find_element(*self.CLOSE_BTN).click()
+        self.wait_for_invisibility_element(view_modal)
 
     def view_results(self):
         self.click(self.RESULTS_TITLE)

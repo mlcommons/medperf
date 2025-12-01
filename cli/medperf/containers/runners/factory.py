@@ -19,7 +19,7 @@ def load_runner(container_config_parser, container_files_base_path, container_na
     if config.platform == "docker":
         return DockerRunner(container_config_parser)
     if config.platform == "singularity":
-        return SingularityRunner(container_config_parser, container_files_base_path)
+        return SingularityRunner(container_config_parser)
 
     # TODO: this check should happen at the beginning of any command
     raise InvalidArgumentError(f"Invalid container platform: {config.platform}")

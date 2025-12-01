@@ -1,8 +1,11 @@
 
 function onMedperfLoginSuccess(response){
     if(response.status === "success"){
-        showReloadModal("Successfully Logged In");
-        timer(1, "/");
+        showReloadModal({
+            title: "Successfully Logged In",
+            seconds: 1,
+            url:"/"
+        });
     }
     else{
         showErrorModal("Login Failed", response);
@@ -36,7 +39,7 @@ function checkLoginFormValidity() {
 $(document).ready(() => {
     $("#medperf-login-btn").on("click", (e) => {
         let email =  $("#medperf-login-form input").val()
-        showConfirmModal(e.currentTarget, medperfLogin, `want to login as <strong>${email}</strong> ?`);
+        showConfirmModal(e.currentTarget, medperfLogin, `login as <strong>${email}</strong> ?`);
     });
 
     $("#medperf-login-form input").on("keyup", checkLoginFormValidity);

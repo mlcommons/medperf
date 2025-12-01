@@ -5,12 +5,13 @@ from pydantic import Field
 
 from medperf.entities.interface import Entity
 from medperf.entities.schemas import DeployableSchema
-from medperf.exceptions import InvalidEntityError
+from medperf.exceptions import InvalidEntityError, MedperfException
 import medperf.config as config
 from medperf.comms.entity_resources import resources
 from medperf.account_management import get_medperf_user_data, is_user_logged_in
 from medperf.containers.runners import load_runner
 from medperf.containers.parsers import load_parser
+import yaml
 from medperf.utils import (
     generate_tmp_path,
     remove_path,
@@ -30,13 +31,11 @@ class Cube(Entity, DeployableSchema):
     with standard metadata and a consistent file-system level interface.
     """
 
-    git_mlcube_url: str
-    mlcube_hash: Optional[str] = None
-    git_parameters_url: Optional[str] = None
-    parameters_hash: Optional[str] = None
+    container_config: dict
+    parameters_config: Optional[dict] = Field(default_factory=dict)
     image_tarball_url: Optional[str] = None
     image_tarball_hash: Optional[str] = None
-    image_hash: Optional[dict] = Field(default_factory=dict)
+    image_hash: Optional[str] = None
     additional_files_tarball_url: Optional[str] = Field(None, alias="tarball_url")
     additional_files_tarball_hash: Optional[str] = Field(None, alias="tarball_hash")
     metadata: dict = Field(default_factory=dict)
@@ -70,13 +69,9 @@ class Cube(Entity, DeployableSchema):
         """
         super().__init__(*args, **kwargs)
 
-        self.cube_path = os.path.join(self.path, config.cube_filename)
-        self.params_path = None
-        self.additiona_files_folder_path = None
-        self.params_path = os.path.join(
-            self.path, config.workspace_path, config.params_filename
-        )
-        self.additiona_files_folder_path = os.path.join(
+        # Note: the paths can be arbitrary
+        self.params_path = os.path.join(self.path, config.params_filename)
+        self.additional_files_folder_path = os.path.join(
             self.path, config.additional_path
         )
         self._parser = None
@@ -85,7 +80,7 @@ class Cube(Entity, DeployableSchema):
     @property
     def parser(self):
         if self._parser is None:
-            self._parser = load_parser(self.cube_path)
+            self._parser = load_parser(self.container_config)
         return self._parser
 
     @property
@@ -142,23 +137,17 @@ class Cube(Entity, DeployableSchema):
         cube = super().get(cube_uid, local_only)
         if not cube.is_valid and valid_only:
             raise InvalidEntityError("The requested container is marked as INVALID.")
-        cube.download_config_files()
         return cube
 
-    def download_mlcube(self):
-        url = self.git_mlcube_url
-        path, file_hash = resources.get_cube(url, self.path, self.mlcube_hash)
-        self.cube_path = path
-        self.mlcube_hash = file_hash
-
-    def download_parameters(self):
-        url = self.git_parameters_url
-        if url:
-            path, file_hash = resources.get_cube_params(
-                url, self.path, self.parameters_hash
+    def prepare_parameters_file(self):
+        if self.parameters_config is None:
+            raise MedperfException(
+                "Prepare parameters file called but no parameters set"
             )
-            self.params_path = path
-            self.parameters_hash = file_hash
+        logging.debug(f"Writing parameters to file: {self.params_path}")
+        with open(self.params_path, "w") as f:
+            yaml.safe_dump(self.parameters_config, f)
+        return self.params_path
 
     def download_additional(self):
         url = self.additional_files_tarball_url
@@ -166,19 +155,8 @@ class Cube(Entity, DeployableSchema):
             path, file_hash = resources.get_cube_additional(
                 url, self.path, self.additional_files_tarball_hash
             )
-            self.additiona_files_folder_path = path
+            self.additional_files_folder_path = path
             self.additional_files_tarball_hash = file_hash
-
-    def download_config_files(self):
-        try:
-            self.download_mlcube()
-        except InvalidEntityError as e:
-            raise InvalidEntityError(f"Container {self.name} config file: {e}")
-
-        try:
-            self.download_parameters()
-        except InvalidEntityError as e:
-            raise InvalidEntityError(f"Container {self.name} parameters file: {e}")
 
     def download_run_files(self):
         try:
@@ -186,15 +164,11 @@ class Cube(Entity, DeployableSchema):
         except InvalidEntityError as e:
             raise InvalidEntityError(f"Container {self.name} additional files: {e}")
 
-        alternative_image_hash = None
-        if self.metadata is not None:
-            alternative_image_hash = self.metadata.get("digest", None)
         try:
             self.image_hash = self.runner.download(
                 hashes_dict=self.image_hash,
                 download_timeout=config.mlcube_configure_timeout,
                 get_hash_timeout=config.mlcube_inspect_timeout,
-                alternative_image_hash=alternative_image_hash,
             )
         except InvalidEntityError as e:
             raise InvalidEntityError(f"Container {self.name} image: {e}")
@@ -204,15 +178,26 @@ class Cube(Entity, DeployableSchema):
         task: str,
         output_logs: str = None,
         timeout: int = None,
-        mounts: dict = {},
-        env: dict = {},
-        ports: list = [],
+        mounts: dict = None,
+        env: dict = None,
+        ports: list = None,
         disable_network: bool = True,
     ):
-        os.makedirs(self.additiona_files_folder_path, exist_ok=True)
+        if mounts is None:
+            mounts = {}
+
+        if env is None:
+            env = {}
+
+        if ports is None:
+            ports = []
+
+        os.makedirs(self.additional_files_folder_path, exist_ok=True)
+        if self.parameters_config is not None:
+            self.prepare_parameters_file()
         extra_mounts = {
             "parameters_file": self.params_path,
-            "additional_files": self.additiona_files_folder_path,
+            "additional_files": self.additional_files_folder_path,
         }
 
         extra_env = {}
@@ -314,7 +299,6 @@ class Cube(Entity, DeployableSchema):
         return {
             "UID": self.identifier,
             "Name": self.name,
-            "Config File": self.git_mlcube_url,
             "State": self.state,
             "Created At": self.created_at,
             "Registered": self.is_registered,

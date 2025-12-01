@@ -99,11 +99,21 @@ def test_current_user_certificate_status(
     mocker.patch(PATCH_STATUS.format("get_pki_assets_path"), return_value=local_path)
     if local_exists:
         fs.create_dir(local_path)
+        fs.create_file(
+            os.path.join(local_path, config.private_key_file), contents=b"private-key"
+        )
+        fs.create_file(
+            os.path.join(local_path, config.certificate_file), contents=b"abc"
+        )
         if remote_exists and local_matches:
+            if os.path.exists(os.path.join(local_path, config.certificate_file)):
+                fs.remove(os.path.join(local_path, config.certificate_file))
             fs.create_file(
                 os.path.join(local_path, config.certificate_file), contents=b"abc"
             )
         elif remote_exists and not local_matches:
+            if os.path.exists(os.path.join(local_path, config.certificate_file)):
+                fs.remove(os.path.join(local_path, config.certificate_file))
             fs.create_file(
                 os.path.join(local_path, config.certificate_file), contents=b"xyz"
             )

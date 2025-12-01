@@ -2,8 +2,11 @@
 function onBenchmarkRegisterSuccess(response){
     markAllStagesAsComplete();
     if(response.status === "success"){
-        showReloadModal("Benchmark Successfully Registered");
-        timer(3, "/benchmarks/ui/display/"+response.benchmark_id);
+        showReloadModal({
+            title: "Benchmark Successfully Registered",
+            seconds: 3,
+            url: "/benchmarks/ui/display/"+response.benchmark_id
+        });
     }
     else{
         showErrorModal("Benchmark Registration Failed", response);

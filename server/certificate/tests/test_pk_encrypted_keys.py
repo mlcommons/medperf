@@ -30,10 +30,14 @@ class CertificateTest(MedPerfTest):
 
         # create container mlcubes for encrypted keys (owned by key_owner)
         self.set_credentials(key_owner)
-        container1 = self.mock_mlcube(name="container1", mlcube_hash="container1hash")
+        container1 = self.mock_mlcube(
+            name="container1", container_config={"container1hash": "value"}
+        )
         container1 = self.create_mlcube(container1).data
 
-        container2 = self.mock_mlcube(name="container2", mlcube_hash="container2hash")
+        container2 = self.mock_mlcube(
+            name="container2", container_config={"container2hash": "value"}
+        )
         container2 = self.create_mlcube(container2).data
 
         # create encrypted keys for the certificate (owned by key_owner)
@@ -109,7 +113,9 @@ class CertificateEncryptedKeysGetTest(CertificateTest):
 
         # Create a key for the other certificate (by key_owner)
         self.set_credentials(self.key_owner)
-        container3 = self.mock_mlcube(name="container3", mlcube_hash="container3hash")
+        container3 = self.mock_mlcube(
+            name="container3", container_config={"container3hash": "value"}
+        )
         container3 = self.create_mlcube(container3).data
 
         key3 = self.mock_encrypted_key(

@@ -9,10 +9,8 @@ class TestCube(Cube):
     __test__ = False
     id: Optional[int] = 1
     name: str = "name"
-    git_mlcube_url: str = "https://test.com/mlcube.yaml"
-    mlcube_hash: Optional[str] = EMPTY_FILE_HASH
-    git_parameters_url: Optional[str] = "https://test.com/parameters.yaml"
-    parameters_hash: Optional[str] = EMPTY_FILE_HASH
+    container_config: dict = {"key": "value"}
+    parameters_config: Optional[dict] = {"parameter": "value"}
     image_tarball_url: Optional[str] = "https://test.com/image.tar.gz"
     image_tarball_hash: Optional[str] = EMPTY_FILE_HASH
     additional_files_tarball_url: Optional[str] = (

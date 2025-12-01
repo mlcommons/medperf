@@ -6,10 +6,10 @@ from fastapi import HTTPException, Security
 from fastapi.security import APIKeyCookie, APIKeyHeader
 from fastapi.templating import Jinja2Templates
 from importlib import resources
+from urllib.parse import urlparse
 
 from fastapi.requests import Request
 from medperf import config
-from medperf.entities.cube import Cube
 from starlette.responses import RedirectResponse
 from medperf.utils import parse_datetime
 
@@ -20,12 +20,14 @@ from medperf.web_ui.auth import (
     API_KEY_NAME,
     NotAuthenticatedException,
 )
-import uuid
 
-from medperf.account_management.account_management import read_user_account
-from medperf.web_ui.schemas import Notification, WebUITask
+from medperf.account_management.account_management import (
+    get_medperf_user_data,
+    read_user_account,
+)
+from medperf.web_ui.schemas import WebUITask
 
-import yaml
+from medperf.web_ui.utils import generate_uuid
 
 templates_folder_path = Path(resources.files("medperf.web_ui")) / "templates"
 templates = Jinja2Templates(directory=templates_folder_path)
@@ -35,28 +37,10 @@ logger = logging.getLogger(__name__)
 ALLOWED_PATHS = ["/events", "/notifications", "/current_task", "/fetch-yaml"]
 
 
-def get_container_type(container: Cube):
-    with open(container.cube_path, "r") as f:
-        yaml_data = yaml.safe_load(f.read())
-    container_tasks = yaml_data.get("tasks", []).keys()
-    if "prepare" in container_tasks and "sanity_check" in container_tasks:
-        return "data-prep-container"
-    elif "infer" in container_tasks:
-        return "reference-container"
-    elif "evaluate" in container_tasks:
-        return "metrics-container"
-    else:
-        return "unknown-container"
-
-
-def generate_uuid():
-    return str(uuid.uuid4())
-
-
 def initialize_state_task(request: Request, task_name: str) -> str:
     form_data = dict(anyio.from_thread.run(lambda: request.form()))
     new_task_id = generate_uuid()
-    config.ui.start_task(new_task_id, request)
+    config.ui.start_task(new_task_id)
     request.app.state.task = WebUITask(
         id=new_task_id, name=task_name, running=True, formData=form_data
     )
@@ -73,20 +57,6 @@ def reset_state_task(request: Request):
     request.app.state.old_tasks.append(current_task)
     request.app.state.task = WebUITask()
     request.app.state.task_running = False
-
-
-def add_notification(
-    request: Request, message: str, return_response: dict, url: str = ""
-):
-    if return_response["status"] == "failed":
-        message += f": {return_response['error']}"
-    notification = Notification(
-        id=generate_uuid(),
-        message=message,
-        type=return_response["status"],
-        url=url,
-    )
-    request.app.state.new_notifications.append(notification)
 
 
 def custom_exception_handler(request: Request, exc: Exception):
@@ -140,23 +110,22 @@ def is_logged_in():
 
 
 def process_notifications(request: Request):
-    if request.app.state.new_notifications:
-        request.app.state.notifications.extend(request.app.state.new_notifications)
-        request.app.state.new_notifications.clear()
-
-    unread_count = 0
-    if request.app.state.notifications:
-        unread_count = len([i for i in request.app.state.notifications if not i.read])
-
-    request.app.state.unread_count = unread_count
+    request.app.state.notifications = config.ui.get_all_notifications()
+    request.app.state.unread_count = config.ui.get_unread_notifications_count()
 
 
 def check_user_ui(
     request: Request,
     token: str = Security(api_key_cookie),
 ):
-    request.app.state.logged_in = is_logged_in()
+    logged_in = is_logged_in()
+    request.app.state.logged_in = logged_in
+    request.app.state.user_email = (
+        get_medperf_user_data().get("email") if logged_in else None
+    )
     process_notifications(request)
+    if not request.app.state.task_running:
+        request.app.state.global_events = config.ui.get_all_global_events()
 
     if token == security_token:
         return True
@@ -182,3 +151,12 @@ def check_user_api(
         return True
 
     raise HTTPException(status_code=401, detail="Not authorized")
+
+
+def sanitize_redirect_url(url: str, fallback: str = "/") -> bool:
+    """Validate that the URL is a relative path or matches allowed hosts."""
+    normalized_url = url.replace("\\", "")  # Normalize backslashes
+    parsed = urlparse(normalized_url)
+    if not parsed.netloc and not parsed.scheme:
+        return normalized_url
+    return fallback

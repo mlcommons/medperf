@@ -1,11 +1,13 @@
-#! /bin/bash
-while getopts s:d:c:ft::p flag; do
+#! /bin/sh
+while getopts s:d:c:ft:rl::p flag; do
   case "${flag}" in
   s) SERVER_URL=${OPTARG} ;;
   d) DIRECTORY=${OPTARG} ;;
   c) CLEANUP="true" ;;
   f) FRESH="true" ;;
   t) TIMEOUT=${OPTARG} ;;
+  r) RESUME_TEST="true" ;;
+  l) TEST_FROM_LINE=${OPTARG} ;;
   p) PRIVATE="true" ;;
   esac
 done
@@ -13,23 +15,38 @@ done
 SERVER_URL="${SERVER_URL:-https://localhost:8000}"
 DIRECTORY="${DIRECTORY:-/tmp/medperf_test_files}"
 CLEANUP="${CLEANUP:-false}"
+RESUME_TEST="${RESUME_TEST:-false}"
 FRESH="${FRESH:-false}"
 PRIVATE="${PRIVATE:-false}" # Include private model in cli_chestxray_tutorial_test
 OS=$(uname)
 
-TEST_ROOT="/tmp/medperf_tests_$(date +%Y%m%d%H%M%S)"
-export MEDPERF_CONFIG_PATH="$TEST_ROOT/config.yaml" # env var
+# if resume test, read the test root from local file
+if "${RESUME_TEST}"; then
+  if [ -f "$(dirname $(realpath "$0"))/last_test_root.sh" ]; then
+    . "$(dirname $(realpath "$0"))/last_test_root.sh"
+    echo "Resuming test with test root: $TEST_ROOT"
+  else
+    echo "No last_test_root.sh file found to resume test"
+    exit 1
+  fi
+else
+  TEST_ROOT="/tmp/medperf_tests_$(date +%Y%m%d%H%M%S)"
+  echo "TEST_ROOT=$TEST_ROOT" >"$(dirname $(realpath "$0"))/last_test_root.sh"
+fi
+export MEDPERF_CONFIG_STORAGE="$TEST_ROOT/medperf_config"
+MEDPERF_CONFIG_PATH="$MEDPERF_CONFIG_STORAGE/config.yaml" # env var
 MEDPERF_STORAGE="$TEST_ROOT/storage"
 SNAPSHOTS_FOLDER=$TEST_ROOT/snapshots
 
+MEDPERF_ROOT_REPO="$(dirname $(dirname $(realpath "$0")))"
 MEDPERF_LOG_PATH=~/.medperf_logs/medperf.log
 SERVER_STORAGE_ID="$(echo $SERVER_URL | cut -d '/' -f 3 | sed -e 's/[.:]/_/g')"
 TIMEOUT="${TIMEOUT:-30}"
 VERSION_PREFIX="/api/v0"
-LOGIN_SCRIPT="$(dirname $(realpath "$0"))/auto_login.sh"
-ADMIN_LOGIN_SCRIPT="$(dirname $(dirname $(realpath "$0")))/server/auth_provider_token.py"
-MOCK_TOKENS_FILE="$(dirname $(dirname $(realpath "$0")))/mock_tokens/tokens.json"
-SQLITE3_FILE="$(dirname $(dirname $(realpath "$0")))/server/db.sqlite3"
+LOGIN_SCRIPT="$MEDPERF_ROOT_REPO/cli/auto_login.sh"
+ADMIN_LOGIN_SCRIPT="$MEDPERF_ROOT_REPO/server/auth_provider_token.py"
+MOCK_TOKENS_FILE="$MEDPERF_ROOT_REPO/mock_tokens/tokens.json"
+SQLITE3_FILE="$MEDPERF_ROOT_REPO/server/db.sqlite3"
 echo "Server URL: $SERVER_URL"
 
 print_eval() {
@@ -88,47 +105,50 @@ fi
 ##########################################################
 ########################## Setup #########################
 ##########################################################
-ASSETS_URL="https://raw.githubusercontent.com/hasan7n/mockcube/04118b14049c4a421511bb02ddbd591fdc754981"
-CHESTXRAY_ASSETS_URL="https://raw.githubusercontent.com/RodriguesRBruno/medperf/0f1113bca1c2eef6a3c40b83032a9982b008effd/examples/chestxray_tutorial"
 
 # datasets
-DSET_A_URL="$ASSETS_URL/assets/datasets/dataset_a.tar.gz"
-DSET_B_URL="${ASSETS_URL}/assets/datasets/dataset_b.tar.gz"
-DSET_C_URL="${ASSETS_URL}/assets/datasets/dataset_c.tar.gz"
-DEMO_URL="${ASSETS_URL}/assets/datasets/demo_dset1.tar.gz"
+DSET_A_URL="https://storage.googleapis.com/medperf-storage/medperf-integration-tests-mock-containers/dataset_a.tar.gz"
+DSET_B_URL="https://storage.googleapis.com/medperf-storage/medperf-integration-tests-mock-containers/dataset_b.tar.gz"
+DSET_C_URL="https://storage.googleapis.com/medperf-storage/medperf-integration-tests-mock-containers/dataset_c.tar.gz"
+DEMO_URL="https://storage.googleapis.com/medperf-storage/medperf-integration-tests-mock-containers/demo_dset1.tar.gz"
 
 # prep cubes
-PREP_MLCUBE="$ASSETS_URL/prep-sep/container_config.yaml"
-PREP_PARAMS="$ASSETS_URL/prep-sep/workspace/parameters.yaml"
-PREP_TRAINING_MLCUBE="https://storage.googleapis.com/medperf-storage/testfl/mlcube.yaml"
+PREP_MLCUBE="$MEDPERF_ROOT_REPO/examples/tests/prep-sep/container_config.yaml"
+PREP_PARAMS="$MEDPERF_ROOT_REPO/examples/tests/prep-sep/workspace/parameters.yaml"
+PREP_TRAINING_MLCUBE="$MEDPERF_ROOT_REPO/examples/fl/prep/container_config.yaml"
 
 # model cubes
-FAILING_MODEL_MLCUBE="$ASSETS_URL/model-bug/mlcube/mlcube.yaml" # doesn't fail with association
-MODEL_WITH_SINGULARITY="$ASSETS_URL/model-cpu/container_config_as_singularity.yaml"
-MODEL_MLCUBE="$ASSETS_URL/model-cpu/container_config_as_docker.yaml"
-MODEL_ARCHIVE_MLCUBE="$ASSETS_URL/model-cpu/container_config_as_docker_archive.yaml"
-MODEL_ENCRYPTED_ARCHIVE_MLCUBE="$ASSETS_URL/model-cpu/container_config_as_encrypted_docker_archive.yaml"
-MODEL_ENCRYPTED_SINGULARITY_MLCUBE="$ASSETS_URL/model-cpu/container_config_as_encrypted_singularity.yaml"
-MODEL_ADD="$ASSETS_URL/assets/weights/weights1.tar.gz"
+FAILING_MODEL_MLCUBE="$MEDPERF_ROOT_REPO/examples/tests/model-bug/container_config.yaml" # doesn't fail with association
+MODEL_WITH_SINGULARITY="$MEDPERF_ROOT_REPO/examples/tests/model-cpu/container_config_as_singularity.yaml"
+MODEL_MLCUBE="$MEDPERF_ROOT_REPO/examples/tests/model-cpu/container_config_as_docker.yaml"
+MODEL_ARCHIVE_MLCUBE="$MEDPERF_ROOT_REPO/examples/tests/model-cpu/container_config_as_docker_archive.yaml"
+MODEL_ENCRYPTED_ARCHIVE_MLCUBE="$MEDPERF_ROOT_REPO/examples/tests/model-cpu/container_config_as_encrypted_docker_archive.yaml"
+MODEL_ENCRYPTED_SINGULARITY_MLCUBE="$MEDPERF_ROOT_REPO/examples/tests/model-cpu/container_config_as_encrypted_singularity.yaml"
 
-MODEL1_PARAMS="$ASSETS_URL/model-cpu/workspace/parameters1.yaml"
-MODEL2_PARAMS="$ASSETS_URL/model-cpu/workspace/parameters2.yaml"
-MODEL3_PARAMS="$ASSETS_URL/model-cpu/workspace/parameters3.yaml"
-MODEL4_PARAMS="$ASSETS_URL/model-cpu/workspace/parameters4.yaml"
+MODEL_ADD="https://storage.googleapis.com/medperf-storage/medperf-integration-tests-mock-containers/weights1.tar.gz"
+
+MODEL1_PARAMS="$MEDPERF_ROOT_REPO/examples/tests/model-cpu/workspace/parameters1.yaml"
+MODEL2_PARAMS="$MEDPERF_ROOT_REPO/examples/tests/model-cpu/workspace/parameters2.yaml"
+MODEL3_PARAMS="$MEDPERF_ROOT_REPO/examples/tests/model-cpu/workspace/parameters3.yaml"
+MODEL4_PARAMS="$MEDPERF_ROOT_REPO/examples/tests/model-cpu/workspace/parameters4.yaml"
 
 # chestxray tutorial models
-CHESTXRAY_ENCRYPTED_MODEL="$CHESTXRAY_ASSETS_URL/model_custom_cnn_encrypted/container_config.yaml"
-CHESTXRAY_ENCRYPTED_MODEL_PARAMS="$CHESTXRAY_ASSETS_URL/model_custom_cnn_encrypted/workspace/parameters.yaml"
+CHESTXRAY_ENCRYPTED_MODEL="$MEDPERF_ROOT_REPO/examples/chestxray_tutorial/model_custom_cnn_encrypted/container_config.yaml"
+CHESTXRAY_ENCRYPTED_MODEL_PARAMS="$MEDPERF_ROOT_REPO/examples/chestxray_tutorial/model_custom_cnn_encrypted/workspace/parameters.yaml"
 CHESTXRAY_ENCRYPTED_MODEL_ADD="https://storage.googleapis.com/medperf-storage/chestxray_tutorial/cnn_weights.tar.gz"
 
 # metrics cubes
-METRIC_MLCUBE="$ASSETS_URL/metrics/container_config.yaml"
-METRIC_PARAMS="$ASSETS_URL/metrics/workspace/parameters.yaml"
+METRIC_MLCUBE="$MEDPERF_ROOT_REPO/examples/tests/metrics/container_config.yaml"
+METRIC_PARAMS="$MEDPERF_ROOT_REPO/examples/tests/metrics/workspace/parameters.yaml"
 
 # FL cubes
-TRAIN_MLCUBE="https://raw.githubusercontent.com/hasan7n/medperf/19c80d88deaad27b353d1cb9bc180757534027aa/examples/fl/fl/mlcube/mlcube.yaml"
+TRAIN_MLCUBE="$MEDPERF_ROOT_REPO/examples/fl/fl/container_config.yaml"
 TRAIN_WEIGHTS="https://storage.googleapis.com/medperf-storage/testfl/init_weights_miccai.tar.gz"
-FLADMIN_MLCUBE="https://raw.githubusercontent.com/hasan7n/medperf/bc431ffe6c3b761b28674816e6f26511e8b27042/examples/fl/fl_admin/mlcube/mlcube.yaml"
+FLADMIN_MLCUBE="$MEDPERF_ROOT_REPO/examples/fl/fl_admin/container_config.yaml"
+
+# Containers decryption keys
+DOCKER_DECRYPTION_KEY="$MEDPERF_ROOT_REPO/examples/tests/assets/docker_decryption_key.bin"
+SINGULARITY_DECRYPTION_KEY="$MEDPERF_ROOT_REPO/examples/tests/assets/singularity_decryption_key.bin"
 
 # test users credentials
 MODELOWNER="testmo@example.com"
@@ -141,12 +161,12 @@ FLADMIN="testfladmin@example.com"
 PRIVATEMODELOWNER="testpo@example.com"
 
 # local MLCubes for local compatibility tests
-PREP_LOCAL="$(dirname $(dirname $(realpath "$0")))/examples/chestxray_tutorial/data_preparator"
-MODEL_LOCAL="$(dirname $(dirname $(realpath "$0")))/examples/chestxray_tutorial/model_custom_cnn"
-METRIC_LOCAL="$(dirname $(dirname $(realpath "$0")))/examples/chestxray_tutorial/metrics"
-PRIVATE_MODEL_LOCAL="$(dirname $(dirname $(realpath "$0")))/examples/chestxray_tutorial/model_custom_cnn_encrypted"
+PREP_LOCAL="$MEDPERF_ROOT_REPO/examples/chestxray_tutorial/data_preparator"
+MODEL_LOCAL="$MEDPERF_ROOT_REPO/examples/chestxray_tutorial/model_custom_cnn"
+METRIC_LOCAL="$MEDPERF_ROOT_REPO/examples/chestxray_tutorial/metrics"
+PRIVATE_MODEL_LOCAL="$MEDPERF_ROOT_REPO/examples/chestxray_tutorial/model_custom_cnn_encrypted"
 
-TRAINING_CONFIG="$(dirname $(dirname $(realpath "$0")))/examples/fl/fl/mlcube/workspace/training_config.yaml"
+TRAINING_CONFIG="$MEDPERF_ROOT_REPO/examples/fl/fl/workspace/training_config.yaml"
 # create storage folders
 mkdir -p "$TEST_ROOT"
 mkdir -p "$MEDPERF_STORAGE"
@@ -162,6 +182,27 @@ echo "creating config at $MEDPERF_CONFIG_PATH"
 print_eval medperf profile ls
 checkFailed "Creating config failed"
 
-echo "Moving storage setting to a new folder: ${MEDPERF_STORAGE}"
-python $(dirname $(realpath "$0"))/cli_tests_move_storage.py $MEDPERF_CONFIG_PATH $MEDPERF_STORAGE
-checkFailed "Moving storage failed"
+# for test resuming
+LAST_ENV_FILE="$(dirname $(realpath "$0"))/last_env.sh"
+touch "$LAST_ENV_FILE"
+
+if ! "${RESUME_TEST}"; then
+  echo "Moving storage setting to a new folder: ${MEDPERF_STORAGE}"
+  python $MEDPERF_ROOT_REPO/cli/cli_tests_move_storage.py $MEDPERF_CONFIG_PATH $MEDPERF_STORAGE
+  checkFailed "Moving storage failed"
+else
+  if [ -z "$TEST_FROM_LINE" ]; then
+      echo "No line number provided to continue from"
+  else
+    TMP_TEST_FILE="$(dirname $(realpath "$0"))/tmp_test.sh"
+    echo '. "$(dirname $(realpath "$0"))/tests_setup.sh"' > "$TMP_TEST_FILE"
+    cat "$LAST_ENV_FILE" >> "$TMP_TEST_FILE"
+    echo >> "$TMP_TEST_FILE"
+    tail -n +$TEST_FROM_LINE "$0" >> "$TMP_TEST_FILE"
+    echo >> "$TMP_TEST_FILE"
+    echo "Continuing test from line $TEST_FROM_LINE"
+    sh "$TMP_TEST_FILE" -r
+    exit $?
+  fi
+fi
+

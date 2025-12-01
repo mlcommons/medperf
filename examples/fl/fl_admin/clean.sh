@@ -1,2 +1,2 @@
-rm -rf mlcube_admin/workspace/status
-rm -rf mlcube_admin/workspace/tmp
+rm -rf workspace_admin/status
+rm -rf workspace_admin/tmp

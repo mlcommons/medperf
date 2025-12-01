@@ -71,11 +71,12 @@ class GrantAccess:
             self.allowed_emails = validate_and_normalize_emails(self.allowed_emails)
 
     def verify_certificate_authority(self):
-        config.ui.print("Verifying Certificate Authority")
         ca = CA.get(uid=config.certificate_authority_id)
-        verify_certificate_authority(
-            ca, expected_fingerprint=config.certificate_authority_fingerprint
-        )
+        with config.ui.interactive():
+            config.ui.text = "Verifying Certificate Authority"
+            verify_certificate_authority(
+                ca, expected_fingerprint=config.certificate_authority_fingerprint
+            )
 
     def prepare_certificates_list(self):
         config.ui.print("Getting Data Owner Certificates")

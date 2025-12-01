@@ -70,8 +70,8 @@ class MlCubePostTest(MlCubeTest):
         [
             ("image_hash",),
             ("additional_files_tarball_hash",),
-            ("mlcube_hash",),
-            ("parameters_hash",),
+            ("container_config",),
+            ("parameters_config",),
             (None,),
         ]
     )
@@ -102,8 +102,8 @@ class MlCubePostTest(MlCubeTest):
         [
             ("image_tarball_hash",),
             ("additional_files_tarball_hash",),
-            ("mlcube_hash",),
-            ("parameters_hash",),
+            ("container_config",),
+            ("parameters_config",),
             (None,),
         ]
     )
@@ -140,7 +140,6 @@ class MlCubePostTest(MlCubeTest):
             "is_valid": True,
             "metadata": {},
             "user_metadata": {},
-            "git_parameters_url": "",
             "image_tarball_url": "",
             "additional_files_tarball_url": "",
         }
@@ -152,7 +151,6 @@ class MlCubePostTest(MlCubeTest):
         # in order to allow empty urls
         testmlcube.update(
             {
-                "parameters_hash": "",
                 "image_tarball_hash": "",
                 "additional_files_tarball_hash": "",
             }
@@ -187,24 +185,6 @@ class MlCubePostTest(MlCubeTest):
             self.assertNotEqual(
                 val, response.data[key], f"readonly field {key} was modified"
             )
-
-    @parameterized.expand([(True,), (False,)])
-    def test_parameters_file_should_have_a_hash(self, url_provided):
-        """Testing the serializer rules"""
-        # Arrange
-        testmlcube = self.mock_mlcube(parameters_hash="")
-        if not url_provided:
-            testmlcube["git_parameters_url"] = ""
-
-        # Act
-        response = self.client.post(self.url, testmlcube, format="json")
-
-        # Assert
-        if not url_provided:
-            exp_status = status.HTTP_201_CREATED
-        else:
-            exp_status = status.HTTP_400_BAD_REQUEST
-        self.assertEqual(response.status_code, exp_status)
 
     @parameterized.expand([(True,), (False,)])
     def test_additional_files_should_have_a_hash(self, url_provided):

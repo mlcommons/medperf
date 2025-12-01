@@ -1,10 +1,23 @@
 from medperf import config
 from medperf.entities.certificate import Certificate
-from medperf.utils import get_pki_assets_path
+from medperf.utils import get_pki_assets_path, remove_path
 from medperf.account_management import get_medperf_user_data
 import os
 import base64
 import logging
+
+
+def _check_and_clean_certificate_corruption(local_cert_folder):
+    private_key_path = os.path.join(local_cert_folder, config.private_key_file)
+    certificate_path = os.path.join(local_cert_folder, config.certificate_file)
+
+    private_key_exists = os.path.exists(private_key_path)
+    certificate_exists = os.path.exists(certificate_path)
+
+    certificate_corrupted = not private_key_exists or not certificate_exists
+
+    if certificate_corrupted:
+        remove_path(local_cert_folder, sensitive=True)
 
 
 def current_user_certificate_status():
@@ -34,6 +47,9 @@ def current_user_certificate_status():
     # Get local certificate folder
     email = get_medperf_user_data()["email"]
     local_cert_folder = get_pki_assets_path(email, config.certificate_authority_id)
+
+    # If certificate is corrupted, delete the certificate folder
+    _check_and_clean_certificate_corruption(local_cert_folder)
 
     # Check
     exists_locally = os.path.exists(local_cert_folder)

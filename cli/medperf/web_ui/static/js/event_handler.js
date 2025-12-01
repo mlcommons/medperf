@@ -70,12 +70,12 @@ function handleEvents(event, logPanel, stagesList, currentStageElement) {
                 markStageAsComplete(currentStageElement);
             
             currentStageElement = addNewStage(cleanMessage, stagesList);
+            return currentStageElement;
         }
-        else{
+        else if (event.type === 'print'){
             appendToLogPanel(cleanMessage, logPanel);
-        }
-
-        return currentStageElement;
+            return currentStageElement;
+        }        
     }
 
     if(event.type === "yaml")
@@ -145,7 +145,7 @@ function handleEvents(event, logPanel, stagesList, currentStageElement) {
     }
     else if (event.type === "code"){
         const p = create_p(cleanMessage);
-        p.addClass("fs-4 fw-bold");
+        p.addClass("fs-4 fw-bold mt-4");
         $("#content").append(p);
         $("#text-content").show();
     }

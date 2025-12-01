@@ -17,7 +17,7 @@
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item dropdown">
                     <a class="nav-link me-2 cursor-pointer" href="#" role="button" id="notifiations-dropdown" data-bs-auto-close="outside" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fa fa-bell"></i>
+                        <i class="fa fa-bell {% if logged_in %} mt-2 fs-5 {% endif %}"></i>
                         <span
                             id="notifications-count"
                             class="badge rounded-pill badge-notification bg-danger {% if not unread_notifications %} d-none {% endif %}"
@@ -32,17 +32,39 @@
                     </ul>
                 </li>
                 {% if logged_in %}
-                <li class="nav-item">
-                    <button id="logout-btn" type="button" class="btn btn-default nav-link">Logout</button>
+                <li class="nav-item dropdown me-3">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button"
+                    data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-user-circle fs-1"></i>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                        <li class="dropdown-item-text text-muted small">
+                            Logged in as:<br>
+                            <strong>{{ request.app.state.user_email }}</strong>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item" href="/settings">
+                                <i class="fas fa-cog mr-2"></i> Settings
+                            </a>
+                        </li>
+                        <li>
+                            <button id="logout-btn" type="button" class="dropdown-item text-danger">
+                                <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                            </button>
+                        </li>
+                    </ul>
                 </li>
                 {% else %}
                 <li class="nav-item">
                   <a class="nav-link" href="/medperf_login">Login</a>
                 </li>
-                {% endif %}
                 <li class="nav-item">
-                    <a class="nav-link" href="/profiles">Settings</a>
+                    <a class="nav-link" href="/settings">
+                        <i class="fas fa-cog mr-2"></i> Settings
+                    </a>
                 </li>
+                {% endif %}
             </ul>
         </div>
     </nav>

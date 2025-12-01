@@ -91,7 +91,7 @@ def move_to_trash(path, sensitive=False):
         msg = "WARNING: Failed to premanently delete a sensitive file!"
         msg += " Delete the sensitive file manually as soon as possible!"
         msg += f" The file is located at {unique_path}"
-        config.ui.print_warning(msg)
+        config.ui.print_critical(msg)
 
 
 def cleanup():
@@ -326,8 +326,6 @@ def combine_proc_sp_text(proc: spawn) -> str:
     log_filter = _MLCubeOutputFilter(proc.pid)
 
     while not break_:
-        if not proc.isalive():
-            break_ = True
         try:
             line = proc.readline()
         except TIMEOUT:
@@ -337,14 +335,18 @@ def combine_proc_sp_text(proc: spawn) -> str:
         line = line.decode("utf-8", "ignore")
 
         if not line:
-            continue
-
+            if proc.isalive():
+                continue
+            else:
+                break_ = True
         # Always log each line just in case the final proc_out
         # wasn't logged for some reason
         logging.debug(line)
         proc_out += line
         if not log_filter.check_line(line):
-            ui.print(f"{Fore.WHITE}{Style.DIM}{line.strip()}{Style.RESET_ALL}")
+            ui.print_subprocess_logs(
+                f"{Fore.WHITE}{Style.DIM}{line.strip()}{Style.RESET_ALL}"
+            )
 
     logging.debug("Container process finished")
     logging.debug(proc_out)

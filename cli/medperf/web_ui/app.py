@@ -10,7 +10,6 @@ from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from medperf import config
-
 from medperf.decorators import clean_except
 from medperf.web_ui.common import custom_exception_handler
 from medperf.utils import print_webui_props
@@ -22,7 +21,7 @@ from medperf.web_ui.api.routes import router as api_router
 from medperf.web_ui.security_check import router as login_router
 from medperf.web_ui.events import router as events_router
 from medperf.web_ui.medperf_login import router as medperf_login
-from medperf.web_ui.profiles import router as profiles_router
+from medperf.web_ui.settings import router as settings_router
 from medperf.web_ui.auth import wrap_openapi, NotAuthenticatedException, security_token
 from medperf.web_ui.schemas import WebUITask
 
@@ -36,7 +35,7 @@ web_app.include_router(api_router, prefix="/api")
 web_app.include_router(login_router)
 web_app.include_router(events_router)
 web_app.include_router(medperf_login)
-web_app.include_router(profiles_router, prefix="/profiles")
+web_app.include_router(settings_router, prefix="/settings")
 
 static_folder_path = Path(resources.files("medperf.web_ui")) / "static"
 
@@ -57,8 +56,15 @@ def startup_event():
     # List of [schemas.Notification] will appear in the notifications tab
     web_app.state.notifications = []
 
-    # List of [schemas.Notification] that will be sent to the user as (popups)
-    web_app.state.new_notifications = []
+    # Container auto grant access initial values
+    web_app.state.model_auto_give_access = {
+        "running": False,
+        "worker": None,
+        "benchmark": 0,
+        "model": 0,
+        "emails": "",
+        "interval": 0,
+    }
 
     # continue setup logging
     host_props = {**web_app.state.host_props, "security_token": security_token}

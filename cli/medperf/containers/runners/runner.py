@@ -9,7 +9,6 @@ class Runner(ABC):
         hashes_dict: Dict[str, str],
         download_timeout: int = None,
         get_hash_timeout: int = None,
-        alternative_image_hash: str = None,
     ) -> Dict[str, str]:
         pass
 

@@ -235,14 +235,6 @@
 {% endif %}
 
 {{ modal_macros.add_modal(
-    modal_id="result-modal",
-    modal_class="modal-lg",
-    modal_body='<pre id="result-content" class="language-yaml"></pre>',
-    modal_footer=True,
-    close_button='<button type="button" class="btn btn-primary" data-bs-dismiss="modal" aria-label="Close">Close</button>',
-) }}
-
-{{ modal_macros.add_modal(
     modal_id="folder-picker-modal",
     modal_body='<ul id="folder-list" class="list-group"></ul>',
     modal_footer=True,

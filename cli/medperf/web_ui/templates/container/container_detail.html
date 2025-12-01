@@ -28,40 +28,26 @@
                 </p>
                 <p class="card-text">
                     <strong>Container Manifest:</strong> 
-                    <a
-                        href="{{ entity.git_mlcube_url }}"
-                        data-id="{{ entity.id }}"
-                        data-field="git_mlcube_url"
-                        data-entity="container"
-                        class="text-primary yaml-link">{{ entity.git_mlcube_url }}
-                    </a>
+                    <button
+                        data-field="Container Config"
+                        data-yaml-data='{{ entity.container_config | tojson }}'
+                        class="btn btn-link text-primary yaml-link text-decoration-underline m-0 p-0"
+                        >Click to display Container Configuration
+                    </button>
                 </p>
                 <p class="card-text">
-                    <strong>Parameters:</strong> 
-                    <a
-                        href="{{ entity.git_parameters_url }}"
-                        data-id="{{ entity.id }}"
-                        data-field="git_parameters_url"
-                        data-entity="container"
-                        class="text-primary yaml-link">
-                        {{ entity.git_parameters_url }}
-                    </a>
+                    <strong>Parameters:</strong>
+                    {% if entity.parameters_config is none %} 
+                    <span>Not Available</span>
+                    {% else %}
+                    <button
+                        data-field="Parameters"
+                        data-yaml-data='{{ entity.parameters_config | tojson }}'
+                        class="btn btn-link text-primary yaml-link text-decoration-underline m-0 p-0"
+                        >Click to display Parameters
+                    </button>
+                    {% endif %}
                 </p>
-                {% if entity.image_tarball_url %}
-                <p class="card-text">
-                    <strong>Image Tarball:</strong> 
-                    <a
-                        href="{{ entity.image_tarball_url }}"
-                        class="text-primary"
-                        target="_blank">Click to Download the File
-                    </a>
-                </p>
-                {% else %}
-                <p class="card-text">
-                    <strong>Image Tarball:</strong> 
-                    Not Available
-                </p>
-                {% endif %}
                 {% if entity.additional_files_tarball_url %}
                 <p class="card-text">
                     <strong>Additional Files:</strong> 
@@ -101,6 +87,15 @@
             </div>
         </div>
         {% if is_owner %}
+        {% if entity.is_encrypted() %}
+        <div class="p-2 card flex-row mt-5 shadow-sm rounded bg-white py-4 bottom-buttons-panel">
+            <div class="col-12 text-center">
+                    <a class="step-btn btn btn-warning" href="/containers/ui/display/{{ entity.id }}/access" data-test-id="manage-access">Manage Access</a>
+                <br>
+                <small class="step-label ms-2">Manage access permissions for this encrypted container</small>
+            </div>
+        </div>
+        {% endif %}
         <div class="p-2 card flex-row mt-5 shadow-sm rounded bg-white py-4 bottom-buttons-panel">
             <div class="col-12 text-center">
                 {% if entity.state=="OPERATION" %}

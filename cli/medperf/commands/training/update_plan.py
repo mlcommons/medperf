@@ -3,7 +3,7 @@ from medperf.account_management.account_management import get_medperf_user_data
 from medperf.entities.ca import CA
 from medperf.entities.training_exp import TrainingExp
 from medperf.entities.cube import Cube
-from medperf.utils import get_pki_assets_path, generate_tmp_path
+from medperf.utils import get_pki_assets_path
 from medperf.certificates import verify_certificate_authority
 
 
@@ -33,7 +33,6 @@ class UpdatePlan:
         self.training_exp = TrainingExp.get(self.training_exp_id)
         self.ui.print(f"Training Experiment: {self.training_exp.name}")
         self.user_email: str = get_medperf_user_data()["email"]
-        self.temp_dir = generate_tmp_path()
 
     def prepare_plan(self):
         self.training_exp.prepare_plan()
@@ -69,7 +68,6 @@ class UpdatePlan:
             "node_cert_folder": self.admin_pki_assets,
             "ca_cert_folder": self.ca.pki_assets,
             "plan_path": self.training_exp.plan_path,
-            "temp_dir": self.temp_dir,
         }
 
         self.ui.text = "Updating plan"

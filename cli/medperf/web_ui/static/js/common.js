@@ -72,16 +72,22 @@ function enableElements(selector){
     $(selector).prop("disabled", false);
 }
 
-function showReloadModal(title){
-    $("#popup-modal-title").html(title);
-    const popupModal = new bootstrap.Modal("#popup-modal", {
-        keyboard: false,
-        backdrop: "static"
-    })
-    popupModal.show();
+function showReloadModal({ title, seconds, url=null }){
+    const extra_fn = () => {
+        timer({
+            seconds: seconds,
+            url: url
+        });
+    }
+
+    showModal({
+        title: title,
+        body: '<p id="popup-text"></p>',
+        extra_func: extra_fn
+    });
 }
 
-function timer(seconds, url=null){
+function timer({seconds, url=null}){
     $("#popup-text").html(`The window will reload in <span id='timer'>${seconds}</span> ...`);
     const timerInterval = setInterval(function() {
         seconds--;
@@ -115,8 +121,8 @@ function showPanel(title){
 }
 
 function showErrorModal(errorTitle, response){
-    let responseError = response.error;
-    let responseStatus = response.status;
+    const responseError = response.error;
+    const responseStatus = response.status;
     let errorText = "";
     if (responseError){
         errorText += responseError.replace("\n", "<br>") + "<br>";
@@ -124,26 +130,55 @@ function showErrorModal(errorTitle, response){
     if (responseStatus){
         errorText += responseStatus.replace("\n", "<br>");
     }
-    $("#error-modal-title").html(errorTitle);
-    $("#error-text").html(errorText);
-    const errorModal = new bootstrap.Modal("#error-modal", {
-        keyboard: false,
-        backdrop: "static"
+
+    const modalBody = `
+        <p id="error-text" class="fs-5 text-danger fw-bold">
+            ${errorText}
+        </p>
+
+        <p class="text-end mt-3">
+            <button type="button" class="btn" onclick="reloadPage();">
+                Click here to reload
+            </button>
+        </p>
+    `;
+    const modalFooter = '<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Hide</button>';
+
+    showModal({
+        title: errorTitle,
+        body: modalBody,
+        footer: modalFooter
     });
-    errorModal.show();
 }
 
 function showConfirmModal(clickedBtn, callback, message){
-    $("#confirm-modal-title").html("Confirmation Prompt");
-    $("#confirm-text").html("Are you sure you want to " + message);
-    $("#confirmation-btn").off("click").on("click", () => {
-        callback(clickedBtn);
+    const modalTitle = "Confirmation Prompt";
+    const modalBody = `<p id="confirm-text" class="fs-5">Are you sure you want to ${message}</p>`;
+    const modalFooter = `
+    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">
+        Cancel
+    </button>
+
+    <button id="confirmation-btn"
+            type="button"
+            class="btn btn-success"
+            data-bs-dismiss="modal">
+        Confirm
+    </button>
+    `;
+    
+    const extra_fn = () => {
+        $("#confirmation-btn").off("click").on("click", () => {
+            callback(clickedBtn);
+        });
+    };
+
+    showModal({
+        title: modalTitle,
+        body: modalBody,
+        footer: modalFooter,
+        extra_func: extra_fn
     });
-    const errorModal = new bootstrap.Modal("#confirm-modal", {
-        keyboard: false,
-        backdrop: "static"
-    });
-    errorModal.show();
 }
 
 function getTaskId(){
@@ -169,6 +204,8 @@ function respondToPrompt(value){
         data: { is_approved: value },
     });
     window.isPromptReceived = false;
+    document.getElementById("prompt-text").innerHTML = "";
+    document.getElementById("prompt-container").removeAttribute("style");
     streamEvents(logPanel, stagesList, currentStageElement);
 }
 
@@ -204,8 +241,11 @@ function getEntities(switchElement){
 
 function onLogoutSuccess(response){
     if(response.status === "success"){
-        showReloadModal("Successfully Logged Out");
-        timer(1, url="/medperf_login");
+        showReloadModal({
+            title: "Successfully Logged Out",
+            seconds: 1,
+            url:"/medperf_login"
+        });
     }
     else{
         showErrorModal("Logout Failed", response);
@@ -223,10 +263,90 @@ async function logout(){
     window.runningTaskId = await getTaskId();
 }
 
+function showCriticalPopup(data){
+    const modalTitle = "Critical Warning";
+    const modalTitleClasses = "fw-bold text-danger";
+    const modalBody = `<p id="warning-text" class="fs-5 fw-bold text-danger">${data.message}</p>`;
+    const modalFooter = `
+    <button 
+        id="acknowledge-btn" 
+        type="button" 
+        class="btn btn-success" 
+        data-bs-dismiss="modal" 
+        onclick="acknowledgeWarning(this);" 
+        data-event-id="${data.id}"
+    >
+        Acknowledge
+    </button>`;
+
+    showModal({
+        title: modalTitle,
+        body: modalBody,
+        footer: modalFooter,
+        titleClasses: modalTitleClasses,
+    });
+}
+
+function acknowledgeWarning(ackBtn){
+    const eventId = ackBtn.getAttribute("data-event-id");
+    const formData = new FormData();
+    formData.append("event_id", eventId);
+    
+    ajaxRequest(
+        "/events/acknowledge_event",
+        "POST",
+        formData,
+        () => {},
+        "Cannot acknowledge event:"
+    )
+}
+
+function showModal({ title, body, footer="", titleClasses="", modalClasses="", extra_func=null }) {
+    requestModal(() => { 
+        resetModal();
+        $("#page-modal-dialog").addClass(modalClasses);
+        $("#page-modal-title")
+            .attr("class", "")
+            .addClass(titleClasses)
+            .html(title);
+
+        $("#page-modal-body").html(body);
+        $("#page-modal-footer").html(footer);
+
+        if (typeof extra_func === "function") {
+            extra_func();
+        }
+
+        const modal = new bootstrap.Modal("#page-modal", {
+            keyboard: false,
+            backdrop: "static",
+        });
+        modal.show();
+    });
+}
+
+function requestModal(showFn) {
+    if (!window.modalOpen) {
+        window.modalOpen = true;
+        showFn();
+    } else {
+        window.modalQueue.push(showFn);
+    }
+}
+
+function resetModal(){
+    $("#page-modal-dialog").attr("class", "modal-dialog");
+    $("#page-modal-title").attr("class", "modal-title fs-5").html("");
+    $("#page-modal-body").html("");
+    $("#page-modal-footer").html("");
+}
+
 let currentStageElement = null, logPanel, stagesList;
 window.isPromptReceived = false;
 window.onPromptComplete = null;
 const logNodes = [];
+window.modalQueue = [];
+window.modalOpen = false;
 
 $(document).ready(() => {
     applyDateFormatting();
@@ -251,26 +371,23 @@ $(document).ready(() => {
     });
 
     $(".yaml-link").on("click", (e) => {
-        e.preventDefault();
-        const entity = $(e.currentTarget).data("entity");
-        const id = $(e.currentTarget).data("id");
-        const field = $(e.currentTarget).data("field");
-        $("#yaml-panel").show();
-        $(".detail-container").addClass("yaml-panel-visible");
-        $("#loading-indicator").show();
-        $("#yaml-code").hide();
-        $.get("/fetch-yaml", {entity: entity, entity_uid: id, field_to_fetch: field}, function(data) {
-            $("#yaml-code").html(data.content);
-            Prism.highlightElement($("#yaml-code")[0]);
-            $("#loading-indicator").hide();
-            $("#yaml-code").show();
-            $("#hide-yaml").show();
-        }).fail(function(e) {
-            $("#yaml-code").text(e.responseJSON.detail);
-            $("#loading-indicator").hide();
-            $("#yaml-code").show();
-            $("#hide-yaml").show();
+        const fieldName = e.currentTarget.getAttribute("data-field");
+        const yamlData = JSON.parse(e.currentTarget.getAttribute("data-yaml-data"));
+        const yamlDataPrettified = JSON.stringify(yamlData, null, 2);
+
+        const modalTitle = fieldName;
+        const modalBody = `<pre id="modal-yaml-content" class="language-yaml">${yamlDataPrettified}</pre>`
+        const modalFooter = '<button type="button" class="btn btn-primary" data-bs-dismiss="modal" aria-label="Close">Close</button>';
+        const extra_fn = () => { Prism.highlightElement($("#modal-yaml-content")[0]); }
+
+        showModal({
+            title: modalTitle,
+            body: modalBody,
+            footer: modalFooter,
+            modalClasses: "modal-lg",
+            extra_func: extra_fn
         });
+
     });
 
     $("#logout-btn").on("click", (e) => {
@@ -279,5 +396,15 @@ $(document).ready(() => {
 
     $("form").on("submit", (e) => {
         e.preventDefault();
+    });
+
+    document.addEventListener("hidden.bs.modal", function () {
+        window.modalOpen = false;
+
+        if (window.modalQueue.length > 0) {
+            const nextModal = window.modalQueue.shift();
+            window.modalOpen = true;
+            nextModal();
+        }
     });
 });

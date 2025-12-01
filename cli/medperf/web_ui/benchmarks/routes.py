@@ -15,15 +15,14 @@ from medperf.entities.cube import Cube
 from medperf.account_management import get_medperf_user_data
 from medperf.entities.execution import Execution
 from medperf.web_ui.common import (
-    add_notification,
     check_user_api,
     initialize_state_task,
     reset_state_task,
     templates,
     sort_associations_display,
     check_user_ui,
-    get_container_type,
 )
+from medperf.web_ui.utils import get_container_type
 
 from medperf.commands.association.approval import Approval
 from medperf.enums import Status
@@ -189,8 +188,14 @@ def workflow_test_ui(
 def test_benchmark(
     request: Request,
     data_preparation: str = Form(...),
+    data_preparation_parameters: str = Form(None),
+    data_preparation_additional: str = Form(None),
     model_path: str = Form(...),
+    model_parameters_path: str = Form(None),
+    model_additional_path: str = Form(None),
     evaluator_path: str = Form(...),
+    evaluator_parameters_path: str = Form(None),
+    evaluator_additional_path: str = Form(None),
     data_path: str = Form(...),
     labels_path: str = Form(...),
     current_user: bool = Depends(check_user_api),
@@ -200,8 +205,14 @@ def test_benchmark(
     try:
         _, results = CompatibilityTestExecution.run(
             data_prep=data_preparation,
+            data_prep_parameters=data_preparation_parameters,
+            data_prep_additional=data_preparation_additional,
             model=model_path,
+            model_parameters=model_parameters_path,
+            model_additional=model_additional_path,
             evaluator=evaluator_path,
+            evaluator_parameters=evaluator_parameters_path,
+            evaluator_additional=evaluator_additional_path,
             data_path=data_path,
             labels_path=labels_path,
         )
@@ -216,8 +227,7 @@ def test_benchmark(
 
     config.ui.end_task(return_response)
     reset_state_task(request)
-    add_notification(
-        request,
+    config.ui.add_notification(
         message=notification_message,
         return_response=return_response,
         url="/benchmarks/register/ui",
@@ -267,8 +277,7 @@ def register_benchmark(
 
     config.ui.end_task(return_response)
     reset_state_task(request)
-    add_notification(
-        request,
+    config.ui.add_notification(
         message=notification_message,
         return_response=return_response,
         url=f"/benchmarks/ui/display/{benchmark_id}" if benchmark_id else "",
@@ -303,8 +312,7 @@ def approve(
 
     config.ui.end_task(return_response)
     reset_state_task(request)
-    add_notification(
-        request,
+    config.ui.add_notification(
         message=notification_message,
         return_response=return_response,
         url=f"/benchmarks/ui/display/{benchmark_id}",
@@ -339,8 +347,7 @@ def reject(
 
     config.ui.end_task(return_response)
     reset_state_task(request)
-    add_notification(
-        request,
+    config.ui.add_notification(
         message=notification_message,
         return_response=return_response,
         url=f"/benchmarks/ui/display/{benchmark_id}",
@@ -378,8 +385,7 @@ def update_associations_policy(
 
     config.ui.end_task(return_response)
     reset_state_task(request)
-    add_notification(
-        request,
+    config.ui.add_notification(
         message=notification_message,
         return_response=return_response,
         url=f"/benchmarks/ui/display/{benchmark_id}",

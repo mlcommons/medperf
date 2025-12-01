@@ -77,18 +77,6 @@ def _get_regular_file(url: str, output_path: str, expected_hash: str = None) -> 
     return output_path, hash_value
 
 
-def get_cube(url: str, cube_path: str, expected_hash: str = None):
-    """Downloads and writes a cube mlcube.yaml file"""
-    output_path = os.path.join(cube_path, config.cube_filename)
-    return _get_regular_file(url, output_path, expected_hash)
-
-
-def get_cube_params(url: str, cube_path: str, expected_hash: str = None):
-    """Downloads and writes a cube parameters.yaml file"""
-    output_path = os.path.join(cube_path, config.workspace_path, config.params_filename)
-    return _get_regular_file(url, output_path, expected_hash)
-
-
 def get_cube_image(url: str, hash_value: str = None) -> str:
     """Retrieves and stores the image file from the server. Stores images
     on a shared location, and retrieves a cached image by hash if found locally.

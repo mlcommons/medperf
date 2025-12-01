@@ -1,7 +1,7 @@
 ---
 demo_url: https://storage.googleapis.com/medperf-storage/chestxray_tutorial/demo_data.tar.gz
 model_add: https://storage.googleapis.com/medperf-storage/chestxray_tutorial/mobilenetv2_weights.tar.gz
-assets_url: https://raw.githubusercontent.com/mlcommons/medperf/main/examples/chestxray_tutorial/
+assets_path: medperf_tutorial/
 tutorial_id: model
 email: testmo@example.com
 hide:
@@ -11,8 +11,8 @@ hide:
 
 # Hands-on Tutorial for Model Owners
 
-{% set model_container = assets_url+"model_mobilenetv2/container_config.yaml" %}
-{% set model_params = assets_url+"model_mobilenetv2/workspace/parameters.yaml" %}
+{% set model_container = assets_path+"model_mobilenetv2/container_config.yaml" %}
+{% set model_params = assets_path+"model_mobilenetv2/workspace/parameters.yaml" %}
 
 ## Overview
 
@@ -40,15 +40,16 @@ These details should usually be acquired by contacting the Benchmark Committee a
 
 To test your container validity with the benchmark, first run `medperf benchmark ls` to identify the benchmark's server UID. In this tutorial, it is going to be `1`.
 
-Next, locate the container. Unless you implemented your own container, the container provided for this tutorial is located in your workspace: `medperf_tutorial/model_mobilenetv2/container_config.yaml`.
+Next, locate the container. Unless you implemented your own container, the container provided for this tutorial is located in your workspace: `{{ model_container }}`. It's parameters file and additional files are also provided.
 
 After that, run the compatibility test:
 
 ```bash
 medperf test run \
    --benchmark 1 \
-   --model "medperf_tutorial/model_mobilenetv2/container_config.yaml"
-
+   --model "{{ model_container }}" \
+   --model_parameters "{{ model_params }}" \
+   --model_additional_files "medperf_tutorial/model_custom_cnn/workspace/additional_files" \
 ```
 
 Assuming the test passes successfuly, you are ready to submit the container to the MedPerf server.
@@ -65,15 +66,15 @@ Assuming the test passes successfuly, you are ready to submit the container to t
 
 ### Submit the Container
 
-The submission should include the URLs of all the hosted assets. For the Container provided for the tutorial:
+The submission should include the URLs of the hosted assets and the paths to the configuration files. For the Container provided for the tutorial:
 
-- The URL to the hosted container configuration file is
+- The path to the container configuration file is
 
    ```text
    {{ model_container }}
    ```
 
-- The URL to the hosted parameters file is
+- The path to the parameters file is
 
    ```text
    {{ model_params }}

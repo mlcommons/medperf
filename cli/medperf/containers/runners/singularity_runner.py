@@ -28,15 +28,21 @@ from typing import Dict
 
 
 class SingularityRunner(Runner):
-    def __init__(self, container_config_parser, container_files_base_path):
+    def __init__(self, container_config_parser):
         self.parser = container_config_parser
-        self.container_files_base_path = container_files_base_path
+        self.converted_singularity_images = config.images_folder
         executable, runtime, version = get_singularity_executable_props()
         self.executable = executable
         self.runtime = runtime
         self.version = version
+
+        # These two will be set during download of singularity file or docker archive
         self.image_file_path: str = None
         self.image_file_hash: str = None
+
+        # This will be set during download of docker image
+        self.docker_image_hash: str = None
+
         if self.parser.is_container_encrypted():
             check_gpg()
 
@@ -60,7 +66,6 @@ class SingularityRunner(Runner):
         hashes_dict: Dict[str, str],
         download_timeout: int = None,
         get_hash_timeout: int = None,
-        alternative_image_hash: str = None,
     ) -> Dict[str, str]:
         if self.parser.is_docker_archive() or self.parser.is_singularity_file():
             logging.debug("Downloading image file")
@@ -75,7 +80,6 @@ class SingularityRunner(Runner):
             return self._check_docker_image(
                 hashes_dict,
                 get_hash_timeout,
-                alternative_image_hash,
             )
 
     def _download_image_file(
@@ -97,16 +101,14 @@ class SingularityRunner(Runner):
         self,
         hashes_dict: Dict[str, str],
         get_hash_timeout: int = None,
-        alternative_image_hash: str = None,
     ):
         docker_image = self.parser.get_setup_args()
         expected_image_hash = hashes_dict.get(docker_image)
         computed_image_hash = get_docker_image_hash_from_dockerhub(
             docker_image, get_hash_timeout
         )
-        check_docker_image_hash(
-            computed_image_hash, expected_image_hash, alternative_image_hash
-        )
+        check_docker_image_hash(computed_image_hash, expected_image_hash)
+        self.docker_image_hash = computed_image_hash.replace(":", "_")
         return {docker_image: computed_image_hash}
 
     def run(
@@ -122,7 +124,7 @@ class SingularityRunner(Runner):
         container_decryption_key_file: str = None,
     ):
         self.parser.check_task_schema(task)
-        run_args = self.parser.get_run_args(task, medperf_mounts)
+        run_args = self.parser.get_run_args(task)
         check_allowed_run_args(run_args)
 
         add_medperf_run_args(run_args)
@@ -178,43 +180,44 @@ class SingularityRunner(Runner):
 
     def _run_docker_archive(self, run_args, timeout, output_logs):
         logging.debug("Running unencrypted docker archive")
-        if self.image_file_path is None:
+        if self.image_file_path is None or self.image_file_hash is None:
             raise MedperfException("Internal error: Run is called before download.")
 
-        sif_image_folder = os.path.join(
-            self.container_files_base_path, config.image_path
+        converted_sif_image_file = os.path.join(
+            self.converted_singularity_images, f"{self.image_file_hash}.sif"
         )
-        sif_image_file = os.path.join(sif_image_folder, f"{self.image_file_hash}.sif")
 
         # convert
         convert_docker_image_to_sif(
             docker_image=self.image_file_path,
-            output_sif=sif_image_file,
+            output_sif=converted_sif_image_file,
             singularity_executable=self.executable,
             protocol="docker-archive",
         )
 
         # Run
-        self._invoke_run(sif_image_file, run_args, timeout, output_logs)
+        self._invoke_run(converted_sif_image_file, run_args, timeout, output_logs)
 
     def _run_docker_image(self, run_args, timeout, output_logs):
         logging.debug("Running unencrypted docker image")
+        if self.docker_image_hash is None:
+            raise MedperfException("Internal error: Run is called before download.")
+
         docker_image = self.parser.get_setup_args()
 
-        sif_image_folder = os.path.join(
-            self.container_files_base_path, config.image_path
+        converted_sif_image_file = os.path.join(
+            self.converted_singularity_images, f"{self.docker_image_hash}.sif"
         )
-        sif_image_file = os.path.join(sif_image_folder, f"{self.image_file_hash}.sif")
 
         # convert
         convert_docker_image_to_sif(
             docker_image=docker_image,
-            output_sif=sif_image_file,
+            output_sif=converted_sif_image_file,
             singularity_executable=self.executable,
         )
 
         # Run
-        self._invoke_run(sif_image_file, run_args, timeout, output_logs)
+        self._invoke_run(converted_sif_image_file, run_args, timeout, output_logs)
 
     def _run_encrypted_singularity_file(
         self, run_args, timeout, output_logs, container_decryption_key_file
@@ -245,17 +248,17 @@ class SingularityRunner(Runner):
         self, run_args, timeout, output_logs, container_decryption_key_file
     ):
         logging.debug("Running encrypted docker archive")
-        if self.image_file_path is None:
+        if self.image_file_path is None or self.image_file_hash is None:
             raise MedperfException("Internal error: Run is called before download.")
 
         if container_decryption_key_file is None:
             raise MedperfException(
                 "Container is encrypted but decryption key is not provided"
             )
-        sif_image_folder = os.path.join(
-            self.container_files_base_path, config.image_path
+
+        converted_sif_image_file = os.path.join(
+            self.converted_singularity_images, f"{self.image_file_hash}.sif"
         )
-        sif_image_file = os.path.join(sif_image_folder, f"{self.image_file_hash}.sif")
         decrypted_archive_file = tmp_path_for_file_decryption()
         try:
             # decrypt file
@@ -268,7 +271,7 @@ class SingularityRunner(Runner):
             # convert
             convert_docker_image_to_sif(
                 docker_image=decrypted_archive_file,
-                output_sif=sif_image_file,
+                output_sif=converted_sif_image_file,
                 singularity_executable=self.executable,
                 protocol="docker-archive",
             )
@@ -276,10 +279,10 @@ class SingularityRunner(Runner):
             cleanup_singularity_cache(self.executable)
 
             # Run
-            self._invoke_run(sif_image_file, run_args, timeout, output_logs)
+            self._invoke_run(converted_sif_image_file, run_args, timeout, output_logs)
 
         finally:
-            remove_path(sif_image_file, sensitive=True)
+            remove_path(converted_sif_image_file, sensitive=True)
             remove_path(decrypted_archive_file, sensitive=True)
             cleanup_singularity_cache(self.executable)
 

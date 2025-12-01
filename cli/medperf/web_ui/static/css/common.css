@@ -387,6 +387,10 @@ label[for="switch"] {
     transform: rotate(180deg);
 }
 
+#modal-yaml-content{
+    max-height: 450px;
+}
+
 @keyframes spin {
     to {
         transform: rotate(360deg);
