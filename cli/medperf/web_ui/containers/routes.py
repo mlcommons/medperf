@@ -130,8 +130,6 @@ def register_container(
     return_response = {"status": "", "error": "", "container_id": None}
     container_info = {
         "name": name,
-        "image_tarball_url": "",
-        "image_tarball_hash": "",
         "additional_files_tarball_url": additional_file,
         "additional_files_tarball_hash": "",
         "state": "OPERATION",
