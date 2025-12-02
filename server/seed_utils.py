@@ -18,8 +18,12 @@ def _load_asset_content(assets_path: str, file_relative_path: str):
     return content
 
 
-def load_workflow_config(assets_path: str, dirname: str):
-    return _load_asset_content(assets_path, f"{dirname}/workflow.yaml")
+def load_workflow_config(assets_path: str, dirname: str, dev: bool = False):
+    if dev:
+        workflow_file = "workflow_dev.yaml"
+    else:
+        workflow_file = "workflow.yaml"
+    return _load_asset_content(assets_path, f"{dirname}/{workflow_file}")
 
 
 def load_container_config(assets_path: str, dirname: str):
@@ -540,7 +544,9 @@ def create_rano_workflow_mlcube(api_server, benchmark_owner_token, assets_path):
         "##########################BENCHMARK OWNER (RANO WORKFLOW)##########################"
     )
 
-    data_prep_config = load_workflow_config(assets_path, "data_preparator_workflow")
+    data_prep_config = load_workflow_config(
+        assets_path, "data_preparator_workflow", dev=True
+    )
     data_prep_params = load_parameters_config(assets_path, "data_preparator_workflow")
     # Create a Data preprocessor MLCube by Benchmark Owner
     data_preprocessor_mlcube = api_server.request(
