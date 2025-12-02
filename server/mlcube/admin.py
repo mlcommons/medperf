@@ -7,6 +7,7 @@ class MlCubeAdmin(admin.ModelAdmin):
         "name",
         "container_config",
         "parameters_config",
+        "image_hash",
         "additional_files_tarball_url",
         "additional_files_tarball_hash",
         "owner",

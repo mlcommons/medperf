@@ -165,6 +165,27 @@ class MlCubePostTest(MlCubeTest):
             exp_status = status.HTTP_400_BAD_REQUEST
         self.assertEqual(response.status_code, exp_status)
 
+    @parameterized.expand(
+        [
+            ("hash", status.HTTP_201_CREATED),
+            ("", status.HTTP_400_BAD_REQUEST),
+        ]
+    )
+    def test_required_image_hash(self, image_hash, exp_status):
+        """Testing the serializer rules"""
+
+        # Arrange
+        testmlcube = self.mock_mlcube(image_hash=image_hash)
+        # Act
+        response = self.client.post(self.url, testmlcube, format="json")
+
+        # Assert
+        self.assertEqual(
+            response.status_code,
+            exp_status,
+            f"test failed with image_hash={image_hash}",
+        )
+
 
 @parameterized_class(
     [
