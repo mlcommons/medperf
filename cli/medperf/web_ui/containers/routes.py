@@ -14,6 +14,7 @@ from medperf.commands.mlcube.delete_keys import DeleteKeys
 from medperf.commands.mlcube.grant_access import GrantAccess
 from medperf.commands.mlcube.revoke_user_access import RevokeUserAccess
 from medperf.commands.mlcube.submit import SubmitCube
+from medperf.commands.mlcube.utils import check_access_to_container
 import medperf.config as config
 from medperf.entities.encrypted_key import EncryptedKey
 from medperf.web_ui.common import (
@@ -72,6 +73,12 @@ def container_detail_ui(
     benchmarks = {b.id: b for b in benchmarks}
     # benchmarks_associations = sort_associations_display(benchmarks_associations)
     is_owner = container.owner == get_medperf_user_data()["id"]
+
+    if not is_owner:
+        container._encrypted = container.is_encrypted()
+
+        if container._encrypted:
+            container.access_status = check_access_to_container(container.id)
 
     return templates.TemplateResponse(
         "container/container_detail.html",
