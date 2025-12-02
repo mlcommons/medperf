@@ -250,6 +250,20 @@ class MlCubePutTest(MlCubeTest):
         # Assert
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+    def test_put_clearing_image_hash(self):
+        # Arrange
+        testmlcube = self.mock_mlcube(state="DEVELOPMENT")
+        testmlcube = self.create_mlcube(testmlcube).data
+
+        put_body = {"image_hash": ""}
+        url = self.url.format(testmlcube["id"])
+
+        # Act
+        response = self.client.put(url, put_body, format="json")
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
 
 @parameterized_class(
     [

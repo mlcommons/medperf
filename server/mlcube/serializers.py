@@ -6,8 +6,6 @@ def validate_optional_mlcube_components(data):
     additional_files_tarball_url = data.get("additional_files_tarball_url", "")
     additional_files_tarball_hash = data.get("additional_files_tarball_hash", "")
 
-    image_hash = data.get("image_hash", "")
-
     # validate nonblank additional files hash
     if additional_files_tarball_url and not additional_files_tarball_hash:
         raise serializers.ValidationError("Additional files require file hash")
@@ -16,10 +14,6 @@ def validate_optional_mlcube_components(data):
         raise serializers.ValidationError(
             "Additional files hash was provided without URL"
         )
-
-    # validate images attributes.
-    if not image_hash:
-        raise serializers.ValidationError("Image hash must be provided")
 
 
 class MlCubeSerializer(serializers.ModelSerializer):
