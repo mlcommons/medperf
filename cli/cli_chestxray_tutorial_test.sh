@@ -281,14 +281,13 @@ if ${PRIVATE}; then
   --model_additional_files $MODEL_LOCAL/workspace/additional_files/
 
   checkFailed "offline compatibility test execution step failed - private model"
-
-  print_eval rm $MODEL_LOCAL/workspace/additional_files/cnn_weights.tar.gz
-  print_eval rm $MODEL_LOCAL/workspace/additional_files/cnn_weights.pth
-
   ##########################################################
 
   echo "\n"
 fi
+
+print_eval rm $MODEL_LOCAL/workspace/additional_files/cnn_weights.tar.gz
+print_eval rm $MODEL_LOCAL/workspace/additional_files/cnn_weights.pth
 
 ##########################################################
 echo "====================================="
