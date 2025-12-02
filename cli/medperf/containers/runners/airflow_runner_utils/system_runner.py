@@ -6,6 +6,7 @@ from .components.api_server import AirflowApiServer
 from .components.airflow_component import AirflowComponentRunner
 from .components.dag_processor import AirflowDagProcessor
 from .components.db_postgres_docker import PostgresDBDocker
+from .components.db_postgres_singularity import PostgresDBSingularity
 from .components.scheduler import AirflowScheduler
 from .components.triggerer import AirflowTriggerer
 from .components.utils import validate_port
@@ -139,13 +140,22 @@ class AirflowSystemRunner:
             "dags_folder": self.dags_folder,
         }
 
-        self.db = PostgresDBDocker(
-            project_name=self.project_name,  # TODO Check platform to instantiate singularity version
-            root_dir=self.airflow_home,
-            postgres_user="airflow",
-            postgres_db="airflow",
-            hostname=self.host,
-        )
+        if config.platform == "singularity":
+            self.db = PostgresDBSingularity(
+                project_name=self.project_name,
+                root_dir=self.airflow_home,
+                postgres_user="airflow",
+                postgres_db="airflow",
+                hostname=self.host,
+            )
+        else:  # Default to docker
+            self.db = PostgresDBDocker(
+                project_name=self.project_name,
+                root_dir=self.airflow_home,
+                postgres_user="airflow",
+                postgres_db="airflow",
+                hostname=self.host,
+            )
         self.api_server = AirflowApiServer(**common_args, port=self.port)
         self.scheduler = AirflowScheduler(
             **common_args, user=self.user, password=self._password, mounts=self.mounts

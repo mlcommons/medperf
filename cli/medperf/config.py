@@ -271,6 +271,8 @@ webui_max_chunk_age = 2.0  # Max 2 seconds as age of a chunk
 webui_max_chunk_length = 20  # Max 20 events in a chunk
 webui_max_chunk_size = 64 * 1024  # Max 64 Bytes as chunk size
 
+# Airflow-related config
+airflow_postgres_image = "postgres:14.19"
 
 default_profile_name = "default"
 testauth_profile_name = "testauth"

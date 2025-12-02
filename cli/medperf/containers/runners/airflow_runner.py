@@ -8,13 +8,13 @@ from .airflow_runner_utils.dags import constants
 import os
 from medperf.containers.parsers.airflow_parser import AirflowParser
 from medperf.account_management import get_medperf_user_data
-from .utils import (
-    check_docker_image_hash,
-)
+from .utils import check_docker_image_hash, get_expected_hash
+from .singularity_utils import get_docker_image_hash_from_dockerhub
 from medperf.utils import run_command
 from medperf.comms.entity_resources import resources
 import logging
 from .docker_utils import get_docker_image_hash
+from medperf import config
 
 
 class AirflowRunner(Runner):
@@ -34,28 +34,42 @@ class AirflowRunner(Runner):
         hashes_dict: Dict[str, str],
         download_timeout: int = None,
         get_hash_timeout: int = None,
-        alternative_image_hash: str = None,
-        container_base_dir: str = None,
     ) -> Dict[str, str]:
-        # TODO currently no support for singularity user environment
-        # converting a docker image to singularity
+        # TODO add support for Docker Archives, Encrypted Containers, singularity files
+        if config.platform == "docker":
+            self._download_containers_for_docker(
+                hashes_dict, download_timeout, get_hash_timeout
+            )
+        elif config.platform == "singularity":
+            self._check_containers_for_singularity(hashes_dict, get_hash_timeout)
+
+    def _download_containers_for_docker(
+        self, hashes_dict, download_timeout, get_hash_timeout
+    ):
         for container in self.parser.containers:
-            if container.platform == "docker":
-                expected_image_hash = hashes_dict.get(container.image)
-                command = ["docker", "pull", container.image]
-                run_command(command, timeout=download_timeout)
-                computed_image_hash = get_docker_image_hash(
-                    container.image, get_hash_timeout
-                )
-                check_docker_image_hash(computed_image_hash, expected_image_hash)
-                hashes_dict[container.image] = computed_image_hash
-            elif container.platform == "singularity":
-                expected_image_hash = hashes_dict.get(container.image)
-                sif_image_path, computed_image_hash = resources.get_cube_image(
-                    container.image, expected_image_hash
-                )  # Hash checking happens in resources
-                self.sif_image_path = sif_image_path
-                hashes_dict[container.image] = computed_image_hash
+            expected_image_hash = get_expected_hash(hashes_dict, container.image)
+            command = ["docker", "pull", container.image]
+            run_command(command, timeout=download_timeout)
+            computed_image_hash = get_docker_image_hash(
+                container.image, get_hash_timeout
+            )
+            check_docker_image_hash(computed_image_hash, expected_image_hash)
+            hashes_dict[container.image] = computed_image_hash
+
+        return hashes_dict
+
+    def _check_containers_for_singularity(self, hashes_dict, get_hash_timeout):
+        """
+        Note: currently assumes image always come from some Docker registry (i.e docker hub)
+        and then are converted into singularity during run
+        """
+        for container in self.parser.containers:
+            expected_image_hash = get_expected_hash(hashes_dict, container.image)
+            computed_image_hash = get_docker_image_hash_from_dockerhub(
+                container.image, get_hash_timeout
+            )
+            check_docker_image_hash(computed_image_hash, expected_image_hash)
+            hashes_dict[container.image] = computed_image_hash
 
         return hashes_dict
 
