@@ -198,7 +198,7 @@ The automatic Tumor Segmentations must be manually validated before the Pipeline
 
 In the Figure above, Subjects AAAC_1/2008.03.031 and AAAC_1/2012.01.02 are ready for manual review, signalled by the `State`  (in blue) column having the status `Up for Reschedule`. This status means that none of the conditions defined in step `prepare_for_manual_review` of the YAML file (`dags_from_yaml/rano.yaml`) have been met yet, and therefore the pipeline is waiting for their manual completion by a user. The procedure for Manual Review is described in Sections [5.1](#51-manual-approval-steps---tumor-segmentation) and [5.2](#52-brain-mask-correction). Subject AAAC_2/2001.01.01 on the other hand, has a currently running task, signalled by the `Running` state, and therefore is not ready for manual review yet.
 
-#### 5.1.1 Tumor Segmentation
+#### 6.1.1 Tumor Segmentation
 Once the segmentation for a given subject is ready for review, it will be available at the following path:
 
 ```
@@ -221,7 +221,7 @@ Note that this is in the `finalized` directory, signalling the review has been d
 
 Please do this review process for all subjects in the study. If the brain mask itself must be corrected for any subjects, please refer to [Section 5.1.2](#512-brain-mask-correction). Note that modifying the Brain Mask of a Subject will cause the pipeline to rollback to the Brain Extraction step corresponding to that subject to run again, after which the given Tumor Segmentation must be manually approved once ready.
 
-#### 5.1.2 Brain Mask Correction
+#### 6.1.2 Brain Mask Correction
 
 If the automatic brain mask is correct, no action from this section is required. However, it is also possible to make corrections to the automatic brain mask, if necessary. **Note that if the Brain Mask is modified, the pipeline will go back to the Brain Extraction stage for this subject, then run Tumor Extraction and await for manual approval once again oncfe the Tumor Extraction is completed.** Once the pipeline reaches the manual approval step for a given subject/timepoint, the brain mask file will be located at the path below:
 
@@ -239,8 +239,8 @@ The brain mask can be reviewed and corrected with the software of your choice an
 
 ***IMPORTANT!! Do NOT change the filename when moving the file into the finalized directory!*** The pipeline will only detect the corrected Brain Mask if it keeps the exact same filename.
 
-#### 5.2 Final Confirmation
-There is also a manual confirmation step towards the end of the pipeline (step ID `final_confirmation`, of type  `manual_approval`). When converted into an Airflow task, this step results into a task that always fails and must be manually set as Success by the user. **Before proceeding with this step, *make sure to review and Tumor Segmentations as per [Section 5.1.1](#511-manual-approval-steps---tumor-segmentation) and ensure you approve all of the results, along with necessary corrections to Brain Masks ([Section 5.1.2](#512-brain-mask-correction) if any are necessary.***
+#### 6.2 Final Confirmation
+There is also a manual confirmation step towards the end of the pipeline (step ID `final_confirmation`, of type  `manual_approval`). When converted into an Airflow task, this step results into a task that always fails and must be manually set as Success by the user. **Before proceeding with this step, *make sure to review and Tumor Segmentations as per [Section 6.1.1](#611-manual-approval-steps---tumor-segmentation) and ensure you approve all of the results, along with necessary corrections to Brain Masks ([Section 6.1.2](#612-brain-mask-correction) if any are necessary.***
 
 Once all results are reviewed, log into Airflow's Web UI. Go into the Task Instance View and locate the Task Instance named `Final Confirmation`. A filter by may be used, as shown in the Figure below, in blue. The task state will be `Failed`, as shown in red in the figure. This is normal, as this task is a manual approval step and therefore must be manually changed to success for approval.
 
@@ -256,7 +256,7 @@ If task is in the `Failed` state, it is ready for review. **If you have already 
 
 Once this procedure is done, the pipeline will proceed to its final steps and conclusion.
 
-## 6. Output Data
+## 7. Output Data
 
 The outputs of the pipeline, upon its conclusion, are as follows:
 
