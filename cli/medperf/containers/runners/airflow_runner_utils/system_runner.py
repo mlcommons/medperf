@@ -286,7 +286,7 @@ class AirflowSystemRunner:
                 )
                 summarizer_task = asyncio.create_task(
                     summarizer.summarize_every_x_seconds(
-                        interval_seconds=1, airflow_client=airflow_client
+                        interval_seconds=60, airflow_client=airflow_client
                     )
                 )
                 while True:
