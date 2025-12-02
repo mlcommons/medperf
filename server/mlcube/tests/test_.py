@@ -114,11 +114,7 @@ class MlCubePostTest(MlCubeTest):
                 del testmlcube[key]
 
         # in order to allow empty urls
-        testmlcube.update(
-            {
-                "additional_files_tarball_hash": ""
-            }
-        )
+        testmlcube.update({"additional_files_tarball_hash": ""})
         # Act
         response = self.client.post(self.url, testmlcube, format="json")
 
@@ -168,19 +164,6 @@ class MlCubePostTest(MlCubeTest):
         else:
             exp_status = status.HTTP_400_BAD_REQUEST
         self.assertEqual(response.status_code, exp_status)
-
-    @parameterized.expand(
-        [
-            (False, False, False, status.HTTP_400_BAD_REQUEST),
-            (False, False, True, status.HTTP_400_BAD_REQUEST),
-            (False, True, False, status.HTTP_400_BAD_REQUEST),
-            (False, True, True, status.HTTP_201_CREATED),
-            (True, False, False, status.HTTP_201_CREATED),
-            (True, False, True, status.HTTP_400_BAD_REQUEST),
-            (True, True, False, status.HTTP_400_BAD_REQUEST),
-            (True, True, True, status.HTTP_400_BAD_REQUEST),
-        ]
-    )
 
 
 @parameterized_class(
