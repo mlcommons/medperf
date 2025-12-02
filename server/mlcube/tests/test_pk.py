@@ -87,7 +87,7 @@ class MlCubePutTest(MlCubeTest):
             "name": "newtestmlcube",
             "container_config": {"newstring": "newstring"},
             "parameters_config": {"newstring": "newstring"},
-            "image_hash": "",
+            "image_hash": "newstring",
             "additional_files_tarball_url": "newstring",
             "additional_files_tarball_hash": "newstring",
             "state": "OPERATION",
@@ -197,13 +197,6 @@ class MlCubePutTest(MlCubeTest):
         # Assert
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    @parameterized.expand(
-        [
-            ("additional_files_tarball_hash",),
-            ("container_config",),
-            (("parameters_config",)),
-        ]
-    )
     def test_put_respects_unique_name(self):
         # Arrange
         testmlcube = self.mock_mlcube()
