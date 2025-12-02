@@ -4,7 +4,7 @@
 
 #### Python
 
-Make sure you have [Python 3.9](https://www.python.org/downloads/){target="\_blank"} installed along with [pip](https://pip.pypa.io/en/stable/installation/){target="\_blank"}. To check if they are installed, run:
+Make sure you have [Python 3.11](https://www.python.org/downloads/){target="\_blank"} installed along with [pip](https://pip.pypa.io/en/stable/installation/){target="\_blank"}. To check if they are installed, run:
 
 ```bash
 python --version
@@ -43,7 +43,7 @@ If using Docker, make sure [you can run Docker as a non-root user.](https://docs
 1. (Optional) MedPerf is better to be installed in a virtual environment. We recommend using [Anaconda](https://docs.anaconda.com/anaconda/install/index.html){target="\_blank"}. Having anaconda installed, create a virtual environment `medperf-env` with the following command:
 
     ```bash
-    conda create -n medperf-env python=3.9
+    conda create -n medperf-env python=3.11
     ```
 
     Then, activate your environment:
