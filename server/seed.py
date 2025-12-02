@@ -111,7 +111,7 @@ def seed(args):
         model_owner_token,
         benchmark_owner_token,
         benchmark,
-        args.containers_assets_path,
+        default_xray_containers_assets_path,
     )
 
 
