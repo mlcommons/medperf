@@ -96,12 +96,12 @@ steps:
           mount_path: /workspace/data
           type: directory
     command: extract_tumor
-    next: prepare_for_manual_review
+    next: manual_review
     on_error: do_something
     per_subject: true
     limit: 2
 
-  - id: prepare_for_manual_review
+  - id: manual_review
     <<: *BASE_STEP
     mounts:  
       input_volumes:
@@ -125,7 +125,7 @@ steps:
           target: segmentation_comparison
         - condition: brain_mask_changed
           target: rollback_to_brain_extract
-      else: prepare_for_manual_review
+      else: manual_review
       wait: 60
     on_error: do_something
     per_subject: true
@@ -138,13 +138,13 @@ steps:
           mount_path: /workspace/data
           type: directory
           from:
-            step: prepare_for_manual_review
+            step: manual_review
             mount: output_path
         review_input_labels:
           mount_path: /workspace/labels
           type: directory
           from:
-            step: prepare_for_manual_review
+            step: manual_review
             mount: output_labels_path
       output_volumes:
         output_path:
@@ -165,13 +165,13 @@ steps:
           mount_path: /workspace/data
           type: directory
           from:
-            step: prepare_for_manual_review
+            step: manual_review
             mount: output_path
         review_input_labels:
           mount_path: /workspace/labels
           type: directory
           from:
-            step: prepare_for_manual_review
+            step: manual_review
             mount: output_labels_path
       output_volumes:
         output_path:
