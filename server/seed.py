@@ -14,12 +14,19 @@ from seed_utils import (
     create_benchmark,
     create_model,
     create_workflow_benchmark,
+    create_rano_workflow_mlcube,
 )
 from auth_provider_token import auth_provider_token
 import json
 from pathlib import Path
 
 REPO_BASE_DIR = Path(__file__).resolve().parent.parent
+default_cert_file = str(REPO_BASE_DIR / "server" / "cert.crt")
+default_tokens_file = str(REPO_BASE_DIR / "mock_tokens" / "tokens.json")
+default_xray_containers_assets_path = str(
+    REPO_BASE_DIR / "examples" / "chestxray_tutorial"
+)
+default_rano_assets_path = str(REPO_BASE_DIR / "examples" / "RANO")
 
 
 def populate_mock_benchmarks(api_server, admin_token):
@@ -74,17 +81,26 @@ def seed(args):
         return
     # create benchmark
     benchmark_owner_token = get_token("testbo@example.com")
+
+    if args.demo == "rano":
+        create_rano_workflow_mlcube(
+            api_server=api_server,
+            benchmark_owner_token=benchmark_owner_token,
+            assets_path=default_rano_assets_path,
+        )
+        return
+
     if args.workflow:
         benchmark = create_workflow_benchmark(
             api_server,
             benchmark_owner_token,
-            args.containers_assets_path,
+            default_xray_containers_assets_path,
         )
     else:
         benchmark = create_benchmark(
             api_server,
             benchmark_owner_token,
-            args.containers_assets_path,
+            default_xray_containers_assets_path,
         )
     if args.demo == "model":
         return
@@ -100,12 +116,6 @@ def seed(args):
 
 
 if __name__ == "__main__":
-    default_cert_file = str(REPO_BASE_DIR / "server" / "cert.crt")
-    default_tokens_file = str(REPO_BASE_DIR / "mock_tokens" / "tokens.json")
-    default_containers_assets_path = str(
-        REPO_BASE_DIR / "examples" / "chestxray_tutorial"
-    )
-
     parser = argparse.ArgumentParser(description="Seed the db with demo entries")
     parser.add_argument(
         "--server",
@@ -127,21 +137,15 @@ if __name__ == "__main__":
     parser.add_argument(
         "--demo",
         type=str,
-        help="Seed for a tutorial: 'benchmark', 'model', 'data', 'tutorial' or 'workflow'.",
+        help="Seed for a tutorial: 'benchmark', 'model', 'data', 'tutorial' or 'rano.",
         default="data",
-        choices=["benchmark", "model", "data", "tutorial", "workflow"],
+        choices=["benchmark", "model", "data", "tutorial", "rano"],
     )
     parser.add_argument(
         "--tokens",
         type=str,
         help="Path to local tokens file",
         default=default_tokens_file,
-    )
-    parser.add_argument(
-        "--containers-assets-path",
-        type=str,
-        help="Path to folder containing container asset files for seeding dev database",
-        default=default_containers_assets_path,
     )
     parser.add_argument(
         "-w",

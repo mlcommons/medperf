@@ -274,7 +274,9 @@ def create_benchmark(api_server, benchmark_owner_token, assets_path):
 
 
 def create_workflow_benchmark(api_server, benchmark_owner_token, assets_path):
-    print("##########################BENCHMARK OWNER##########################")
+    print(
+        "##########################BENCHMARK OWNER (WORKFLOW)##########################"
+    )
 
     data_prep_config = load_workflow_config(assets_path, "data_preparator_workflow")
     data_prep_params = load_parameters_config(assets_path, "data_preparator_workflow")
@@ -530,4 +532,51 @@ def create_model(
         "is marked",
         model_executor1_in_benchmark_status,
         "(by Benchmark Owner)",
+    )
+
+
+def create_rano_workflow_mlcube(api_server, benchmark_owner_token, assets_path):
+    print(
+        "##########################BENCHMARK OWNER (RANO WORKFLOW)##########################"
+    )
+
+    data_prep_config = load_workflow_config(assets_path, "data_preparator_workflow")
+    data_prep_params = load_parameters_config(assets_path, "data_preparator_workflow")
+    # Create a Data preprocessor MLCube by Benchmark Owner
+    data_preprocessor_mlcube = api_server.request(
+        "/mlcubes/",
+        "POST",
+        benchmark_owner_token,
+        {
+            "name": "rano_workflow_prep",
+            "container_config": data_prep_config,
+            "parameters_config": data_prep_params,
+            "image_tarball_url": "",
+            "image_tarball_hash": "",
+            "image_hash": {
+                "mlcommons/rano-data-prep-workflow-dev:0.0.1": "sha256:26cf311c51d8423591e710019b1490bc091152d32b26636e4eafa34e42308929"
+            },
+            "additional_files_tarball_url": "https://storage.googleapis.com/medperf-storage/rano_test_assets/dev_models_and_more.tar.gz",
+            "additional_files_tarball_hash": "808632d9b9fa1da00faa923a752ab47eb0bc19daff037e9c2447b994dd415084",
+            "metadata": {},
+        },
+        "id",
+    )
+    print(
+        "Data Preprocessor MLCube Created(by Benchmark Owner). ID:",
+        data_preprocessor_mlcube,
+    )
+
+    # Update state of the Data preprocessor MLCube to OPERATION
+    data_preprocessor_mlcube_state = api_server.request(
+        "/mlcubes/" + str(data_preprocessor_mlcube) + "/",
+        "PUT",
+        benchmark_owner_token,
+        {"state": "OPERATION"},
+        "state",
+    )
+    print(
+        "Data Preprocessor MlCube state updated to",
+        data_preprocessor_mlcube_state,
+        "by Benchmark Owner",
     )
