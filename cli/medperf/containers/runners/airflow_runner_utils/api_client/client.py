@@ -148,3 +148,8 @@ class AssetOperations(BaseOperations):
 
     def get_asset_events(self):
         return self.client.get("assets/events").json()
+
+    def create_asset_event(self, asset_id):
+        json_data = {"asset_id": asset_id}
+        response = self.client.post("assets/events", json=json_data)
+        return response.json()

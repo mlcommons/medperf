@@ -21,11 +21,11 @@ import logging
 import asyncio
 from medperf.containers.runners.airflow_runner_utils.dags.constants import (
     FINAL_ASSET,
-    SUMMARIZER_ID,
 )
 from medperf.containers.parsers.airflow_parser import AirflowParser
 from medperf import config
 import sys
+from medperf.utils import parse_datetime
 
 
 class AirflowSystemRunner:
@@ -55,6 +55,7 @@ class AirflowSystemRunner:
         self.user = user
         self._password = SecretStr(secrets.token_urlsafe(16))
         self.airflow_config_file = os.path.join(self.airflow_home, "airflow.cfg")
+        self.resuming_from_previous_execution = False
         self.project_name = project_name
         self._postgres_password = SecretStr(secrets.token_urlsafe(16))
         self._postgres_user = self._postgres_db = "airflow"
@@ -109,7 +110,6 @@ class AirflowSystemRunner:
             airflow_config.write(f)
 
     def init_airflow(self, force_venv_creation: bool = False):
-        # create_airflow_venv_if_not_exists(force_creation=force_venv_creation)
         os.makedirs(os.path.join(self.airflow_home, "logs"), exist_ok=True)
         self._initialize_components()
 
@@ -117,6 +117,8 @@ class AirflowSystemRunner:
         asyncio.run(self.db.start())
         if not os.path.exists(self.airflow_config_file):
             self._initial_setup()
+        else:
+            self.resuming_from_previous_execution = True  # Has old config
 
         self._start_airflow_db()
         self._create_admin_user()
@@ -289,6 +291,7 @@ class AirflowSystemRunner:
         with AirflowAPIClient(
             username=self.user, password=self._password, api_url=api_url
         ) as airflow_client:
+            self._check_resuming_from_previous_execution(airflow_client)
             try:
                 summarizer = Summarizer(
                     yaml_parser=self.yaml_parser,
@@ -316,6 +319,57 @@ class AirflowSystemRunner:
             "Pipeline Execution finished. Airflow will now be closed and MedPerf will proceed."
         )
 
+    def _check_resuming_from_previous_execution(self, airflow_client: AirflowAPIClient):
+        if not self.resuming_from_previous_execution:
+            # Nothing to do
+            return
+
+        try:
+            asset_events = airflow_client.assets.get_asset_events()["asset_events"]
+        except json.JSONDecodeError:
+            config.ui.print(
+                "Could not verify outstanding tasks from previous execution. "
+                "Please use the Airflow WebUI on next start up to initially resume outstanding tasks."
+            )
+            return
+
+        asset_events = sorted(
+            asset_events,
+            key=lambda event: parse_datetime(event["timestamp"]),
+            reverse=True,
+        )
+        restarted_tasks = []
+        seen_asset_uris = set()
+        for event in asset_events:
+            if event["uri"] in seen_asset_uris:
+                continue
+            seen_asset_uris.add(event["uri"])
+
+            created_dagruns = event["created_dagruns"]
+
+            try:
+                last_dagrun = created_dagruns[-1]
+            except IndexError:
+                # If no runs started, create fake state to ensure we restart it
+                last_dagrun = {"state": DagRunState.FAILED}
+                event["created_dagruns"] = [last_dagrun]
+
+            if last_dagrun["state"] in [DagRunState.SUCCESS, DagRunState.RUNNING]:
+                continue  # Successfully completed or running, nothing do to
+
+            airflow_client.assets.create_asset_event(event["asset_id"])
+            restarted_tasks.append(event["name"])
+
+        if restarted_tasks:
+            formatted_asset_names = [
+                f"- {asset_name}" for asset_name in restarted_tasks
+            ]
+            formatted_asset_names_str = "\n".join(formatted_asset_names)
+
+            config.ui.print(
+                f"Automatically restarting the following uncompleted tasks from last execution:\n{formatted_asset_names_str}"
+            )
+
     def _check_completed_asset(self, airflow_client: AirflowAPIClient) -> bool:
         """Checks if the final asset that marks pipeline completion has been updated"""
         try:
@@ -331,22 +385,6 @@ class AirflowSystemRunner:
 
         final_asset = [event for event in asset_events if event["uri"] == FINAL_ASSET]
         return bool(final_asset)
-
-    def _check_ran_summarizer(self, airflow_client: AirflowAPIClient) -> bool:
-        """Checks if the summarizer has finished running. It is triggered by the final asset."""
-        last_summarizer_run = airflow_client.dag_runs.get_most_recent_dag_run(
-            dag_id=SUMMARIZER_ID
-        )["dag_runs"]
-        if not last_summarizer_run:
-            return False
-
-        last_summarizer_run = last_summarizer_run[0]
-        run_state = last_summarizer_run["state"]
-
-        if run_state == DagRunState.FAILED:
-            raise ValueError("Final summarizer run failed!")
-
-        return last_summarizer_run["state"] == DagRunState.SUCCESS
 
     def _stop_airflow(self):
         logging.debug("Stopping Airflow execution")
