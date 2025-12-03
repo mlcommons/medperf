@@ -89,16 +89,16 @@ Navigate to the `Containers` tab at the top, and click on the `Register a new co
 
 In this tutorial, for the Data Preparator container, the registration should include:
 
-- The URL to the hosted container configuration file, which is:
+- The path to the container configuration file, which is:
 
     ```
-    https://raw.githubusercontent.com/mlcommons/medperf/main/examples/chestxray_tutorial/data_preparator/container_config.yaml
+    medperf_tutorial/data_preparator/container_config.yaml
     ```
 
-- The URL to the hosted parameters file, which is:
+- The path to the parameters file, which is:
 
     ```
-    https://raw.githubusercontent.com/mlcommons/medperf/main/examples/chestxray_tutorial/data_preparator/workspace/parameters.yaml
+    medperf_tutorial/data_preparator/workspace/parameters.yaml
     ```
 
 ![Benchmark Owner Registers Data Preparator Container](../images/webui/data_preparator_registration.png)
@@ -109,16 +109,16 @@ Navigate back to the `Containers` tab at the top, and click on the `Register a n
 
 In this tutorial, for the Reference Model container, the registration should include:
 
-- The URL to the hosted container configuration file:
+- The path to the container configuration file:
 
     ```
-    https://raw.githubusercontent.com/mlcommons/medperf/main/examples/chestxray_tutorial/model_custom_cnn/container_config.yaml
+    medperf_tutorial/model_custom_cnn/container_config.yaml
     ```
 
-- The URL to the hosted parameters file:
+- The path to the parameters file:
 
     ```
-    https://raw.githubusercontent.com/mlcommons/medperf/main/examples/chestxray_tutorial/model_custom_cnn/workspace/parameters.yaml
+    medperf_tutorial/model_custom_cnn/workspace/parameters.yaml
     ```
 
 - The URL to the hosted additional files tarball file, which includes model weights:
@@ -135,16 +135,16 @@ Navigate back to the `Containers` tab at the top, and click on the `Register a n
 
 In this tutorial, for the Metrics container, the registration should include:
 
-- The URL to the hosted container configuration file:
+- The path to the container configuration file:
 
     ```
-    https://raw.githubusercontent.com/mlcommons/medperf/main/examples/chestxray_tutorial/metrics/container_config.yaml
+    medperf_tutorial/metrics/container_config.yaml
     ```
 
-- The URL to the hosted parameters file:
+- The path to the parameters file:
 
     ```
-    https://raw.githubusercontent.com/mlcommons/medperf/main/examples/chestxray_tutorial/metrics/workspace/parameters.yaml
+    medperf_tutorial/metrics/workspace/parameters.yaml
     ```
 
 ![Benchmark Owner Registers Metrics Container](../images/webui/metrics_registration.png)
@@ -181,16 +181,16 @@ Navigate to the `Containers` tab at the top, and click on the `Register a new co
 
 In this tutorial, for the model owner's container, the registration should include:
 
-- The URL to the hosted container configuration file:
+- The path to the container configuration file is:
 
     ```
-    https://raw.githubusercontent.com/mlcommons/medperf/main/examples/chestxray_tutorial/model_mobilenetv2/container_config.yaml
+    medperf_tutorial/model_mobilenetv2/container_config.yaml
     ```
 
-- The URL to the hosted parameters file:
+- The path to the parameters file is:
 
     ```
-    https://raw.githubusercontent.com/mlcommons/medperf/main/examples/chestxray_tutorial/model_mobilenetv2/workspace/parameters.yaml
+    medperf_tutorial/model_mobilenetv2/workspace/parameters.yaml
     ```
 
 - The URL to the hosted additional files tarball file (which contains the model weights):
