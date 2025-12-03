@@ -14,24 +14,23 @@ class CLI(UI):
         self.is_parsed_output = False
 
     def print_url_message(self, message: str):
-        match = re.search(r"https?://[^\s]+", message)
+        match = re.search(r"Visit\s+(https?://\S+)\s+and enter the code", message)
 
-        url = match.group(0)
-        start, end = match.span()
+        url = match.group(1)
 
-        before = message[:start].strip()
-        after = message[end:].strip()
+        interactive_state = self.is_interactive
+        self.is_interactive = False
 
-        if before.strip():
-            self.print(before)
-
+        self.print("\nPlease go to the following link to complete your request:\n\t")
         self.print_url(url)
+        self.print(
+            "\nEnter the following code on that page to complete the process:\n\t"
+        )
 
-        if after.strip():
-            self.print(after)
+        self.is_interactive = interactive_state
 
     def contains_url(self, message: str):
-        return bool(re.search(r"https?://[^\s]+", message))
+        return bool(re.search(r"Visit\s+(https?://\S+)\s+and enter the code", message))
 
     def is_code(self, message: str):
         ansi_escape = re.compile(r"\x1b\[[0-9;]*m")

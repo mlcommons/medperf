@@ -59,8 +59,6 @@ def mock_mlcube(**kwargs):
         "name": "testmlcube",
         "container_config": {"key": "value"},
         "parameters_config": {},
-        "image_tarball_url": "",
-        "image_tarball_hash": "",
         "image_hash": {"default": "string"},
         "additional_files_tarball_url": "string",
         "additional_files_tarball_hash": "string",

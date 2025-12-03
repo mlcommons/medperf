@@ -127,8 +127,6 @@ def create_benchmark(api_server, benchmark_owner_token, assets_path):
             "name": "chestxray_prep",
             "container_config": data_prep_config,
             "parameters_config": data_prep_params,
-            "image_tarball_url": "",
-            "image_tarball_hash": "",
             "image_hash": {
                 "mlcommons/chestxray-tutorial-prep:0.0.1": "sha256:f8697dc1c646395ad1ac54b8c0373195dbcfde0c4ef5913d4330a5fe481ae9a4"
             },
@@ -178,8 +176,6 @@ def create_benchmark(api_server, benchmark_owner_token, assets_path):
             "image_hash": {
                 "mlcommons/chestxray-tutorial-cnn:0.0.1": "sha256:a1bdddce05b9d156df359dd570de8031fdd1ea5a858f755139bed4a95fad19d1"
             },
-            "image_tarball_url": "",
-            "image_tarball_hash": "",
             "metadata": {},
         },
         "id",
@@ -214,8 +210,6 @@ def create_benchmark(api_server, benchmark_owner_token, assets_path):
             "name": "chestxray_metrics",
             "container_config": evaluator_container_config,
             "parameters_config": evaluator_parameters_config,
-            "image_tarball_url": "",
-            "image_tarball_hash": "",
             "image_hash": {
                 "mlcommons/chestxray-tutorial-metrics:0.0.1": "sha256:d33904c1104d0a3df314f29c603901a8584fec01e58b90d7ae54c8d74d32986c"
             },
@@ -293,8 +287,6 @@ def create_workflow_benchmark(api_server, benchmark_owner_token, assets_path):
             "name": "chestxray_prep",
             "container_config": data_prep_config,
             "parameters_config": data_prep_params,
-            "image_tarball_url": "",
-            "image_tarball_hash": "",
             "image_hash": {
                 "mlcommons/chestxray-tutorial-prep:0.0.1": "sha256:f8697dc1c646395ad1ac54b8c0373195dbcfde0c4ef5913d4330a5fe481ae9a4"
             },
@@ -344,8 +336,6 @@ def create_workflow_benchmark(api_server, benchmark_owner_token, assets_path):
             "image_hash": {
                 "mlcommons/chestxray-tutorial-cnn:0.0.1": "sha256:a1bdddce05b9d156df359dd570de8031fdd1ea5a858f755139bed4a95fad19d1"
             },
-            "image_tarball_url": "",
-            "image_tarball_hash": "",
             "metadata": {},
         },
         "id",
@@ -380,8 +370,6 @@ def create_workflow_benchmark(api_server, benchmark_owner_token, assets_path):
             "name": "chestxray_metrics",
             "container_config": evaluator_container_config,
             "parameters_config": evaluator_parameters_config,
-            "image_tarball_url": "",
-            "image_tarball_hash": "",
             "image_hash": {
                 "mlcommons/chestxray-tutorial-metrics:0.0.1": "sha256:d33904c1104d0a3df314f29c603901a8584fec01e58b90d7ae54c8d74d32986c"
             },
@@ -468,8 +456,6 @@ def create_model(
                 "chestxray_tutorial/mobilenetv2_weights.tar.gz"
             ),
             "additional_files_tarball_hash": "771f67bba92a11c83d16a522f0ba1018020ff758e2277d33f49056680c788892",
-            "image_tarball_url": "",
-            "image_tarball_hash": "",
             "image_hash": {
                 "mlcommons/chestxray-tutorial-mobilenetv2:0.0.1": "sha256:f27deb052eafd48ad1e350ceef7b0b9600aef0ea3f8cba47baee2b1d17411a83"
             },
@@ -557,8 +543,6 @@ def create_rano_workflow_mlcube(api_server, benchmark_owner_token, assets_path):
             "name": "rano_workflow_prep",
             "container_config": data_prep_config,
             "parameters_config": data_prep_params,
-            "image_tarball_url": "",
-            "image_tarball_hash": "",
             "image_hash": {
                 "mlcommons/rano-data-prep-workflow-dev:0.0.1": "sha256:26cf311c51d8423591e710019b1490bc091152d32b26636e4eafa34e42308929"
             },

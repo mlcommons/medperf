@@ -58,7 +58,6 @@ def prepare_local_cube(container_config_path, parameters=None, additional=None):
         "name": "local_" + generate_tmp_uid(),
         "container_config": container_config,
         "parameters_config": parameters_config,
-        "image_tarball_hash": "",
         "additional_files_tarball_hash": "",
         "for_test": True,
     }

@@ -55,7 +55,7 @@ First, login as the benchmark owner.
 
 - Use the email `testbo@example.com`.
 
-<video src="https://storage.googleapis.com/medperf-storage/webui_snippets/login_bmk_owner.mp4" width="800px" controls></video>
+![Login as Benchmark Owner](../images/webui/benchmark_owner_login.png)
 
 ### Defining the benchmark Components
 
@@ -89,19 +89,19 @@ Navigate to the `Containers` tab at the top, and click on the `Register a new co
 
 In this tutorial, for the Data Preparator container, the registration should include:
 
-- The URL to the hosted container configuration file, which is:
+- The path to the container configuration file, which is:
 
     ```
-    https://raw.githubusercontent.com/mlcommons/medperf/main/examples/chestxray_tutorial/data_preparator/container_config.yaml
+    medperf_tutorial/data_preparator/container_config.yaml
     ```
 
-- The URL to the hosted parameters file, which is:
+- The path to the parameters file, which is:
 
     ```
-    https://raw.githubusercontent.com/mlcommons/medperf/main/examples/chestxray_tutorial/data_preparator/workspace/parameters.yaml
+    medperf_tutorial/data_preparator/workspace/parameters.yaml
     ```
 
-<video src="https://storage.googleapis.com/medperf-storage/webui_snippets/register_data_prep.mp4" width="800px" controls></video>
+![Benchmark Owner Registers Data Preparator Container](../images/webui/data_preparator_registration.png)
 
 #### Reference Model Container
 
@@ -109,16 +109,16 @@ Navigate back to the `Containers` tab at the top, and click on the `Register a n
 
 In this tutorial, for the Reference Model container, the registration should include:
 
-- The URL to the hosted container configuration file:
+- The path to the container configuration file:
 
     ```
-    https://raw.githubusercontent.com/mlcommons/medperf/main/examples/chestxray_tutorial/model_custom_cnn/container_config.yaml
+    medperf_tutorial/model_custom_cnn/container_config.yaml
     ```
 
-- The URL to the hosted parameters file:
+- The path to the parameters file:
 
     ```
-    https://raw.githubusercontent.com/mlcommons/medperf/main/examples/chestxray_tutorial/model_custom_cnn/workspace/parameters.yaml
+    medperf_tutorial/model_custom_cnn/workspace/parameters.yaml
     ```
 
 - The URL to the hosted additional files tarball file, which includes model weights:
@@ -127,7 +127,7 @@ In this tutorial, for the Reference Model container, the registration should inc
     https://storage.googleapis.com/medperf-storage/chestxray_tutorial/cnn_weights.tar.gz
     ```
 
-<video src="https://storage.googleapis.com/medperf-storage/webui_snippets/register_reference_model.mp4" width="800px" controls></video>
+![Benchmark Owner Registers Reference Model Container](../images/webui/reference_model_registration.png)
 
 #### Metrics Container
 
@@ -135,19 +135,19 @@ Navigate back to the `Containers` tab at the top, and click on the `Register a n
 
 In this tutorial, for the Metrics container, the registration should include:
 
-- The URL to the hosted container configuration file:
+- The path to the container configuration file:
 
     ```
-    https://raw.githubusercontent.com/mlcommons/medperf/main/examples/chestxray_tutorial/metrics/container_config.yaml
+    medperf_tutorial/metrics/container_config.yaml
     ```
 
-- The URL to the hosted parameters file:
+- The path to the parameters file:
 
     ```
-    https://raw.githubusercontent.com/mlcommons/medperf/main/examples/chestxray_tutorial/metrics/workspace/parameters.yaml
+    medperf_tutorial/metrics/workspace/parameters.yaml
     ```
 
-<video src="https://storage.googleapis.com/medperf-storage/webui_snippets/register_evaluator.mp4" width="800px" controls></video>
+![Benchmark Owner Registers Metrics Container](../images/webui/metrics_registration.png)
 
 Finally, now after having the containers registered, you can register the benchmark to the MedPerf server.
 
@@ -165,13 +165,13 @@ You need to keep at hand the following information:
 
 - The names you used for the three containers that you have registered in the previous steps.
 
-<video src="https://storage.googleapis.com/medperf-storage/webui_snippets/bmk_register.mp4" width="800px" controls></video>
+![Benchmark Owner Registers Benchmark](../images/webui/benchmark_registration.png)
 
 ## 2. Model Owner: Register a model
 
 - Logout, then use the email `testmo@example.com` to login as the model owner.
 
-<video src="https://storage.googleapis.com/medperf-storage/webui_snippets/login_model_owner.mp4" width="800px" controls></video>
+![Login as Model Owner](../images/webui/model_owner_login.png)
 
 The implementation of the model container that will we will be registering in this section can be found in the following folder: `medperf_tutorial/model_mobilenetv2`.
 
@@ -181,16 +181,16 @@ Navigate to the `Containers` tab at the top, and click on the `Register a new co
 
 In this tutorial, for the model owner's container, the registration should include:
 
-- The URL to the hosted container configuration file:
+- The path to the container configuration file is:
 
     ```
-    https://raw.githubusercontent.com/mlcommons/medperf/main/examples/chestxray_tutorial/model_mobilenetv2/container_config.yaml
+    medperf_tutorial/model_mobilenetv2/container_config.yaml
     ```
 
-- The URL to the hosted parameters file:
+- The path to the parameters file is:
 
     ```
-    https://raw.githubusercontent.com/mlcommons/medperf/main/examples/chestxray_tutorial/model_mobilenetv2/workspace/parameters.yaml
+    medperf_tutorial/model_mobilenetv2/workspace/parameters.yaml
     ```
 
 - The URL to the hosted additional files tarball file (which contains the model weights):
@@ -199,7 +199,7 @@ In this tutorial, for the model owner's container, the registration should inclu
     https://storage.googleapis.com/medperf-storage/chestxray_tutorial/mobilenetv2_weights.tar.gz
     ```
 
-<video src="https://storage.googleapis.com/medperf-storage/webui_snippets/model_register.mp4" width="800px" controls></video>
+![Model Owner Registers Model](../images/webui/model_registration.png)
 
 ## 3. Model Owner: Request participation in the benchmark
 
@@ -212,13 +212,13 @@ To initiate an association request, you need to keep at hand the following infor
 
 Then, visit your container's detail page, and start the association request by clicking on the `Associate with a benchmark` button.
 
-<video src="https://storage.googleapis.com/medperf-storage/webui_snippets/model_request_association.mp4" width="800px" controls></video>
+![Model Owner Requests Association](../images/webui/model_request_association.png)
 
 ## 4. Data Owner: Register a dataset
 
 - Logout, then use the email `testdo@example.com` to login as the data owner.
 
-<video src="https://storage.googleapis.com/medperf-storage/webui_snippets/login_dataset_owner.mp4" width="800px" controls></video>
+![Login as Dataset Owner](../images/webui/dataset_owner_login.png)
 
 ### Register your dataset
 
@@ -238,25 +238,25 @@ To register your dataset, you need to keep at hand the following information:
 !!! note
     You will be submitting general information about the data, not the data itself. The data never leaves your machine.
 
-<video src="https://storage.googleapis.com/medperf-storage/webui_snippets/dataset_register.mp4" width="800px" controls></video>
+![Dataset Owner Registers Dataset](../images/webui/dataset_registration.png)
 
 ## 5. Data Owner: Run data preparation
 
 Click on the `prepare` button in your dataset page.
 
-<video src="https://storage.googleapis.com/medperf-storage/webui_snippets/dataset_prepare.mp4" width="800px" controls></video>
+![Dataset Owner Runs Dataset Preparation](../images/webui/dataset_preparation.png)
 
 ### Set dataset into operational mode
 
 After running preparation, click on the `set opertional` button to mark your dataset as ready for benchmarking. This will also upload some statistics calculated on the dataset according to the benchmark owner's requirement. For the benchmark of this tutorial, the statistics will be the number of cases and the label counts.
 
-<video src="https://storage.googleapis.com/medperf-storage/webui_snippets/dataset_set_operational.mp4" width="800px" controls></video>
+![Dataset Owner Sets Dataset to Operational Mode](../images/webui/dataset_set_operational.png)
 
 ## 6. Data Owner: Request participation
 
 Click on the `associate with benchmark` button in your dataset page.
 
-<video src="https://storage.googleapis.com/medperf-storage/webui_snippets/dataset_request_association.mp4" width="800px" controls></video>
+![Dataset Owner Requests Association](../images/webui/dataset_request_association.png)
 
 You won't be able to run the benchmark until the benchmark owner approves your association request.
 
@@ -264,7 +264,9 @@ You won't be able to run the benchmark until the benchmark owner approves your a
 
 Logout, then login as the benchmark owner, navigate to your benchmark page, then accept participation requests from the model owner and from the data owner.
 
-<video src="https://storage.googleapis.com/medperf-storage/webui_snippets/bmk_approve_associations.mp4" width="800px" controls></video>
+![Benchmark Owner Approve Dataset Association](../images/webui/benchmark_approve_dataset.png)
+
+![Benchmark Owner Approve Model Association](../images/webui/benchmark_approve_model.png)
 
 ## 8. Data Owner: Run the benchmark
 
@@ -272,18 +274,18 @@ Now, Logout, then login as the data owner, click on the `Datasets` tab, navigate
 
 You will see that the reference model has been already run during the association. Click on the `Run` button of the other model to run it.
 
-<video src="https://storage.googleapis.com/medperf-storage/webui_snippets/run_execution.mp4" width="800px" controls></video>
+![Dataset Owner Run Execution](../images/webui/dataset_run_execution.png)
 
 ## 9. Data Owner: Submit the results
 
 Now you can click on the `Submit` button for each model to submit the results to the MedPerf server, so that the benchmark owner can view them. You can click `View Results` before submitting as well.
 
-<video src="https://storage.googleapis.com/medperf-storage/webui_snippets/view_and_submit_results.mp4" width="800px" controls></video>
+![Dataset Owner Submits Results](../images/webui/dataset_submit_results.png)
 
 ## 10. Benchmark Owner: View the results
 
 Now, logout, then login as the benchmark owner, navigate to your benchmark page, and you can see the results.
 
-<video src="https://storage.googleapis.com/medperf-storage/webui_snippets/bmk_view_results.mp4" width="800px" controls></video>
+![Benchmark Owner Views Results](../images/webui/benchmark_view_results.png)
 
-This concludes our tutorial!
+**This concludes our tutorial!**

@@ -8,7 +8,17 @@
 {% block title %}Container Details{% endblock %}
 
 {% block detail_panel %}
-<h1 class="my-4">{{ entity.name }}</h1>
+<h1 class="my-4">
+    {{ entity.name }} 
+    {% if not owner and entity._encrypted %}
+    <i
+        class="fas fa-lock fs-4"
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        data-bs-title="Encrypted"
+    ></i>
+    {% endif %}
+</h1>
 <div class="{% if entity.is_valid %}card{% else %}invalid-card{% endif %}">
     <div class="card-body">
         <div class="d-flex justify-content-between align-items-center mb-3">
@@ -61,6 +71,23 @@
                 <p class="card-text">
                     <strong>Additional Files:</strong> 
                     Not Available
+                </p>
+                {% endif %}
+                {% if not is_owner and entity._encrypted %}
+                <p class="card-text mt-3">
+                    <strong>Access:</strong>
+                    {% if entity.access_status["has_access"] %}
+                        <small class="text-success fw-bold ms-2">Access Granted</small>
+                    {% else %}
+                        <small
+                            class="text-danger text-decoration-underline ms-2"
+                            data-bs-toggle="tooltip"
+                            data-bs-placement="top"
+                            data-bs-title="{{ entity.access_status['reason'] }}"
+                        >
+                            Access Pending
+                        </small>
+                    {% endif %}
                 </p>
                 {% endif %}
             </div>

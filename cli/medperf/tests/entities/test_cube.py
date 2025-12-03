@@ -16,12 +16,6 @@ from medperf.tests.mocks.cube import TestCube
 PATCH_CUBE = "medperf.entities.cube.{}"
 PATCH_CUBE_UTILS = "medperf.entities.cube_utils.{}"
 DEFAULT_CUBE = {"id": 37}
-NO_IMG_CUBE = {
-    "id": 345,
-    "image_tarball_url": None,
-    "image_tarball_hash": None,
-    "image_hash": "hash",
-}
 
 
 @pytest.fixture

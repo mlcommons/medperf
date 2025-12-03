@@ -33,8 +33,6 @@ class Cube(Entity, DeployableSchema):
 
     container_config: dict
     parameters_config: Optional[dict] = Field(default_factory=dict)
-    image_tarball_url: Optional[str] = None
-    image_tarball_hash: Optional[str] = None
     image_hash: Optional[dict] = Field(default_factory=dict)
     additional_files_tarball_url: Optional[str] = Field(None, alias="tarball_url")
     additional_files_tarball_hash: Optional[str] = Field(None, alias="tarball_hash")
