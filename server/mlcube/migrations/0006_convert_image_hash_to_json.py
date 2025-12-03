@@ -23,7 +23,7 @@ class Migration(migrations.Migration):
     dependencies = [
         (
             "mlcube",
-            "0004_alter_mlcube_unique_together_mlcube_container_config_and_more",
+            "0005_alter_mlcube_unique_together_alter_mlcube_image_hash_and_more",
         ),
     ]
 
@@ -46,7 +46,6 @@ class Migration(migrations.Migration):
             name="mlcube",
             unique_together={
                 (
-                    "image_tarball_hash",
                     "image_hash_tmp",
                     "additional_files_tarball_hash",
                     "container_config",
@@ -67,7 +66,6 @@ class Migration(migrations.Migration):
             name="mlcube",
             unique_together={
                 (
-                    "image_tarball_hash",
                     "image_hash",
                     "additional_files_tarball_hash",
                     "container_config",
