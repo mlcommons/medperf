@@ -228,7 +228,6 @@ partial_flag = ".partial"
 executed_flag = ".executed"
 results_filename = "results.yaml"
 local_metrics_outputs = "local_outputs"
-airflow_requirements_file = "airflow_requirements.txt"
 
 # MLCube assets conventions
 cube_filename = "container_config.yaml"
