@@ -33,8 +33,12 @@ def list(
     ),
     name: str = typer.Option(None, "--name", help="Filter by name"),
     owner: int = typer.Option(None, "--owner", help="Filter by owner"),
-    state: str = typer.Option(None, "--state", help="Filter by state (DEVELOPMENT/OPERATION)"),
-    is_valid: bool = typer.Option(None, "--valid/--invalid", help="Filter by valid status"),
+    state: str = typer.Option(
+        None, "--state", help="Filter by state (DEVELOPMENT/OPERATION)"
+    ),
+    is_valid: bool = typer.Option(
+        None, "--valid/--invalid", help="Filter by valid status"
+    ),
 ):
     """List datasets"""
     EntityList.run(
@@ -118,10 +122,19 @@ def prepare(
         "-y",
         help="Skip report submission approval step (In this case, it is assumed to be approved)",
     ),
+    no_cache: bool = typer.Option(
+        False,
+        "-nc",
+        "--no-cache",
+        "--no_cache",
+        help="Start a clean run without previous cached results.",
+    ),
 ):
     """Runs the Data preparation step for a raw dataset"""
     ui = config.ui
-    DataPreparation.run(data_uid, approve_sending_reports=approval)
+    DataPreparation.run(
+        data_uid, approve_sending_reports=approval, use_cached_results=not no_cache
+    )
     ui.print("✅ Done!")
 
 
