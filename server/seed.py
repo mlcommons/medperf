@@ -26,7 +26,7 @@ default_tokens_file = str(REPO_BASE_DIR / "mock_tokens" / "tokens.json")
 default_xray_containers_assets_path = str(
     REPO_BASE_DIR / "examples" / "chestxray_tutorial"
 )
-default_rano_assets_path = str(REPO_BASE_DIR / "examples" / "RANO")
+rano_assets_path = str(REPO_BASE_DIR / "examples" / "RANO")
 
 
 def populate_mock_benchmarks(api_server, admin_token):
@@ -86,21 +86,24 @@ def seed(args):
         create_rano_workflow_mlcube(
             api_server=api_server,
             benchmark_owner_token=benchmark_owner_token,
-            assets_path=default_rano_assets_path,
+            assets_path=rano_assets_path,
         )
         return
 
+    xray_assets_path = (
+        args.containers_assets_path or default_xray_containers_assets_path
+    )
     if args.workflow:
         benchmark = create_workflow_benchmark(
             api_server,
             benchmark_owner_token,
-            default_xray_containers_assets_path,
+            xray_assets_path,
         )
     else:
         benchmark = create_benchmark(
             api_server,
             benchmark_owner_token,
-            default_xray_containers_assets_path,
+            xray_assets_path,
         )
     if args.demo == "model":
         return
@@ -111,7 +114,7 @@ def seed(args):
         model_owner_token,
         benchmark_owner_token,
         benchmark,
-        default_xray_containers_assets_path,
+        xray_assets_path,
     )
 
 
@@ -152,6 +155,13 @@ if __name__ == "__main__":
         "--workflow",
         action="store_true",
         help="Use an Airflow workflow instead of a container for Data Preparation",
+    )
+    parser.add_argument(
+        "-c",
+        "--containers-assets-path",
+        type=str,
+        help="Path to folder containing container asset files for seeding dev database",
+        default=None,
     )
     args = parser.parse_args()
     if args.cert.lower() == "none":
