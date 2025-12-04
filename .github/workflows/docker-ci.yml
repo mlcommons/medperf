@@ -47,7 +47,7 @@ jobs:
         python -m venv .venv_server
         source .venv_server/bin/activate
         pip install -r requirements.txt
-        pip install -r server/test-requirements.txt
+        pip install -r test-requirements.txt
 
 
     - name: Set server environment vars

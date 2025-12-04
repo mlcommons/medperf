@@ -77,7 +77,10 @@ jobs:
     
     - name: Refresh DB for Workflow test
       working-directory: ./server
-      run: sh reset_db.sh && python seed.py --cert cert.crt -w
+      run: |
+        source .venv_server/bin/activate
+        sh reset_db.sh 
+        python seed.py --cert cert.crt -w
 
     - name: Run chestxray demo with workflow (no private model)
       working-directory: .
