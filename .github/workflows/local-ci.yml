@@ -80,6 +80,7 @@ jobs:
       run: |
         source .venv_server/bin/activate
         sh reset_db.sh
+        sh reset_db_postgresql.sh
 
     - name: Seed DB for Workflow test
       working-directory: ./server
