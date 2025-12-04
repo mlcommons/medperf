@@ -118,6 +118,9 @@ def create_benchmark(api_server, benchmark_owner_token, assets_path):
 
     data_prep_config = load_container_config(assets_path, "data_preparator")
     data_prep_params = load_parameters_config(assets_path, "data_preparator")
+    data_prep_hash = (
+        "sha256:f8697dc1c646395ad1ac54b8c0373195dbcfde0c4ef5913d4330a5fe481ae9a4"
+    )
     # Create a Data preprocessor MLCube by Benchmark Owner
     data_preprocessor_mlcube = api_server.request(
         "/mlcubes/",
@@ -127,9 +130,7 @@ def create_benchmark(api_server, benchmark_owner_token, assets_path):
             "name": "chestxray_prep",
             "container_config": data_prep_config,
             "parameters_config": data_prep_params,
-            "image_hash": {
-                "mlcommons/chestxray-tutorial-prep:0.0.1": "sha256:f8697dc1c646395ad1ac54b8c0373195dbcfde0c4ef5913d4330a5fe481ae9a4"
-            },
+            "image_hash": {"mlcommons/chestxray-tutorial-prep:0.0.1": data_prep_hash},
             "additional_files_tarball_url": "",
             "additional_files_tarball_hash": "",
             "metadata": {},
@@ -159,6 +160,9 @@ def create_benchmark(api_server, benchmark_owner_token, assets_path):
     model_cnn_parameters_config = load_parameters_config(
         assets_path, "model_custom_cnn"
     )
+    model_hash = (
+        "sha256:a1bdddce05b9d156df359dd570de8031fdd1ea5a858f755139bed4a95fad19d1"
+    )
     # Create a reference model executor mlcube by Benchmark Owner
     reference_model_executor_mlcube = api_server.request(
         "/mlcubes/",
@@ -173,9 +177,7 @@ def create_benchmark(api_server, benchmark_owner_token, assets_path):
                 "chestxray_tutorial/cnn_weights.tar.gz"
             ),
             "additional_files_tarball_hash": "bff003e244759c3d7c8b9784af0819c7f252da8626745671ccf7f46b8f19a0ca",
-            "image_hash": {
-                "mlcommons/chestxray-tutorial-cnn:0.0.1": "sha256:a1bdddce05b9d156df359dd570de8031fdd1ea5a858f755139bed4a95fad19d1"
-            },
+            "image_hash": {"mlcommons/chestxray-tutorial-cnn:0.0.1": model_hash},
             "metadata": {},
         },
         "id",
@@ -201,6 +203,9 @@ def create_benchmark(api_server, benchmark_owner_token, assets_path):
 
     evaluator_container_config = load_container_config(assets_path, "metrics")
     evaluator_parameters_config = load_parameters_config(assets_path, "metrics")
+    evaluator_hash = (
+        "sha256:d33904c1104d0a3df314f29c603901a8584fec01e58b90d7ae54c8d74d32986c"
+    )
     # Create a Data evalutor MLCube by Benchmark Owner
     data_evaluator_mlcube = api_server.request(
         "/mlcubes/",
@@ -211,7 +216,7 @@ def create_benchmark(api_server, benchmark_owner_token, assets_path):
             "container_config": evaluator_container_config,
             "parameters_config": evaluator_parameters_config,
             "image_hash": {
-                "mlcommons/chestxray-tutorial-metrics:0.0.1": "sha256:d33904c1104d0a3df314f29c603901a8584fec01e58b90d7ae54c8d74d32986c"
+                "mlcommons/chestxray-tutorial-metrics:0.0.1": evaluator_hash
             },
             "additional_files_tarball_url": "",
             "additional_files_tarball_hash": "",
@@ -278,6 +283,9 @@ def create_workflow_benchmark(api_server, benchmark_owner_token, assets_path):
 
     data_prep_config = load_workflow_config(assets_path, "data_preparator_workflow")
     data_prep_params = load_parameters_config(assets_path, "data_preparator_workflow")
+    data_prep_hash = (
+        "sha256:f8697dc1c646395ad1ac54b8c0373195dbcfde0c4ef5913d4330a5fe481ae9a4"
+    )
     # Create a Data preprocessor MLCube by Benchmark Owner
     data_preprocessor_mlcube = api_server.request(
         "/mlcubes/",
@@ -287,9 +295,7 @@ def create_workflow_benchmark(api_server, benchmark_owner_token, assets_path):
             "name": "chestxray_prep",
             "container_config": data_prep_config,
             "parameters_config": data_prep_params,
-            "image_hash": {
-                "mlcommons/chestxray-tutorial-prep:0.0.1": "sha256:f8697dc1c646395ad1ac54b8c0373195dbcfde0c4ef5913d4330a5fe481ae9a4"
-            },
+            "image_hash": {"mlcommons/chestxray-tutorial-prep:0.0.1": data_prep_hash},
             "additional_files_tarball_url": "",
             "additional_files_tarball_hash": "",
             "metadata": {},
@@ -319,6 +325,9 @@ def create_workflow_benchmark(api_server, benchmark_owner_token, assets_path):
     model_cnn_parameters_config = load_parameters_config(
         assets_path, "model_custom_cnn"
     )
+    model_cnn_hash = (
+        "sha256:a1bdddce05b9d156df359dd570de8031fdd1ea5a858f755139bed4a95fad19d1"
+    )
     # Create a reference model executor mlcube by Benchmark Owner
     reference_model_executor_mlcube = api_server.request(
         "/mlcubes/",
@@ -333,9 +342,7 @@ def create_workflow_benchmark(api_server, benchmark_owner_token, assets_path):
                 "chestxray_tutorial/cnn_weights.tar.gz"
             ),
             "additional_files_tarball_hash": "bff003e244759c3d7c8b9784af0819c7f252da8626745671ccf7f46b8f19a0ca",
-            "image_hash": {
-                "mlcommons/chestxray-tutorial-cnn:0.0.1": "sha256:a1bdddce05b9d156df359dd570de8031fdd1ea5a858f755139bed4a95fad19d1"
-            },
+            "image_hash": {"mlcommons/chestxray-tutorial-cnn:0.0.1": model_cnn_hash},
             "metadata": {},
         },
         "id",
@@ -361,6 +368,9 @@ def create_workflow_benchmark(api_server, benchmark_owner_token, assets_path):
 
     evaluator_container_config = load_container_config(assets_path, "metrics")
     evaluator_parameters_config = load_parameters_config(assets_path, "metrics")
+    evaluator_hash = (
+        "sha256:d33904c1104d0a3df314f29c603901a8584fec01e58b90d7ae54c8d74d32986c"
+    )
     # Create a Data evalutor MLCube by Benchmark Owner
     data_evaluator_mlcube = api_server.request(
         "/mlcubes/",
@@ -371,7 +381,7 @@ def create_workflow_benchmark(api_server, benchmark_owner_token, assets_path):
             "container_config": evaluator_container_config,
             "parameters_config": evaluator_parameters_config,
             "image_hash": {
-                "mlcommons/chestxray-tutorial-metrics:0.0.1": "sha256:d33904c1104d0a3df314f29c603901a8584fec01e58b90d7ae54c8d74d32986c"
+                "mlcommons/chestxray-tutorial-metrics:0.0.1": evaluator_hash
             },
             "additional_files_tarball_url": "",
             "additional_files_tarball_hash": "",
@@ -441,7 +451,9 @@ def create_model(
     mobilenet_parameters_config = load_parameters_config(
         assets_path, "model_mobilenetv2"
     )
-
+    mobilenet_hash = (
+        "sha256:f27deb052eafd48ad1e350ceef7b0b9600aef0ea3f8cba47baee2b1d17411a83"
+    )
     # Create a model mlcube by Model Owner
     model_executor1_mlcube = api_server.request(
         "/mlcubes/",
@@ -457,7 +469,7 @@ def create_model(
             ),
             "additional_files_tarball_hash": "771f67bba92a11c83d16a522f0ba1018020ff758e2277d33f49056680c788892",
             "image_hash": {
-                "mlcommons/chestxray-tutorial-mobilenetv2:0.0.1": "sha256:f27deb052eafd48ad1e350ceef7b0b9600aef0ea3f8cba47baee2b1d17411a83"
+                "mlcommons/chestxray-tutorial-mobilenetv2:0.0.1": mobilenet_hash
             },
             "metadata": {},
         },
@@ -534,6 +546,10 @@ def create_rano_workflow_mlcube(api_server, benchmark_owner_token, assets_path):
         assets_path, "data_preparator_workflow", dev=True
     )
     data_prep_params = load_parameters_config(assets_path, "data_preparator_workflow")
+    data_prep_hash = (
+        "sha256:26cf311c51d8423591e710019b1490bc091152d32b26636e4eafa34e42308929"
+    )
+    additional_files_url = "https://storage.googleapis.com/medperf-storage/rano_test_assets/dev_models_and_more.tar.gz"
     # Create a Data preprocessor MLCube by Benchmark Owner
     data_preprocessor_mlcube = api_server.request(
         "/mlcubes/",
@@ -544,9 +560,9 @@ def create_rano_workflow_mlcube(api_server, benchmark_owner_token, assets_path):
             "container_config": data_prep_config,
             "parameters_config": data_prep_params,
             "image_hash": {
-                "mlcommons/rano-data-prep-workflow-dev:0.0.1": "sha256:26cf311c51d8423591e710019b1490bc091152d32b26636e4eafa34e42308929"
+                "mlcommons/rano-data-prep-workflow-dev:0.0.1": data_prep_hash
             },
-            "additional_files_tarball_url": "https://storage.googleapis.com/medperf-storage/rano_test_assets/dev_models_and_more.tar.gz",
+            "additional_files_tarball_url": additional_files_url,
             "additional_files_tarball_hash": "808632d9b9fa1da00faa923a752ab47eb0bc19daff037e9c2447b994dd415084",
             "metadata": {},
         },

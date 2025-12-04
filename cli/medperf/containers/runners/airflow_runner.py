@@ -11,7 +11,6 @@ from medperf.account_management import get_medperf_user_data
 from .utils import check_docker_image_hash, get_expected_hash
 from .singularity_utils import get_docker_image_hash_from_dockerhub
 from medperf.utils import run_command
-from medperf.comms.entity_resources import resources
 import logging
 from .docker_utils import get_docker_image_hash
 from medperf import config

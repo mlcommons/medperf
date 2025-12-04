@@ -52,7 +52,8 @@ class Cube(Entity, DeployableSchema):
             image_name = config["image"]
         except KeyError:
             raise MedperfException(
-                f"No 'image' field found in container_config file to apply hash. Sending hashes is not supported with workflows."
+                "No 'image' field found in container_config file to apply hash. "
+                "Sending hashes is not supported with workflows."
             )
         formatted_hash = {image_name: v}
         return formatted_hash

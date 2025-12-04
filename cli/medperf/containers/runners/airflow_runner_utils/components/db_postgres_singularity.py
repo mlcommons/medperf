@@ -1,7 +1,6 @@
 from .db_postgres_component import PostgresDatabaseComponent
 import subprocess
 from medperf import config
-from medperf import config
 from medperf.containers.runners.singularity_utils import (
     get_singularity_executable_props,
 )
