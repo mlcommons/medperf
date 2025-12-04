@@ -25,12 +25,12 @@ jobs:
         pip install -r cli/test-requirements.txt
   
     - name: Install Dependencies - Server
-      working-directory: .
+      working-directory: ./server
       run: |
         python -m venv .venv_server
         source .venv_server/bin/activate
-        pip install -r server/requirements.txt
-        pip install -r server/test-requirements.txt
+        pip install -r requirements.txt
+        pip install -r test-requirements.txt
 
     - name: Lint with flake8
       run: |
