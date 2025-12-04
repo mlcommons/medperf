@@ -28,6 +28,12 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.AddField(
+            model_name="mlcube",
+            name="image_hash_tmp",
+            field=models.JSONField(default=dict),
+            preserve_default=False,
+        ),
         migrations.RunPython(
             code=convert_image_hash_from_string_to_json,
             reverse_code=convert_image_hash_from_json_to_str,
@@ -35,12 +41,6 @@ class Migration(migrations.Migration):
         migrations.AlterUniqueTogether(
             name="mlcube",
             unique_together=set(),
-        ),
-        migrations.AddField(
-            model_name="mlcube",
-            name="image_hash_tmp",
-            field=models.JSONField(default=dict),
-            preserve_default=False,
         ),
         migrations.AlterUniqueTogether(
             name="mlcube",
