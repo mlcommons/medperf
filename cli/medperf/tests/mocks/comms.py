@@ -1,13 +1,12 @@
 # Utility functions for mocking comms and its methods
 from typing import Dict, List, Callable, Union
 from unittest.mock import MagicMock
-from pytest_mock.plugin import MockFixture
 
 from medperf.exceptions import CommunicationRetrievalError
 
 
 def mock_comms_entity_gets(
-    mocker: MockFixture,
+    mocker,
     comms: MagicMock,
     generate_fn: Callable,
     comms_calls: Dict[str, str],
@@ -19,7 +18,7 @@ def mock_comms_entity_gets(
     what is returned by each endpoint, and keeps track of submitted instances.
 
     Args:
-        mocker (pytest_mock.plugin.MockFixture): Mocker object
+        mocker: Mocker object
         comms (unittest.mock.MagicMock): A mocked comms instance
         generate_fn (Callable): A function that generates entity dictionaries
         comms_calls (Dict[str, str]): Dictionary specifying the endpoints used by the entity.

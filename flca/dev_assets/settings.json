@@ -1,0 +1,11 @@
+{
+"ca_config": "/assets/ca.json",
+"intermediate_ca_key": "/assets/intermediate_ca_key",
+"intermediate_ca_password": "/assets/pwd.txt",
+"root_ca_crt": "/assets/root_ca.crt",
+"intermediate_ca_crt": "/assets/intermediate_ca.crt",
+"client_x509_template": "/assets/client.tpl",
+"server_x509_template": "/assets/server.tpl",
+"proxy_config": "/assets/reverse_proxy.conf",
+"db_config": "/assets/db_config.json"
+}

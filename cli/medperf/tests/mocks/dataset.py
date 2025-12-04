@@ -4,6 +4,7 @@ from medperf.entities.dataset import Dataset
 
 
 class TestDataset(Dataset):
+    __test__ = False
     id: Optional[int] = 1
     name: str = "name"
     location: str = "location"

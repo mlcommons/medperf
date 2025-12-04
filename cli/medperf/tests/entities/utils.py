@@ -6,7 +6,7 @@ from medperf.utils import get_file_hash
 from medperf.exceptions import CommunicationRetrievalError
 from medperf.tests.mocks.benchmark import TestBenchmark
 from medperf.tests.mocks.dataset import TestDataset
-from medperf.tests.mocks.result import TestResult
+from medperf.tests.mocks.execution import TestExecution
 from medperf.tests.mocks.cube import TestCube
 from medperf.tests.mocks.comms import mock_comms_entity_gets
 
@@ -45,7 +45,7 @@ def setup_benchmark_comms(mocker, comms, all_ents, user_ents, uploaded):
         "get_instance": "get_benchmark",
         "upload_instance": "upload_benchmark",
     }
-    mocker.patch.object(comms, "get_benchmark_model_associations", return_value=[])
+    mocker.patch.object(comms, "get_benchmark_models_associations", return_value=[])
     mock_comms_entity_gets(
         mocker, comms, generate_fn, comms_calls, all_ents, user_ents, uploaded
     )
@@ -95,31 +95,20 @@ def generate_cubefile_fn(fs, path, filename):
         except FileExistsError:
             pass
         hash = get_file_hash(filepath)
-        # special case: tarball file
-        if filename == config.tarball_filename:
-            return hash
         return filepath, hash
 
     return cubefile_fn
 
 
 def setup_cube_comms_downloads(mocker, fs):
-    cube_path = ""
-    cube_file = config.cube_filename
-    params_path = config.workspace_path
-    params_file = config.params_filename
     add_path = config.additional_path
     add_file = config.tarball_filename
-    img_path = config.image_path
+    img_path = "workspace/.image"
     img_file = "img.tar.gz"
 
-    get_cube_fn = generate_cubefile_fn(fs, cube_path, cube_file)
-    get_params_fn = generate_cubefile_fn(fs, params_path, params_file)
     get_add_fn = generate_cubefile_fn(fs, add_path, add_file)
     get_img_fn = generate_cubefile_fn(fs, img_path, img_file)
 
-    mocker.patch(PATCH_RESOURCES.format("get_cube"), side_effect=get_cube_fn)
-    mocker.patch(PATCH_RESOURCES.format("get_cube_params"), side_effect=get_params_fn)
     mocker.patch(PATCH_RESOURCES.format("get_cube_additional"), side_effect=get_add_fn)
     mocker.patch(PATCH_RESOURCES.format("get_cube_image"), side_effect=get_img_fn)
 
@@ -157,41 +146,43 @@ def setup_dset_comms(mocker, comms, all_ents, user_ents, uploaded):
     )
 
 
-# Setup Result
-def setup_result_fs(ents, fs):
+# Setup Execution
+def setup_execution_fs(ents, fs):
     for ent in ents:
         # Assume we're passing ids, names, or dicts
         if isinstance(ent, dict):
-            result_contents = TestResult(**ent)
+            execution_contents = TestExecution(**ent)
         elif isinstance(ent, int) or isinstance(ent, str) and ent.isdigit():
-            result_contents = TestResult(id=str(ent))
+            execution_contents = TestExecution(id=str(ent))
         else:
-            result_contents = TestResult(id=None, name=ent)
+            execution_contents = TestExecution(id=None, name=ent)
 
-        result_file = os.path.join(result_contents.path, config.results_info_file)
-        bmk_id = result_contents.benchmark
-        cube_id = result_contents.model
-        dataset_id = result_contents.dataset
+        execution_file = os.path.join(execution_contents.path, config.results_info_file)
+        bmk_id = execution_contents.benchmark
+        cube_id = execution_contents.model
+        dataset_id = execution_contents.dataset
         setup_benchmark_fs([bmk_id], fs)
         setup_cube_fs([cube_id], fs)
         setup_dset_fs([dataset_id], fs)
 
         try:
-            fs.create_file(result_file, contents=yaml.dump(result_contents.todict()))
+            fs.create_file(
+                execution_file, contents=yaml.dump(execution_contents.todict())
+            )
         except FileExistsError:
             pass
 
 
-def setup_result_comms(mocker, comms, all_ents, user_ents, uploaded):
-    generate_fn = TestResult
+def setup_execution_comms(mocker, comms, all_ents, user_ents, uploaded):
+    generate_fn = TestExecution
     comms_calls = {
-        "get_all": "get_results",
-        "get_user": "get_user_results",
-        "get_instance": "get_result",
-        "upload_instance": "upload_result",
+        "get_all": "get_executions",
+        "get_user": "get_user_executions",
+        "get_instance": "get_execution",
+        "upload_instance": "upload_execution",
     }
 
-    # Enable dset retrieval since its required for result creation
+    # Enable dset retrieval since its required for execution creation
     setup_dset_comms(mocker, comms, [1], [1], uploaded)
     mock_comms_entity_gets(
         mocker, comms, generate_fn, comms_calls, all_ents, user_ents, uploaded

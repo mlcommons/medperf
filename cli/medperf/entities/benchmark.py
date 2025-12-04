@@ -1,4 +1,8 @@
 from typing import List, Optional
+from medperf.commands.association.utils import (
+    get_experiment_associations,
+    get_user_associations,
+)
 from pydantic import HttpUrl, Field
 
 import medperf.config as config
@@ -18,7 +22,7 @@ class Benchmark(Entity, ApprovableSchema, DeployableSchema):
     what models to run and how to evaluate them.
     """
 
-    description: Optional[str] = Field(None, max_length=20)
+    description: Optional[str] = Field(None, max_length=256)
     docs_url: Optional[HttpUrl]
     demo_dataset_tarball_url: str
     demo_dataset_tarball_hash: Optional[str]
@@ -29,6 +33,10 @@ class Benchmark(Entity, ApprovableSchema, DeployableSchema):
     metadata: dict = {}
     user_metadata: dict = {}
     is_active: bool = True
+    dataset_auto_approval_allow_list: list[str] = []
+    dataset_auto_approval_mode: str = "NEVER"
+    model_auto_approval_allow_list: list[str] = []
+    model_auto_approval_mode: str = "NEVER"
 
     @staticmethod
     def get_type():
@@ -83,18 +91,79 @@ class Benchmark(Entity, ApprovableSchema, DeployableSchema):
 
         Args:
             benchmark_uid (int): UID of the benchmark.
-            comms (Comms): Instance of the communications interface.
 
         Returns:
             List[int]: List of mlcube uids
         """
-        associations = config.comms.get_benchmark_model_associations(benchmark_uid)
-        models_uids = [
-            assoc["model_mlcube"]
-            for assoc in associations
-            if assoc["approval_status"] == "APPROVED"
-        ]
+        associations = get_experiment_associations(
+            experiment_id=benchmark_uid,
+            experiment_type="benchmark",
+            component_type="model_mlcube",
+            approval_status="APPROVED",
+        )
+        models_uids = [assoc["model_mlcube"] for assoc in associations]
         return models_uids
+
+    @classmethod
+    def get_datasets_with_users(cls, benchmark_uid: int) -> List[dict]:
+        """Retrieves the list of datasets and their owner info, associated to the benchmark
+
+        Args:
+            benchmark_uid (int): UID of the benchmark.
+
+        Returns:
+            List[dict]: List of dicts of dataset IDs with their owner info
+        """
+        uids_with_users = config.comms.get_benchmark_datasets_with_users(benchmark_uid)
+        return uids_with_users
+
+    @classmethod
+    def get_models_associations(cls, benchmark_uid: int) -> List[dict]:
+        """Retrieves the list of model associations to the benchmark
+
+        Args:
+            benchmark_uid (int): UID of the benchmark.
+
+        Returns:
+            List[dict]: List of associations
+        """
+
+        experiment_type = "benchmark"
+        component_type = "model_mlcube"
+
+        associations = get_user_associations(
+            experiment_type=experiment_type,
+            component_type=component_type,
+            approval_status=None,
+        )
+
+        associations = [a for a in associations if a["benchmark"] == benchmark_uid]
+
+        return associations
+
+    @classmethod
+    def get_datasets_associations(cls, benchmark_uid: int) -> List[dict]:
+        """Retrieves the list of models associated to the benchmark
+
+        Args:
+            benchmark_uid (int): UID of the benchmark.
+
+        Returns:
+            List[dict]: List of associations
+        """
+
+        experiment_type = "benchmark"
+        component_type = "dataset"
+
+        associations = get_user_associations(
+            experiment_type=experiment_type,
+            component_type=component_type,
+            approval_status=None,
+        )
+
+        associations = [a for a in associations if a["benchmark"] == benchmark_uid]
+
+        return associations
 
     def display_dict(self):
         return {
@@ -103,9 +172,9 @@ class Benchmark(Entity, ApprovableSchema, DeployableSchema):
             "Description": self.description,
             "Documentation": self.docs_url,
             "Created At": self.created_at,
-            "Data Preparation MLCube": int(self.data_preparation_mlcube),
-            "Reference Model MLCube": int(self.reference_model_mlcube),
-            "Data Evaluator MLCube": int(self.data_evaluator_mlcube),
+            "Data Preparation Container": int(self.data_preparation_mlcube),
+            "Reference Model Container": int(self.reference_model_mlcube),
+            "Data Evaluator Container": int(self.data_evaluator_mlcube),
             "State": self.state,
             "Approval Status": self.approval_status,
             "Registered": self.is_registered,

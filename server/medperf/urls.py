@@ -37,5 +37,10 @@ urlpatterns = [
         path("kbss/", include("kbs.urls", namespace=API_VERSION), name="kbs"),
         path("users/", include("user.urls", namespace=API_VERSION), name="users"),
         path("me/", include("utils.urls", namespace=API_VERSION), name="me"),
+        path("training/", include("training.urls", namespace=API_VERSION), name="training"),
+        path("aggregators/", include("aggregator.urls", namespace=API_VERSION), name="aggregator"),
+        path("cas/", include("ca.urls", namespace=API_VERSION), name="ca"),
+        path('certificates/', include('certificate.urls', namespace=API_VERSION), name="certificate"),
+        path("encrypted_keys/", include("encrypted_key.urls", namespace=API_VERSION), name='encrypted_keys')
     ])),
 ]

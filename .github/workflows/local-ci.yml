@@ -10,10 +10,10 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
 
-    - name: Set up Python 3.9
+    - name: Set up Python 3.11
       uses: actions/setup-python@v2
       with:
-        python-version: '3.9'
+        python-version: '3.11'
 
     - name: Install Singularity
       # The way we install singularity shouldn't happen inside another git repo, otherwise

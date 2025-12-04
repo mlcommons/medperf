@@ -144,6 +144,16 @@ def configurable(func: Callable) -> Callable:
             "--cleanup/--no-cleanup",
             help="Wether to clean up temporary medperf storage after execution",
         ),
+        certificate_authority_id: int = typer.Option(
+            config.certificate_authority_id,
+            "--certificate_authority_id",
+            help="Certificate Authority ID to configure the client with",
+        ),
+        certificate_authority_fingerprint: str = typer.Option(
+            config.certificate_authority_fingerprint,
+            "--certificate_authority_fingerprint",
+            help="Expected fingerprint of the configured certificate authority",
+        ),
         **kwargs,
     ):
         return func(*args, **kwargs)
@@ -218,6 +228,13 @@ def add_inline_parameters(func: Callable) -> Callable:
             (e.g., --gpus=2 to expose 2 GPUs)\n
             - Form "device=<id1>,<id2>": to expose specific GPUs.
             (e.g., --gpus="device=0,2")\n""",
+        ),
+        shm_size: str = typer.Option(
+            config.shm_size,
+            "--shm-size",
+            help="""
+            Only for Docker. See --shm-size argument
+            in docker run: https://docs.docker.com/engine/containers/run/""",
         ),
         cleanup: bool = typer.Option(
             config.cleanup,

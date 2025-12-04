@@ -20,17 +20,23 @@ class BenchmarkTest(MedPerfTest):
 
         # create mlcubes
         self.set_credentials(prep_mlcube_owner)
-        prep = self.mock_mlcube(name="prep", mlcube_hash="prep", state="OPERATION")
+        prep = self.mock_mlcube(
+            name="prep", container_config={"prep": "prep"}, state="OPERATION"
+        )
         prep = self.create_mlcube(prep).data
 
         self.set_credentials(ref_mlcube_owner)
         ref_model = self.mock_mlcube(
-            name="ref_model", mlcube_hash="ref_model", state="OPERATION"
+            name="ref_model",
+            container_config={"ref_model": "ref_model"},
+            state="OPERATION",
         )
         ref_model = self.create_mlcube(ref_model).data
 
         self.set_credentials(eval_mlcube_owner)
-        eval = self.mock_mlcube(name="eval", mlcube_hash="eval", state="OPERATION")
+        eval = self.mock_mlcube(
+            name="eval", container_config={"eval": "eval"}, state="OPERATION"
+        )
         eval = self.create_mlcube(eval).data
 
         # setup globals
@@ -114,6 +120,10 @@ class BenchmarkPostTest(BenchmarkTest):
             "approval_status": "PENDING",
             "user_metadata": {},
             "approved_at": None,
+            "dataset_auto_approval_allow_list": [],
+            "dataset_auto_approval_mode": "NEVER",
+            "model_auto_approval_allow_list": [],
+            "model_auto_approval_mode": "NEVER",
         }
 
         benchmark = self.mock_benchmark(
@@ -186,7 +196,7 @@ class BenchmarkPostTest(BenchmarkTest):
 
         self.set_credentials(self.prep_mlcube_owner)
         devprep = self.mock_mlcube(
-            name="devprep", mlcube_hash="devprep", state="DEVELOPMENT"
+            name="devprep", container_config={"devprep": "devprep"}, state="DEVELOPMENT"
         )
         devprep = self.create_mlcube(devprep).data
         self.set_credentials(self.actor)
@@ -206,7 +216,9 @@ class BenchmarkPostTest(BenchmarkTest):
 
         self.set_credentials(self.ref_mlcube_owner)
         devrefmodel = self.mock_mlcube(
-            name="devrefmodel", mlcube_hash="devrefmodel", state="DEVELOPMENT"
+            name="devrefmodel",
+            container_config={"devrefmodel": "devrefmodel"},
+            state="DEVELOPMENT",
         )
         devrefmodel = self.create_mlcube(devrefmodel).data
         self.set_credentials(self.actor)
@@ -225,7 +237,7 @@ class BenchmarkPostTest(BenchmarkTest):
         # Arrange
         self.set_credentials(self.eval_mlcube_owner)
         deveval = self.mock_mlcube(
-            name="deveval", mlcube_hash="deveval", state="DEVELOPMENT"
+            name="deveval", container_config={"deveval": "deveval"}, state="DEVELOPMENT"
         )
         deveval = self.create_mlcube(deveval).data
         self.set_credentials(self.actor)
@@ -267,6 +279,10 @@ class BenchmarkGetListTest(BenchmarkTest):
         self.other_user = other_user
 
         self.testbenchmark = benchmark
+        self.private_fields = [
+            "dataset_auto_approval_allow_list",
+            "model_auto_approval_allow_list",
+        ]
         self.set_credentials(self.actor)
 
     def test_generic_get_benchmark_list(self):
@@ -280,6 +296,18 @@ class BenchmarkGetListTest(BenchmarkTest):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["results"]), 1)
         self.assertEqual(response.data["results"][0]["id"], benchmark_id)
+
+    def test_get_benchmark_list_private_fields(self):
+        # Act
+        response = self.client.get(self.url)
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        for benchmark in response.data["results"]:
+            for key in benchmark:
+                self.assertNotIn(
+                    key, self.private_fields, f"{key} shouldn't be visible"
+                )
 
 
 class PermissionTest(BenchmarkTest):

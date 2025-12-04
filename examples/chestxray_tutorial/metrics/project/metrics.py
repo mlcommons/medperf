@@ -1,4 +1,5 @@
 """Adapted from MedMnist Evaluator"""
+
 import numpy as np
 import yaml
 import os
@@ -50,3 +51,15 @@ def calculate_metrics(labels, predictions, parameters, output_path):
 
     with open(output_path, "w") as f:
         yaml.safe_dump(metrics, f)
+
+
+if __name__ == "__main__":
+    parameters_file = "/mlcommons/volumes/parameters/parameters_file.yaml"
+    predictions = "/mlcommons/volumes/predictions"
+    labels = "/mlcommons/volumes/labels"
+    output_path = "/mlcommons/volumes/results/results.yaml"
+
+    with open(parameters_file) as f:
+        parameters = yaml.safe_load(f)
+
+    calculate_metrics(labels, predictions, parameters, output_path)

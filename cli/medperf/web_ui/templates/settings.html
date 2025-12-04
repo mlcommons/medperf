@@ -1,0 +1,217 @@
+{# ./cli/medperf/web_ui/templates/settings.html #}
+
+{% extends "base.html" %}
+
+{% import "constants/tooltips.html" as tooltips %}
+
+{% block title %}Settings{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mt-3">
+        <div class="col-12">
+            <h1 class="text-center">Settings</h1>
+        </div>
+        <div class="col-12 mt-4">
+            <h4 class="text-end col-sm-3">Profile Settings</h4>
+        </div>
+        <div class="col-12 mt-5">
+            <h4 class="text-center">
+                Current Profile: 
+                <strong data-testid="current-profile">{{ profiles.active_profile_name.title() }}</strong>
+            </h4>
+            <form id="profiles-form">
+                <div class="row">
+                    <label for="profile" class="h5 col-form-label col-sm-3 text-end">
+                        Select Profile
+                    </label>
+                    <div class="col-sm-6">
+                        <select name="profile" id="profile" class="form-select" {% if task_running %}disabled{% endif %}>
+                            <option value="" disabled>Select Profile</option>
+                            {% for profile in profiles %}
+                            <option
+                                value="{{ profile }}"
+                                {% if profile == profiles.active_profile_name %}
+                                selected
+                                {% endif %}
+                            >{{ profile.title() }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="text-center mt-5">
+                    <button type="button" class="btn btn-primary mx-3" id="activate-profile-btn" disabled>Activate Profile</button>
+                    <button type="button" class="btn btn-secondary mx-3" id="view-profile-btn" {% if task_running %}disabled{% endif %}>View Profile</button>
+                </div>
+            </form>
+        </div>
+        <div id="edit-config-container" class="mt-5" style="display: none;">
+            <form id="edit-config-form" class="mt-5">
+                <div class="row mb-4">
+                    <label for="gpus" class="col-sm-3 col-form-label h5 text-end">GPUs</label>
+                    <div class="col-sm-6">
+                        <input type="text" id="gpus" name="gpus" class="form-control" value="{{ default_gpus }}" {% if task_running %}disabled{% endif %}>
+                    </div>
+                </div>
+                <div class="row mb-4">
+                    <label for="platform" class="col-sm-3 col-form-label h5 text-end">Platform</label>
+                    <div class="col-sm-6">
+                        <input type="text" id="platform" name="platform" class="form-control" value="{{ default_platform }}" {% if task_running %}disabled{% endif %}>
+                    </div>
+                </div>
+                <div class="row mb-4">
+                    <label for="ca" class="col-sm-3 col-form-label h5 text-end">Certificate Authority</label>
+                    <div class="col-sm-6">
+                        <select name="ca" id="ca" class="form-select" {% if not logged_in or task_running %}disabled{% endif %}>
+                            {% if not logged_in %}
+                            <option value="">Log in to select CA</option>
+                            {% else %}
+                            <option value="" disabled>Select CA</option>
+                            {% for ca in cas %}
+                            <option
+                                value="{{ ca }}"
+                                {% if ca == default_ca %}
+                                selected
+                                {% endif %}
+                            >{{ cas[ca] }}</option>
+                            {% endfor %}
+                            {% endif %}
+                        </select>
+                    </div>
+                </div>
+                <div class="row mb-4">
+                    <label for="fingerprint" class="col-sm-3 col-form-label h5 text-end">Fingerprint</label>
+                    <div class="col-sm-6">
+                        <input
+                            type="text"
+                            id="fingerprint"
+                            name="fingerprint"
+                            class="form-control"
+                            {% if not logged_in or task_running %}disabled{% endif %}
+                            value="{% if not logged_in %}Log in to change fingerprint{% else %}{{ default_fingerprint }}{% endif %}">
+                    </div>
+                </div>
+                <div class="text-center mt-4">
+                    <button type="button" id="apply-profile-changes-btn" class="btn btn-primary" disabled>Apply Changes</button>
+                </div>
+            </form>   
+        </div>
+    </div>
+</div>
+
+<div id="user-certificate" class="container">
+    <div class="row my-5">
+        <div class="col-12 mt-4">
+            <h4 class="text-end col-sm-3">Certificate Settings</h4>
+        </div>
+        <div id="certificate-settings" class="col-12 my-5 text-center">
+            {% if not logged_in %}
+            <h5>Log in to view certificate settings</h5>
+            {% else %}
+            {% if certificate_status["no_certs_found"] %}
+            <h5>No Certificate Found</h5>
+            <button
+                id="get-cert-btn"
+                class="btn btn-dark mt-3"
+                {% if task_running %}disabled{% endif %}
+                data-bs-toggle="tooltip"
+                data-bs-placement="top"
+                data-bs-title="{{ tooltips.get_client_certificate_btn }}"
+                >Get User Certificate
+            </button>
+            {% else %}
+            <h5>Certificate Exists</h5>
+            {% if certificate_status["should_be_submitted"] %}
+            <p class="fs-5">
+                <strong>Status:</strong> 
+                <span class="badge bg-warning" data-testid="cert-status">to be uploaded</span>
+            </p>
+            <button
+                id="submit-cert-btn"
+                class="btn btn-primary mt-3"
+                {% if task_running %}disabled{% endif %}
+                data-bs-toggle="tooltip"
+                data-bs-placement="top"
+                data-bs-title="{{ tooltips.submit_certificate_btn }}"
+                >Submit Certificate
+            </button>
+            {% elif certificate_status["should_be_invalidated"] %}
+            <p class="fs-5">
+                <strong>Status:</strong> 
+                <span class="badge bg-danger" data-testid="cert-status">invalid</span>
+            </p>
+            <button
+                id="delete-cert-btn"
+                class="btn btn-danger mt-3"
+                {% if task_running %}disabled{% endif %}
+                data-bs-toggle="tooltip"
+                data-bs-placement="top"
+                data-bs-title="{{ tooltips.invalidate_certificate_btn }}"
+                >Invalidate Certificate
+            </button>
+            {% else %}
+            <p class="fs-5">
+                <strong>Status:</strong> 
+                <span class="badge bg-success" data-testid="cert-status">valid</span>
+            </p>
+            {% endif %}
+            {% endif %}
+            {% endif %}
+        </div>
+    </div>
+    {% include "partials/panel_container.html" %}
+    <div class="text-center">
+        {% include "partials/text_content_container.html" %}
+    </div>
+    {% include "partials/prompt_container.html" %}
+</div>
+
+{% endblock content %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
+<script>
+    // Save some global variables to be accessible by js scripts
+    window.currentSettings = {
+        activeProfile: "{{ profiles.active_profile_name }}",
+        defaultGpus: "{{ default_gpus }}",
+        defaultPlatform: "{{ default_platform }}",
+        defaultCA: "{{ default_ca }}",
+        defaultFingerprint: "{{ default_fingerprint }}"
+    };
+</script>
+<script src="/static/js/settings.js"></script>
+{% if task_running %}
+{% if request.app.state.task.name == "get_client_certificate" %}
+<script>
+    $(document).ready(() => {
+        resumeRunningTask(
+            "#get-cert-btn",
+            null,
+            onGetCertSuccess
+        );
+    });
+</script>
+{% elif request.app.state.task.name == "delete_client_certificate" %}
+<script>
+    $(document).ready(() => {
+        resumeRunningTask(
+            "#delete-cert-btn",
+            "Deleting Client Certificate...",
+            onDeleteCertSuccess
+        );
+    });
+</script>
+{% elif request.app.state.task.name == "submit_client_certificate" %}
+<script>
+    $(document).ready(() => {
+        resumeRunningTask(
+            "#submit-cert-btn",
+            "Submitting Client Certificate...",
+            onSubmitCertSuccess
+        );
+    });
+</script>
+{% endif %}
+{% endif %}
+{% endblock extra_js %}

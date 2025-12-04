@@ -1,0 +1,18 @@
+container_type: DockerImage
+image: hasan7/mock-metrics:0.0.1
+tasks:
+  evaluate:
+    input_volumes:
+      predictions:
+        mount_path: /medperf_predictions
+        type: directory
+      labels:
+        mount_path: /medperf_labels
+        type: directory
+      parameters_file:
+        mount_path: /medperf_parameters.yaml
+        type: file
+    output_volumes:
+      output_path:
+        mount_path: /medperf_results.yaml
+        type: file

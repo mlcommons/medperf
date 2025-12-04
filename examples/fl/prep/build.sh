@@ -1,0 +1,1 @@
+docker build -t mlcommons/fl-test-prep:0.0.1 -f Dockerfile .

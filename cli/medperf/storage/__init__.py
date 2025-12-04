@@ -3,7 +3,7 @@ import shutil
 import time
 
 from medperf import config
-from medperf.config_management import read_config, write_config
+from medperf.config_management import read_config, write_config, ConfigManager
 
 from .utils import full_folder_path
 
@@ -20,13 +20,7 @@ def init_storage():
         os.makedirs(folder, exist_ok=True)
 
 
-def apply_configuration_migrations():
-    if not os.path.exists(config.config_path):
-        return
-
-    config_p = read_config()
-
-    # Migration for moving the logs folder to a new location
+def __apply_logs_migrations(config_p: ConfigManager):
     if "logs_folder" not in config_p.storage:
         return
 
@@ -37,16 +31,85 @@ def apply_configuration_migrations():
 
     del config_p.storage["logs_folder"]
 
+
+def __apply_training_migrations(config_p: ConfigManager):
+
+    for folder in [
+        "aggregators_folder",
+        "cas_folder",
+        "training_events_folder",
+        "training_folder",
+    ]:
+        if folder not in config_p.storage:
+            # Assuming for now all folders are always moved together
+            # I used here "benchmarks_folder" arbitrarily
+            config_p.storage[folder] = config_p.storage["benchmarks_folder"]
+
+
+def __apply_login_tracking_migrations(config_p: ConfigManager):
     # Migration for tracking the login timestamp (i.e., refresh token issuance timestamp)
     if config.credentials_keyword in config_p.active_profile:
         # So the user is logged in
         if "logged_in_at" not in config_p.active_profile[config.credentials_keyword]:
-            # Apply migration. We will set it to the current time, since this
-            # will make sure they will not be logged out before the actual refresh
-            # token expiration (for a better user experience). However, currently logged
-            # in users will still face a confusing error when the refresh token expires.
-            config_p.active_profile[config.credentials_keyword][
-                "logged_in_at"
-            ] = time.time()
+            # Apply migration. We will set it to an old time to make sure users no longer
+            # face a confusing error about refresh token expiration.
+            config_p.active_profile[config.credentials_keyword]["logged_in_at"] = (
+                time.time() - 2 * config.token_absolute_expiry
+            )
+
+
+def __apply_results_to_executions_migrations(config_p: ConfigManager):
+    if "results_folder" not in config_p.storage:
+        return
+
+    results_base = config_p.storage["results_folder"]
+    execs_folder = os.path.join(results_base, config.executions_folder)
+
+    # Move old results into the execution path
+    results_folder = os.path.join(results_base, "results")
+    results_exist = os.path.exists(results_folder) and os.listdir(results_folder)
+    if results_exist:
+        shutil.move(results_folder, execs_folder)
+
+    del config_p.storage["results_folder"]
+    config_p.storage["executions_folder"] = results_base
+
+
+def __apply_trusted_ca_migrations(config_p: ConfigManager):
+    if "certificate_authority_id" not in config_p.active_profile:
+        # set new fields for the current active profile
+        config_p.active_profile["certificate_authority_id"] = (
+            config.certificate_authority_id
+        )
+        config_p.active_profile["certificate_authority_fingerprint"] = (
+            config.certificate_authority_fingerprint
+        )
+
+        # set new fields for the two dev profiles
+        config_p[config.testauth_profile_name][
+            "certificate_authority_id"
+        ] = config.dev_certificate_authority_id
+        config_p[config.testauth_profile_name][
+            "certificate_authority_fingerprint"
+        ] = config.dev_certificate_authority_fingerprint
+
+        config_p[config.test_profile_name][
+            "certificate_authority_id"
+        ] = config.dev_certificate_authority_id
+        config_p[config.test_profile_name][
+            "certificate_authority_fingerprint"
+        ] = config.dev_certificate_authority_fingerprint
+
+
+def apply_configuration_migrations():
+    if not os.path.exists(config.config_path):
+        return
+
+    config_p = read_config()
+    __apply_logs_migrations(config_p)
+    __apply_training_migrations(config_p)
+    __apply_login_tracking_migrations(config_p)
+    __apply_results_to_executions_migrations(config_p)
+    __apply_trusted_ca_migrations(config_p)
 
     write_config(config_p)

@@ -12,10 +12,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Set up Python 3.9
+    - name: Set up Python 3.11
       uses: actions/setup-python@v2
       with:
-        python-version: 3.9
+        python-version: 3.11
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
@@ -36,7 +36,7 @@ jobs:
         # Ignore E231, as it is raising warnings with auto-generated code.
         flake8 . --count --max-complexity=10 --max-line-length=127 --ignore F821,W503,E231 --statistics --exclude=examples/,"*/migrations/*",cli/medperf/templates/
     - name: Test with pytest
-      working-directory: ./cli
+      working-directory: ./cli/medperf/tests
       run: |
         pytest
     - name: Set server environment vars

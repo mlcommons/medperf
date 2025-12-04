@@ -1,3 +1,4 @@
+import re
 import typer
 from getpass import getpass
 from yaspin import yaspin
@@ -10,6 +11,47 @@ class CLI(UI):
     def __init__(self):
         self.spinner = yaspin(color="green")
         self.is_interactive = False
+        self.is_parsed_output = False
+
+    def print_url_message(self, message: str):
+        match = re.search(r"Visit\s+(https?://\S+)\s+and enter the code", message)
+
+        url = match.group(1)
+
+        interactive_state = self.is_interactive
+        self.is_interactive = False
+
+        self.print("\nPlease go to the following link to complete your request:\n\t")
+        self.print_url(url)
+        self.print(
+            "\nEnter the following code on that page to complete the process:\n\t"
+        )
+
+        self.is_interactive = interactive_state
+
+    def contains_url(self, message: str):
+        return bool(re.search(r"Visit\s+(https?://\S+)\s+and enter the code", message))
+
+    def is_code(self, message: str):
+        ansi_escape = re.compile(r"\x1b\[[0-9;]*m")
+        message = ansi_escape.sub("", message.strip())
+        return bool(re.fullmatch(r"[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}", message))
+
+    def print_subprocess_logs(self, msg: str):
+        """Display subprocess logs on the command line
+
+        Args:
+            msg (str): message to print
+        """
+        if self.is_parsed_output:
+            if self.is_code(msg):
+                self.print_code(msg)
+            elif self.contains_url(msg):
+                self.print_url_message(msg)
+            else:
+                self.print(msg)
+        else:
+            self.print(msg)
 
     def print(self, msg: str = ""):
         """Display a message on the command line
@@ -17,7 +59,8 @@ class CLI(UI):
         Args:
             msg (str): message to print
         """
-        self.__print(msg)
+
+        self._print(msg)
 
     def print_error(self, msg: str):
         """Display an error message on the command line
@@ -27,7 +70,10 @@ class CLI(UI):
         """
         msg = f"❌ {msg}"
         msg = typer.style(msg, fg=typer.colors.RED, bold=True)
-        self.__print(msg)
+        self._print(msg)
+
+    def print_critical(self, msg: str):
+        self.print_warning(msg)
 
     def print_warning(self, msg: str):
         """Display a warning message on the command line
@@ -36,9 +82,15 @@ class CLI(UI):
             msg (str): warning message to display
         """
         msg = typer.style(msg, fg=typer.colors.YELLOW, bold=True)
-        self.__print(msg)
+        self._print(msg)
 
-    def __print(self, msg: str = ""):
+    def print_url(self, msg: str):
+        self._print(msg)
+
+    def print_code(self, msg: str):
+        self._print(msg)
+
+    def _print(self, msg: str = ""):
         if self.is_interactive:
             self.spinner.write(msg)
         else:
@@ -62,11 +114,40 @@ class CLI(UI):
         Yields:
             CLI: Yields the current CLI instance with an interactive session initialized
         """
-        self.start_interactive()
-        try:
+        if self.is_interactive:
+            # if already interactive, do nothing
             yield self
-        finally:
-            self.stop_interactive()
+        else:
+            self.start_interactive()
+            try:
+                yield self
+            finally:
+                self.stop_interactive()
+
+    def start_parsed_output(self):
+        """Start a parsed output session where messages will be displayed based on regular expressions"""
+        self.is_parsed_output = True
+
+    def stop_parsed_output(self):
+        """Stop the parsed output session"""
+        self.is_parsed_output = False
+
+    @contextmanager
+    def parsed_output(self):
+        """Context managed parsed output session.
+
+        Yields:
+            CLI: Yields the current CLI instance with a parsed output session initialized
+        """
+        if self.is_parsed_output:
+            # if already parsed output, do nothing
+            yield self
+        else:
+            self.start_parsed_output()
+            try:
+                yield self
+            finally:
+                self.stop_parsed_output()
 
     @property
     def text(self):
@@ -116,4 +197,15 @@ class CLI(UI):
             msg (str): message to print
         """
         msg = typer.style(msg, fg=typer.colors.GREEN)
-        self.__print(msg)
+        self._print(msg)
+
+    def print_yaml(self, msg: str):
+        """Display a yaml object on the command line
+
+        Args:
+            msg (str): message to display
+        """
+        self.print()
+        self.print("=" * 20)
+        self.print(msg)
+        self.print("=" * 20)

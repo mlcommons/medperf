@@ -33,9 +33,18 @@ class BenchmarksTest(MedPerfTest):
             user,
             user,
             user,
-            prep_mlcube_kwargs={"name": f"{user}prep", "mlcube_hash": f"{user}prep"},
-            ref_mlcube_kwargs={"name": f"{user}ref", "mlcube_hash": f"{user}ref"},
-            eval_mlcube_kwargs={"name": f"{user}eval", "mlcube_hash": f"{user}eval"},
+            prep_mlcube_kwargs={
+                "name": f"{user}prep",
+                "container_config": {f"{user}prep": f"{user}prep"},
+            },
+            ref_mlcube_kwargs={
+                "name": f"{user}ref",
+                "container_config": {f"{user}ref": f"{user}ref"},
+            },
+            eval_mlcube_kwargs={
+                "name": f"{user}eval",
+                "container_config": {f"{user}eval": f"{user}eval"},
+            },
             name=f"{user}name",
         )
         return benchmark
@@ -73,7 +82,9 @@ class BenchmarksTest(MedPerfTest):
 class DatasetsTest(MedPerfTest):
     def __create_asset(self, user):
         self.set_credentials(user)
-        prep = self.mock_mlcube(name=f"{user}name", mlcube_hash=f"{user}hash")
+        prep = self.mock_mlcube(
+            name=f"{user}name", container_config={f"{user}hash": f"{user}hash"}
+        )
         prep = self.create_mlcube(prep).data
         dataset = self.mock_dataset(prep["id"], generated_uid=f"{user}genid")
         dataset = self.create_dataset(dataset).data
@@ -112,7 +123,9 @@ class DatasetsTest(MedPerfTest):
 class MlCubesTest(MedPerfTest):
     def __create_asset(self, user):
         self.set_credentials(user)
-        mlcube = self.mock_mlcube(name=f"{user}name", mlcube_hash=f"{user}hash")
+        mlcube = self.mock_mlcube(
+            name=f"{user}name", container_config={f"{user}hash": f"{user}hash"}
+        )
         mlcube = self.create_mlcube(mlcube).data
         return mlcube
 
@@ -212,9 +225,18 @@ class BenchmarkDatasetTest(MedPerfTest):
             user,
             user,
             user,
-            prep_mlcube_kwargs={"name": f"{user}prep", "mlcube_hash": f"{user}prep"},
-            ref_mlcube_kwargs={"name": f"{user}ref", "mlcube_hash": f"{user}ref"},
-            eval_mlcube_kwargs={"name": f"{user}eval", "mlcube_hash": f"{user}eval"},
+            prep_mlcube_kwargs={
+                "name": f"{user}prep",
+                "container_config": {f"{user}prep": f"{user}prep"},
+            },
+            ref_mlcube_kwargs={
+                "name": f"{user}ref",
+                "container_config": {f"{user}ref": f"{user}ref"},
+            },
+            eval_mlcube_kwargs={
+                "name": f"{user}eval",
+                "container_config": {f"{user}eval": f"{user}eval"},
+            },
             name=f"{user}name",
         )
         self.set_credentials(user)
@@ -265,14 +287,25 @@ class BenchmarkMlCubeTest(MedPerfTest):
             user,
             user,
             user,
-            prep_mlcube_kwargs={"name": f"{user}prep", "mlcube_hash": f"{user}prep"},
-            ref_mlcube_kwargs={"name": f"{user}ref", "mlcube_hash": f"{user}ref"},
-            eval_mlcube_kwargs={"name": f"{user}eval", "mlcube_hash": f"{user}eval"},
+            prep_mlcube_kwargs={
+                "name": f"{user}prep",
+                "container_config": {f"{user}prep": f"{user}prep"},
+            },
+            ref_mlcube_kwargs={
+                "name": f"{user}ref",
+                "container_config": {f"{user}ref": f"{user}ref"},
+            },
+            eval_mlcube_kwargs={
+                "name": f"{user}eval",
+                "container_config": {f"{user}eval": f"{user}eval"},
+            },
             name=f"{user}name",
         )
         self.set_credentials(user)
         mlcube = self.mock_mlcube(
-            name=f"{user}name", mlcube_hash=f"{user}hash", state="OPERATION"
+            name=f"{user}name",
+            container_config={f"{user}hash": f"{user}hash"},
+            state="OPERATION",
         )
         mlcube = self.create_mlcube(mlcube).data
 
@@ -309,3 +342,102 @@ class BenchmarkMlCubeTest(MedPerfTest):
         self.assertEqual(len(resp2), 1)
         self.assertEqual(resp1[0]["id"], assoc1["id"])
         self.assertEqual(resp2[0]["id"], assoc2["id"])
+
+
+class CertificatesTest(MedPerfTest):
+    def __create_asset(self, user):
+        self.set_credentials(user)
+        # Create CA
+        ca = self.mock_ca(name=f"{user}ca")
+        ca = self.create_ca(ca).data
+        # Create Certificate
+        certificate = self.mock_certificate(ca=ca["id"], name=f"{user}cert")
+        certificate = self.create_certificate(certificate).data
+        return certificate
+
+    def test_endpoint_returns_current_user_assets(self):
+        url = self.api_prefix + "/me/certificates/"
+
+        # setup users
+        user1 = "user1"
+        user2 = "user2"
+        self.create_user(user1)
+        self.create_user(user2)
+
+        # create an asset for each user
+        certificate1 = self.__create_asset(user1)
+        certificate2 = self.__create_asset(user2)
+
+        # Act
+        self.set_credentials(user1)
+        response1 = self.client.get(url)
+        self.set_credentials(user2)
+        response2 = self.client.get(url)
+
+        # Assert
+        self.assertEqual(response1.status_code, status.HTTP_200_OK)
+        self.assertEqual(response2.status_code, status.HTTP_200_OK)
+        resp1 = response1.data["results"]
+        resp2 = response2.data["results"]
+        self.assertEqual(len(resp1), 1)
+        self.assertEqual(len(resp2), 1)
+        self.assertEqual(resp1[0]["id"], certificate1["id"])
+        self.assertEqual(resp2[0]["id"], certificate2["id"])
+
+
+class EncryptedKeysTest(MedPerfTest):
+    def __create_asset(self, user):
+        self.set_credentials(user)
+        # Create CA
+        ca = self.mock_ca(name=f"{user}ca")
+        ca = self.create_ca(ca).data
+        # Create Certificate
+        certificate = self.mock_certificate(ca=ca["id"], name=f"{user}cert")
+        certificate = self.create_certificate(certificate).data
+        # Create Container (mlcube)
+        container = self.mock_mlcube(
+            name=f"{user}container", container_config={f"{user}hash": "value"}
+        )
+        container = self.create_mlcube(container).data
+        # Create EncryptedKey
+        keys_data = [
+            {
+                "name": f"{user}key",
+                "certificate": certificate["id"],
+                "container": container["id"],
+                "encrypted_key_base64": f"{user}a2V5X2Jhc2U2NA==",
+                "is_valid": True,
+                "metadata": {},
+            }
+        ]
+        keys = self.create_encrypted_keys(keys_data).data
+        return keys[0]
+
+    def test_endpoint_returns_current_user_assets(self):
+        url = self.api_prefix + "/me/encrypted_keys/"
+
+        # setup users
+        user1 = "user1"
+        user2 = "user2"
+        self.create_user(user1)
+        self.create_user(user2)
+
+        # create an asset for each user
+        key1 = self.__create_asset(user1)
+        key2 = self.__create_asset(user2)
+
+        # Act
+        self.set_credentials(user1)
+        response1 = self.client.get(url)
+        self.set_credentials(user2)
+        response2 = self.client.get(url)
+
+        # Assert
+        self.assertEqual(response1.status_code, status.HTTP_200_OK)
+        self.assertEqual(response2.status_code, status.HTTP_200_OK)
+        resp1 = response1.data["results"]
+        resp2 = response2.data["results"]
+        self.assertEqual(len(resp1), 1)
+        self.assertEqual(len(resp2), 1)
+        self.assertEqual(resp1[0]["id"], key1["id"])
+        self.assertEqual(resp2[0]["id"], key2["id"])

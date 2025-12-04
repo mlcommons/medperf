@@ -44,6 +44,7 @@ def test_validate_fails_if_dataset_already_in_operation(mocker, data_preparation
 
 def test_get_prep_cube_downloads_cube_file(mocker, data_preparation, cube):
     # Arrange
+    data_preparation.cube = None
     spy = mocker.patch.object(cube, "download_run_files")
     mocker.patch(PATCH_REGISTER.format("Cube.get"), return_value=cube)
 
@@ -52,6 +53,21 @@ def test_get_prep_cube_downloads_cube_file(mocker, data_preparation, cube):
 
     # Assert
     spy.assert_called_once()
+
+
+def test_get_prep_cube_skips_download_if_cube_already_present(
+    mocker, data_preparation, cube
+):
+    # Arrange
+    spy = mocker.patch.object(cube, "download_run_files")
+    spy_get = mocker.patch(PATCH_REGISTER.format("Cube.get"))
+
+    # Act
+    data_preparation.get_prep_cube()
+
+    # Assert
+    spy.assert_not_called()
+    spy_get.assert_not_called()
 
 
 @pytest.mark.parametrize("dataset_for_test", [False, True])
@@ -159,13 +175,13 @@ def test_prepare_checks_report_and_metadata_path(
 
     # Assert
     if report_specified:
-        assert "report_file" in spy.call_args.kwargs.keys()
+        assert "report_file" in spy.call_args.kwargs["mounts"].keys()
     else:
-        assert "report_file" not in spy.call_args.kwargs.keys()
+        assert "report_file" not in spy.call_args.kwargs["mounts"].keys()
     if metadata_specified:
-        assert "metadata_path" in spy.call_args.kwargs.keys()
+        assert "metadata_path" in spy.call_args.kwargs["mounts"].keys()
     else:
-        assert "metadata_path" not in spy.call_args.kwargs.keys()
+        assert "metadata_path" not in spy.call_args.kwargs["mounts"].keys()
 
 
 @pytest.mark.parametrize(
@@ -224,9 +240,9 @@ def test_statistics_checks_metadata_path(
 
     # Assert
     if metadata_specified:
-        assert "metadata_path" in spy.call_args.kwargs.keys()
+        assert "metadata_path" in spy.call_args.kwargs["mounts"].keys()
     else:
-        assert "metadata_path" not in spy.call_args.kwargs.keys()
+        assert "metadata_path" not in spy.call_args.kwargs["mounts"].keys()
 
 
 def test_preparation_fails_if_statistics_is_none(mocker, data_preparation, cube, fs):

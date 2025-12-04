@@ -1,0 +1,66 @@
+{# ./cli/medperf/web_ui/templates/medperf_login.html #}
+
+{% extends "base.html" %}
+
+{% block title %}Medperf Login{% endblock %}
+
+{% block content %}
+{% set login_running = (task_running and request.app.state.task.name == "medperf_login") %}
+<div class="container min-vh-100 justify-content-center align-items-center">
+    <div class="row mt-5">
+        {% if redirected %}
+        <div class="col-12">
+            <div class="alert alert-danger text-center" role="alert">
+                You are not logged in
+            </div>
+        </div>
+        {% endif %}
+        <div class="col-12 mt-5">
+            <h3 class="text-center mb-4">Login</h3>
+            <form class="my-5" id="medperf-login-form">
+                <div class="form-group my-5">
+                    <label for="email" class="form-label h4">Email</label>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        class="form-control"
+                        placeholder="name@example.com"
+                        {% if task_running %} disabled {% endif %}
+                        {% if login_running %}
+                        value="{{ task_formData.get('email', '') }}"
+                        {% endif %}
+                    >
+                </div>
+                <div class="text-center">
+                    <button
+                        id="medperf-login-btn"
+                        type="button"
+                        class="btn btn-primary"
+                        disabled
+                    >Login</button>
+                </div>
+            </form>
+            <div class="text-center">
+                {% include "partials/text_content_container.html" %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
+<script src="{{ url_for('static', path='js/medperf_auth.js') }}"></script>
+{% if task_running and request.app.state.task.name == "medperf_login"  %}
+<script>
+    $(document).ready(() => {
+        resumeRunningTask(
+            "#medperf-login-btn",
+            null,
+            onMedperfLoginSuccess
+        );
+    });
+</script>
+{% endif %}
+{% endblock extra_js %}

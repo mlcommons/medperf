@@ -1,6 +1,6 @@
 import typer
+import time
 from typing import Optional
-
 import medperf.config as config
 from medperf.decorators import clean_except
 from medperf.entities.cube import Cube
@@ -9,24 +9,96 @@ from medperf.commands.view import EntityView
 from medperf.commands.mlcube.create import CreateCube
 from medperf.commands.mlcube.submit import SubmitCube
 from medperf.commands.mlcube.associate import AssociateCube
+from medperf.commands.mlcube.run_test import run_mlcube
+from medperf.commands.mlcube.grant_access import GrantAccess
+from medperf.commands.mlcube.revoke_user_access import RevokeUserAccess
+from medperf.commands.mlcube.delete_keys import DeleteKeys
+from medperf.commands.mlcube.check_access import CheckAccess
+from medperf.exceptions import CleanExit
 
 app = typer.Typer()
+
+
+@app.command("run_test")
+@clean_except
+def run_test(
+    mlcube_path: str = typer.Option(
+        ..., "--container", "-m", help="path to container config"
+    ),
+    task: str = typer.Option(..., "--task", "-t", help="container task to run"),
+    parameters_file_path: str = typer.Option(
+        None, "--parameters_file_path", help="path to container parameters file"
+    ),
+    additional_files_path: str = typer.Option(
+        None, "--additional_files_path", help="path to ciontainer additional files"
+    ),
+    output_logs: str = typer.Option(
+        None, "--output_logs", "-o", help="where to store stdout"
+    ),
+    timeout: int = typer.Option(
+        None, "--timeout", help="comma separated list of key=value pairs"
+    ),
+    mounts: str = typer.Option(
+        "", "--mounts", "-m", help="comma separated list of key=value pairs"
+    ),
+    env: str = typer.Option(
+        "", "--env", "-e", help="comma separated list of key=value pairs"
+    ),
+    ports: str = typer.Option(
+        "", "--ports", "-P", help="comma separated list of ports to expose"
+    ),
+    allow_network: bool = typer.Option(
+        False, "--allow_network", help="comma separated list of key=value pairs"
+    ),
+    download: int = typer.Option(
+        False, "--download", help="whether to pull docker image"
+    ),
+):
+    """Runs a container for testing only (developers)"""
+    mounts = dict([p.split("=") for p in mounts.strip().strip(",").split(",") if p])
+    env = dict([p.split("=") for p in env.strip().strip(",").split(",") if p])
+    ports = [p for p in ports.split(",") if p]
+    run_mlcube(
+        mlcube_path,
+        task,
+        parameters_file_path,
+        additional_files_path,
+        output_logs,
+        timeout,
+        mounts,
+        env,
+        ports,
+        not allow_network,
+        download,
+    )
 
 
 @app.command("ls")
 @clean_except
 def list(
     unregistered: bool = typer.Option(
-        False, "--unregistered", help="Get unregistered mlcubes"
+        False, "--unregistered", help="Get unregistered containers"
     ),
-    mine: bool = typer.Option(False, "--mine", help="Get current-user mlcubes"),
+    mine: bool = typer.Option(False, "--mine", help="Get current-user containers"),
+    name: str = typer.Option(None, "--name", "-n", help="Filter out by container Name"),
+    owner: int = typer.Option(None, "--owner", help="Filter by owner ID"),
+    state: str = typer.Option(
+        None, "--state", help="Filter by state (DEVELOPMENT/OPERATION)"
+    ),
+    is_active: bool = typer.Option(
+        None, "--active/--inactive", help="Filter by active status"
+    ),
 ):
-    """List mlcubes"""
+    """List containers"""
     EntityList.run(
         Cube,
         fields=["UID", "Name", "State", "Registered"],
         unregistered=unregistered,
         mine_only=mine,
+        name=name,
+        owner=owner,
+        state=state,
+        is_active=is_active,
     )
 
 
@@ -35,96 +107,96 @@ def list(
 def create(
     template: str = typer.Argument(
         ...,
-        help=f"MLCube template name. Available templates: [{' | '.join(config.templates.keys())}]",
+        help=f"Container type. Available types: [{' | '.join(config.templates.keys())}]",
+    ),
+    image_name: str = typer.Option(
+        ...,
+        "--image",
+        "-i",
+        help="Image name",
+    ),
+    folder_name: str = typer.Option(
+        ...,
+        "--folder_name",
+        "-f",
+        help="Folder name of the container files template to be created",
     ),
     output_path: str = typer.Option(
-        ".", "--output", "-o", help="Save the generated MLCube to the specified path"
-    ),
-    config_file: str = typer.Option(
-        None,
-        "--config-file",
-        "-c",
-        help="JSON Configuration file. If not present then user is prompted for configuration",
+        ".", "--output", "-o", help="Save the generated template to the specified path"
     ),
 ):
-    """Creates an MLCube based on one of the specified templates"""
-    CreateCube.run(template, output_path, config_file)
+    """Creates a container files template"""
+    CreateCube.run(template, image_name, folder_name, output_path)
 
 
 @app.command("submit")
 @clean_except
 def submit(
-    name: str = typer.Option(..., "--name", "-n", help="Name of the mlcube"),
-    mlcube_file: str = typer.Option(
+    name: str = typer.Option(..., "--name", "-n", help="Name of the container"),
+    container_config_file: str = typer.Option(
         ...,
-        "--mlcube-file",
+        "--container-config-file",
         "-m",
-        help="Identifier to download the mlcube file. See the description above",
+        help="Container Config file.",
     ),
-    mlcube_hash: str = typer.Option("", "--mlcube-hash", help="hash of mlcube file"),
     parameters_file: str = typer.Option(
-        "",
+        None,
         "--parameters-file",
         "-p",
-        help="Identifier to download the parameters file. See the description above",
-    ),
-    parameters_hash: str = typer.Option(
-        "", "--parameters-hash", help="hash of parameters file"
+        help="container parameters file.",
     ),
     additional_file: str = typer.Option(
-        "",
+        None,
         "--additional-file",
         "-a",
         help="Identifier to download the additional files tarball. See the description above",
     ),
     additional_hash: str = typer.Option(
-        "", "--additional-hash", help="hash of additional file"
+        None, "--additional-hash", help="hash of additional file"
     ),
-    image_file: str = typer.Option(
-        "",
-        "--image-file",
-        "-i",
-        help="Identifier to download the image file. See the description above",
-    ),
-    image_hash: str = typer.Option("", "--image-hash", help="hash of image file"),
+    image_hash: str = typer.Option(None, "--image-hash", help="hash of image file"),
     operational: bool = typer.Option(
         False,
         "--operational",
-        help="Submit the MLCube as OPERATIONAL",
+        help="Submit the container as OPERATIONAL",
     ),
-    kbs: int = typer.Option(
-        None, "--kbs", "-k", help="KBS"
+    decryption_key: Optional[str] = typer.Option(
+        None,
+        "--decryption-key",
+        "--decryption_key",
+        "-d",
+        help="Path to the decryption key file for the encrypted container. The key "
+        "will stay local. This should only be provided for encrypted container submissions.",
     ),
+    kbs: int = typer.Option(None, "--kbs", "-k", help="KBS"),
 ):
-    """Submits a new cube to the platform.\n
-    The following assets:\n
-        - mlcube_file\n
-        - parameters_file\n
-        - additional_file\n
-        - image_file\n
-    are expected to be given in the following format: <source_prefix:resource_identifier>
+    """Submits a new container to the platform.\n
+    The additional files is expected to be given in the following format: <source_prefix:resource_identifier>
     where `source_prefix` instructs the client how to download the resource, and `resource_identifier`
     is the identifier used to download the asset. The following are supported:\n
     1. A direct link: "direct:<URL>"\n
     2. An asset hosted on the Synapse platform: "synapse:<synapse ID>"\n\n
 
     If a URL is given without a source prefix, it will be treated as a direct download link.
+
+    For private (encrypted) containers, the decryption key
+    should be provided. Otherwise, the container will not work on the data owners' side.
     """
     mlcube_info = {
         "name": name,
-        "git_mlcube_url": mlcube_file,
-        "git_mlcube_hash": mlcube_hash,
-        "git_parameters_url": parameters_file,
-        "parameters_hash": parameters_hash,
-        "image_tarball_url": image_file,
-        "image_tarball_hash": image_hash,
+        "image_hash": image_hash,
         "additional_files_tarball_url": additional_file,
         "additional_files_tarball_hash": additional_hash,
         "state": "OPERATION" if operational else "DEVELOPMENT",
     }
     if kbs is not None:
         mlcube_info["user_metadata"] = {"kbs": kbs}
-    SubmitCube.run(mlcube_info)
+    SubmitCube.run(
+        mlcube_info,
+        container_config=container_config_file,
+        parameters_config=parameters_file,
+        decryption_key=decryption_key,
+    )
     config.ui.print("✅ Done!")
 
 
@@ -140,7 +212,7 @@ def associate(
         help="Execute the test even if results already exist",
     ),
 ):
-    """Associates an MLCube to a benchmark"""
+    """Associates a model to a benchmark"""
     AssociateCube.run(model_uid, benchmark_uid, approved=approval, no_cache=no_cache)
     config.ui.print("✅ Done!")
 
@@ -148,7 +220,7 @@ def associate(
 @app.command("view")
 @clean_except
 def view(
-    entity_id: Optional[int] = typer.Argument(None, help="MLCube ID"),
+    entity_id: Optional[int] = typer.Argument(None, help="Container ID"),
     format: str = typer.Option(
         "yaml",
         "-f",
@@ -158,12 +230,12 @@ def view(
     unregistered: bool = typer.Option(
         False,
         "--unregistered",
-        help="Display unregistered mlcubes if mlcube ID is not provided",
+        help="Display unregistered containers if container ID is not provided",
     ),
     mine: bool = typer.Option(
         False,
         "--mine",
-        help="Display current-user mlcubes if mlcube ID is not provided",
+        help="Display current-user containers if container ID is not provided",
     ),
     output: str = typer.Option(
         None,
@@ -172,5 +244,166 @@ def view(
         help="Output file to store contents. If not provided, the output will be displayed",
     ),
 ):
-    """Displays the information of one or more mlcubes"""
+    """Displays the information of one or more containers"""
     EntityView.run(entity_id, Cube, format, unregistered, mine, output)
+
+
+@app.command("grant_access")
+@clean_except
+def grant_access(
+    model_id: int = typer.Option(
+        ...,
+        "-m",
+        "--model-id",
+        "--model_id",
+        help="Private model for which access will be granted.",
+    ),
+    benchmark_id: int = typer.Option(
+        ...,
+        "-b",
+        "--benchmark-id",
+        "--benchmark_id",
+        help="Benchmark UID to which the Private model is associated. "
+        "All data owners registered to this benchmark and have "
+        "a valid certificate will be granted access to the model.",
+    ),
+    approval: bool = typer.Option(False, "-y", help="Skip approval step"),
+    allowed_emails: str = typer.Option(
+        None,
+        "-a",
+        "--allowed_emails",
+        help="Space-separated list of emails",
+    ),
+):
+    """
+    Allows all currently registered Data Owners in a given benchmark to access
+    a Private model registered to the same benchmark.
+    You can filter these data owners using `allowed_emails`.
+    The Private model must have already been associated with the
+    benchmark for this to take effect.
+    """
+    GrantAccess.run(
+        benchmark_id=benchmark_id,
+        model_id=model_id,
+        approved=approval,
+        allowed_emails=allowed_emails,
+    )
+    config.ui.print("✅ Done!")
+
+
+@app.command("auto_grant_access")
+@clean_except
+def auto_grant_access(
+    model_id: int = typer.Option(
+        ...,
+        "-m",
+        "--model-id",
+        "--model_id",
+        help="Private model for which access will be granted.",
+    ),
+    benchmark_id: int = typer.Option(
+        ...,
+        "-b",
+        "--benchmark-id",
+        "--benchmark_id",
+        help="Benchmark UID to which the Private model is associated. "
+        "All data owners registered to this benchmark and have "
+        "a valid certificate will be granted access to the model.",
+    ),
+    interval: int = typer.Option(
+        5,
+        "-i",
+        "--interval",
+        min=5,
+        max=60,
+        help="Time in minutes to check for updates. Minimum 5 minutes, maximum 60 minutes "
+        "(an hour). Defaults to 5 minutes if not provided.",
+    ),
+    allowed_emails: str = typer.Option(
+        None,
+        "-a",
+        "--allowed_emails",
+        help="Space-separated list of emails",
+    ),
+):
+    """
+    This command will run the 'grant_access' command every 5 minutes indefinetely.
+    To stop this command, press CTRL+C. The time interval for checking for new data
+    owners may be customized by using the -i flag.
+    Allows all currently registered Data Owners in a given benchmark to access
+    a Private model registered to the same benchmark.
+    You can filter these data owners using `allowed_emails`.
+    The private model must have already been associated with the
+    benchmark for this to take effect.
+    """
+    interval_in_seconds = interval * 60
+    while True:
+        try:
+            GrantAccess.run(
+                benchmark_id=benchmark_id,
+                model_id=model_id,
+                approved=True,
+                allowed_emails=allowed_emails,
+            )
+        except CleanExit as e:
+            config.ui.print(str(e))
+        except KeyboardInterrupt:
+            config.ui.print("✅ Stopping at request of the user.")
+            raise
+        config.ui.print(f"Will check again in {interval} minutes...")
+        time.sleep(interval_in_seconds)
+
+
+@app.command("revoke_user_access")
+@clean_except
+def revoke_user_access(
+    key_id: int = typer.Option(
+        ...,
+        "-k",
+        "--key-id",
+        "--key_id",
+        help="Key ID to delete.",
+    ),
+    approval: bool = typer.Option(False, "-y", help="Skip approval step"),
+):
+    """
+    Revokes access to the container for a user by deleting the user's key.
+    """
+    RevokeUserAccess.run(key_id, approved=approval)
+    config.ui.print("✅ Done!")
+
+
+@app.command("delete_keys")
+@clean_except
+def delete_keys(
+    container_id: int = typer.Option(
+        ...,
+        "-c",
+        "--container-id",
+        "--container_id",
+        help="Container ID to delete all its keys.",
+    ),
+    approval: bool = typer.Option(False, "-y", help="Skip approval step"),
+):
+    """
+    Revokes access to the container by deleting all its encrypted keys on the server.
+    """
+    DeleteKeys.run(container_id, approved=approval)
+    config.ui.print("✅ Done!")
+
+
+@app.command("check_access")
+@clean_except
+def check_access(
+    container_id: int = typer.Option(
+        ...,
+        "-c",
+        "--container-id",
+        "--container_id",
+        help="Container ID to check if you have access to.",
+    )
+):
+    """
+    Check if you have access to a container.
+    """
+    CheckAccess.run(container_id)

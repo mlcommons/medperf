@@ -5,12 +5,9 @@ from .models import MlCube
 class MlCubeAdmin(admin.ModelAdmin):
     list_display = (
         "name",
-        "git_mlcube_url",
-        "mlcube_hash",
-        "git_parameters_url",
-        "parameters_hash",
-        "image_tarball_url",
-        "image_tarball_hash",
+        "container_config",
+        "parameters_config",
+        "image_hash",
         "additional_files_tarball_url",
         "additional_files_tarball_hash",
         "owner",

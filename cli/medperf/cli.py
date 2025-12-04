@@ -6,9 +6,9 @@ import logging.handlers
 from medperf import __version__
 import medperf.config as config
 from medperf.decorators import clean_except, add_inline_parameters
-import medperf.commands.result.result as result
-from medperf.commands.result.create import BenchmarkExecution
-from medperf.commands.result.submit import ResultSubmission
+from medperf.commands.execution import execution
+from medperf.commands.execution.create import BenchmarkExecution
+from medperf.commands.execution.submit import ResultSubmission
 import medperf.commands.mlcube.mlcube as mlcube
 import medperf.commands.dataset.dataset as dataset
 import medperf.commands.auth.auth as auth
@@ -16,15 +16,20 @@ import medperf.commands.benchmark.benchmark as benchmark
 import medperf.commands.profile as profile
 import medperf.commands.association.association as association
 import medperf.commands.compatibility_test.compatibility_test as compatibility_test
+import medperf.commands.training.training as training
+import medperf.commands.aggregator.aggregator as aggregator
+import medperf.commands.ca.ca as ca
+import medperf.commands.certificate.certificate as certificate
 import medperf.commands.storage as storage
 import medperf.commands.cc.cc as cc
-
-# from medperf.utils import check_for_updates
-# from medperf.logging.utils import log_machine_details
+import medperf.web_ui.app as web_ui
+from medperf.utils import check_for_updates, get_webui_properties
+from medperf.logging.utils import log_machine_details
 
 app = typer.Typer()
 app.add_typer(mlcube.app, name="mlcube", help="Manage mlcubes")
-app.add_typer(result.app, name="result", help="Manage results")
+app.add_typer(mlcube.app, name="container", help="Manage containers")
+app.add_typer(execution.app, name="result", help="Manage results")
 app.add_typer(dataset.app, name="dataset", help="Manage datasets")
 app.add_typer(benchmark.app, name="benchmark", help="Manage benchmarks")
 app.add_typer(association.app, name="association", help="Manage associations")
@@ -33,6 +38,11 @@ app.add_typer(compatibility_test.app, name="test", help="Manage compatibility te
 app.add_typer(auth.app, name="auth", help="Authentication")
 app.add_typer(storage.app, name="storage", help="Storage management")
 app.add_typer(cc.app, name="cc", help="Confidential computing utilities")
+app.add_typer(training.app, name="training", help="Manage training experiments")
+app.add_typer(aggregator.app, name="aggregator", help="Manage aggregators")
+app.add_typer(ca.app, name="ca", help="Manage CAs")
+app.add_typer(certificate.app, name="certificate", help="Manage certificates")
+app.add_typer(web_ui.app, name="web-ui", help="local web UI to manage medperf entities")
 
 
 @app.command("run")
@@ -51,31 +61,40 @@ def execute(
     ignore_model_errors: bool = typer.Option(
         False,
         "--ignore-model-errors",
-        help="Ignore failing model cubes, allowing for possibly submitting partial results",
+        help="Ignore failing models, allowing for possibly submitting partial results",
     ),
     no_cache: bool = typer.Option(
         False,
         "--no-cache",
         help="Ignore existing results. The experiment then will be rerun",
     ),
+    new_result: bool = typer.Option(
+        False,
+        "--new-result",
+        help=(
+            "Works if the result of the execution was already uploaded."
+            "This will rerun and create a new record."
+        ),
+    ),
 ):
     """Runs the benchmark execution step for a given benchmark, prepared dataset and model"""
-    result = BenchmarkExecution.run(
+    execution = BenchmarkExecution.run(
         benchmark_uid,
         data_uid,
         [model_uid],
         ignore_model_errors=ignore_model_errors,
         no_cache=no_cache,
+        rerun_finalized_executions=new_result,
     )[0]
-    if result.id:  # TODO: use result.is_registered once PR #338 is merged
-        config.ui.print(  # TODO: msg should be colored yellow
-            """An existing registered result for the requested execution has been\n
-            found. If you wish to submit a new result for the same execution,\n
-            please run the command again with the --no-cache option.\n"""
-        )
-    else:
-        ResultSubmission.run(result.local_id, approved=approval)
+    ResultSubmission.run(execution.id, approved=approval)
     config.ui.print("✅ Done!")
+
+
+@app.command("get_webui_properties")
+@clean_except
+def get_webui_props():
+    """Prints necessary information to access an already-running medperf webui"""
+    get_webui_properties()
 
 
 def version_callback(value: bool):
@@ -104,7 +123,7 @@ def main(
 
     logging.info(f"Running MedPerf v{__version__} on {loglevel} logging level")
     logging.info(f"Executed command: {' '.join(sys.argv[1:])}")
-    # log_machine_details()
-    # check_for_updates()
+    log_machine_details()
+    check_for_updates()
 
     config.ui.print(f"MedPerf {__version__}")

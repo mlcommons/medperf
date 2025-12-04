@@ -29,7 +29,7 @@ def __parse_resource(resource: str):
     # In this case the input format is not compatible with any source
     msg = f"""Invalid resource input: {resource}. A Resource must be a url or
     in the following format: '<source_prefix>:<resource_identifier>'. Run
-    `medperf mlcube submit --help` for more details."""
+    `medperf container submit --help` for more details."""
     raise InvalidArgumentError(msg)
 
 
@@ -78,6 +78,9 @@ def download_resource(
         The hash of the downloaded file (or existing file)
 
     """
+    logging.debug(
+        f"Downloading {resource} to {output_path} and the expected hash is {expected_hash}"
+    )
     tmp_output_path = tmp_download_resource(resource)
 
     calculated_hash = get_file_hash(tmp_output_path)

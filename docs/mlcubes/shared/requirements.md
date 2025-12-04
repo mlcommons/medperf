@@ -1,2 +1,0 @@
-#### project/requirements.txt
-The provided MLCube template assumes your project is python based. Because of this, it provides a `requirements.txt` file to specify the dependencies to run your project. This file is automatically used by the `Dockerfile` to install and set up your project. Since some dependencies are necessary, let's add them to the file:

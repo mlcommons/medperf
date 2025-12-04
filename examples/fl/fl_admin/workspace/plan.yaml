@@ -1,0 +1,177 @@
+aggregator:
+  settings:
+    best_state_path: save/classification_best.pbuf
+    db_store_rounds: 2
+    init_state_path: save/classification_init.pbuf
+    last_state_path: save/classification_last.pbuf
+    rounds_to_train: 2
+    write_logs: true
+    admins_endpoints_mapping:
+      testfladmin@example.com:
+        - GetExperimentStatus
+        - SetStragglerCuttoffTime
+
+  template: openfl.component.Aggregator
+assigner:
+  settings:
+    template : openfl.component.assigner.DynamicRandomGroupedAssigner
+    task_groups:
+      - name: train_and_validate
+        percentage: 1.0
+        tasks:
+          - aggregated_model_validation
+          - train
+          - locally_tuned_model_validation
+  template: openfl.component.RandomGroupedAssigner
+collaborator:
+  settings:
+    db_store_rounds: 1
+    delta_updates: false
+    opt_treatment: RESET
+  template: openfl.component.Collaborator
+compression_pipeline:
+  settings: {}
+  template: openfl.pipelines.NoCompressionPipeline
+data_loader:
+  settings:
+    feature_shape:
+      - 128
+      - 128
+  template: openfl.federated.data.loader_gandlf.GaNDLFDataLoaderWrapper
+network:
+  settings:
+    cert_folder: cert
+    client_reconnect_interval: 5
+    disable_client_auth: false
+    hash_salt: auto
+    tls: true
+  template: openfl.federation.Network
+task_runner:
+  settings:
+    device: cpu
+    gandlf_config:
+      memory_save_mode: false #
+      batch_size: 16
+      clip_grad: null
+      clip_mode: null
+      data_augmentation: {}
+      data_postprocessing: {}
+      data_preprocessing:
+        resize:
+          - 128
+          - 128
+      enable_padding: false
+      grid_aggregator_overlap: crop
+      in_memory: false
+      inference_mechanism:
+        grid_aggregator_overlap: crop
+        patch_overlap: 0
+      learning_rate: 0.001
+      loss_function: cel
+      medcam_enabled: false
+      metrics:
+        accuracy:
+          average: weighted
+          mdmc_average: samplewise
+          multi_class: true
+          subset_accuracy: false
+          threshold: 0.5
+        balanced_accuracy: None
+        classification_accuracy: None
+        f1:
+          average: weighted
+          f1:
+            average: weighted
+          mdmc_average: samplewise
+          multi_class: true
+          threshold: 0.5
+      modality: rad
+      model:
+        amp: false
+        architecture: resnet18
+        base_filters: 32
+        batch_norm: true
+        class_list:
+          - 0
+          - 1
+          - 2
+          - 3
+          - 4
+          - 5
+          - 6
+          - 7
+          - 8
+        dimension: 2
+        final_layer: sigmoid
+        ignore_label_validation: None
+        n_channels: 3
+        norm_type: batch
+        num_channels: 3
+        save_at_every_epoch: false
+        type: torch
+      nested_training:
+        testing: 1
+        validation: -5
+      num_epochs: 2
+      opt: adam
+      optimizer:
+        type: adam
+      output_dir: .
+      parallel_compute_command: ""
+      patch_sampler: uniform
+      patch_size:
+        - 128
+        - 128
+        - 1
+      patience: 1
+      pin_memory_dataloader: false
+      print_rgb_label_warning: true
+      q_max_length: 5
+      q_num_workers: 0
+      q_samples_per_volume: 1
+      q_verbose: false
+      save_masks: false
+      save_output: false
+      save_training: false
+      scaling_factor: 1
+      scheduler:
+        step_size: 0.0002
+        type: triangle
+      track_memory_usage: false
+      verbose: false
+      version:
+        maximum: 0.0.20-dev
+        minimum: 0.0.20-dev
+      weighted_loss: true
+    train_csv: train_path_full.csv
+    val_csv: val_path_full.csv
+  template: openfl.federated.task.runner_gandlf.GaNDLFTaskRunner
+tasks:
+  aggregated_model_validation:
+    function: validate
+    kwargs:
+      apply: global
+      metrics:
+        - valid_loss
+        - valid_accuracy
+  locally_tuned_model_validation:
+    function: validate
+    kwargs:
+      apply: local
+      metrics:
+        - valid_loss
+        - valid_accuracy
+  settings: {}
+  train:
+    function: train
+    kwargs:
+      epochs: 1
+      metrics:
+        - loss
+        - train_accuracy
+
+straggler_handling_policy :
+    template : openfl.component.straggler_handling_functions.CutoffTimeBasedStragglerHandling
+    settings :
+        straggler_cutoff_time : 600
+        minimum_reporting : 2

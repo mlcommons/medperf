@@ -11,7 +11,7 @@ from medperf.utils import format_errors_dict
 class MedperfSchema(BaseModel):
     for_test: bool = False
     id: Optional[int]
-    name: str = Field(..., max_length=64)
+    name: str = Field(..., max_length=128)
     owner: Optional[int]
     is_valid: bool = True
     created_at: Optional[datetime]
@@ -74,12 +74,6 @@ class MedperfSchema(BaseModel):
     def empty_str_to_none(cls, v):
         if v == "":
             return None
-        return v
-
-    @validator("name", pre=True, always=True)
-    def name_max_length(cls, v, *, values, **kwargs):
-        if not values["for_test"] and len(v) > 20:
-            raise ValueError("The name must have no more than 20 characters")
         return v
 
     class Config:

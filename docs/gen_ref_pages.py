@@ -13,7 +13,7 @@ build_params = [
     # ("server", "server", "", "reference"),
 ]
 
-exclude_paths = ["tests", "templates", "logging"]
+exclude_paths = ["tests", "templates", "logging", "web_ui"]
 
 for path, mod, doc, full_doc in build_params:
     for path in sorted(Path(path).rglob("*.py")):

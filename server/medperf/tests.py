@@ -13,6 +13,9 @@ from .testing_utils import (
     mock_result,
     mock_dataset_association,
     mock_mlcube_association,
+    mock_ca,
+    mock_certificate,
+    mock_encrypted_key,
 )
 
 
@@ -55,10 +58,14 @@ class MedPerfTest(TestCase):
         self.mock_result = mock_result
         self.mock_dataset_association = mock_dataset_association
         self.mock_mlcube_association = mock_mlcube_association
+        self.mock_ca = mock_ca
+        self.mock_certificate = mock_certificate
+        self.mock_encrypted_key = mock_encrypted_key
 
     def create_user(self, username):
-        token, _ = create_user(username)
+        token, user_data = create_user(username)
         self.tokens[username] = token
+        return user_data
 
     def set_credentials(self, username):
         self.current_user = username
@@ -179,19 +186,19 @@ class MedPerfTest(TestCase):
 
         # create mlcubes
         self.set_credentials(prep_mlcube_owner)
-        prep = self.mock_mlcube(name="prep", mlcube_hash="prep", state="OPERATION")
+        prep = self.mock_mlcube(name="prep", container_config={"prep": "prep"}, state="OPERATION")
         prep.update(prep_mlcube_kwargs)
         prep = self.create_mlcube(prep).data
 
         self.set_credentials(ref_mlcube_owner)
         ref_model = self.mock_mlcube(
-            name="ref_model", mlcube_hash="ref_model", state="OPERATION"
+            name="ref_model", container_config={"ref_model": "ref_model"}, state="OPERATION"
         )
         ref_model.update(ref_mlcube_kwargs)
         ref_model = self.create_mlcube(ref_model).data
 
         self.set_credentials(eval_mlcube_owner)
-        eval = self.mock_mlcube(name="eval", mlcube_hash="eval", state="OPERATION")
+        eval = self.mock_mlcube(name="eval", container_config={"eval": "eval"}, state="OPERATION")
         eval.update(eval_mlcube_kwargs)
         eval = self.create_mlcube(eval).data
 
@@ -208,3 +215,30 @@ class MedPerfTest(TestCase):
         self.set_credentials(backup_user)
 
         return prep, ref_model, eval, benchmark
+
+    def create_ca(self, ca_data):
+        """Helper to create a CA
+
+        Usage:
+            ca = self.mock_ca()
+            ca = self.create_ca(ca).data
+        """
+        return self.__create_asset(ca_data, self.api_prefix + "/cas/")
+
+    def create_certificate(self, certificate_data):
+        """Helper to create a certificate
+
+        Usage:
+            certificate = self.mock_certificate(ca_id=1)
+            certificate = self.create_certificate(certificate).data
+        """
+        return self.__create_asset(certificate_data, self.api_prefix + "/certificates/")
+
+    def create_encrypted_keys(self, key_data):
+        """Helper to create an encrypted key
+
+        Usage:
+            key = self.mock_encrypted_key(certificate=cert_id, container=mlcube_id)
+            key = self.create_encrypted_keys([key]).data[0]
+        """
+        return self.__create_asset(key_data, self.api_prefix + "/encrypted_keys/bulk/")

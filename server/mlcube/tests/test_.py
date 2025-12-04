@@ -70,8 +70,8 @@ class MlCubePostTest(MlCubeTest):
         [
             ("image_hash",),
             ("additional_files_tarball_hash",),
-            ("mlcube_hash",),
-            ("parameters_hash",),
+            ("container_config",),
+            ("parameters_config",),
             (None,),
         ]
     )
@@ -79,40 +79,6 @@ class MlCubePostTest(MlCubeTest):
         """Testing the model unique_together constraint"""
         # Arrange
         testmlcube = self.mock_mlcube()
-        self.create_mlcube(testmlcube)
-        testmlcube["name"] = "new name"
-
-        if field is not None:
-            testmlcube[field] = "different string"
-
-        # Act
-        response = self.client.post(self.url, testmlcube, format="json")
-
-        # Assert
-        if field is not None:
-            exp_status = status.HTTP_201_CREATED
-        else:
-            exp_status = status.HTTP_400_BAD_REQUEST
-
-        self.assertEqual(
-            response.status_code, exp_status, f"test failed with field {field}"
-        )
-
-    @parameterized.expand(
-        [
-            ("image_tarball_hash",),
-            ("additional_files_tarball_hash",),
-            ("mlcube_hash",),
-            ("parameters_hash",),
-            (None,),
-        ]
-    )
-    def test_creation_of_duplicate_mlcubes_with_image_tarball(self, field):
-        """Testing the model unique_together constraint"""
-        # Arrange
-        testmlcube = self.mock_mlcube(
-            image_hash="", image_tarball_url="string", image_tarball_hash="string"
-        )
         self.create_mlcube(testmlcube)
         testmlcube["name"] = "new name"
 
@@ -140,8 +106,6 @@ class MlCubePostTest(MlCubeTest):
             "is_valid": True,
             "metadata": {},
             "user_metadata": {},
-            "git_parameters_url": "",
-            "image_tarball_url": "",
             "additional_files_tarball_url": "",
         }
         testmlcube = self.mock_mlcube()
@@ -150,13 +114,7 @@ class MlCubePostTest(MlCubeTest):
                 del testmlcube[key]
 
         # in order to allow empty urls
-        testmlcube.update(
-            {
-                "parameters_hash": "",
-                "image_tarball_hash": "",
-                "additional_files_tarball_hash": "",
-            }
-        )
+        testmlcube.update({"additional_files_tarball_hash": ""})
         # Act
         response = self.client.post(self.url, testmlcube, format="json")
 
@@ -189,24 +147,6 @@ class MlCubePostTest(MlCubeTest):
             )
 
     @parameterized.expand([(True,), (False,)])
-    def test_parameters_file_should_have_a_hash(self, url_provided):
-        """Testing the serializer rules"""
-        # Arrange
-        testmlcube = self.mock_mlcube(parameters_hash="")
-        if not url_provided:
-            testmlcube["git_parameters_url"] = ""
-
-        # Act
-        response = self.client.post(self.url, testmlcube, format="json")
-
-        # Assert
-        if not url_provided:
-            exp_status = status.HTTP_201_CREATED
-        else:
-            exp_status = status.HTTP_400_BAD_REQUEST
-        self.assertEqual(response.status_code, exp_status)
-
-    @parameterized.expand([(True,), (False,)])
     def test_additional_files_should_have_a_hash(self, url_provided):
         """Testing the serializer rules"""
 
@@ -227,29 +167,15 @@ class MlCubePostTest(MlCubeTest):
 
     @parameterized.expand(
         [
-            (False, False, False, status.HTTP_400_BAD_REQUEST),
-            (False, False, True, status.HTTP_400_BAD_REQUEST),
-            (False, True, False, status.HTTP_400_BAD_REQUEST),
-            (False, True, True, status.HTTP_201_CREATED),
-            (True, False, False, status.HTTP_201_CREATED),
-            (True, False, True, status.HTTP_400_BAD_REQUEST),
-            (True, True, False, status.HTTP_400_BAD_REQUEST),
-            (True, True, True, status.HTTP_400_BAD_REQUEST),
+            ("hash", status.HTTP_201_CREATED),
+            ("", status.HTTP_400_BAD_REQUEST),
         ]
     )
-    def test_image_fields_cases(
-        self, image_hash, image_tarball_url, image_tarball_hash, exp_status
-    ):
-        """Testing the serializer rules
-        The rules are simply stating that either "image_hash", or both the
-        "image_tarball_url" and "image_tarball_hash", should be provided."""
+    def test_required_image_hash(self, image_hash, exp_status):
+        """Testing the serializer rules"""
 
         # Arrange
-        testmlcube = self.mock_mlcube(
-            image_hash="string" if image_hash else "",
-            image_tarball_url="string" if image_tarball_url else "",
-            image_tarball_hash="string" if image_tarball_hash else "",
-        )
+        testmlcube = self.mock_mlcube(image_hash=image_hash)
         # Act
         response = self.client.post(self.url, testmlcube, format="json")
 
@@ -257,9 +183,7 @@ class MlCubePostTest(MlCubeTest):
         self.assertEqual(
             response.status_code,
             exp_status,
-            f"test failed with image_hash={image_hash}, "
-            f"image_tarball_url={image_tarball_url}, "
-            f"image_tarball_hash={image_tarball_hash}",
+            f"test failed with image_hash={image_hash}",
         )
 
 
@@ -294,9 +218,11 @@ class MlCubeGetListTest(MlCubeTest):
         response = self.client.get(self.url)
 
         # Assert
+
+        # First mlcube is already created on migrations: MedPerf CA
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data["results"]), 1)
-        self.assertEqual(response.data["results"][0]["id"], mlcube_id)
+        self.assertEqual(len(response.data["results"]), 2)
+        self.assertEqual(response.data["results"][1]["id"], mlcube_id)
 
 
 class PermissionTest(MlCubeTest):

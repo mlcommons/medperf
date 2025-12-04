@@ -8,7 +8,10 @@ from medperf.commands.list import EntityList
 from medperf.commands.view import EntityView
 from medperf.commands.benchmark.submit import SubmitBenchmark
 from medperf.commands.benchmark.associate import AssociateBenchmark
-from medperf.commands.result.create import BenchmarkExecution
+from medperf.commands.execution.create import BenchmarkExecution
+from medperf.commands.benchmark.update_associations_poilcy import (
+    UpdateAssociationsPolicy,
+)
 
 app = typer.Typer()
 
@@ -20,13 +23,48 @@ def list(
         False, "--unregistered", help="Get unregistered benchmarks"
     ),
     mine: bool = typer.Option(False, "--mine", help="Get current-user benchmarks"),
+    name: str = typer.Option(None, "--name", help="Filter by name"),
+    owner: int = typer.Option(None, "--owner", help="Filter by owner"),
+    state: str = typer.Option(
+        None, "--state", help="Filter by state (DEVELOPMENT/OPERATION)"
+    ),
+    is_valid: bool = typer.Option(
+        None, "--valid/--invalid", help="Filter by valid status"
+    ),
+    is_active: bool = typer.Option(
+        None, "--active/--inactive", help="Filter by active status"
+    ),
+    data_prep: int = typer.Option(
+        None,
+        "-d",
+        "--data-preparation-container",
+        help="Filter by Data Preparation Container",
+    ),
 ):
     """List benchmarks"""
+    filters = {
+        "name": name,
+        "owner": owner,
+        "state": state,
+        "is_valid": is_valid,
+        "is_active": is_active,
+        "data_preparation_mlcube": data_prep,
+    }
+
     EntityList.run(
         Benchmark,
-        fields=["UID", "Name", "Description", "State", "Approval Status", "Registered"],
+        fields=[
+            "UID",
+            "Name",
+            "Description",
+            "Data Preparation Container",
+            "State",
+            "Approval Status",
+            "Registered",
+        ],
         unregistered=unregistered,
         mine_only=mine,
+        **filters,
     )
 
 
@@ -42,19 +80,19 @@ def submit(
         ...,
         "--demo-url",
         help="""Identifier to download the demonstration dataset tarball file.\n
-        See `medperf mlcube submit --help` for more information""",
+        See `medperf container submit --help` for more information""",
     ),
     demo_hash: str = typer.Option(
         "", "--demo-hash", help="Hash of demonstration dataset tarball file"
     ),
-    data_preparation_mlcube: int = typer.Option(
-        ..., "--data-preparation-mlcube", "-p", help="Data Preparation MLCube UID"
+    data_preparation_container: int = typer.Option(
+        ..., "--data-preparation-container", "-p", help="Data Preparation container UID"
     ),
-    reference_model_mlcube: int = typer.Option(
-        ..., "--reference-model-mlcube", "-m", help="Reference Model MLCube UID"
+    reference_model_container: int = typer.Option(
+        ..., "--reference-model-container", "-m", help="Reference Model container UID"
     ),
-    evaluator_mlcube: int = typer.Option(
-        ..., "--evaluator-mlcube", "-e", help="Evaluator MLCube UID"
+    evaluator_container: int = typer.Option(
+        ..., "--evaluator-container", "-e", help="Evaluator container UID"
     ),
     skip_data_preparation_step: bool = typer.Option(
         False,
@@ -79,9 +117,9 @@ def submit(
         "docs_url": docs_url,
         "demo_dataset_tarball_url": demo_url,
         "demo_dataset_tarball_hash": demo_hash,
-        "data_preparation_mlcube": data_preparation_mlcube,
-        "reference_model_mlcube": reference_model_mlcube,
-        "data_evaluator_mlcube": evaluator_mlcube,
+        "data_preparation_mlcube": data_preparation_container,
+        "reference_model_mlcube": reference_model_container,
+        "data_evaluator_mlcube": evaluator_container,
         "state": "OPERATION" if operational else "DEVELOPMENT",
     }
     if attestation_service is not None:
@@ -105,7 +143,7 @@ def associate(
         ..., "--benchmark_uid", "-b", help="UID of benchmark to associate with"
     ),
     model_uid: int = typer.Option(
-        None, "--model_uid", "-m", help="UID of model MLCube to associate"
+        None, "--model_uid", "-m", help="UID of model container to associate"
     ),
     dataset_uid: int = typer.Option(
         None, "--data_uid", "-d", help="Server UID of registered dataset to associate"
@@ -117,7 +155,7 @@ def associate(
         help="Execute the test even if results already exist",
     ),
 ):
-    """Associates a benchmark with a given mlcube or dataset. Only one option at a time."""
+    """Associates a benchmark with a given model or dataset. Only one option at a time."""
     AssociateBenchmark.run(
         benchmark_uid, model_uid, dataset_uid, approved=approval, no_cache=no_cache
     )
@@ -144,12 +182,17 @@ def run(
     ignore_model_errors: bool = typer.Option(
         False,
         "--ignore-model-errors",
-        help="Ignore failing model cubes, allowing for possibly submitting partial results",
+        help="Ignore failing models, allowing for possibly submitting partial results",
     ),
     no_cache: bool = typer.Option(
         False,
         "--no-cache",
         help="Execute even if results already exist",
+    ),
+    rerun_finalized: bool = typer.Option(
+        False,
+        "--rerun-finalized",
+        help="Execute even if results have been already uploaded (this will create new records)",
     ),
 ):
     """Runs the benchmark execution step for a given benchmark, prepared dataset and model"""
@@ -157,11 +200,12 @@ def run(
         benchmark_uid,
         data_uid,
         models_uids=None,
-        no_cache=no_cache,
         models_input_file=file,
         ignore_model_errors=ignore_model_errors,
+        no_cache=no_cache,
         show_summary=True,
         ignore_failed_experiments=True,
+        rerun_finalized_executions=rerun_finalized,
     )
     config.ui.print("✅ Done!")
 
@@ -195,3 +239,53 @@ def view(
 ):
     """Displays the information of one or more benchmarks"""
     EntityView.run(entity_id, Benchmark, format, unregistered, mine, output)
+
+
+@app.command("update_associations_policy")
+@clean_except
+def update_associations_policy(
+    benchmark_uid: int = typer.Option(
+        ..., "--benchmark", "-b", help="UID of the desired benchmark"
+    ),
+    dataset_auto_approve_mode: str = typer.Option(
+        None,
+        "--dataset_auto_approve_mode",
+        help=(
+            "Can be NEVER for no auto approvals, ALWAYS for auto"
+            " approving any dataset association, and ALLOWLIST for approving"
+            " dataset associations with owners contained in the auto_approve_file"
+        ),
+    ),
+    dataset_auto_approve_file: str = typer.Option(
+        None,
+        "--dataset_auto_approve_file",
+        help=(
+            "File containing list of emails to approve associations with"
+            " their datasets when the auto approve mode is ALLOWLIST"
+        ),
+    ),
+    model_auto_approve_mode: str = typer.Option(
+        None,
+        "--model_auto_approve_mode",
+        help=(
+            "Can be NEVER for no auto approvals, ALWAYS for auto"
+            " approving any model association, and ALLOWLIST for approving"
+            " model associations with owners contained in the auto_approve_file"
+        ),
+    ),
+    model_auto_approve_file: str = typer.Option(
+        None,
+        "--model_auto_approve_file",
+        help=(
+            "File containing list of emails to approve associations with"
+            " their models when the auto approve mode is ALLOWLIST"
+        ),
+    ),
+):
+    UpdateAssociationsPolicy.run(
+        benchmark_uid,
+        dataset_mode=dataset_auto_approve_mode,
+        dataset_emails_file=dataset_auto_approve_file,
+        model_mode=model_auto_approve_mode,
+        model_emails_file=model_auto_approve_file,
+    )

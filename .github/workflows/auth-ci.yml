@@ -21,17 +21,10 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha }}
     
-    - name: Set up Python 3.9
+    - name: Set up Python 3.11
       uses: actions/setup-python@v2
       with:
-        python-version: '3.9'
-    
-    - name: Setup Chrome
-      run: |
-        sudo apt-get install -y wget
-        wget -O chrome.deb https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_126.0.6478.126-1_amd64.deb
-        sudo apt update && sudo apt install ./chrome.deb -y --allow-downgrades
-        rm chrome.deb
+        python-version: '3.11'
 
     - name: Install dependencies
       working-directory: .

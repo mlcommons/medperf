@@ -41,6 +41,7 @@ class SubmitBenchmark:
         ui.print("Uploaded")
         submission.to_permanent_path(updated_benchmark_body)
         submission.write(updated_benchmark_body)
+        return submission.bmk.id
 
     def __init__(
         self,
@@ -103,5 +104,5 @@ class SubmitBenchmark:
         os.rename(old_bmk_loc, new_bmk_loc)
 
     def write(self, updated_body):
-        bmk = Benchmark(**updated_body)
-        bmk.write()
+        self.bmk = Benchmark(**updated_body)
+        self.bmk.write()

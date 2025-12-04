@@ -5,7 +5,7 @@ import os
 from copy import deepcopy
 from medperf import config
 from medperf.ui.interface import UI
-from medperf.comms.interface import Comms
+from medperf.comms.rest import REST
 from medperf.comms.auth.interface import Auth
 from medperf.init import initialize
 import importlib
@@ -96,7 +96,7 @@ def ui(mocker, package_init):
 
 @pytest.fixture
 def comms(mocker, package_init):
-    comms = mocker.create_autospec(spec=Comms)
+    comms = mocker.create_autospec(spec=REST)
     config.comms = comms
     return comms
 
