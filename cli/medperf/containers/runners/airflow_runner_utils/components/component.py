@@ -3,7 +3,6 @@ import subprocess
 from abc import ABC, abstractmethod
 from typing import List, Dict
 import asyncio
-import async_timeout
 import logging
 
 
@@ -61,7 +60,7 @@ class ComponentRunner(ABC):
 
     async def wait_for_start(self):
         try:
-            async with async_timeout.timeout(self.TIMEOUT):
+            async with asyncio.Timeout(self.TIMEOUT):
                 await self._sync_wait_for_start()
         except asyncio.TimeoutError:
             raise TimeoutError(self.fail_message)
