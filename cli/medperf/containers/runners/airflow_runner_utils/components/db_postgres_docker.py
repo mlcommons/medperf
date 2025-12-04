@@ -22,7 +22,7 @@ class PostgresDBDocker(PostgresDatabaseComponent):
                 "-v",
                 f"{self.data_dir}:/var/lib/postgresql/data:rw",
                 "-p",
-                f"{self.port}:{self.port}",
+                f"{self.port}:5432",
                 f"{config.airflow_postgres_image}",
             ],
             capture_output=True,

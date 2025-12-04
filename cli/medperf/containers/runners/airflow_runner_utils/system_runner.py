@@ -39,7 +39,9 @@ class AirflowSystemRunner:
         project_name: str,
         yaml_parser: AirflowParser,
         port: Union[str, int] = 8080,
-        postgres_port: Union[str, int] = 5432,
+        postgres_port: Union[
+            str, int
+        ] = 5423,  # Change default postgres port to avoid conflicts
         airflow_python_executable: os.PathLike = None,
         **extra_airflow_configs: dict,
     ):
@@ -142,12 +144,14 @@ class AirflowSystemRunner:
             "dags_folder": self.dags_folder,
         }
 
+        config.ui.print(f"{self.postgres_port=}")
         if config.platform == "singularity":
             self.db = PostgresDBSingularity(
                 project_name=self.project_name,
                 root_dir=self.airflow_home,
                 postgres_user="airflow",
                 postgres_db="airflow",
+                postgres_port=self.postgres_port,
                 hostname=self.host,
             )
         else:  # Default to docker
@@ -156,6 +160,7 @@ class AirflowSystemRunner:
                 root_dir=self.airflow_home,
                 postgres_user="airflow",
                 postgres_db="airflow",
+                postgres_port=self.postgres_port,
                 hostname=self.host,
             )
         self.api_server = AirflowApiServer(**common_args, port=self.port)
