@@ -60,7 +60,7 @@ class ComponentRunner(ABC):
 
     async def wait_for_start(self):
         try:
-            async with asyncio.Timeout(self.TIMEOUT):
+            async with asyncio.timeout(self.TIMEOUT):
                 await self._sync_wait_for_start()
         except asyncio.TimeoutError:
             raise TimeoutError(self.fail_message)
