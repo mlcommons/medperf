@@ -101,9 +101,6 @@ class MlCubePutTest(MlCubeTest):
         response = self.client.put(url, newtestmlcube, format="json")
 
         # Assert
-        print(f"{response.status_code=}")
-        print(f"{response.content=}")
-        print(f"{response.json()=}")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         for k, v in response.data.items():
             if k in newtestmlcube:
@@ -166,7 +163,6 @@ class MlCubePutTest(MlCubeTest):
 
         # Act
         response = self.client.put(url, newtestmlcube, format="json")
-
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         for k, v in newtestmlcube.items():
@@ -258,7 +254,7 @@ class MlCubePutTest(MlCubeTest):
         testmlcube = self.mock_mlcube(state="DEVELOPMENT")
         testmlcube = self.create_mlcube(testmlcube).data
 
-        put_body = {"image_hash": ""}
+        put_body = {"image_hash": {}}
         url = self.url.format(testmlcube["id"])
 
         # Act
