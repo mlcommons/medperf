@@ -79,8 +79,7 @@ jobs:
       working-directory: ./server
       run: |
         source .venv_server/bin/activate
-        sh reset_db.sh 
-        python seed.py --cert cert.crt -w
+        sh reset_db.sh && python seed.py --cert cert.crt -w
 
     - name: Run chestxray demo with workflow (no private model)
       working-directory: .
