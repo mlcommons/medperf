@@ -144,7 +144,6 @@ class AirflowSystemRunner:
             "dags_folder": self.dags_folder,
         }
 
-        config.ui.print(f"{self.postgres_port=}")
         if config.platform == "singularity":
             self.db = PostgresDBSingularity(
                 project_name=self.project_name,
