@@ -9,6 +9,7 @@ from .utils import (
     add_network_config,
     add_medperf_tmp_folder,
     check_docker_image_hash,
+    get_expected_hash,
 )
 from .singularity_utils import (
     cleanup_singularity_cache,
@@ -24,6 +25,7 @@ from medperf import config
 import semver
 from .runner import Runner
 import logging
+from typing import Dict
 
 
 class SingularityRunner(Runner):
@@ -62,14 +64,14 @@ class SingularityRunner(Runner):
 
     def download(
         self,
-        expected_image_hash,
+        hashes_dict: Dict[str, str],
         download_timeout: int = None,
         get_hash_timeout: int = None,
-    ):
+    ) -> Dict[str, str]:
         if self.parser.is_docker_archive() or self.parser.is_singularity_file():
             logging.debug("Downloading image file")
             return self._download_image_file(
-                expected_image_hash,
+                hashes_dict,
                 download_timeout,
                 get_hash_timeout,
             )
@@ -77,36 +79,38 @@ class SingularityRunner(Runner):
             logging.debug("Docker image: checking without download.")
             # No download; conversion happens during run
             return self._check_docker_image(
-                expected_image_hash,
+                hashes_dict,
                 get_hash_timeout,
             )
 
     def _download_image_file(
         self,
-        expected_image_hash,
+        hashes_dict: Dict[str, str],
         download_timeout: int = None,
         get_hash_timeout: int = None,
     ):
         image_file_url = self.parser.get_setup_args()
+        expected_image_hash = get_expected_hash(hashes_dict, image_file_url)
         image_file_path, computed_image_hash = resources.get_cube_image(
             image_file_url, expected_image_hash
         )  # Hash checking happens in resources
         self.image_file_path = image_file_path
         self.image_file_hash = computed_image_hash
-        return computed_image_hash
+        return {image_file_url: computed_image_hash}
 
     def _check_docker_image(
         self,
-        expected_image_hash,
+        hashes_dict: Dict[str, str],
         get_hash_timeout: int = None,
     ):
         docker_image = self.parser.get_setup_args()
+        expected_image_hash = get_expected_hash(hashes_dict, docker_image)
         computed_image_hash = get_docker_image_hash_from_dockerhub(
             docker_image, get_hash_timeout
         )
         check_docker_image_hash(computed_image_hash, expected_image_hash)
         self.docker_image_hash = computed_image_hash.replace(":", "_")
-        return computed_image_hash
+        return {docker_image: computed_image_hash}
 
     def run(
         self,

@@ -6,9 +6,9 @@ class TestTestReport(TestReport):
     __test__ = False
     demo_dataset_url: Optional[str] = "url"
     demo_dataset_hash: Optional[str] = "hash"
-    data_path: Optional[str]
-    labels_path: Optional[str]
-    prepared_data_hash: Optional[str]
+    data_path: Optional[str] = None
+    labels_path: Optional[str] = None
+    prepared_data_hash: Optional[str] = None
     data_preparation_mlcube: Optional[Union[int, str]] = 1
     model: Union[int, str] = 2
     data_evaluator_mlcube: Union[int, str] = 3

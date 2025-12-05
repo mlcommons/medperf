@@ -107,3 +107,8 @@ def check_docker_image_hash(computed_image_hash, expected_image_hash=None):
         raise InvalidContainerSpec(
             f"Hash mismatch. Expected {expected_image_hash}, found {computed_image_hash}."
         )
+
+
+def get_expected_hash(hashes_dict, image_name):
+    """Gets hash from hashes_dict using image_name as a key, or 'default' if not present"""
+    return hashes_dict.get(image_name, hashes_dict.get("default"))

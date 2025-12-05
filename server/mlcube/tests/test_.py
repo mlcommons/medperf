@@ -167,8 +167,8 @@ class MlCubePostTest(MlCubeTest):
 
     @parameterized.expand(
         [
-            ("hash", status.HTTP_201_CREATED),
-            ("", status.HTTP_400_BAD_REQUEST),
+            ({"image": "hash"}, status.HTTP_201_CREATED),
+            ({}, status.HTTP_400_BAD_REQUEST),
         ]
     )
     def test_required_image_hash(self, image_hash, exp_status):

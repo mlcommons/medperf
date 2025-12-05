@@ -16,13 +16,18 @@ from pathlib import Path
 import shutil
 from pexpect import spawn
 from datetime import datetime
-from typing import List
+from typing import List, Union
 from colorama import Fore, Style
 from pexpect.exceptions import TIMEOUT
 from git import Repo, GitCommandError
 import medperf.config as config
-from medperf.exceptions import CleanExit, ExecutionError, InvalidArgumentError
+from medperf.exceptions import (
+    CleanExit,
+    ExecutionError,
+    InvalidArgumentError,
+)
 import shlex
+from pydantic import TypeAdapter
 from email_validator import validate_email, EmailNotValidError
 
 
@@ -668,3 +673,18 @@ def validate_and_normalize_emails(emails: list[str]):
             logging.debug(f"Invalid email: |{email}|")
             raise InvalidArgumentError(str(e))
     return emails
+
+
+def parse_datetime(datetime_obj: Union[str, int, datetime]):
+    # Pydantic v2 way of implementing old parse_datetime functionality.
+    # Adapted from https://github.com/pydantic/pydantic/discussions/6204#discussioncomment-6266717
+
+    if isinstance(datetime_obj, datetime):
+        return datetime_obj
+    elif isinstance(datetime_obj, (str, int)):
+        return TypeAdapter(datetime).validate_strings(str(datetime_obj))
+    else:
+        raise ValueError(
+            "Current implementation of parse_datetime only supports strings, ints and datetimes!\n"
+            f"Object sent was of type {type(datetime_obj)}\n{datetime_obj=}"
+        )

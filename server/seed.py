@@ -8,12 +8,25 @@ This script can only be invoked from its parent folder, that's because it
 executes Django code to set admin permissions for a test user."""
 
 import argparse
-from seed_utils import Server, set_user_as_admin, create_benchmark, create_model
+from seed_utils import (
+    Server,
+    set_user_as_admin,
+    create_benchmark,
+    create_model,
+    create_workflow_benchmark,
+    create_rano_workflow_mlcube,
+)
 from auth_provider_token import auth_provider_token
 import json
 from pathlib import Path
 
 REPO_BASE_DIR = Path(__file__).resolve().parent.parent
+default_cert_file = str(REPO_BASE_DIR / "server" / "cert.crt")
+default_tokens_file = str(REPO_BASE_DIR / "mock_tokens" / "tokens.json")
+default_xray_containers_assets_path = str(
+    REPO_BASE_DIR / "examples" / "chestxray_tutorial"
+)
+rano_assets_path = str(REPO_BASE_DIR / "examples" / "RANO")
 
 
 def populate_mock_benchmarks(api_server, admin_token):
@@ -68,11 +81,30 @@ def seed(args):
         return
     # create benchmark
     benchmark_owner_token = get_token("testbo@example.com")
-    benchmark = create_benchmark(
-        api_server,
-        benchmark_owner_token,
-        args.containers_assets_path,
+
+    if args.demo == "rano":
+        create_rano_workflow_mlcube(
+            api_server=api_server,
+            benchmark_owner_token=benchmark_owner_token,
+            assets_path=rano_assets_path,
+        )
+        return
+
+    xray_assets_path = (
+        args.containers_assets_path or default_xray_containers_assets_path
     )
+    if args.workflow:
+        benchmark = create_workflow_benchmark(
+            api_server,
+            benchmark_owner_token,
+            xray_assets_path,
+        )
+    else:
+        benchmark = create_benchmark(
+            api_server,
+            benchmark_owner_token,
+            xray_assets_path,
+        )
     if args.demo == "model":
         return
     # create model
@@ -82,17 +114,11 @@ def seed(args):
         model_owner_token,
         benchmark_owner_token,
         benchmark,
-        args.containers_assets_path,
+        xray_assets_path,
     )
 
 
 if __name__ == "__main__":
-    default_cert_file = str(REPO_BASE_DIR / "server" / "cert.crt")
-    default_tokens_file = str(REPO_BASE_DIR / "mock_tokens" / "tokens.json")
-    default_containers_assets_path = str(
-        REPO_BASE_DIR / "examples" / "chestxray_tutorial"
-    )
-
     parser = argparse.ArgumentParser(description="Seed the db with demo entries")
     parser.add_argument(
         "--server",
@@ -114,9 +140,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "--demo",
         type=str,
-        help="Seed for a tutorial: 'benchmark', 'model', or 'data'.",
+        help="Seed for a tutorial: 'benchmark', 'model', 'data', 'tutorial' or 'rano.",
         default="data",
-        choices=["benchmark", "model", "data", "tutorial"],
+        choices=["benchmark", "model", "data", "tutorial", "rano"],
     )
     parser.add_argument(
         "--tokens",
@@ -125,10 +151,17 @@ if __name__ == "__main__":
         default=default_tokens_file,
     )
     parser.add_argument(
+        "-w",
+        "--workflow",
+        action="store_true",
+        help="Use an Airflow workflow instead of a container for Data Preparation",
+    )
+    parser.add_argument(
+        "-c",
         "--containers-assets-path",
         type=str,
         help="Path to folder containing container asset files for seeding dev database",
-        default=default_containers_assets_path,
+        default=None,
     )
     args = parser.parse_args()
     if args.cert.lower() == "none":

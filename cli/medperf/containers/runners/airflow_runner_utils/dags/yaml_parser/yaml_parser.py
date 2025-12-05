@@ -1,0 +1,367 @@
+from medperf.containers.runners.airflow_runner_utils.dags.constants import (
+    WORKFLOW_YAML_FILE,
+)
+from typing import Union, Any
+from medperf.containers.runners.airflow_runner_utils.dags.dag_utils import (
+    import_external_python_function,
+)
+from collections import defaultdict
+from airflow.sdk import DAG
+from medperf.containers.runners.airflow_runner_utils.dags.dag_utils import (
+    create_legal_dag_id,
+)
+from medperf.containers.runners.airflow_runner_utils.dags.dag_builder import DagBuilder
+from copy import deepcopy
+from medperf.enums import ContainerConfigMountKeys
+from medperf.exceptions import MedperfException
+import os
+import yaml
+
+valid_mount_keys = [item.value for item in ContainerConfigMountKeys]
+
+
+def get_dict_value_by_key_prefix(
+    key_prefix: str, dictionary: dict, key_suffix: str = None
+):
+    """
+    This assumes the values are effectively the same for the purposes this function is called.
+    If they are different, then calling by suffix does not make sense!
+    """
+    if key_suffix is not None:
+        complete_key = create_legal_dag_id(f"{key_prefix}_{key_suffix}")
+        if complete_key in dictionary:
+            return dictionary[complete_key]
+
+    relevant_dict = {
+        key: value for key, value in dictionary.items() if key.startswith(key_prefix)
+    }
+    return list(relevant_dict.values())[0]
+
+
+class YamlParser:
+
+    def __init__(self, yaml_file: str = None):
+        self.yaml_file = yaml_file or WORKFLOW_YAML_FILE
+        yaml_content = self.read_yaml_definition()
+        self.raw_steps = yaml_content["steps"]
+        self._raw_conditions = yaml_content.get("conditions", [])
+        self._raw_subject_definitions = yaml_content.get("per_subject_def", {})
+        self.dag_builders = None
+
+    def read_yaml_definition(
+        self,
+    ) -> dict[str, Union[list[dict[str, str]], dict[str, str]]]:
+        try:
+            with open(self.yaml_file, "r") as f:
+                raw_content = f.read()
+                yaml_info = yaml.safe_load(raw_content)
+        except Exception:
+            MedperfException(f"Unable to load Workflow YAML file {self.yaml_file}!")
+
+        return yaml_info
+
+    def read_subject_partitions(self):
+        from medperf.containers.runners.airflow_runner_utils.dags.pipeline_state import (
+            PipelineState,
+        )
+
+        if not self._raw_subject_definitions:
+            return []
+
+        per_subjection_function_name = self._raw_subject_definitions["function_name"]
+        per_subject_function_obj = import_external_python_function(
+            per_subjection_function_name
+        )
+        subject_partition_list = per_subject_function_obj(PipelineState())
+        return subject_partition_list
+
+    def _get_next_id_from_expanded_step(self, raw_step):
+        next_field = raw_step.get("next")
+        if next_field is None:
+            return []
+        elif isinstance(next_field, str):
+            return [next_field]
+        elif isinstance(next_field, list):
+            return next_field
+        else:
+            if_fields = next_field.get("if", [])
+            default_fields = next_field.get("else", None)
+            next_fields = [
+                target for if_field in if_fields for target in if_field["target"]
+            ]
+            if default_fields:
+                next_fields.extend(default_fields)
+            return next_fields
+
+    def _update_next_id_in_expanded_step(  # noqa: C901
+        self, current_step, id_to_partition_to_partition_id
+    ):
+        next_field = deepcopy(current_step.get("next"))
+        this_partition = current_step["partition"]
+
+        def get_updated_ids(this_partition, partition_to_partition_id):
+            if this_partition is None:
+                # This step is not partitioned, but leads to a partition -> use all as next
+                updated_ids = list(partition_to_partition_id.values())
+            else:
+                # This step is also partitioned. Pick corresponding partition
+                updated_ids = [partition_to_partition_id[this_partition]]
+            return updated_ids
+
+        def update_next_ids(original_next_ids):
+            new_ids = []
+            for next_id in original_next_ids:
+                partition_to_partition_id = id_to_partition_to_partition_id.get(next_id)
+                if not partition_to_partition_id:
+                    new_ids.append(next_id)
+                    continue
+
+                updated_ids = get_updated_ids(
+                    this_partition=this_partition,
+                    partition_to_partition_id=partition_to_partition_id,
+                )
+                new_ids.extend(updated_ids)
+            return new_ids
+
+        if not next_field:
+            return
+        elif isinstance(next_field, str):
+            next_field = [next_field]
+
+        if isinstance(next_field, list):
+            updated_next = update_next_ids(next_field)
+            next_field = updated_next
+        else:
+            if_fields = next_field.get("if", [])
+            for if_field in if_fields:
+                next_ids = if_field["target"]
+
+                if isinstance(next_ids, str):
+                    next_ids = [next_ids]
+                updated_ids = update_next_ids(next_ids)
+                if_field["target"] = updated_ids
+
+            default_field = next_field.get("else")
+            if default_field:
+                if isinstance(default_field, str):
+                    default_field = [default_field]
+                new_default = update_next_ids(default_field)
+                next_field["else"] = new_default
+
+        return next_field
+
+    def _verify_unique_id(self, potential_id, original_id, mapped_steps):
+        if potential_id in mapped_steps:
+            raise ValueError(f"ID {original_id} has been used more than one time!")
+
+    def _create_expanded_steps(
+        self, raw_steps: list[dict[str, Any]], subject_partitions: list[str]
+    ):
+        step_id_to_expanded_step = {}
+        original_id_to_partition_to_partitioned_id = defaultdict(dict)
+        next_id_to_upstream_ids = defaultdict(set)
+
+        self._expanded_steps_first_pass(
+            raw_steps=raw_steps,
+            subject_partitions=subject_partitions,
+            step_id_to_expanded_step=step_id_to_expanded_step,
+            original_id_to_partition_to_partitioned_id=original_id_to_partition_to_partitioned_id,
+        )
+
+        for step_id, step in step_id_to_expanded_step.items():
+            new_next = self._update_next_id_in_expanded_step(
+                step, original_id_to_partition_to_partitioned_id
+            )
+            step["next"] = new_next
+
+        for step_id, step in step_id_to_expanded_step.items():
+            next_ids = self._get_next_id_from_expanded_step(step)
+            for next_id in next_ids:
+                next_id_to_upstream_ids[next_id].add(step_id)
+
+        self._make_inlets_for_expanded_steps(
+            step_id_to_expanded_step=step_id_to_expanded_step,
+            next_id_to_upstream_ids=next_id_to_upstream_ids,
+        )
+        self._make_host_mounts(step_id_to_expanded_step)
+        expanded_steps = list(step_id_to_expanded_step.values())
+
+        return expanded_steps
+
+    def _expanded_steps_first_pass(
+        self,
+        raw_steps,
+        subject_partitions,
+        step_id_to_expanded_step,
+        original_id_to_partition_to_partitioned_id,
+    ):
+        for step in raw_steps:
+            original_id = step["id"]
+            step["conditions_definitions"] = self._raw_conditions
+            if step.get("per_subject"):
+                for subject_partition in subject_partitions:
+                    partitioned_step = {k: v for k, v in step.items()}
+                    partitioned_id = create_legal_dag_id(
+                        f"{original_id}_{subject_partition}"
+                    )
+                    self._verify_unique_id(
+                        potential_id=partitioned_id,
+                        original_id=original_id,
+                        mapped_steps=step_id_to_expanded_step,
+                    )
+
+                    partitioned_step["id"] = partitioned_id
+                    partitioned_step["raw_id"] = original_id
+                    partitioned_step["partition"] = subject_partition
+                    step_id_to_expanded_step[partitioned_step["id"]] = partitioned_step
+                    original_id_to_partition_to_partitioned_id[original_id][
+                        subject_partition
+                    ] = partitioned_id
+            else:
+                step["partition"] = None
+                step_id = create_legal_dag_id(original_id)
+                step["id"] = step_id
+                step["raw_id"] = original_id
+                self._verify_unique_id(
+                    potential_id=step_id,
+                    original_id=original_id,
+                    mapped_steps=step_id_to_expanded_step,
+                )
+                step_id_to_expanded_step[step_id] = step
+
+    def _make_inlets_for_expanded_steps(
+        self, step_id_to_expanded_step, next_id_to_upstream_ids
+    ):
+        for step_id, step in step_id_to_expanded_step.items():
+            upstream_ids = list(next_id_to_upstream_ids[step_id])
+            if upstream_ids:
+                this_step_inlets = []
+                if step["partition"] is None:
+                    for upstream_id in upstream_ids:
+                        upstream_dict = step_id_to_expanded_step[upstream_id]
+                        upstream_partition = upstream_dict["partition"]
+                        if upstream_partition:
+                            new_inlet = create_legal_dag_id(
+                                f"{step_id}_{upstream_partition}"
+                            )
+                            this_step_inlets.append(new_inlet)
+                            self._update_next_with_new_partition(
+                                upstream_dict, step_id, new_inlet
+                            )
+                if not this_step_inlets:
+                    this_step_inlets = [step_id]
+                step["inlets"] = this_step_inlets
+            else:
+                step["inlets"] = []
+
+    def _make_host_mounts(self, step_id_to_expanded_step: dict):
+
+        look_on_second_pass = set()
+
+        for step_id, step in step_id_to_expanded_step.items():
+            host_mounts = {}
+            self._host_mounts_first_pass(
+                step=step,
+                look_on_second_pass=look_on_second_pass,
+                host_mounts=host_mounts,
+                volume_key="input_volumes",
+            )
+            self._host_mounts_first_pass(
+                step=step,
+                look_on_second_pass=look_on_second_pass,
+                host_mounts=host_mounts,
+                volume_key="output_volumes",
+            )
+            step["host_mounts"] = host_mounts
+
+        for step_id in look_on_second_pass:
+            step = step_id_to_expanded_step[step_id]
+            self._host_mounts_second_pass(
+                step=step,
+                step_id_to_expanded_step=step_id_to_expanded_step,
+                volume_key="input_volumes",
+            )
+
+    @staticmethod
+    def _host_mounts_first_pass(
+        step: dict,
+        look_on_second_pass: set,
+        host_mounts: dict,
+        volume_key: str,
+    ):
+        step_mounts = step.get("mounts")
+        if step_mounts is None:
+            return
+
+        volumes = step_mounts.get(volume_key, {})
+        for volume_name, volume_data in volumes.items():
+            from_step = volume_data.get("from")
+            if from_step is not None:
+                look_on_second_pass.add(step["id"])
+            elif volume_name in valid_mount_keys:
+                host_mounts[volume_name] = os.getenv(f"host_{volume_name}")
+            else:
+                raise MedperfException(
+                    f'Invalid mount {volume_name} in step {step["id"]}'
+                )
+
+    @staticmethod
+    def _host_mounts_second_pass(
+        step: dict,
+        step_id_to_expanded_step: dict,
+        volume_key: str,
+    ):
+        step_mounts = step.get("mounts")
+        if step_mounts is None:
+            return
+
+        volumes = step_mounts.get(volume_key, {})
+        for volume_name, volume_data in volumes.items():
+            input_step_info = volume_data.get("from")
+
+            if input_step_info is None:
+                continue  # Done in first pass
+
+            input_step = get_dict_value_by_key_prefix(
+                key_prefix=input_step_info["step"],
+                dictionary=step_id_to_expanded_step,
+                key_suffix=step.get("partition"),
+            )
+            output_key = input_step_info["mount"]
+            step["host_mounts"][volume_name] = input_step["host_mounts"][output_key]
+
+    def _update_next_with_new_partition(self, original_dict, original_next, new_next):
+        next_field = original_dict["next"]
+        if isinstance(next_field, list):
+            next_field = [
+                item if item != original_next else new_next for item in next_field
+            ]
+        else:
+            if_fields = next_field["if"]
+            if_fields = [
+                item if item != original_next else new_next for item in if_fields
+            ]
+            default_fields = next_field["else"]
+            default_fields = [
+                item if item != original_next else new_next for item in default_fields
+            ]
+        original_dict["next"] = next_field
+
+    def map_dag_builders_from_yaml(self) -> list[DagBuilder]:
+
+        subject_partitions = self.read_subject_partitions()
+        expanded_steps = self._create_expanded_steps(
+            self.raw_steps, subject_partitions=subject_partitions
+        )
+        dag_builder_list = [
+            DagBuilder(expanded_step=expanded_step) for expanded_step in expanded_steps
+        ]
+
+        return dag_builder_list
+
+    def build_dags(self) -> list[DAG]:
+        if self.dag_builders is None:
+            self.dag_builders = self.map_dag_builders_from_yaml()
+
+        dags_list = [builder.build_dag() for builder in self.dag_builders]
+        return dags_list

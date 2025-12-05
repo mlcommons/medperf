@@ -1,7 +1,7 @@
 import os
 from typing import List, Optional, Union
 from medperf.commands.association.utils import get_user_associations
-from pydantic import Field
+from pydantic import Field, field_validator, ValidationInfo
 
 from medperf.entities.interface import Entity
 from medperf.entities.schemas import DeployableSchema
@@ -32,12 +32,31 @@ class Cube(Entity, DeployableSchema):
     """
 
     container_config: dict
-    parameters_config: Optional[dict]
-    image_hash: Optional[str]
+    parameters_config: Optional[dict] = Field(default_factory=dict)
+    image_hash: Optional[dict] = Field(default_factory=dict)
     additional_files_tarball_url: Optional[str] = Field(None, alias="tarball_url")
     additional_files_tarball_hash: Optional[str] = Field(None, alias="tarball_hash")
     metadata: dict = Field(default_factory=dict)
     user_metadata: dict = Field(default_factory=dict)
+
+    @field_validator("image_hash", mode="before")
+    def check_data_preparation_mlcube(cls, v: Union[str, dict], info: ValidationInfo):
+        if isinstance(v, dict):
+            return v
+
+        elif v in ["", None]:
+            return {}
+
+        config = info.data.get("container_config")
+        try:
+            image_name = config["image"]
+        except KeyError:
+            raise MedperfException(
+                "No 'image' field found in container_config file to apply hash. "
+                "Sending hashes is not supported with workflows."
+            )
+        formatted_hash = {image_name: v}
+        return formatted_hash
 
     @staticmethod
     def get_type():
@@ -78,14 +97,18 @@ class Cube(Entity, DeployableSchema):
     @property
     def parser(self):
         if self._parser is None:
-            self._parser = load_parser(self.container_config)
+            self._parser = load_parser(self.container_config, self.path)
         return self._parser
 
     @property
     def runner(self):
         if self._runner is None:
-            self._runner = load_runner(self.parser)
+            self._runner = load_runner(self.parser, self.name)
         return self._runner
+
+    @property
+    def is_workflow(self) -> bool:
+        return self.runner.is_workflow
 
     @property
     def local_id(self):
@@ -160,7 +183,7 @@ class Cube(Entity, DeployableSchema):
 
         try:
             self.image_hash = self.runner.download(
-                expected_image_hash=self.image_hash,
+                hashes_dict=self.image_hash,
                 download_timeout=config.mlcube_configure_timeout,
                 get_hash_timeout=config.mlcube_inspect_timeout,
             )

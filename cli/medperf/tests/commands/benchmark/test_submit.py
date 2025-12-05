@@ -40,7 +40,7 @@ def test_submit_prepares_tmp_path_for_cleanup():
 def test_submit_uploads_benchmark_data(mocker, result, comms, ui):
     # Arrange
     submission = SubmitBenchmark(BENCHMARK_INFO)
-    submission.bmk.metadata = {"results": result}
+    submission.bmk.metadata = {"results": {}}
     expected_data = submission.bmk.todict()
     spy_upload = mocker.patch.object(
         comms, "upload_benchmark", return_value=TestBenchmark().todict()

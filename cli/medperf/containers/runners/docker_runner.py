@@ -8,6 +8,7 @@ from .utils import (
     add_network_config,
     add_medperf_tmp_folder,
     check_docker_image_hash,
+    get_expected_hash,
 )
 from .runner import Runner
 import logging
@@ -20,6 +21,7 @@ from .docker_utils import (
 )
 from medperf.encryption import decrypt_gpg_file, check_gpg
 from medperf.utils import remove_path, run_command, tmp_path_for_file_decryption
+from typing import Dict
 
 
 class DockerRunner(Runner):
@@ -31,49 +33,51 @@ class DockerRunner(Runner):
 
     def download(
         self,
-        expected_image_hash,
+        hashes_dict: Dict[str, str],
         download_timeout: int = None,
         get_hash_timeout: int = None,
     ):
         if self.parser.is_docker_archive():
             logging.debug("Downloading Docker archive")
             return self._download_docker_archive(
-                expected_image_hash,
+                hashes_dict,
                 download_timeout,
                 get_hash_timeout,
             )
         else:
             logging.debug("Downloading Docker image")
             return self._download_docker_image(
-                expected_image_hash, download_timeout, get_hash_timeout
+                hashes_dict, download_timeout, get_hash_timeout
             )
 
     def _download_docker_image(
         self,
-        expected_image_hash,
+        hashes_dict: Dict[str, str],
         download_timeout: int = None,
         get_hash_timeout: int = None,
-    ):
+    ) -> Dict[str, str]:
         docker_image = self.parser.get_setup_args()
+        expected_image_hash = get_expected_hash(hashes_dict, docker_image)
         command = ["docker", "pull", docker_image]
         logging.debug("Running pull command")
         run_command(command, timeout=download_timeout)
         computed_image_hash = get_docker_image_hash(docker_image, get_hash_timeout)
         check_docker_image_hash(computed_image_hash, expected_image_hash)
-        return computed_image_hash
+        return {docker_image: computed_image_hash}
 
     def _download_docker_archive(
         self,
-        expected_image_hash,
+        hashes_dict,
         download_timeout: int = None,
         get_hash_timeout: int = None,
     ):
         file_url = self.parser.get_setup_args()
+        expected_image_hash = get_expected_hash(hashes_dict, file_url)
         image_path, computed_image_hash = resources.get_cube_image(
             file_url, expected_image_hash
         )  # Hash checking happens in resources
         self.image_archive_path = image_path
-        return computed_image_hash
+        return {file_url: computed_image_hash}
 
     def run(
         self,
