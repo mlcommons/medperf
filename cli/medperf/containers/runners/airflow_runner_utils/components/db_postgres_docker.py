@@ -37,7 +37,6 @@ class PostgresDBDocker(PostgresDatabaseComponent):
             [
                 "docker",
                 "exec",
-                "-it",
                 self.container_id,
                 "pg_isready",
                 "-U",
