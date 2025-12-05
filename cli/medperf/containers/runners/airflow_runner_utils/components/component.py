@@ -10,8 +10,8 @@ class ComponentRunner(ABC):
 
     START_PERIOD = 5
     INTERVAL = 10
-    TIMEOUT = 120
-    MAX_TRIES = 120
+    TIMEOUT = 60
+    MAX_TRIES = 5
 
     def __init__(self):
         self.process = None
