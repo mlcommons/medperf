@@ -13,8 +13,8 @@ class PostgresDatabaseComponent(ComponentRunner):
 
     START_PERIOD = 2
     INTERVAL = 5
-    MAX_TRIES = 5
-    TIMEOUT = 30
+    MAX_TRIES = 12
+    TIMEOUT = 60
 
     def __init__(
         self,
