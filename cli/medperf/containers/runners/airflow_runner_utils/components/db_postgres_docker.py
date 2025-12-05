@@ -50,9 +50,9 @@ class PostgresDBDocker(PostgresDatabaseComponent):
         has_started = postgres_status.returncode == 0
 
         if not has_started:
-            config.ui.print("Postgres DB not started yet")
-            config.ui.print(f"stdout=\n{postgres_status.stdout}")
-            config.ui.print(f"stderr=\n{postgres_status.stderr}")
+            logging.debug("Postgres DB not started yet")
+            logging.debug(f"stdout=\n{postgres_status.stdout}")
+            logging.debug(f"stderr=\n{postgres_status.stderr}")
 
         return postgres_status.returncode == 0
 
