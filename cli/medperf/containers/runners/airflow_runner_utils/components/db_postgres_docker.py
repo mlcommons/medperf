@@ -1,6 +1,7 @@
 from .db_postgres_component import PostgresDatabaseComponent
 import subprocess
 from medperf import config
+import logging
 
 
 class PostgresDBDocker(PostgresDatabaseComponent):
@@ -47,6 +48,13 @@ class PostgresDBDocker(PostgresDatabaseComponent):
             capture_output=True,
             text=True,
         )
+        has_started = postgres_status.returncode == 0
+
+        if not has_started:
+            logging.debug("Postgres DB not started yet")
+            logging.debug(f"stdout=\n{postgres_status.stdout}")
+            logging.debug(f"stderr=\n{postgres_status.stderr}")
+
         return postgres_status.returncode == 0
 
     def terminate(self):
