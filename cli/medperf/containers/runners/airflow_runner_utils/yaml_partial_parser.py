@@ -53,7 +53,7 @@ class YamlPartialParser:
             is_marked_as_last = step.get("last", False)
             inferred_as_last = step.get("next") is None
             if is_marked_as_last or inferred_as_last:
-                if step.get("per_subject", False):
+                if step.get("partition", False):
                     msg = f"Step {step['id']} appears to be the final step, but is also part of a partition.\n"
                     msg += "Please make sure the final step is not part of any partitions. "
                     msg += "You may need to add a final dummy step to join all results."

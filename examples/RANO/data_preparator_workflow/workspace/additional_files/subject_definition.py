@@ -3,7 +3,7 @@ import os
 
 def subject_definition(pipeline_state):
 
-    input_data_dir = os.getenv("host_data_path")
+    input_data_dir = pipeline_state.host_input_data_path
     subject_slash_timepoint_list = []
 
     for subject_id_dir in os.listdir(input_data_dir):

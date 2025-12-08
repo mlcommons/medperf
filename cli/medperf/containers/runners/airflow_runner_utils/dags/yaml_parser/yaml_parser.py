@@ -45,7 +45,7 @@ class YamlParser:
         yaml_content = self.read_yaml_definition()
         self.raw_steps = yaml_content["steps"]
         self._raw_conditions = yaml_content.get("conditions", [])
-        self._raw_subject_definitions = yaml_content.get("per_subject_def", {})
+        self._raw_subject_definitions = yaml_content.get("partition_def", {})
         self.dag_builders = None
 
     def read_yaml_definition(
@@ -68,11 +68,11 @@ class YamlParser:
         if not self._raw_subject_definitions:
             return []
 
-        per_subjection_function_name = self._raw_subject_definitions["function_name"]
-        per_subject_function_obj = import_external_python_function(
-            per_subjection_function_name
+        partition_function_name = self._raw_subject_definitions["function_name"]
+        partition_function_obj = import_external_python_function(
+            partition_function_name
         )
-        subject_partition_list = per_subject_function_obj(PipelineState())
+        subject_partition_list = partition_function_obj(PipelineState())
         return subject_partition_list
 
     def _get_next_id_from_expanded_step(self, raw_step):
@@ -198,7 +198,7 @@ class YamlParser:
         for step in raw_steps:
             original_id = step["id"]
             step["conditions_definitions"] = self._raw_conditions
-            if step.get("per_subject"):
+            if step.get("partition"):
                 for subject_partition in subject_partitions:
                     partitioned_step = {k: v for k, v in step.items()}
                     partitioned_id = create_legal_dag_id(

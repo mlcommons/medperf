@@ -53,7 +53,7 @@ def initial_setup():
 
 @app.command("make_csv")
 def prepare(
-    subject_subdir: str = typer.Option(..., "--subject-subdir"),
+    subject_subdir: str = typer.Option(..., "--partition"),
 ):
     from stages.get_csv import (
         AddToCSV,
@@ -76,7 +76,7 @@ def prepare(
 
 @app.command("convert_nifti")
 def convert_nifti(
-    subject_subdir: str = typer.Option(..., "--subject-subdir"),
+    subject_subdir: str = typer.Option(..., "--partition"),
 ):
     from stages.nifti_transform import NIfTITransform
 
@@ -100,7 +100,7 @@ def convert_nifti(
 
 @app.command("extract_brain")
 def extract_brain(
-    subject_subdir: str = typer.Option(..., "--subject-subdir"),
+    subject_subdir: str = typer.Option(..., "--partition"),
 ):
     from stages.extract import Extract
 
@@ -125,7 +125,7 @@ def extract_brain(
 
 @app.command("extract_tumor")
 def extract_tumor(
-    subject_subdir: str = typer.Option(..., "--subject-subdir"),
+    subject_subdir: str = typer.Option(..., "--partition"),
 ):
     from stages.extract_nnunet import ExtractNnUNet
 
@@ -159,7 +159,7 @@ def extract_tumor(
 
 @app.command("prepare_for_manual_review")
 def prepare_for_manual_review(
-    subject_subdir: str = typer.Option(..., "--subject-subdir"),
+    subject_subdir: str = typer.Option(..., "--partition"),
 ):
 
     from stages.manual import ManualStage
@@ -180,7 +180,7 @@ def prepare_for_manual_review(
 
 @app.command("rollback_to_brain_extract")
 def rollback(
-    subject_subdir: str = typer.Option(..., "--subject-subdir"),
+    subject_subdir: str = typer.Option(..., "--partition"),
 ):
 
     from stages.manual import ManualStage
@@ -201,7 +201,7 @@ def rollback(
 
 @app.command("segmentation_comparison")
 def segmentation_comparison(
-    subject_subdir: str = typer.Option(..., "--subject-subdir"),
+    subject_subdir: str = typer.Option(..., "--partition"),
 ):
     from stages.comparison import SegmentationComparisonStage
 

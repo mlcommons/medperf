@@ -137,7 +137,7 @@ class AirflowParser(Parser):
 
         if is_marked_as_last or inferred_as_last:
             is_last_step_candidate = True
-            if step.get("per_subject", False):
+            if step.get("partition", False):
                 error_msg = f"Step {step['id']} appears to be the final step, but is also part of a partition.\n"
                 error_msg += (
                     "Please make sure the final step is not part of any partitions. "

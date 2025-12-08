@@ -80,5 +80,6 @@ class ContainerOperatorBuilder(OperatorBuilder):
     def _get_command(self):
         command = [*self.base_command]
         if self.partition:
-            command = [*command, "--subject-subdir", self.partition]
+            command = [*command, "--partition", self.partition]
+
         return command

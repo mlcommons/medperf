@@ -547,7 +547,7 @@ def create_rano_workflow_mlcube(api_server, benchmark_owner_token, assets_path):
     )
     data_prep_params = load_parameters_config(assets_path, "data_preparator_workflow")
     data_prep_hash = (
-        "sha256:26cf311c51d8423591e710019b1490bc091152d32b26636e4eafa34e42308929"
+        "sha256:bc9c50d360d5ac2369eb2eaae8146c33c7eef3d0b0506bbdf26692262c786f50"
     )
     additional_files_url = "https://storage.googleapis.com/medperf-storage/rano_test_assets/dev_models_and_more.tar.gz"
     # Create a Data preprocessor MLCube by Benchmark Owner
@@ -560,7 +560,7 @@ def create_rano_workflow_mlcube(api_server, benchmark_owner_token, assets_path):
             "container_config": data_prep_config,
             "parameters_config": data_prep_params,
             "image_hash": {
-                "mlcommons/rano-data-prep-workflow-dev:0.0.1": data_prep_hash
+                "mlcommons/rano-data-prep-workflow-dev:0.0.2": data_prep_hash
             },
             "additional_files_tarball_url": additional_files_url,
             "additional_files_tarball_hash": "808632d9b9fa1da00faa923a752ab47eb0bc19daff037e9c2447b994dd415084",
