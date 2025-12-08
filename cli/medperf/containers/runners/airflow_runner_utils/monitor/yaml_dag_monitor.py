@@ -15,9 +15,7 @@ from collections import defaultdict
 from medperf.containers.runners.airflow_runner_utils.api_client.client import (
     AirflowAPIClient,
 )
-from medperf.containers.runners.airflow_runner_utils.yaml_partial_parser import (
-    YamlPartialParser,
-)
+from medperf.containers.parsers.airflow_parser import AirflowParser
 from airflow.utils.state import DagRunState
 
 
@@ -55,7 +53,7 @@ class ReportSummary:
 
 class Summarizer:
 
-    def __init__(self, yaml_parser: YamlPartialParser, report_file: os.PathLike):
+    def __init__(self, yaml_parser: AirflowParser, report_file: os.PathLike):
         self.step_ids = yaml_parser.step_ids
         self.report_file = report_file
 
