@@ -16,6 +16,9 @@ from medperf.enums import ContainerConfigMountKeys
 from medperf.exceptions import MedperfException
 import os
 import yaml
+from medperf.containers.runners.airflow_runner_utils.dags.pipeline_state import (
+    PipelineState,
+)
 
 valid_mount_keys = [item.value for item in ContainerConfigMountKeys]
 
@@ -61,10 +64,6 @@ class YamlParser:
         return yaml_info
 
     def read_subject_partitions(self):
-        from medperf.containers.runners.airflow_runner_utils.dags.pipeline_state import (
-            PipelineState,
-        )
-
         if not self._raw_subject_definitions:
             return []
 

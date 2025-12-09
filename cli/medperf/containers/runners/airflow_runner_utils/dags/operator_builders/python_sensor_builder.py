@@ -32,9 +32,6 @@ class Condition:
 
 
 def evaluate_external_condition(condition: Condition, pipeline_state: PipelineState):
-    # TODO implement properly! Should call the external python files and define a
-    # pipeline object from airflow_kwargs that is sent to the Python callable.
-    # For this first proof of concept, hardcode functions just to validate functionality.
     if condition.condition_id == ALWAYS_CONDITION:
         return True
 
@@ -52,6 +49,11 @@ def evaluate_external_condition(condition: Condition, pipeline_state: PipelineSt
 
 
 class PythonSensorBuilder(OperatorBuilder):
+    """
+    Sensors are used together with BranchOperators to automatically create branching behavior.
+    Once any condition in the sensor is met, the ID of the corresponding task to that condition is pushed
+    as an Airflow XCom. The BranchOperator then reads this XCom and branches accordingly.
+    """
 
     def __init__(
         self,
