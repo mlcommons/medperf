@@ -163,9 +163,7 @@ class AirflowSystemRunner:
                 hostname=self.host,
             )
         self.api_server = AirflowApiServer(**common_args, port=self.port)
-        self.scheduler = AirflowScheduler(
-            **common_args, user=self.user, password=self._password, mounts=self.mounts
-        )
+        self.scheduler = AirflowScheduler(**common_args, mounts=self.mounts)
         self.dag_processor = AirflowDagProcessor(**common_args, mounts=self.mounts)
         self.triggerer = AirflowTriggerer(**common_args)
 
