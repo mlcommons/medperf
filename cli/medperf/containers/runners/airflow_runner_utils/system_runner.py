@@ -1,7 +1,7 @@
 from __future__ import annotations
 import subprocess
 import os
-from .api_client.client import AirflowAPIClient
+from .airflow_api_client import AirflowAPIClient
 from .components.api_server import AirflowApiServer
 from .components.airflow_component import AirflowComponentRunner
 from .components.dag_processor import AirflowDagProcessor
@@ -10,7 +10,7 @@ from .components.db_postgres_singularity import PostgresDBSingularity
 from .components.scheduler import AirflowScheduler
 from .components.triggerer import AirflowTriggerer
 from .components.utils import validate_port
-from .monitor.yaml_dag_monitor import Summarizer
+from .airflow_monitor import Summarizer
 from airflow.utils.state import DagRunState
 import configparser
 from typing import Union, List

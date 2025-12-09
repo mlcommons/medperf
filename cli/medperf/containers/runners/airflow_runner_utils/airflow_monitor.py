@@ -12,7 +12,7 @@ import pandas as pd
 import asyncio
 from typing import Any, Literal
 from collections import defaultdict
-from medperf.containers.runners.airflow_runner_utils.api_client.client import (
+from medperf.containers.runners.airflow_runner_utils.airflow_api_client import (
     AirflowAPIClient,
 )
 from medperf.containers.parsers.airflow_parser import AirflowParser
