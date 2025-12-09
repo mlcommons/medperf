@@ -191,7 +191,7 @@ A view of Airflow Task Instances, which are the unit of execution used by Airflo
 
 ![Task Instances view in Airflow](./readme_images/task_instances_view.png)
 
-### 5.1 Manual Approval Steps
+### 6.1 Manual Approval Steps
 The automatic Tumor Segmentations must be manually validated before the Pipeline concludes. To help with finding the tasks that are awaiting for Manual Approval, we recomend going into the Task Instance view described previously and filter by `Up for Reschedule` tasks. The pipeline automatically creates the `Conditions Prepare for Manual Review` task to evaluate the `if` fields from the `prepare_for_manual_review` step defined in the YAML file. While awating for approval, these tasks remain in the `Up for Reschedule` state. The Figure below shows a Task Instance list view in this situation, with the Task IDs and State in red:
 
 ![DAGs ready for Manual Review](./readme_images/tasks_manual_review.png)
@@ -238,6 +238,14 @@ The brain mask can be reviewed and corrected with the software of your choice an
 ```
 
 ***IMPORTANT!! Do NOT change the filename when moving the file into the finalized directory!*** The pipeline will only detect the corrected Brain Mask if it keeps the exact same filename.
+
+#### 6.1.3 Auto-approval script
+
+For testing and debugging purposes, a script is available in this directory to automatically approve the generated tumor segmentations of the development dataset. If desired, this script may be run by executing the following command inside the same directory as this README file.
+
+```shell
+sh auto_approve.sh
+```
 
 #### 6.2 Final Confirmation
 There is also a manual confirmation step towards the end of the pipeline (step ID `final_confirmation`, of type  `manual_approval`). When converted into an Airflow task, this step results into a task that always fails and must be manually set as Success by the user. **Before proceeding with this step, *make sure to review and Tumor Segmentations as per [Section 6.1.1](#611-manual-approval-steps---tumor-segmentation) and ensure you approve all of the results, along with necessary corrections to Brain Masks ([Section 6.1.2](#612-brain-mask-correction) if any are necessary.***
