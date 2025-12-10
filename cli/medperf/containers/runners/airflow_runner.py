@@ -30,17 +30,19 @@ class AirflowRunner(Runner):
 
     def download(
         self,
-        hashes_dict: Dict[str, str],
+        expected_image_hash: Dict[str, str],
         download_timeout: int = None,
         get_hash_timeout: int = None,
     ) -> Dict[str, str]:
         # TODO add support for Docker Archives, Encrypted Containers, singularity files
         if config.platform == "docker":
             self._download_containers_for_docker(
-                hashes_dict, download_timeout, get_hash_timeout
+                expected_image_hash, download_timeout, get_hash_timeout
             )
         elif config.platform == "singularity":
-            self._check_containers_for_singularity(hashes_dict, get_hash_timeout)
+            self._check_containers_for_singularity(
+                expected_image_hash, get_hash_timeout
+            )
 
     def _download_containers_for_docker(
         self, hashes_dict, download_timeout, get_hash_timeout

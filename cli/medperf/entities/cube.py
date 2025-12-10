@@ -17,6 +17,7 @@ from medperf.utils import (
     remove_path,
     get_decryption_key_path,
 )
+from medperf.containers.runners.utils import get_expected_hash
 from medperf.entities.encrypted_key import EncryptedKey
 import logging
 
@@ -182,11 +183,24 @@ class Cube(Entity, DeployableSchema):
             raise InvalidEntityError(f"Container {self.name} additional files: {e}")
 
         try:
-            self.image_hash = self.runner.download(
-                hashes_dict=self.image_hash,
+            if self.is_workflow:
+                expected_hash = self.image_hash
+            else:
+                image_name = self.container_config.get("image", "default")
+                expected_hash = get_expected_hash(
+                    hashes_dict=self.image_hash, image_name=image_name
+                )
+
+            image_hash = self.runner.download(
+                expected_image_hash=expected_hash,
                 download_timeout=config.mlcube_configure_timeout,
                 get_hash_timeout=config.mlcube_inspect_timeout,
             )
+            if isinstance(image_hash, str):
+                image_hash = {self.container_config.get("image", "default"): image_hash}
+
+            self.image_hash.update(**image_hash)
+
         except InvalidEntityError as e:
             raise InvalidEntityError(f"Container {self.name} image: {e}")
 
