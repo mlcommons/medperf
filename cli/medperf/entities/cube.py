@@ -186,9 +186,8 @@ class Cube(Entity, DeployableSchema):
             if self.is_workflow:
                 expected_hash = self.image_hash
             else:
-                image_name = self.container_config.get("image", "default")
                 expected_hash = get_expected_hash(
-                    hashes_dict=self.image_hash, image_name=image_name
+                    hashes_dict=self.image_hash, image_name="default"
                 )
 
             image_hash = self.runner.download(
@@ -197,7 +196,7 @@ class Cube(Entity, DeployableSchema):
                 get_hash_timeout=config.mlcube_inspect_timeout,
             )
             if isinstance(image_hash, str):
-                image_hash = {self.container_config.get("image", "default"): image_hash}
+                image_hash = {"default": image_hash}
 
             self.image_hash.update(**image_hash)
 
