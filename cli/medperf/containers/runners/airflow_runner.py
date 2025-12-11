@@ -36,11 +36,11 @@ class AirflowRunner(Runner):
     ) -> Dict[str, str]:
         # TODO add support for Docker Archives, Encrypted Containers, singularity files
         if config.platform == "docker":
-            self._download_containers_for_docker(
+            return self._download_containers_for_docker(
                 expected_image_hash, download_timeout, get_hash_timeout
             )
         elif config.platform == "singularity":
-            self._check_containers_for_singularity(
+            return self._check_containers_for_singularity(
                 expected_image_hash, get_hash_timeout
             )
 
