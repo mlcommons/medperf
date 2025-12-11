@@ -1,4 +1,3 @@
-from medperf.comms.entity_resources import resources
 from medperf.exceptions import InvalidArgumentError, MedperfException
 from medperf.utils import remove_path, run_command, tmp_path_for_file_decryption
 from .utils import (
@@ -8,14 +7,14 @@ from .utils import (
     add_medperf_environment_variables,
     add_network_config,
     add_medperf_tmp_folder,
-    check_docker_image_hash,
+    download_image_file,
 )
 from .singularity_utils import (
     cleanup_singularity_cache,
-    get_docker_image_hash_from_dockerhub,
     get_singularity_executable_props,
     craft_singularity_run_command,
     convert_docker_image_to_sif,
+    check_docker_image_by_name,
 )
 from medperf.encryption import decrypt_gpg_file, check_gpg
 
@@ -88,9 +87,9 @@ class SingularityRunner(Runner):
         get_hash_timeout: int = None,
     ) -> str:
         image_file_url = self.parser.get_setup_args()
-        image_file_path, computed_image_hash = resources.get_cube_image(
-            image_file_url, expected_image_hash
-        )  # Hash checking happens in resources
+        image_file_path, computed_image_hash = download_image_file(
+            image_url=image_file_url, expected_image_hash=expected_image_hash
+        )
         self.image_file_path = image_file_path
         self.image_file_hash = computed_image_hash
         return computed_image_hash
@@ -101,10 +100,7 @@ class SingularityRunner(Runner):
         get_hash_timeout: int = None,
     ) -> str:
         docker_image = self.parser.get_setup_args()
-        computed_image_hash = get_docker_image_hash_from_dockerhub(
-            docker_image, get_hash_timeout
-        )
-        check_docker_image_hash(computed_image_hash, expected_image_hash)
+        computed_image_hash = check_docker_image_by_name(docker_image, get_hash_timeout)
         self.docker_image_hash = computed_image_hash.replace(":", "_")
         return computed_image_hash
 

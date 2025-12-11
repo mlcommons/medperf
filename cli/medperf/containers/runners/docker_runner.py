@@ -1,4 +1,3 @@
-from medperf.comms.entity_resources import resources
 from medperf.exceptions import MedperfException
 from .utils import (
     check_allowed_run_args,
@@ -7,16 +6,16 @@ from .utils import (
     add_medperf_environment_variables,
     add_network_config,
     add_medperf_tmp_folder,
-    check_docker_image_hash,
+    download_image_file,
 )
 from .runner import Runner
 import logging
 from .docker_utils import (
     craft_docker_run_command,
-    get_docker_image_hash,
     get_repo_tags_from_archive,
     load_image,
     delete_images,
+    download_docker_image,
 )
 from medperf.encryption import decrypt_gpg_file, check_gpg
 from medperf.utils import remove_path, run_command, tmp_path_for_file_decryption
@@ -55,23 +54,22 @@ class DockerRunner(Runner):
         get_hash_timeout: int = None,
     ) -> str:
         docker_image = self.parser.get_setup_args()
-        command = ["docker", "pull", docker_image]
-        logging.debug("Running pull command")
-        run_command(command, timeout=download_timeout)
-        computed_image_hash = get_docker_image_hash(docker_image, get_hash_timeout)
-        check_docker_image_hash(computed_image_hash, expected_image_hash)
+        computed_image_hash = download_docker_image(
+            docker_image=docker_image,
+            expected_image_hash=expected_image_hash,
+            download_timeout=download_timeout,
+            get_hash_timeout=get_hash_timeout,
+        )
         return computed_image_hash
 
     def _download_docker_archive(
         self,
         expected_image_hash,
-        download_timeout: int = None,
-        get_hash_timeout: int = None,
     ):
         file_url = self.parser.get_setup_args()
-        image_path, computed_image_hash = resources.get_cube_image(
-            file_url, expected_image_hash
-        )  # Hash checking happens in resources
+        image_path, computed_image_hash = download_image_file(
+            image_url=file_url, expected_image_hash=expected_image_hash
+        )
         self.image_archive_path = image_path
         return computed_image_hash
 

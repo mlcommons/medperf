@@ -8,11 +8,10 @@ from .airflow_runner_utils.dags import constants
 import os
 from medperf.containers.parsers.airflow_parser import AirflowParser
 from medperf.account_management import get_medperf_user_data
-from .utils import check_docker_image_hash, get_expected_hash
-from .singularity_utils import get_docker_image_hash_from_dockerhub
-from medperf.utils import run_command
+from .utils import get_expected_hash
+from .singularity_utils import check_docker_image_by_name
 import logging
-from .docker_utils import get_docker_image_hash
+from .docker_utils import download_docker_image
 from medperf import config
 
 
@@ -49,12 +48,12 @@ class AirflowRunner(Runner):
     ):
         for container in self.parser.containers:
             expected_image_hash = get_expected_hash(hashes_dict, container.image)
-            command = ["docker", "pull", container.image]
-            run_command(command, timeout=download_timeout)
-            computed_image_hash = get_docker_image_hash(
-                container.image, get_hash_timeout
+            computed_image_hash = download_docker_image(
+                docker_image=container.image,
+                expected_image_hash=expected_image_hash,
+                download_timeout=download_timeout,
+                get_hash_timeout=get_hash_timeout,
             )
-            check_docker_image_hash(computed_image_hash, expected_image_hash)
             hashes_dict[container.image] = computed_image_hash
 
         return hashes_dict
@@ -66,10 +65,11 @@ class AirflowRunner(Runner):
         """
         for container in self.parser.containers:
             expected_image_hash = get_expected_hash(hashes_dict, container.image)
-            computed_image_hash = get_docker_image_hash_from_dockerhub(
-                container.image, get_hash_timeout
+            computed_image_hash = check_docker_image_by_name(
+                docker_image=container.image,
+                expected_image_hash=expected_image_hash,
+                get_hash_timeout=get_hash_timeout,
             )
-            check_docker_image_hash(computed_image_hash, expected_image_hash)
             hashes_dict[container.image] = computed_image_hash
 
         return hashes_dict
