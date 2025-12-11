@@ -1,5 +1,4 @@
 from __future__ import annotations
-import os
 from airflow.sdk.api.client import BearerAuth as AirflowBearerAuth
 from typing import Optional
 from methodtools import lru_cache
