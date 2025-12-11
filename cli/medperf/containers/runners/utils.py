@@ -1,5 +1,5 @@
 from typing import Optional
-from cli.medperf.comms.entity_resources import resources
+from medperf.comms.entity_resources import resources
 from medperf.exceptions import InvalidContainerSpec, MedperfException
 from medperf import config
 import os
