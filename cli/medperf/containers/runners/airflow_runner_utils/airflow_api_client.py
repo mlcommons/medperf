@@ -24,13 +24,9 @@ class BearerAuth(AirflowBearerAuth):
     ):
         if expires_at is None:
             twenty_four_hours = 60 * 60 * 24  # Default duration from airflow
-            token_duration = os.getenv(
-                "AIRFLOW__API_AUTH__JWT_EXPIRATION_TIME", twenty_four_hours
-            )
-
             leeway_seconds = leeway_seconds or 30
             now = time.time()
-            expires_at = now + token_duration + leeway_seconds
+            expires_at = now + twenty_four_hours + leeway_seconds
 
         self.expires_at = expires_at
         super().__init__(token=token)
