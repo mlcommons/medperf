@@ -1,7 +1,7 @@
 import os
 from typing import List, Optional, Union
 from medperf.commands.association.utils import get_user_associations
-from pydantic import Field, field_validator, ValidationInfo
+from pydantic import Field
 
 from medperf.entities.interface import Entity
 from medperf.entities.schemas import DeployableSchema

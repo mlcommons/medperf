@@ -118,9 +118,6 @@ def create_benchmark(api_server, benchmark_owner_token, assets_path):
 
     data_prep_config = load_container_config(assets_path, "data_preparator")
     data_prep_params = load_parameters_config(assets_path, "data_preparator")
-    data_prep_hash = (
-        "sha256:f8697dc1c646395ad1ac54b8c0373195dbcfde0c4ef5913d4330a5fe481ae9a4"
-    )
     # Create a Data preprocessor MLCube by Benchmark Owner
     data_preprocessor_mlcube = api_server.request(
         "/mlcubes/",
@@ -130,7 +127,9 @@ def create_benchmark(api_server, benchmark_owner_token, assets_path):
             "name": "chestxray_prep",
             "container_config": data_prep_config,
             "parameters_config": data_prep_params,
-            "image_hash": {"default": data_prep_hash},
+            "image_hash": {
+                "default": "sha256:f8697dc1c646395ad1ac54b8c0373195dbcfde0c4ef5913d4330a5fe481ae9a4"
+            },
             "additional_files_tarball_url": "",
             "additional_files_tarball_hash": "",
             "metadata": {},
@@ -280,9 +279,7 @@ def create_workflow_benchmark(api_server, benchmark_owner_token, assets_path):
 
     data_prep_config = load_workflow_config(assets_path, "data_preparator_workflow")
     data_prep_params = load_parameters_config(assets_path, "data_preparator_workflow")
-    data_prep_hash = (
-        "sha256:f8697dc1c646395ad1ac54b8c0373195dbcfde0c4ef5913d4330a5fe481ae9a4"
-    )
+
     # Create a Data preprocessor MLCube by Benchmark Owner
     data_preprocessor_mlcube = api_server.request(
         "/mlcubes/",
