@@ -38,8 +38,6 @@ class DockerRunner(Runner):
             logging.debug("Downloading Docker archive")
             return self._download_docker_archive(
                 expected_image_hash,
-                download_timeout,
-                get_hash_timeout,
             )
         else:
             logging.debug("Downloading Docker image")
