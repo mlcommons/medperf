@@ -40,25 +40,6 @@ class Cube(Entity, DeployableSchema):
     metadata: dict = Field(default_factory=dict)
     user_metadata: dict = Field(default_factory=dict)
 
-    @field_validator("image_hash", mode="before")
-    def check_data_preparation_mlcube(cls, v: Union[str, dict], info: ValidationInfo):
-        if isinstance(v, dict):
-            return v
-
-        elif v in ["", None]:
-            return {}
-
-        config = info.data.get("container_config")
-        try:
-            image_name = config["image"]
-        except KeyError:
-            raise MedperfException(
-                "No 'image' field found in container_config file to apply hash. "
-                "Sending hashes is not supported with workflows."
-            )
-        formatted_hash = {image_name: v}
-        return formatted_hash
-
     @staticmethod
     def get_type():
         return "container"

@@ -28,6 +28,7 @@ class SubmitCube:
             submit_info, container_config, parameters_config, decryption_key
         )
         submission.read_config_files()
+        submission.validate_hash_format()
         submission.create_cube_object()
 
         with ui.interactive():
@@ -151,3 +152,17 @@ class SubmitCube:
             return
         logging.debug(f"Decryption key provided: {self.decryption_key}")
         store_decryption_key(self.cube.id, self.decryption_key)
+
+    def validate_hash_format(self):
+        """
+        Changes a string hash (i.e sent from the command line) into a dict
+        Also removes a None hash (so it can be generated properly as an empty dict)
+        """
+        tentative_hash = self.submit_info.pop("image_hash", None)
+
+        if tentative_hash is None:
+            return
+        elif isinstance(tentative_hash, str):
+            tentative_hash = {"default": tentative_hash}
+
+        self.submit_info["image_hash"] = tentative_hash
