@@ -5,6 +5,7 @@ from medperf.containers.runners.airflow_runner_utils.system_runner import (
 )
 from pathlib import Path
 from .airflow_runner_utils.dags import constants
+from .airflow_runner_utils.plugins import auto_login
 import os
 from medperf.containers.parsers.airflow_parser import AirflowParser
 from medperf.account_management import get_medperf_user_data
@@ -18,6 +19,7 @@ from medperf import config
 class AirflowRunner(Runner):
 
     _DAGS_FOLDER = str(Path(constants.__file__).parent.resolve())
+    _PLUGINS_FOLDER = str(Path(auto_login.__file__).parent.resolve())
 
     def __init__(
         self,
@@ -101,6 +103,7 @@ class AirflowRunner(Runner):
             airflow_home=airflow_home,
             user=username,
             dags_folder=self._DAGS_FOLDER,
+            plugins_folder=self._PLUGINS_FOLDER,
             additional_files_dir=additional_files_path,
             mounts=medperf_mounts,
             project_name=self.workflow_name,

@@ -15,6 +15,7 @@ from airflow.utils.state import DagRunState
 import configparser
 from typing import Union, List
 import secrets
+import urllib.parse
 from pydantic import SecretStr
 import json
 import logging
@@ -34,6 +35,7 @@ class AirflowSystemRunner:
         airflow_home: os.PathLike,
         user: str,
         dags_folder: os.PathLike,
+        plugins_folder: os.PathLike,
         mounts: dict[str, os.PathLike],
         additional_files_dir: os.PathLike,
         project_name: str,
@@ -50,6 +52,7 @@ class AirflowSystemRunner:
         # TODO windows
         self.port = validate_port(port)
         self.dags_folder = dags_folder
+        self.plugins_folder = plugins_folder
         self.extra_configs = extra_airflow_configs
         self.mounts = mounts
         self.yaml_parser = yaml_parser
@@ -97,6 +100,7 @@ class AirflowSystemRunner:
         airflow_config["core"].update(
             {
                 "dags_folder": self.dags_folder,
+                "plugins_folder": self.plugins_folder,
                 "executor": "LocalExecutor",
                 "auth_manager": "airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager",
                 "load_examples": "false",
@@ -106,7 +110,9 @@ class AirflowSystemRunner:
             {"sql_alchemy_conn": self.db.connection_string}
         )
         airflow_config["scheduler"].update({"enable_health_check": "true"})
-
+        airflow_config["api"].update(
+            {"host": self.host, "port": self.port, "instance_name": "MedPerf"}
+        )
         logging.debug(f"Saving Airflow configuration to {self.airflow_config_file}")
         with open(self.airflow_config_file, "w") as f:
             airflow_config.write(f)
@@ -264,26 +270,25 @@ class AirflowSystemRunner:
     def wait_for_dag(self):
         asyncio.run(self._async_wait_for_dag())
 
+    def _generate_auto_login_link(self) -> SecretStr:
+        user_and_pass = urllib.parse.urlencode(
+            {"user": self.user, "password": self._password.get_secret_value()}
+        )
+        full_link = SecretStr(
+            f"{self._complete_link}/medperf/auto_login?{user_and_pass}"
+        )
+        return full_link
+
     async def _async_wait_for_dag(self):
+        auto_login_link = self._generate_auto_login_link()
         msg = [
             f"MedPerf has started executing the Data Pipeline {self.project_name} via Airflow."
         ]
         msg.append("Execution will continue until the pipeline successfully completes.")
+        msg.append("Please use the following link to access the Airflow WebUI:\n")
+        msg.append(auto_login_link.get_secret_value())
         msg.append(
-            f"The Airflow UI is available at the following link: {self._complete_link}."
-        )
-        msg.append(
-            "Please use the following credentials for interacting with the Airflow WebUI"
-        )
-        msg.append("-------------------------------------------------------")
-        msg.append(f"User: {self.user}")
-        msg.append(f"Password: {self._password.get_secret_value()}")
-        msg.append("-------------------------------------------------------")
-        msg.append(
-            "Note that the password value will change every time Airflow is restarted via MedPerf."
-        )
-        msg.append(
-            "If this process must be stopped prematurely, please use the Ctrl+C command!"
+            "\nIf this process must be stopped prematurely, please use the Ctrl+C command!"
         )
 
         wait_interval = 10  # seconds
