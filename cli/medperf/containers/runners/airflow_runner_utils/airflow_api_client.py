@@ -6,7 +6,7 @@ import time
 import httpx
 from pydantic import SecretStr
 from typing import Union
-import asyncio
+
 
 """
 The AirflowAPIClient defined in this Module if structured similarly to the internal
