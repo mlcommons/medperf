@@ -6,6 +6,7 @@ import time
 import httpx
 from pydantic import SecretStr
 from typing import Union
+import asyncio
 
 """
 The AirflowAPIClient defined in this Module if structured similarly to the internal
@@ -13,6 +14,20 @@ Client class used by Airflow (i.e airflow.sdk.api.client.Client), but simplified
 so that only methods necessary for the Airflow <> MedPerf integration are
 implemented.
 """
+
+
+async def get_token_async(base_url: str, username: str, password: SecretStr):
+    headers = {"Content-Type": "application/json"}
+    data = {"username": username, "password": password.get_secret_value()}
+
+    auth_url = f"{base_url}/auth/token"
+    async with httpx.AsyncClient() as client:
+        response = await client.post(auth_url, headers=headers, json=data)
+
+    if response.status_code != 201:
+        print("Failed to get token:", response.status_code, response.text)
+    jwt_token = response.json().get("access_token")
+    return jwt_token
 
 
 class BearerAuth(AirflowBearerAuth):

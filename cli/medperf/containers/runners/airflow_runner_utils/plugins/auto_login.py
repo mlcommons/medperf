@@ -2,25 +2,28 @@ from airflow.plugins_manager import AirflowPlugin
 from fastapi import FastAPI, Query, Request, status
 from fastapi.responses import RedirectResponse
 from airflow.api_fastapi.auth.managers.base_auth_manager import COOKIE_NAME_JWT_TOKEN
-from medperf.containers.runners.airflow_runner_utils.airflow_api_client import (
-    AirflowAPIClient,
-)
 from airflow.configuration import conf
+from medperf.containers.runners.airflow_runner_utils.airflow_api_client import (
+    get_token_async,
+)
+from pydantic import SecretStr
 
 app = FastAPI()
 
 
 @app.get("/auto_login", status_code=status.HTTP_302_FOUND)
 async def root(
-    request: Request, user: str = Query(...), password: str = Query(...)
+    request: Request,
+    username: str = Query(...),
+    password: str = Query(...),
 ) -> RedirectResponse:
     host = conf.get("api", "host")
     port = conf.get("api", "port")
     homepage_url = f"http://{host}:{port}"
-    api_url = f"{homepage_url}/api/v2"
-    with AirflowAPIClient(username=user, password=password, api_url=api_url) as client:
-        token = client.get_token()
 
+    token = await get_token_async(
+        base_url=homepage_url, username=username, password=SecretStr(password)
+    )
     response = RedirectResponse(url=homepage_url, status_code=status.HTTP_302_FOUND)
 
     response.set_cookie(

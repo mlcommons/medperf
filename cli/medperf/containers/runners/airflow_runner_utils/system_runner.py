@@ -262,7 +262,7 @@ class AirflowSystemRunner:
             env=self._run_env,
         )
 
-        if create_pools.stderr:
+        if create_pools.returncode != 0:
             raise ValueError(
                 f"Error when attempting to create pools:\n{create_pools.stderr}"
             )
@@ -270,34 +270,38 @@ class AirflowSystemRunner:
     def wait_for_dag(self):
         asyncio.run(self._async_wait_for_dag())
 
-    def _generate_auto_login_link(self) -> SecretStr:
-        user_and_pass = urllib.parse.urlencode(
-            {"user": self.user, "password": self._password.get_secret_value()}
-        )
-        full_link = SecretStr(
-            f"{self._complete_link}/medperf/auto_login?{user_and_pass}"
-        )
-        return full_link
+    def _print_login_link(self, airflow_client: AirflowAPIClient):
 
-    async def _async_wait_for_dag(self):
-        auto_login_link = self._generate_auto_login_link()
+        token = airflow_client.get_token()
+        # token = urllib.parse.urlencode({"token": token})
+        token = urllib.parse.urlencode(
+            {"username": self.user, "password": self._password.get_secret_value()}
+        )
+        full_link = SecretStr(f"{self._complete_link}/medperf/auto_login?{token}")
+
         msg = [
             f"MedPerf has started executing the Data Pipeline {self.project_name} via Airflow."
         ]
         msg.append("Execution will continue until the pipeline successfully completes.")
         msg.append("Please use the following link to access the Airflow WebUI:\n")
-        msg.append(auto_login_link.get_secret_value())
+        msg.append(full_link.get_secret_value())
         msg.append(
             "\nIf this process must be stopped prematurely, please use the Ctrl+C command!"
         )
 
-        wait_interval = 10  # seconds
         for line in msg:
             config.ui.print(line)
+
+    async def _async_wait_for_dag(self):
+
+        wait_interval = 10  # seconds
+
         api_url = f"{self._complete_link}/api/v2"
         with AirflowAPIClient(
             username=self.user, password=self._password, api_url=api_url
         ) as airflow_client:
+
+            self._print_login_link(airflow_client)
             self._check_resuming_from_previous_execution(airflow_client)
             try:
                 summarizer = Summarizer(
