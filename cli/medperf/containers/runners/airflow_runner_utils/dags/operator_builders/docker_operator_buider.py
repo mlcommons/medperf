@@ -1,4 +1,7 @@
-from .container_operator_builder import ContainerOperatorBuilder, MountInfo
+from medperf.containers.runners.airflow_runner_utils.dags.operator_builders.container_operator_builder import (
+    ContainerOperatorBuilder,
+    MountInfo,
+)
 from airflow.providers.docker.operators.docker import DockerOperator
 from docker.types import Mount
 import os

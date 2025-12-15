@@ -1,4 +1,6 @@
-from .operator_builder import OperatorBuilder
+from medperf.containers.runners.airflow_runner_utils.dags.operator_builders.operator_builder import (
+    OperatorBuilder,
+)
 from airflow.sdk import task
 from airflow.exceptions import AirflowException
 

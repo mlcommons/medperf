@@ -1,5 +1,7 @@
 from __future__ import annotations
-from .operator_builder import OperatorBuilder
+from medperf.containers.runners.airflow_runner_utils.dags.operator_builders.operator_builder import (
+    OperatorBuilder,
+)
 from abc import abstractmethod
 import os
 from medperf.exceptions import MedperfException

@@ -1,5 +1,9 @@
-from .python_sensor_builder import PythonSensorBuilder
-from .operator_builder import OperatorBuilder
+from medperf.containers.runners.airflow_runner_utils.dags.operator_builders.python_sensor_builder import (
+    PythonSensorBuilder,
+)
+from medperf.containers.runners.airflow_runner_utils.dags.operator_builders.operator_builder import (
+    OperatorBuilder,
+)
 from airflow.decorators import task
 from airflow.models.taskinstance import TaskInstance
 
