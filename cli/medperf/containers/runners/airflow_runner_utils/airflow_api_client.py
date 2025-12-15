@@ -5,6 +5,7 @@ from methodtools import lru_cache
 import time
 import httpx
 from pydantic import SecretStr
+from typing import Union
 
 """
 The AirflowAPIClient defined in this Module if structured similarly to the internal
@@ -40,20 +41,23 @@ class AirflowAPIClient(httpx.Client):
     def __init__(
         self,
         username: str,
-        password: SecretStr,
+        password: Union[str, SecretStr],
         api_url: str,
         **kwargs,
     ):
         self.username = username
         self.password = password
-        token = self._get_token(api_url)
+        if isinstance(self.password, str):
+            self.password = SecretStr(self.password)
+
+        token = self.get_token(api_url)
         auth = BearerAuth(token)
-        event_hooks = {"request": [self.renew_token]}
+        event_hooks = {"request": [self._renew_token]}
         super().__init__(base_url=api_url, auth=auth, event_hooks=event_hooks, **kwargs)
 
-    def _get_token(self, base_url):
+    def get_token(self, base_url=None):
         if base_url is None:
-            return ""
+            base_url = str(self.base_url)
 
         base_for_auth = base_url.split("/api")[0]
         headers = {"Content-Type": "application/json"}
@@ -67,9 +71,9 @@ class AirflowAPIClient(httpx.Client):
         jwt_token = response.json().get("access_token")
         return jwt_token
 
-    def renew_token(self, request: httpx.Request):
+    def _renew_token(self, request: httpx.Request):
         if not self.auth.is_valid():
-            new_token = self._get_token(str(self.base_url))
+            new_token = self.get_token()
             self.auth.token = new_token
             request.headers["Authorization"] = "Bearer " + self.auth.token
 
