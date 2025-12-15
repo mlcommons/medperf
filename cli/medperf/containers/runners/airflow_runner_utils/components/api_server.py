@@ -27,4 +27,4 @@ class AirflowApiServer(AirflowComponentRunner):
         return ["airflow", "api-server", "--port", self.port]
 
     def has_successfully_started(self):
-        return run_healthcheck("http://localhost:8080/api/v2/version")
+        return run_healthcheck(f"http://localhost:{self.port}/api/v2/version")
