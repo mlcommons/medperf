@@ -111,7 +111,11 @@ class AirflowSystemRunner:
         )
         airflow_config["scheduler"].update({"enable_health_check": "true"})
         airflow_config["api"].update(
-            {"host": self.host, "port": self.port, "instance_name": "MedPerf"}
+            {
+                "host": self.host,
+                "port": self.port,
+                "instance_name": f"MedPerf Workflow - {self.project_name}",
+            }
         )
         logging.debug(f"Saving Airflow configuration to {self.airflow_config_file}")
         with open(self.airflow_config_file, "w") as f:
