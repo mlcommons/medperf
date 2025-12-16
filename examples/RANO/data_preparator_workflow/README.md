@@ -165,25 +165,17 @@ Starting Airflow components
 Airflow components successfully started
 MedPerf has started executing the Data Pipeline rano_workflow_prep via Airflow.
 Execution will continue until the pipeline successfully completes.
-The Airflow UI is available at the following link: http://localhost:8080.
-Please use the following credentials for interacting with the Airflow WebUI
--------------------------------------------------------
-User: SOME_USERNAME_HERE
-Password: RANDOM_PASSWORD_HERE
--------------------------------------------------------
-Note that the password value will change every time Airflow is restarted via MedPerf.
+Please use the following link to access the Airflow WebUI:
+
+http://localhost:8080/medperf/auto_login?username=SOME_USERNAME&password=RANDOMLY_GENERATED_PASSWORD
+
 If this process must be stopped prematurely, please use the Ctrl+C command!
 ```
 
-Keep note of the values that appear in your terminal for `SOME_UERNAME_HERE` and `RANDOM_PASSWORD_HERE`. They will be used to access the Airflow WebUI. The WebUI can be accessed via port 8080 in the Machine where Airflow is running. If running locally, you can simply open http://localhost:8080/ on your Browser to access the UI. Use the `SOME_UERNAME_HERE` and `RANDOM_PASSWORD_HERE` from the terminal output to login. Note that the password will change every time Airflow is started via MedPerf.
-
-![Airflow login screen](./readme_images/airflow_login.png)
-
-Once logged in, the Airflow home screen will be displayed, as shown below. You can click on the DAGs button, in red in the figure, to switch to the DAGs view.
-
+The auto-generated link can be clicked to automatically login in the Airflow WebUI. By clicking the link, the Airflow home screen will be displayed in your web browser, as shown below.
 ![Airflow home screen](./readme_images/airflow_home.png)
 
-A list of all currently loaded Airflow DAGs will be displayed, as shown below. The pipeline itself consists of multiple DAGs and each DAG maps to one of the `steps` defind in the YAML version of the Pipeline. Each DAG is the corresponding step name, both in its raw format from the YAML file (`some_step`) and in a more readable format (`Some Step`) and, in case of steps with `per_subject: true`, also by the Subject ID and Timepoint.
+You can click on the DAGs button, in red in the figure, to switch to the DAGs view. A list of all currently loaded Airflow DAGs will be displayed, as shown below. The pipeline itself consists of multiple DAGs and each DAG maps to one of the `steps` defind in the YAML version of the Pipeline. Each DAG is the corresponding step name, both in its raw format from the YAML file (`some_step`) and in a more readable format (`Some Step`) and, in case of steps with `per_subject: true`, also by the Subject ID and Timepoint.
 
 ![DAG view in Airflow](./readme_images/dag_list.png)
 
