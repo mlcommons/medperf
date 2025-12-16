@@ -17,6 +17,9 @@ implemented.
 
 
 async def get_token_async(base_url: str, username: str, password: SecretStr):
+    """
+    This is used by the auto-login plugin. It needs an async request to not lock itself up.
+    """
     headers = {"Content-Type": "application/json"}
     data = {"username": username, "password": password.get_secret_value()}
 

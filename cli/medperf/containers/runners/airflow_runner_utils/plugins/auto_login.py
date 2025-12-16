@@ -21,6 +21,8 @@ async def root(
     port = conf.get("api", "port")
     homepage_url = f"http://{host}:{port}"
 
+    # Needs to be async to not lock itself up.
+    # Seems like the plugin also runs in the API server that takes the request.
     token = await get_token_async(
         base_url=homepage_url, username=username, password=SecretStr(password)
     )
