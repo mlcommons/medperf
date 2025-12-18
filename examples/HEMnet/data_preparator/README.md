@@ -61,7 +61,7 @@ svs
 ## Appendix. Build the customized Docker image
 From the directory of this README file, run the following commands
 ```shell
-cd customized_image
-docker build . -t local/hemnet:0.0.9
+cd project
+docker build . -t local/hemnet:0.0.2
 ```
-*NOTE!* If a different image tag is used, the CWL steps located at `./cwl/indivivdual_steps` must have their Docker requirements modified to match the name used.
+*NOTE!* If a different image tag is used, the `image` field of the workflow file located at `./workflow.yaml` must be modified to match the name used.
