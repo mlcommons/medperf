@@ -102,6 +102,7 @@ class AirflowRunner(Runner):
         with AirflowSystemRunner(
             airflow_home=airflow_home,
             user=username,
+            email=email,
             dags_folder=self._DAGS_FOLDER,
             plugins_folder=self._PLUGINS_FOLDER,
             additional_files_dir=additional_files_path,

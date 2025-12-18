@@ -34,6 +34,7 @@ class AirflowSystemRunner:
         self,
         airflow_home: os.PathLike,
         user: str,
+        email: str,
         dags_folder: os.PathLike,
         plugins_folder: os.PathLike,
         mounts: dict[str, os.PathLike],
@@ -58,6 +59,7 @@ class AirflowSystemRunner:
         self.yaml_parser = yaml_parser
         self.additional_files_dir = additional_files_dir
         self.user = user
+        self.email = email
         self._password = SecretStr(secrets.token_urlsafe(16))
         self.airflow_config_file = os.path.join(self.airflow_home, "airflow.cfg")
         self.resuming_from_previous_execution = False
@@ -238,7 +240,7 @@ class AirflowSystemRunner:
                 "--lastname",
                 "admin",
                 "--email",
-                "admin@admin.com",
+                self.email,
             ],
             capture_output=True,
             text=True,
