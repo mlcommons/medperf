@@ -240,21 +240,25 @@ sh auto_approve.sh
 ```
 
 #### 6.2 Final Confirmation
-There is also a manual confirmation step towards the end of the pipeline (step ID `final_confirmation`, of type  `manual_approval`). When converted into an Airflow task, this step results into a task that always fails and must be manually set as Success by the user. **Before proceeding with this step, *make sure to review and Tumor Segmentations as per [Section 6.1.1](#611-manual-approval-steps---tumor-segmentation) and ensure you approve all of the results, along with necessary corrections to Brain Masks ([Section 6.1.2](#612-brain-mask-correction) if any are necessary.***
+There is also a manual confirmation step towards the end of the pipeline (step ID `final_confirmation`, of type  `manual_approval`). When converted into an Airflow task, this step results into an Approval Task requires manual approval by the user. This task may be easily found by enabling the `Required Actions` in the Airflow UI, as shown in the figure below. If final approval is not yet required, the UI will instead display no DAGs once the filter is selected.
 
-Once all results are reviewed, log into Airflow's Web UI. Go into the Task Instance View and locate the Task Instance named `Final Confirmation`. A filter by may be used, as shown in the Figure below, in blue. The task state will be `Failed`, as shown in red in the figure. This is normal, as this task is a manual approval step and therefore must be manually changed to success for approval.
-
-![Filtering DAGs by the Final Confirmation tag.](./readme_images/task_list_filtered_final_confirmation.png)
+![Filtering DAGs by Required Actions](./readme_images/filter_by_required_actions.png)
 
 ***IMPORTANT!!* This task will *NOT* show up if all Manual Reviews are not done yet!** If you are unable to find the `Final Confirmation` task instance, make sure you have completed all the Manual Review steps outlind in [Section 5.1](#51-manual-approval-steps).
 
-If task is in the `Failed` state, it is ready for review. **If you have already validated all the Tumor Segmentations**, scroll your display all the way to the right, revealing a small drop-down arrow. Click the arrow, then click `Success` to open a confirmation prompt. The `Note` tab may be optionally expanded to add a Note to this task, if desired. Finally click `Confirm` to approve the results.  The two figures below illustrate this process.
+Once the `Final Confirmation` task is available, click on the Task Name as shown in the Airflow WebUI. Once the task name is clicked, the window should display a view similar to the figure below.
 
-![Selecting the Success option in the Mark as Success button](./readme_images/mark_state_as_button.png)
+![Final Confirmation DAG View](./readme_images/final_confirmation_dag.png)
 
-![Confirmation for setting task as success](./readme_images/mark_as_success_confirmation.png)
+In this view, click the `Required Actions (1)` button. The view will then change into a view similar to the Figure below.
 
-Once this procedure is done, the pipeline will proceed to its final steps and conclusion.
+![Required Actions view](./readme_images/required_actions_dag.png)
+
+Here, click the `Manual Approval Task` text to display the final confirmation view shown below.
+
+![Final confirmation button](./readme_images/final_confirmation_approve_button.png)
+
+**Before proceeding with this step, *make sure to review and Tumor Segmentations as per [Section 6.1.1](#611-manual-approval-steps---tumor-segmentation) and ensure you approve all of the results, along with necessary corrections to Brain Masks ([Section 6.1.2](#612-brain-mask-correction)) if any are necessary.*** If all generated images are to your liking, click the `Approve` button to confirm the generated images. Airflow will then automatically proceed with executing the remainder of the Pipeline.
 
 ## 7. Output Data
 
