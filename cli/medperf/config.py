@@ -92,6 +92,7 @@ aggregators_folder = "aggregators"
 cas_folder = "cas"
 training_events_folder = "training_events"
 certificates_folder = "certificates"
+dashboards_folder = "dashboards"
 
 default_base_storage = str(Path.home().resolve() / ".medperf")
 
@@ -164,6 +165,10 @@ storage = {
         "base": default_base_storage,
         "name": certificates_folder,
     },
+    "dashboards_folder": {
+        "base": default_base_storage,
+        "name": dashboards_folder,
+    },
 }
 
 root_folders = [
@@ -186,6 +191,7 @@ server_folders = [
     "cas_folder",
     "training_events_folder",
     "certificates_folder",
+    "dashboards_folder",
 ]
 
 # MedPerf filenames conventions

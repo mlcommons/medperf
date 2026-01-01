@@ -5,6 +5,8 @@ import plotly.express as px
 import dash_bootstrap_components as dbc
 import pandas as pd
 
+from medperf import config
+
 from .get_data import get_data
 from .utils import get_reports_path
 
@@ -231,6 +233,27 @@ def preparation_timeline(stages_colors, stages_df, full_path):
     )
 
 
+def no_data_layout():
+    return dbc.Container(
+        [
+            html.H1("Preparation Progress", style={"textAlign": "center"}),
+            dbc.Alert(
+                [
+                    html.H3("No registered datasets", className="alert-heading"),
+                    html.P(
+                        "There are no datasets registered with the data preparator "
+                        "of this benchmark yet.",
+                        className="fs-5",
+                    ),
+                ],
+                color="warning",
+                className="mt-4 text-center",
+            ),
+        ],
+        className="mt-4",
+    )
+
+
 def get_sites_dicts(sites_path, latest_table):
     with open(sites_path, "r") as f:
         sites = f.readlines()
@@ -243,9 +266,20 @@ def get_sites_dicts(sites_path, latest_table):
     return sites_dicts
 
 
-def build_dash_app(registered_df, stages_colors, latest_table, stages, full_path):
+def _build_dash_app(
+    data_exists,
+    registered_df,
+    stages_colors,
+    latest_table,
+    stages,
+    full_path,
+    prefix,
+):
+
     app = Dash(
         __name__,
+        title="Preparation Dashboard",
+        requests_pathname_prefix=prefix,
         external_stylesheets=[dbc.themes.LUMEN],
         meta_tags=[
             {
@@ -254,6 +288,10 @@ def build_dash_app(registered_df, stages_colors, latest_table, stages, full_path
             }
         ],
     )
+
+    if not data_exists:
+        app.layout = no_data_layout()
+        return app
 
     app.layout = dbc.Container(
         [
@@ -267,10 +305,54 @@ def build_dash_app(registered_df, stages_colors, latest_table, stages, full_path
     return app
 
 
+def build_app(
+    benchmark_id,
+    stages_path,
+    institutions_path,
+    out_path=None,
+    prefix=None,
+):
+    out_path = out_path or config.dashboards_folder
+    full_path = get_reports_path(out_path, benchmark_id)
+
+    data_exists = get_data(benchmark_id, stages_path, institutions_path, full_path)
+
+    registered_df = None
+    stages_colors = None
+    latest_table = None
+    stages = None
+
+    if data_exists:
+        latest_path = os.path.join(full_path, "latest_table.csv")
+        latest_table = pd.read_csv(latest_path)
+
+        sites_path = os.path.join(full_path, "sites.txt")
+        sites_dicts = get_sites_dicts(sites_path, latest_table)
+
+        registered_df = pd.DataFrame(sites_dicts)
+        registered_df = registered_df.drop_duplicates()
+
+        stages = pd.read_csv(stages_path)
+        stages_colors = (
+            stages[["status_name", "color"]].set_index("status_name").to_dict()["color"]
+        )
+        stages_colors["Unknown"] = "silver"
+
+    return _build_dash_app(
+        data_exists,
+        registered_df,
+        stages_colors,
+        latest_table,
+        stages,
+        full_path,
+        prefix,
+    )
+
+
 @t_app.command()
 def main(
-    mlcube_id: int = Option(
-        ..., "-m", "--mlcube", help="MLCube ID to inspect prparation from"
+    benchmark_id: int = Option(
+        ..., "-b", "--benchmark", help="Benchmark ID to inspect preparation from"
     ),
     stages_path: str = Option(..., "-s", "--stages", help="Path to stages.csv"),
     institutions_path: str = Option(
@@ -283,29 +365,7 @@ def main(
         None, "-o", "--out-path", help="location to store progress CSVs"
     ),
 ):
-    cur_path = os.path.dirname(__file__)
-    if out_path is None:
-        out_path = os.path.join(cur_path, "reports")
-
-    get_data(mlcube_id, stages_path, institutions_path, out_path)
-    full_path = get_reports_path(out_path, mlcube_id)
-
-    latest_path = os.path.join(full_path, "latest_table.csv")
-    latest_table = pd.read_csv(latest_path)
-
-    sites_path = os.path.join(full_path, "sites.txt")
-    sites_dicts = get_sites_dicts(sites_path, latest_table)
-
-    registered_df = pd.DataFrame(sites_dicts)
-    registered_df = registered_df.drop_duplicates()
-
-    stages = pd.read_csv(stages_path)
-    stages_colors = (
-        stages[["status_name", "color"]].set_index("status_name").to_dict()["color"]
-    )
-    stages_colors["Unknown"] = "silver"
-
-    app = build_dash_app(registered_df, stages_colors, latest_table, stages, full_path)
+    app = build_app(benchmark_id, stages_path, institutions_path, out_path)
     app.run_server(debug=True)
 
 

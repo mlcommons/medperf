@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Preparation Dashboard | {{ benchmark_id }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-3">
+  <div class="mb-3">
+    <a href="{{ prev_url }}" class="btn btn-outline-primary mb-3">
+        <i class="fa fa-arrow-left"></i> Back
+    </a>
+  </div>
+  <div class="mb-5 text-center">
+    <h1>{{benchmark_name}} - Dashboard</h1>
+  </div>
+    <iframe
+      src="{{ mount_point }}"
+      class="border-0 rounded shadow-sm w-100"
+      allowfullscreen
+      id="dashboard-frame"
+    ></iframe>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+  const iframe = document.getElementById("dashboard-frame");
+
+  function resizeIframe() {
+    try {
+      const doc = iframe.contentDocument || iframe.contentWindow.document;
+      iframe.style.height = (doc.documentElement.scrollHeight || doc.body.scrollHeight) + "px";
+    } catch (e) {
+      console.warn("Could not resize iframe:", e);
+    }
+  }
+
+  iframe.addEventListener("load", () => {
+    resizeIframe();
+
+    try {
+      const doc = iframe.contentDocument || iframe.contentWindow.document;
+
+      const observer = new ResizeObserver(resizeIframe);
+      observer.observe(doc.documentElement);
+      observer.observe(doc.body);
+    } catch (e) {
+    }
+  });
+
+  window.addEventListener("resize", resizeIframe);
+</script>
+{% endblock %}
