@@ -35,6 +35,7 @@
         </div>
     </div>
 </div>
+{% if datasets %}
 <div class="container mt-5">
     <div class="row align-items-end justify-content-between g-3">
         <div class="col-md-3">
@@ -75,6 +76,7 @@
         </div>
     </div>
 </div>
+{% endif %}
 <div class="container mt-5" data-testid="cards-container">
     <div class="row mt-5">
         {% if datasets %}
@@ -115,7 +117,7 @@
         {% endif %}
     </div>
 </div>
-{% if total_pages > 1 %}
+{% if datasets and total_pages > 1 %}
 <nav class="mt-4">
     <ul class="pagination justify-content-center">
         <li class="page-item {% if page == 1 %}disabled{% endif %}">
