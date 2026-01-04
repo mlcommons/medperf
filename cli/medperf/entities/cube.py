@@ -1,5 +1,5 @@
 import os
-from typing import List, Optional, Union
+from typing import List, Optional, Tuple, Union
 from medperf.commands.association.utils import get_user_associations
 from pydantic import Field
 
@@ -109,6 +109,11 @@ class Cube(Entity, DeployableSchema):
             comms_fn = config.comms.get_user_cubes
 
         return comms_fn
+
+    @staticmethod
+    def remote_prefilter_counter(filters: dict) -> Tuple[callable, bool]:
+        owner = "owner" in filters and filters["owner"] == get_medperf_user_data()["id"]
+        return config.comms.get_cubes_count, owner
 
     @classmethod
     def get(

@@ -16,28 +16,67 @@
             </a>
         </div>
     </div>
-    <div class="row mt-5">
+    <div class="row text-center">
         <div class="col-12">
-            <h1 class="mt-4 text-center" data-testid="page-header">Datasets</h1>
-            <div class="form-check form-switch d-flex flex-column align-items-center">
+            <h1 class="mt-4" data-testid="page-header">Datasets</h1>
+            <div class="form-check form-switch d-inline-flex flex-column align-items-center mt-3">
                 <input
                     class="form-check-input fs-5"
                     type="checkbox"
                     role="switch"
                     id="switch"
                     data-entity-name="datasets"
-                    {% if mine_only %}
-                    checked
-                    {% endif %}
+                    {% if mine_only %}checked{% endif %}
                 >
-                <label class="form-check-label fs-6 mt-2" for="switch">Show only my datasets</label>
+                <label class="form-check-label fs-6 mt-2" for="switch">
+                    Show only my datasets
+                </label>
             </div>
         </div>
     </div>
 </div>
+<div class="container mt-5">
+    <div class="row align-items-end justify-content-between g-3">
+        <div class="col-md-3">
+            <label class="form-label fw-semibold">Sort by</label>
+            <select class="form-select" id="ordering">
+                <option value="created_at_desc" {% if ordering == "created_at_desc" %}selected{% endif %}>
+                    Newest first
+                </option>
+                <option value="created_at_asc" {% if ordering == "created_at_asc" %}selected{% endif %}>
+                    Oldest first
+                </option>
+                <option value="name_asc" {% if ordering == "name_asc" %}selected{% endif %}>
+                    Name (A → Z)
+                </option>
+                <option value="name_desc" {% if ordering == "name_desc" %}selected{% endif %}>
+                    Name (Z → A)
+                </option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label fw-semibold">Items per page</label>
+            <select class="form-select" id="page-size">
+                {% for size in [6, 9, 12, 24] %}
+                <option value="{{ size }}" {% if page_size == size %}selected{% endif %}>
+                    {{ size }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-6 text-md-end text-muted">
+            {% if total_count %}
+            <small>
+                Showing
+                <strong>{{ start_index }}</strong>-<strong>{{ end_index }}</strong>
+                of <strong>{{ total_count }}</strong> datasets
+            </small>
+            {% endif %}
+        </div>
+    </div>
+</div>
 <div class="container mt-5" data-testid="cards-container">
-    <!-- Dataset Cards -->
-    <div class="row">
+    <div class="row mt-5">
         {% if datasets %}
         {% for dataset in datasets %}
         <div class="col-md-4 mb-4">
@@ -71,17 +110,49 @@
         {% endfor %}
         {% else %}
         <h3 class="col-12 text-center mt-5" data-testid="no-dsets-msg">
-            No datasets yet
+            No datasets found
         </h3>
         {% endif %}
     </div>
 </div>
+{% if total_pages > 1 %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
+        <li class="page-item {% if page == 1 %}disabled{% endif %}">
+            <a class="page-link" href="#" data-page="{{ page - 1 }}">Previous</a>
+        </li>
+        {% for p in range(1, total_pages + 1) %}
+        <li class="page-item {% if p == page %}active{% endif %}">
+            <a class="page-link" href="#" data-page="{{ p }}">{{ p }}</a>
+        </li>
+        {% endfor %}
+        <li class="page-item {% if page == total_pages %}disabled{% endif %}">
+            <a class="page-link" href="#" data-page="{{ page + 1 }}">Next</a>
+        </li>
+    </ul>
+</nav>
+{% endif %}
 {% endblock content %}
 
 {% block extra_js %}
 <script>
-    $("#switch").on("change", (e) => {
-        getEntities(e.currentTarget);
+function reloadUi(page = 1) {
+    const params = new URLSearchParams({
+        page: page,
+        page_size: $("#page-size").val(),
+        ordering: $("#ordering").val(),
+        mine_only: $("#switch").is(":checked")
     });
+
+    window.location = `/datasets/ui?${params.toString()}`;
+}
+
+$("#ordering, #page-size, #switch").on("change", () => reloadUi(1));
+
+$(".page-link").on("click", function (e) {
+    e.preventDefault();
+    const page = $(this).data("page");
+    if (page) reloadUi(page);
+});
 </script>
 {% endblock extra_js %}
