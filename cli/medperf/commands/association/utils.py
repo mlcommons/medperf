@@ -1,6 +1,6 @@
 from medperf.exceptions import InvalidArgumentError, MedperfException
 from medperf import config
-from pydantic.datetime_parse import parse_datetime
+from medperf.utils import parse_datetime
 
 
 def validate_args(

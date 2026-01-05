@@ -8,6 +8,7 @@ import shlex
 import json
 import tarfile
 import logging
+from .utils import check_docker_image_hash
 
 
 def get_docker_image_hash(docker_image, timeout: int = None):
@@ -177,3 +178,17 @@ def delete_images(images):
         run_command(delete_image_cmd)
     except ExecutionError:
         config.ui.print_warning("WARNING: Failed to delete docker images.")
+
+
+def download_docker_image(
+    docker_image: str,
+    expected_image_hash: str,
+    download_timeout: int = None,
+    get_hash_timeout: int = None,
+) -> str:
+    command = ["docker", "pull", docker_image]
+    logging.debug("Running pull command")
+    run_command(command, timeout=download_timeout)
+    computed_image_hash = get_docker_image_hash(docker_image, get_hash_timeout)
+    check_docker_image_hash(computed_image_hash, expected_image_hash)
+    return computed_image_hash

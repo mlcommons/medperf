@@ -28,15 +28,15 @@ class TestReport(Entity):
     """
 
     name: Optional[str] = "name"
-    demo_dataset_url: Optional[str]
-    demo_dataset_hash: Optional[str]
-    data_path: Optional[str]
-    labels_path: Optional[str]
-    prepared_data_hash: Optional[str]
+    demo_dataset_url: Optional[str] = None
+    demo_dataset_hash: Optional[str] = None
+    data_path: Optional[str] = None
+    labels_path: Optional[str] = None
+    prepared_data_hash: Optional[str] = None
     data_preparation_mlcube: Optional[Union[int, str]]
     model: Union[int, str]
     data_evaluator_mlcube: Union[int, str]
-    results: Optional[dict]
+    results: Optional[dict] = None
 
     @staticmethod
     def get_type():
@@ -73,7 +73,9 @@ class TestReport(Entity):
         return super().all(unregistered=True, filters={})
 
     @classmethod
-    def get(cls, uid: str, local_only: bool = False, valid_only: bool = True) -> "TestReport":
+    def get(
+        cls, uid: str, local_only: bool = False, valid_only: bool = True
+    ) -> "TestReport":
         """Gets an instance of the TestReport. ignores local_only inherited flag as TestReport is always a local entity.
         Args:
             uid (str): Report Unique Identifier

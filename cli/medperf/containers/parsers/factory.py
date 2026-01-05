@@ -3,6 +3,7 @@ from .parser import Parser
 from .simple_container import SimpleContainerParser
 from medperf.enums import ContainerTypes
 import logging
+from .airflow_parser import AirflowParser
 
 DOCKER_TYPES = [
     ContainerTypes.DOCKER_IMAGE.value,
@@ -15,11 +16,25 @@ SINGULARITY_TYPES = [
 ]
 
 
-def load_parser(container_config: dict) -> Parser:
-    if container_config is None:
+def _is_airflow_yaml_file(airflow_config: dict):
+    return "container_type" not in airflow_config and "steps" in airflow_config
+
+
+def load_parser(container_config: dict, container_files_base_path: str) -> Parser:
+
+    if _is_airflow_yaml_file(container_config):
+        parser = AirflowParser(
+            airflow_config=container_config,
+            allowed_runners=["docker", "singularity"],
+            container_files_base_path=container_files_base_path,
+        )
+        parser.check_schema()
+        return parser
+
+    elif container_config is None:
         raise InvalidContainerSpec("Empty container configuration")
 
-    if "container_type" not in container_config:
+    elif "container_type" not in container_config:
         raise InvalidContainerSpec(
             "Container configuration should contain a 'container_type' field."
         )

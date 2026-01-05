@@ -1,10 +1,10 @@
+from __future__ import annotations
 import logging
 import os
-import pandas as pd
 from medperf.entities.dataset import Dataset
 import medperf.config as config
 from medperf.entities.cube import Cube
-from medperf.utils import approval_prompt, dict_pretty_print
+from medperf.utils import approval_prompt, dict_pretty_print, remove_path
 from medperf.exceptions import (
     CommunicationError,
     ExecutionError,
@@ -18,7 +18,7 @@ from threading import Timer, Lock
 
 
 class ReportHandler(FileSystemEventHandler):
-    def __init__(self, preparation_obj: "DataPreparation"):
+    def __init__(self, preparation_obj: DataPreparation):
         self.preparation = preparation_obj
         self.timer = None
 
@@ -48,7 +48,7 @@ class ReportHandler(FileSystemEventHandler):
 
 
 class ReportSender:
-    def __init__(self, preparation_obj: "DataPreparation"):
+    def __init__(self, preparation_obj: DataPreparation):
         self.preparation = preparation_obj
 
     def start(self):
@@ -81,8 +81,14 @@ class DataPreparation:
         dataset_id: int,
         approve_sending_reports: bool = False,
         data_preparation_cube: Cube = None,
+        use_cached_results: bool = True,
     ):
-        preparation = cls(dataset_id, approve_sending_reports, data_preparation_cube)
+        preparation = cls(
+            dataset_id,
+            approve_sending_reports,
+            data_preparation_cube,
+            use_cached_results,
+        )
         preparation.get_dataset()
         preparation.validate()
         with preparation.ui.interactive():
@@ -97,9 +103,10 @@ class DataPreparation:
             with preparation.ui.interactive():
                 preparation.run_prepare()
 
-        with preparation.ui.interactive():
-            preparation.run_sanity_check()
-            preparation.run_statistics()
+        if not preparation.is_workflow:
+            with preparation.ui.interactive():
+                preparation.run_sanity_check()
+                preparation.run_statistics()
 
         preparation.mark_dataset_as_ready()
 
@@ -110,6 +117,7 @@ class DataPreparation:
         dataset_id: int,
         approve_sending_reports: bool,
         data_preparation_cube: Cube = None,
+        use_cached_results: bool = True,
     ):
         self.comms = config.comms
         self.ui = config.ui
@@ -127,6 +135,11 @@ class DataPreparation:
         self.report_specified = None
         self.metadata_specified = None
         self._lock = Lock()
+        self.use_cached_results = use_cached_results
+
+    @property
+    def is_workflow(self):
+        return self.cube.is_workflow
 
     def should_run_prepare(self):
         return not self.dataset.submitted_as_prepared and not self.dataset.is_ready()
@@ -179,6 +192,9 @@ class DataPreparation:
         report_sender = ReportSender(self)
         report_sender.start()
 
+        if not self.use_cached_results:
+            self._remove_old_results()
+
         prepare_mounts = {
             "data_path": self.raw_data_path,
             "labels_path": self.raw_labels_path,
@@ -190,6 +206,10 @@ class DataPreparation:
 
         if self.report_specified:
             prepare_mounts["report_file"] = self.report_path
+
+        if self.cube.is_workflow:
+            prepare_mounts["statistics_file"] = self.out_statistics_path
+            prepare_mounts["dataset_path"] = self.dataset.path
 
         self.ui.text = "Running preparation step..."
         try:
@@ -210,6 +230,23 @@ class DataPreparation:
 
         self.ui.print("> Container execution complete")
         report_sender.stop("finished")
+
+    def _remove_old_results(self):
+        paths_to_remove = [
+            self.out_datapath,
+            self.out_labelspath,
+            self.out_statistics_path,
+            self.metadata_path,
+            self.report_path,
+        ]
+
+        if self.is_workflow:
+            airflow_home = os.path.join(self.dataset.path, "airflow_home")
+            paths_to_remove.append(airflow_home)
+
+        for path_to_remove in paths_to_remove:
+            if os.path.exists(path_to_remove):
+                remove_path(path_to_remove)
 
     def run_sanity_check(self):
         sanity_check_timeout = config.sanity_check_timeout
@@ -287,31 +324,20 @@ class DataPreparation:
         self.dataset.mark_as_ready()
 
     def __generate_report_dict(self):
-        report_status_dict = {}
-
         if os.path.exists(self.report_path):
             with open(self.report_path, "r") as f:
                 report_dict = yaml.safe_load(f)
+            return report_dict.get("progress", {})
 
-            # TODO: this specific logic with status is very tuned to the RANO. Hope we'd
-            #  make it more general once
-            report = pd.DataFrame(report_dict)
-            if "status" in report.keys():
-                report_status = report.status.value_counts() / len(report)
-                report_status_dict = report_status.round(3).to_dict()
-                report_status_dict = {
-                    f"Stage {key}": str(val * 100) + "%"
-                    for key, val in report_status_dict.items()
-                }
-
-        return report_status_dict
+        # If no report has been generated yet, return a blank report
+        return {}
 
     def prompt_for_report_sending_approval(self):
         example = {
             "execution_status": "running",
             "progress": {
-                "Stage 1": "40%",
-                "Stage 3": "60%",
+                "Stage 1": "40.0",
+                "Stage 3": "60.0",
             },
         }
 
@@ -356,6 +382,7 @@ class DataPreparation:
         report_status_dict = {}
         if self.allow_sending_reports:
             report_status_dict = self.__generate_report_dict()
+
         report = {"progress": report_status_dict, **report_metadata}
         if report == self.dataset.report:
             # Watchdog may trigger an event even if contents didn't change

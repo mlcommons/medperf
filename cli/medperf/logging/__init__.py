@@ -8,12 +8,18 @@ from medperf import config
 
 
 def setup_logging(log_file: str, loglevel: str):
+    # Airflow overrides root logger, so we import it
+    # here first to override it immediately with our config
+    import airflow  # noqa: F401
+
     # Ensure root folder exists
     log_folder = os.path.dirname(log_file)
     os.makedirs(log_folder, exist_ok=True)
 
     log_fmt = "%(asctime)s | %(module)s.%(funcName)s | %(levelname)s: %(message)s"
-    handler = handlers.RotatingFileHandler(log_file, backupCount=config.logs_backup_count)
+    handler = handlers.RotatingFileHandler(
+        log_file, backupCount=config.logs_backup_count
+    )
     handler.setFormatter(NewLineFormatter(log_fmt))
     logging.basicConfig(
         level=loglevel.upper(),

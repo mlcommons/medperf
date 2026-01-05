@@ -87,7 +87,7 @@ class MlCubePutTest(MlCubeTest):
             "name": "newtestmlcube",
             "container_config": {"newstring": "newstring"},
             "parameters_config": {"newstring": "newstring"},
-            "image_hash": "newstring",
+            "image_hash": {"hash": "newstring"},
             "additional_files_tarball_url": "newstring",
             "additional_files_tarball_hash": "newstring",
             "state": "OPERATION",
@@ -134,7 +134,7 @@ class MlCubePutTest(MlCubeTest):
 
         newtestmlcube = {
             "name": "newtestmlcube",
-            "image_hash": "newhash",
+            "image_hash": {"default": "newhash"},
             "additional_files_tarball_hash": "newstring",
             "state": "DEVELOPMENT",
             "metadata": {"newkey": "newvalue"},
@@ -163,7 +163,6 @@ class MlCubePutTest(MlCubeTest):
 
         # Act
         response = self.client.put(url, newtestmlcube, format="json")
-
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         for k, v in newtestmlcube.items():
@@ -255,7 +254,7 @@ class MlCubePutTest(MlCubeTest):
         testmlcube = self.mock_mlcube(state="DEVELOPMENT")
         testmlcube = self.create_mlcube(testmlcube).data
 
-        put_body = {"image_hash": ""}
+        put_body = {"image_hash": {}}
         url = self.url.format(testmlcube["id"])
 
         # Act
@@ -341,7 +340,7 @@ class PermissionTest(MlCubeTest):
             "name": "newtestmlcube",
             "container_config": {"newstring": "newstring"},
             "parameters_config": {"newstring": "newstring"},
-            "image_hash": "",
+            "image_hash": {"default": ""},
             "additional_files_tarball_url": "newstring",
             "additional_files_tarball_hash": "newstring",
             "state": "OPERATION",

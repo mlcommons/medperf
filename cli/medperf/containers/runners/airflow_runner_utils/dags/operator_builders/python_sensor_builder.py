@@ -1,0 +1,102 @@
+from __future__ import annotations
+from medperf.containers.runners.airflow_runner_utils.dags.operator_builders.operator_builder import (
+    OperatorBuilder,
+)
+from airflow.decorators import task
+from airflow.sdk import PokeReturnValue
+from medperf.containers.runners.airflow_runner_utils.dags.pipeline_state import (
+    PipelineState,
+)
+from medperf.containers.runners.airflow_runner_utils.dags.constants import (
+    ALWAYS_CONDITION,
+)
+from datetime import timedelta
+from medperf.containers.runners.airflow_runner_utils.dags.dag_utils import (
+    import_external_python_function,
+)
+
+DEFAULT_WAIT_TIME = timedelta(seconds=60)
+
+
+class Condition:
+
+    def __init__(
+        self,
+        condition_id: str,
+        next_id: str,
+        conditions_definitions: dict[str, dict[str, str]],
+    ):
+        self.condition_id = condition_id
+        self.next_id = next_id
+
+        if self.condition_id == ALWAYS_CONDITION:
+            self.type = ALWAYS_CONDITION
+            self.complete_function_name = None
+
+        else:
+            this_definition = conditions_definitions[self.condition_id]
+            self.type = this_definition["type"]  # Currently unused
+            self.complete_function_name = this_definition["function_name"]
+
+
+def evaluate_external_condition(condition: Condition, pipeline_state: PipelineState):
+    if condition.condition_id == ALWAYS_CONDITION:
+        return True
+
+    condition_function_obj = import_external_python_function(
+        condition.complete_function_name
+    )
+    print(f"Checking condition {condition.condition_id}...")
+    condition_result = condition_function_obj(pipeline_state)
+
+    if condition_result:
+        print(f"Condition {condition.condition_id} met!")
+    else:
+        print(f"Condition {condition.condition_id} not met.")
+    return condition_result
+
+
+class PythonSensorBuilder(OperatorBuilder):
+    """
+    Sensors are used together with BranchOperators to automatically create branching behavior.
+    Once any condition in the sensor is met, the ID of the corresponding task to that condition is pushed
+    as an Airflow XCom. The BranchOperator then reads this XCom and branches accordingly.
+    """
+
+    def __init__(
+        self,
+        conditions: list[dict[str, str]],
+        conditions_definitions: dict[str, dict[str, str]],
+        wait_time: float = 60,
+        **kwargs,
+    ):
+        super().__init__(**kwargs)
+        self.conditions = [
+            Condition(
+                condition_id=condition["condition"],
+                next_id=condition["target"],
+                conditions_definitions=conditions_definitions,
+            )
+            for condition in conditions
+        ]
+        self.wait_time = wait_time or DEFAULT_WAIT_TIME
+
+    def _define_base_operator(self):
+
+        @task.sensor(
+            poke_interval=self.wait_time,
+            mode="reschedule",
+            task_id=self.operator_id,
+            task_display_name=self.display_name,
+            outlets=self.outlets,
+        )
+        def wait_for_conditions(**kwargs):
+            pipeline_state = PipelineState(running_subject=self.partition, **kwargs)
+
+            for condition in self.conditions:
+                if evaluate_external_condition(condition, pipeline_state):
+                    return PokeReturnValue(is_done=True, xcom_value=condition.next_id)
+
+            return False
+
+        return wait_for_conditions()

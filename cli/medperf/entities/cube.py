@@ -17,6 +17,7 @@ from medperf.utils import (
     remove_path,
     get_decryption_key_path,
 )
+from medperf.containers.runners.utils import get_expected_hash
 from medperf.entities.encrypted_key import EncryptedKey
 import logging
 
@@ -32,8 +33,8 @@ class Cube(Entity, DeployableSchema):
     """
 
     container_config: dict
-    parameters_config: Optional[dict]
-    image_hash: Optional[str]
+    parameters_config: Optional[dict] = Field(default_factory=dict)
+    image_hash: Optional[dict] = Field(default_factory=dict)
     additional_files_tarball_url: Optional[str] = Field(None, alias="tarball_url")
     additional_files_tarball_hash: Optional[str] = Field(None, alias="tarball_hash")
     metadata: dict = Field(default_factory=dict)
@@ -78,14 +79,18 @@ class Cube(Entity, DeployableSchema):
     @property
     def parser(self):
         if self._parser is None:
-            self._parser = load_parser(self.container_config)
+            self._parser = load_parser(self.container_config, self.path)
         return self._parser
 
     @property
     def runner(self):
         if self._runner is None:
-            self._runner = load_runner(self.parser)
+            self._runner = load_runner(self.parser, self.name)
         return self._runner
+
+    @property
+    def is_workflow(self) -> bool:
+        return self.runner.is_workflow
 
     @property
     def local_id(self):
@@ -159,11 +164,23 @@ class Cube(Entity, DeployableSchema):
             raise InvalidEntityError(f"Container {self.name} additional files: {e}")
 
         try:
-            self.image_hash = self.runner.download(
-                expected_image_hash=self.image_hash,
+            if self.is_workflow:
+                expected_hash = self.image_hash
+            else:
+                expected_hash = get_expected_hash(
+                    hashes_dict=self.image_hash, image_name="default"
+                )
+
+            image_hash = self.runner.download(
+                expected_image_hash=expected_hash,
                 download_timeout=config.mlcube_configure_timeout,
                 get_hash_timeout=config.mlcube_inspect_timeout,
             )
+            if isinstance(image_hash, str):
+                image_hash = {"default": image_hash}
+
+            self.image_hash.update(**image_hash)
+
         except InvalidEntityError as e:
             raise InvalidEntityError(f"Container {self.name} image: {e}")
 

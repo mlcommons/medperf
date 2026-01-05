@@ -1,5 +1,5 @@
 #! /bin/sh
-while getopts s:d:c:ft:rl: flag; do
+while getopts s:d:c:ft:rl::p flag; do
   case "${flag}" in
   s) SERVER_URL=${OPTARG} ;;
   d) DIRECTORY=${OPTARG} ;;
@@ -8,6 +8,7 @@ while getopts s:d:c:ft:rl: flag; do
   t) TIMEOUT=${OPTARG} ;;
   r) RESUME_TEST="true" ;;
   l) TEST_FROM_LINE=${OPTARG} ;;
+  p) PRIVATE="true" ;;
   esac
 done
 
@@ -16,6 +17,8 @@ DIRECTORY="${DIRECTORY:-/tmp/medperf_test_files}"
 CLEANUP="${CLEANUP:-false}"
 RESUME_TEST="${RESUME_TEST:-false}"
 FRESH="${FRESH:-false}"
+PRIVATE="${PRIVATE:-false}" # Include private model in cli_chestxray_tutorial_test
+OS=$(uname)
 
 # if resume test, read the test root from local file
 if "${RESUME_TEST}"; then
