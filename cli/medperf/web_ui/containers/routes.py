@@ -142,6 +142,9 @@ def register_container(
         "state": "OPERATION",
     }
     container_id = None
+    if not decryption_file:
+        decryption_file = None  # Avoid mapping to current directory from empty string
+
     try:
         container_id = SubmitCube.run(
             container_info,
@@ -181,6 +184,8 @@ def test_container(
 ):
     initialize_state_task(request, task_name="container_compatibility_test")
     return_response = {"status": "", "error": "", "results": None}
+    if not decryption_file:
+        decryption_file = None  # Avoid mapping to current directory from empty string
     try:
         _, results = CompatibilityTestExecution.run(
             benchmark=benchmark,

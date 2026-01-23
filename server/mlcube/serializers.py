@@ -16,6 +16,14 @@ def validate_optional_mlcube_components(data):
         )
 
 
+def validate_image_hash(data):
+    hashes_dict = data.get("image_hash")
+    if not hashes_dict:
+        raise serializers.ValidationError(
+            "Cannot submit Container with empty image_hash!"
+        )
+
+
 class MlCubeSerializer(serializers.ModelSerializer):
     class Meta:
         model = MlCube
@@ -24,6 +32,7 @@ class MlCubeSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         validate_optional_mlcube_components(data)
+        validate_image_hash(data)
         return data
 
 
@@ -58,5 +67,5 @@ class MlCubeDetailSerializer(serializers.ModelSerializer):
             updated_dict[key] = data.get(key, getattr(self.instance, key))
 
         validate_optional_mlcube_components(updated_dict)
-
+        validate_image_hash(updated_dict)
         return data

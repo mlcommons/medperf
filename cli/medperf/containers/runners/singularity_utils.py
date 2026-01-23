@@ -8,6 +8,7 @@ from .docker_utils import volumes_to_cli_args as docker_volumes_to_cli_args
 import shlex
 from medperf.utils import run_command
 import logging
+from .utils import check_docker_image_hash
 
 
 def get_docker_image_hash_from_dockerhub(docker_image, timeout: int = None):
@@ -192,3 +193,13 @@ def cleanup_singularity_cache(singularity_executable):
         run_command(command)
     except ExecutionError:
         config.ui.print_warning("WARNING: Failed to clean singularity cache.")
+
+
+def check_docker_image_by_name(
+    docker_image: str, expected_image_hash: str, get_hash_timeout: int = None
+) -> str:
+    computed_image_hash = get_docker_image_hash_from_dockerhub(
+        docker_image, get_hash_timeout
+    )
+    check_docker_image_hash(computed_image_hash, expected_image_hash)
+    return computed_image_hash

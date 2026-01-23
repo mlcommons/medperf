@@ -11,6 +11,7 @@ echo "====================================="
 echo "downloading files to $DIRECTORY"
 wget -P $DIRECTORY https://storage.googleapis.com/medperf-storage/chestxray_tutorial/sample_raw_data.tar.gz
 tar -xzvf $DIRECTORY/sample_raw_data.tar.gz -C $DIRECTORY
+
 chmod a+w $DIRECTORY/sample_raw_data
 
 ##########################################################
@@ -27,8 +28,7 @@ print_eval medperf profile create -n testdata
 checkFailed "testdata profile creation failed"
 print_eval medperf profile create -n noserver
 checkFailed "noserver profile creation failed"
-print_eval medperf profile create -n testprivate
-checkFailed "testprivate profile creation failed"
+
 print_eval medperf profile set --server https://example.com
 checkFailed "setting mock server failed"
 
@@ -47,15 +47,9 @@ checkFailed "testdata profile activation failed"
 print_eval medperf auth login -e $DATAOWNER
 checkFailed "testdata login failed"
 
-print_eval medperf profile activate testprivate
-checkFailed "testprivate profile activation failed"
-
-print_eval medperf auth login -e $PRIVATEMODELOWNER
-checkFailed "testprivate login failed"
-
 ##########################################################
 echo "====================================="
-echo ""Activate benchmarkowner profile""
+echo "Activate benchmarkowner profile"
 echo "====================================="
 # Log in as the benchmark owner
 print_eval medperf profile activate testbenchmark
@@ -66,7 +60,7 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo ""Change association approval policy to auto approve always""
+echo "Change association approval policy to auto approve always"
 echo "====================================="
 # Log in as the benchmark owner
 print_eval medperf benchmark update_associations_policy -b 1 \
@@ -102,7 +96,7 @@ echo "\n"
 echo "====================================="
 echo "Running data preparation step"
 echo "====================================="
-print_eval medperf dataset prepare -d $DSET_UID
+print_eval medperf dataset prepare -d $DSET_UID -y
 checkFailed "Data preparation step failed"
 ##########################################################
 
@@ -129,96 +123,12 @@ checkFailed "Data association step failed"
 echo "\n"
 
 ##########################################################
-echo "============================================="
-echo "Getting a certificate"
-echo "============================================="
-print_eval medperf certificate get_client_certificate
-checkFailed "Failed to obtain Data Owner Certificate"
-##########################################################
-
-echo "\n"
-
-##########################################################
-echo "============================================="
-echo "Submitting the certificate"
-echo "============================================="
-print_eval medperf certificate submit_client_certificate -y
-checkFailed "Failed to submit Data Owner Certificate"
-##########################################################
-
-echo "\n"
-
-##########################################################
-echo "====================================="
-echo "Activate Model Owner Profile"
-echo "====================================="
-print_eval medperf profile activate testprivate
-checkFailed "testprivate profile activation failed"
-##########################################################
-
-echo "\n"
-
-##########################################################
-echo "====================================="
-echo "Submit a private model"
-echo "====================================="
-print_eval medperf container submit --name privmodel \
-  -m $CHESTXRAY_ENCRYPTED_MODEL -p $CHESTXRAY_ENCRYPTED_MODEL_PARAMS \
-  -a $CHESTXRAY_ENCRYPTED_MODEL_ADD --decryption_key $PRIVATE_MODEL_LOCAL/key.bin --operational
-checkFailed "private container submission failed"
-PMODEL_UID=$(medperf container ls | grep privmodel | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
-##########################################################
-
-echo "\n"
-
-##########################################################
-echo "====================================="
-echo "Running private model association"
-echo "====================================="
-print_eval medperf container associate -m $PMODEL_UID -b 1 -y
-checkFailed "private model association failed"
-##########################################################
-
-echo "\n"
-
-##########################################################
-echo "====================================="
-echo "Give Access to Private Model"
-echo "====================================="
-print_eval medperf container grant_access --model-id $PMODEL_UID --benchmark-id 1 -y
-checkFailed "Failed to Give Model Access to Data owner"
-##########################################################
-
-echo "\n"
-
-##########################################################
-echo "====================================="
-echo "Activate Data Owner profile"
-echo "====================================="
-print_eval medperf profile activate testdata
-checkFailed "testdata profile activation failed"
-##########################################################
-
-echo "\n"
-
-##########################################################
 echo "====================================="
 echo "Running benchmark execution step - Public"
 echo "====================================="
 # Create results
 print_eval medperf run -b 1 -d $DSET_UID -m 5 -y
 checkFailed "Benchmark execution step failed (public)"
-##########################################################
-
-echo "\n"
-
-##########################################################
-echo "====================================="
-echo "Running benchmark execution step - Private"
-echo "====================================="
-# Create results
-print_eval medperf run -b 1 -d $DSET_UID -m $PMODEL_UID -y
-checkFailed "Benchmark execution step failed (private)"
 ##########################################################
 
 echo "\n"
@@ -253,29 +163,12 @@ checkFailed "offline compatibility test execution step failed - public model"
 
 echo "\n"
 
-##########################################################
-echo "====================================="
-echo " Offline Compatibility Test - Private "
-echo "====================================="
-print_eval medperf test run --offline --no-cache \
-  --demo_dataset_url https://storage.googleapis.com/medperf-storage/chestxray_tutorial/demo_data.tar.gz \
-  --demo_dataset_hash "71faabd59139bee698010a0ae3a69e16d97bc4f2dde799d9e187b94ff9157c00" \
-  -p $PREP_LOCAL/container_config.yaml \
-  -m $PRIVATE_MODEL_LOCAL/container_config.yaml \
-  -e $METRIC_LOCAL/container_config.yaml \
-  -d $PRIVATE_MODEL_LOCAL/key.bin \
-  --data_preparator_parameters $PREP_LOCAL/workspace/parameters.yaml \
-  --model_parameters $MODEL_LOCAL/workspace/parameters.yaml \
-  --evaluator_parameters $METRIC_LOCAL/workspace/parameters.yaml \
-  --model_additional_files $MODEL_LOCAL/workspace/additional_files/
-
-checkFailed "offline compatibility test execution step failed - private model"
+if ${PRIVATE}; then
+  . "$(dirname $(realpath "$0"))/cli_chestxray_tutorial_test_private_model.sh"
+fi
 
 print_eval rm $MODEL_LOCAL/workspace/additional_files/cnn_weights.tar.gz
 print_eval rm $MODEL_LOCAL/workspace/additional_files/cnn_weights.pth
-##########################################################
-
-echo "\n"
 
 ##########################################################
 echo "====================================="
@@ -310,9 +203,6 @@ print_eval medperf profile delete testdata
 checkFailed "Profile deletion failed"
 
 print_eval medperf profile delete noserver
-checkFailed "Profile deletion failed"
-
-print_eval medperf profile delete testprivate
 checkFailed "Profile deletion failed"
 
 if ${CLEANUP}; then

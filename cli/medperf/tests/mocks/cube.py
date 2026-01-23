@@ -16,4 +16,8 @@ class TestCube(Cube):
     )
     additional_files_tarball_hash: Optional[str] = EMPTY_FILE_HASH
     state: str = "OPERATION"
-    is_valid = True
+    is_valid: bool = True
+
+    @property
+    def is_workflow(self):
+        return False

@@ -167,7 +167,6 @@ class TestSetupCube:
     def test_setup_cube_stores_decryption_key(self, mocker):
         # Arrange
         mock_cube = TestCube(id=5)
-        mock_cube.identifier = 5
         dummy_key_path = "/tmp/somekey.key"
         stored_key_path = "/tmp/stored_key_path"
 

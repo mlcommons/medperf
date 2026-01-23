@@ -13,7 +13,7 @@ class MlCube(models.Model):
     name = models.CharField(max_length=128, unique=True)
     container_config = models.JSONField()
     parameters_config = models.JSONField(blank=True, null=True)
-    image_hash = models.CharField(max_length=100)
+    image_hash = models.JSONField()
     additional_files_tarball_url = models.CharField(max_length=256, blank=True)
     additional_files_tarball_hash = models.CharField(max_length=100, blank=True)
     owner = models.ForeignKey(User, on_delete=models.PROTECT)

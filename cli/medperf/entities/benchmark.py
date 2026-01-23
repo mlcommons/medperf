@@ -23,15 +23,15 @@ class Benchmark(Entity, ApprovableSchema, DeployableSchema):
     """
 
     description: Optional[str] = Field(None, max_length=256)
-    docs_url: Optional[HttpUrl]
+    docs_url: Optional[HttpUrl] = None
     demo_dataset_tarball_url: str
-    demo_dataset_tarball_hash: Optional[str]
-    demo_dataset_generated_uid: Optional[str]
+    demo_dataset_tarball_hash: Optional[str] = None
+    demo_dataset_generated_uid: Optional[str] = None
     data_preparation_mlcube: int
     reference_model_mlcube: int
     data_evaluator_mlcube: int
-    metadata: dict = {}
-    user_metadata: dict = {}
+    metadata: dict = Field(default_factory=dict)
+    user_metadata: dict = Field(default_factory=dict)
     is_active: bool = True
     dataset_auto_approval_allow_list: list[str] = []
     dataset_auto_approval_mode: str = "NEVER"

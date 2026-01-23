@@ -1,4 +1,5 @@
 from typing import Optional
+from medperf.comms.entity_resources import resources
 from medperf.exceptions import InvalidContainerSpec, MedperfException
 from medperf import config
 import os
@@ -107,3 +108,15 @@ def check_docker_image_hash(computed_image_hash, expected_image_hash=None):
         raise InvalidContainerSpec(
             f"Hash mismatch. Expected {expected_image_hash}, found {computed_image_hash}."
         )
+
+
+def get_expected_hash(hashes_dict, image_name):
+    """Gets hash from hashes_dict using image_name as a key, or 'default' if not present"""
+    return hashes_dict.get(image_name, hashes_dict.get("default"))
+
+
+def download_image_file(image_url: str, expected_image_hash: str):
+    image_path, computed_image_hash = resources.get_cube_image(
+        image_url, expected_image_hash
+    )  # Hash checking happens in resources
+    return image_path, computed_image_hash
