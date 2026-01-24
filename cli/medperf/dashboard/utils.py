@@ -1,4 +1,5 @@
 import os
+from medperf.utils import sanitize_path
 
 
 def stage_id2name(stage_str, stages_df):
@@ -22,4 +23,4 @@ def get_institution_from_email(email, user2institution):
 
 def get_reports_path(out_path, benchmark_id):
     full_path = os.path.join(out_path, str(benchmark_id))
-    return full_path
+    return sanitize_path(full_path)
