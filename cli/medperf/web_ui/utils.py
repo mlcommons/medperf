@@ -2,7 +2,7 @@ import uuid
 from fastapi import Request
 from medperf.entities.cube import Cube
 from medperf.utils import sanitize_path
-from medperf_dashboard.preparation_dashboard import build_app
+from medperf.dashboard.preparation_dashboard import build_app
 from starlette.middleware.wsgi import WSGIMiddleware
 
 
