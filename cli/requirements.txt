@@ -28,3 +28,6 @@ fastapi==0.111.1
 fastapi-login==1.10.2
 cryptography==46.0.3
 click==8.1.8
+dash==2.16
+plotly==5.20
+dash-bootstrap-components==1.5

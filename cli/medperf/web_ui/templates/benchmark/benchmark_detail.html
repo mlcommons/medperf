@@ -12,14 +12,100 @@
 {% block title %}Benchmark Details{% endblock %}
 
 {% block detail_panel %}
-<h1 class="mt-4">{{ entity.name }}</h1>
-<!-- {% if current_user_is_benchmark_owner %}
-<div class="mb-4 text-center">
-    <a href="#datasets-associations" class="btn btn-default me-3">Go to Dataset associations</a>
-    <a href="#models-associations" class="btn btn-default">Go to Models associations</a>
-    <a href="#benchmark-results" class="btn btn-default">Go to Results</a>
+
+<div class="clearfix">
+    <h1 class="my-4 float-start">{{ entity.name }}</h1>
+    {% if current_user_is_benchmark_owner %}
+    <button type="button" class="btn btn-dark float-end my-4 {% if is_owner %} d-none {% endif %}" id="dashboard-btn">
+        Preparation Dashboard <i class="fas fa-caret-down"></i>
+    </button>
+    {% endif %}
 </div>
-{% endif %} -->
+{% if current_user_is_benchmark_owner %}
+<div class="collapse mt-3" id="dashboard-form-wrapper">
+    <form action="/benchmarks/ui/dashboard" method="POST" id="redirect-dashobard-form">
+        <input type="hidden" name="benchmark_id" value="{{ entity.id }}">
+        <input type="hidden" name="benchmark_name" value="{{ entity.name }}">
+        <div class="form-group my-3">
+            <div class="row justify-content-end">
+                <label for="stages-path" class="col-sm-3 col-form-label h6 text-end">Stages Path</label>
+                <div class="col-sm-6">
+                    <div class="input-group">
+                        <input
+                            name="stages"
+                            class="form-control form-control-sm"
+                            type="text"
+                            id="stages-path"
+                            placeholder="{{ placeholders.dashboard_stages_path }}"
+                            {% if task_running %} disabled {% endif %}
+                        >
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-outline-secondary"
+                            id="browse-stages-btn"
+                            {% if task_running %} disabled {% endif %}   
+                        >Browse</button>
+                        <i
+                            class="tooltip-info input-group-text fa fa-info-circle fs-5"
+                            data-bs-toggle="tooltip"
+                            data-bs-placement="top"
+                            data-bs-title="{{ tooltips.dashboard_stages_path }}"
+                        ></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="form-group my-3">
+            <div class="row justify-content-end">
+                <label for="institutions-path" class="col-sm-3 col-form-label h6 text-end">Institutions Path</label>
+                <div class="col-sm-6">
+                    <div class="input-group">
+                        <input
+                            name="institutions"
+                            class="form-control form-control-sm"
+                            type="text"
+                            id="institutions-path"
+                            placeholder="{{ placeholders.dashboard_institutions_path }}"
+                            {% if task_running %} disabled {% endif %}
+                        >
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-outline-secondary"
+                            id="browse-institutions-btn"
+                            {% if task_running %} disabled {% endif %}   
+                        >Browse</button>
+                        <i
+                            class="tooltip-info input-group-text fa fa-info-circle fs-5"
+                            data-bs-toggle="tooltip"
+                            data-bs-placement="top"
+                            data-bs-title="{{ tooltips.dashboard_institutions_path }}"
+                        ></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row justify-content-end">
+            <div class="col-9 text-center">
+                <div style="width: fit-content;" class="mx-auto" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="{{ tooltips.dashboard_force_update }}">
+                    <label
+                        for="force-update"
+                        class="form-label text-sm text-black me-2 mb-3"
+                    >Force Update Dashboard</label>
+                    <input
+                        id="force-update"
+                        name="force_update"
+                        type="checkbox"
+                        class="form-check-inline"
+                    >
+                </div>
+            </div>
+            <div class="col-9 text-center mb-5">
+                <input class="btn btn-sm btn-dark" type="submit" value="Open Dashboard">
+            </div>
+        </div>
+    </form>
+</div>
+{% endif %}
 <div class="{% if entity.is_valid %}card{% else %}invalid-card{% endif %}">
     <div class="card-body">
         <div class="d-flex justify-content-between align-items-center mb-3">

@@ -244,4 +244,51 @@ $(document).ready(() => {
 
     $("#dataset-auto-approve-mode").trigger("change");
     $("#model-auto-approve-mode").trigger("change");
+
+    const btn  = $("#dashboard-btn");
+    const form = $("#dashboard-form-wrapper");
+    
+    if(!btn.length || !form.length)
+        return;
+
+    const collapse = new bootstrap.Collapse(form[0], {
+        toggle: false
+    });
+
+    $("#redirect-dashobard-form").off("submit").on("submit", (e) => {
+        e.preventDefault();
+
+        if (!$("#stages-path").val()) {
+            showErrorToast("Make sure to enter a valid path for the stages file");
+            return;
+        }
+
+        if (!$("#institutions-path").val()) {
+            showErrorToast("Make sure to enter a valid path for the institutions file");
+            return;
+        }
+
+        e.currentTarget.submit();
+    });
+
+    $("#browse-stages-btn").on("click", () => {
+        browseWithFiles = true;
+        browseFolderHandler("stages-path");
+    });
+    $("#browse-institutions-btn").on("click", () => {
+        browseWithFiles = true;
+        browseFolderHandler("institutions-path");
+    });
+
+    btn.on("click", function () {
+        const icon = $(this).find("i");
+
+        if (form.hasClass("show")) {
+            collapse.hide();
+            icon.css("transform", "rotate(0deg)");
+        } else {
+            collapse.show();
+            icon.css("transform", "rotate(180deg)");
+        }
+    });
 });

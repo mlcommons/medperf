@@ -1,7 +1,5 @@
-import re
 import os
-
-from medperf import config
+from medperf.utils import sanitize_path
 
 
 def stage_id2name(stage_str, stages_df):
@@ -23,8 +21,6 @@ def get_institution_from_email(email, user2institution):
         return plausible_institution
 
 
-def get_reports_path(out_path, mlcube_id):
-    server_path = config.server.split("//")[1]
-    server_path = re.sub(r"[.:]", "_", server_path)
-    full_path = os.path.join(out_path, server_path, str(mlcube_id))
-    return full_path
+def get_reports_path(out_path, benchmark_id):
+    full_path = os.path.join(out_path, str(benchmark_id))
+    return sanitize_path(full_path)
