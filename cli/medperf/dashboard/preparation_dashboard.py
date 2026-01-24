@@ -6,6 +6,7 @@ import dash_bootstrap_components as dbc
 import pandas as pd
 
 from medperf import config
+from medperf.utils import sanitize_path
 
 from .get_data import get_data
 from .utils import get_reports_path
@@ -312,7 +313,7 @@ def build_app(
     out_path=None,
     prefix=None,
 ):
-    out_path = out_path or config.dashboards_folder
+    out_path = sanitize_path(out_path) or config.dashboards_folder
     full_path = get_reports_path(out_path, benchmark_id)
 
     data_exists = get_data(benchmark_id, stages_path, institutions_path, full_path)
