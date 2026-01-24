@@ -43,6 +43,16 @@ def benchmarks_ui(
     ordering: str = "created_at_desc",
     current_user: bool = Depends(check_user_ui),
 ):
+
+    if ordering == "created_at_asc":
+        order = "created_at"
+    elif ordering == "name_asc":
+        order = "name"
+    elif ordering == "name_desc":
+        order = "-name"
+    else:
+        order = "-created_at"
+
     filters = {}
     my_user_id = get_medperf_user_data()["id"]
 
@@ -57,18 +67,9 @@ def benchmarks_ui(
     filters["offset"] = offset
 
     # Ordering
-    filters["ordering"] = ordering
+    filters["ordering"] = order
 
     benchmarks = Benchmark.all(filters=filters)
-
-    if ordering == "created_at_asc":
-        benchmarks = sorted(benchmarks, key=lambda x: x.created_at)
-    elif ordering == "name_asc":
-        benchmarks = sorted(benchmarks, key=lambda x: x.name.lower())
-    elif ordering == "name_desc":
-        benchmarks = sorted(benchmarks, key=lambda x: x.name.lower(), reverse=True)
-    else:
-        benchmarks = sorted(benchmarks, key=lambda x: x.created_at, reverse=True)
 
     my_benchmarks = [b for b in benchmarks if b.owner == my_user_id]
     other_benchmarks = [b for b in benchmarks if b.owner != my_user_id]

@@ -39,6 +39,15 @@ def containers_ui(
     ordering: str = "created_at_desc",
     current_user: bool = Depends(check_user_ui),
 ):
+    if ordering == "created_at_asc":
+        order = "created_at"
+    elif ordering == "name_asc":
+        order = "name"
+    elif ordering == "name_desc":
+        order = "-name"
+    else:
+        order = "-created_at"
+
     filters = {}
     my_user_id = get_medperf_user_data()["id"]
 
@@ -53,18 +62,9 @@ def containers_ui(
     filters["offset"] = offset
 
     # Ordering
-    filters["ordering"] = ordering
+    filters["ordering"] = order
 
     containers = Cube.all(filters=filters)
-
-    if ordering == "created_at_asc":
-        containers = sorted(containers, key=lambda x: x.created_at)
-    elif ordering == "name_asc":
-        containers = sorted(containers, key=lambda x: x.name.lower())
-    elif ordering == "name_desc":
-        containers = sorted(containers, key=lambda x: x.name.lower(), reverse=True)
-    else:
-        containers = sorted(containers, key=lambda x: x.created_at, reverse=True)
 
     my_containers = [c for c in containers if c.owner == my_user_id]
     other_containers = [c for c in containers if c.owner != my_user_id]

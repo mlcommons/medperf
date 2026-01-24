@@ -139,12 +139,26 @@
 {% block extra_js %}
 <script>
 function reloadUi(page = 1) {
-    const params = new URLSearchParams({
-        page: page,
-        page_size: $("#page-size").val(),
-        ordering: $("#ordering").val(),
-        mine_only: $("#switch").is(":checked")
-    });
+    if (page < 1 || !Number.isInteger(page)) return;
+
+    const params = new URLSearchParams({page: page, mine_only: $("#switch").is(":checked")});
+    const locParams = new URLSearchParams(window.location.search);
+
+    const pageSize = $("#page-size").val();
+    if (pageSize !== undefined && pageSize !== "") {
+        params.append("page_size", pageSize);
+    }
+    else if (locParams.get("page_size")) {
+        params.append("page_size", locParams.get("page_size"));
+    }
+
+    const ordering = $("#ordering").val();
+    if (ordering !== undefined && ordering !== "") {
+        params.append("ordering", ordering);
+    }
+    else if (locParams.get("ordering")) {
+        params.append("ordering", locParams.get("ordering"));
+    }
 
     window.location = `/datasets/ui?${params.toString()}`;
 }
