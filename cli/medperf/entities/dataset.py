@@ -2,7 +2,7 @@ import os
 from medperf.commands.association.utils import get_user_associations
 import yaml
 from pydantic import Field, validator
-from typing import Optional, Union, List
+from typing import Optional, Tuple, Union, List
 
 from medperf.utils import remove_path
 from medperf.entities.interface import Entity
@@ -120,6 +120,11 @@ class Dataset(Entity, DeployableSchema):
             comms_fn = func
 
         return comms_fn
+
+    @staticmethod
+    def remote_prefilter_counter(filters: dict) -> Tuple[callable, bool]:
+        owner = "owner" in filters and filters["owner"] == get_medperf_user_data()["id"]
+        return config.comms.get_datasets_count, owner
 
     @classmethod
     def get_benchmarks_associations(cls, dataset_uid: int) -> List[dict]:

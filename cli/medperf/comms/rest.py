@@ -69,6 +69,21 @@ class REST(Comms):
                 "remember to provide the server certificate through --certificate"
             )
 
+    def __get_count(self, url, filters={}, error_msg="") -> int:
+        filters = dict(filters)
+        filters.update({"is_valid": True, "limit": 1, "offset": 0})
+
+        query_str = "&".join([f"{k}={v}" for k, v in filters.items()])
+        paginated_url = f"{url}?{query_str}"
+
+        res = self.__auth_get(paginated_url)
+        if res.status_code != 200:
+            log_response_error(res)
+            details = format_errors_dict(res.json())
+            raise CommunicationRetrievalError(f"{error_msg}: {details}")
+
+        return res.json()["count"]
+
     def __get_list(
         self,
         url,
@@ -95,6 +110,15 @@ class REST(Comms):
         Returns:
             List[dict]: A list of dictionaries representing the retrieved elements.
         """
+
+        filters = dict(filters)
+        if filters.get("limit", None) is not None:
+            page_size = filters["limit"]
+            num_elements = filters["limit"]
+
+        if filters.get("offset", None) is not None:
+            offset = filters["offset"]
+
         el_list = []
         filters.update({"is_valid": True})
         if num_elements is None:
@@ -976,3 +1000,42 @@ class REST(Comms):
         url = f"{self.server_url}/certificates/{certificate_id}/encrypted_keys/"
         error_msg = f"Could not retrieve encrypted keys of certificate {certificate_id}"
         return self.__get_list(url=url, filters=filters, error_msg=error_msg)
+
+    def get_benchmarks_count(self, filters=dict(), is_owner=False) -> int:
+        """Retrieves the count of benchmarks in the platform.
+
+        Returns:
+            int: count of all benchmarks.
+        """
+        if is_owner:
+            url = f"{self.server_url}/me/benchmarks/"
+        else:
+            url = f"{self.server_url}/benchmarks/"
+        error_msg = "Could not retrieve benchmarks count"
+        return self.__get_count(url, filters=filters, error_msg=error_msg)
+
+    def get_cubes_count(self, filters=dict(), is_owner=False) -> int:
+        """Retrieves the count of MLCubes in the platform.
+
+        Returns:
+            int: count of all MLCubes.
+        """
+        if is_owner:
+            url = f"{self.server_url}/me/mlcubes/"
+        else:
+            url = f"{self.server_url}/mlcubes/"
+        error_msg = "Could not retrieve mlcubes count"
+        return self.__get_count(url, filters=filters, error_msg=error_msg)
+
+    def get_datasets_count(self, filters=dict(), is_owner=False) -> int:
+        """Retrieves the count of datasets in the platform.
+
+        Returns:
+            int: count of all datasets.
+        """
+        if is_owner:
+            url = f"{self.server_url}/me/datasets/"
+        else:
+            url = f"{self.server_url}/datasets/"
+        error_msg = "Could not retrieve datasets count"
+        return self.__get_count(url, filters=filters, error_msg=error_msg)

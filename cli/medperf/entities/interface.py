@@ -1,4 +1,4 @@
-from typing import List, Dict, Union, Callable
+from typing import List, Dict, Tuple, Union, Callable
 from abc import ABC
 import logging
 import os
@@ -108,6 +108,18 @@ class Entity(MedperfSchema, ABC):
 
         Returns:
             callable: A function for retrieving remote entities with the applied prefilters
+        """
+        raise NotImplementedError
+
+    @staticmethod
+    def remote_prefilter_counter(filters: dict) -> Tuple[Callable[[dict], int], bool]:
+        """Applies filtering logic that must be done before retrieving remote entities count
+
+        Args:
+            filters (dict): filters to apply
+
+        Returns:
+            callable: A function for retrieving remote entities count with the applied prefilters
         """
         raise NotImplementedError
 
@@ -229,3 +241,14 @@ class Entity(MedperfSchema, ABC):
             dict: the display dictionary
         """
         raise NotImplementedError
+
+    @classmethod
+    def get_count(cls: Type[EntityType], filters: dict = {}) -> int:
+        """Returns the count of items in the entity
+        Returns:
+            int: count of items
+        """
+        logging.info(f"Retrieving the count of {cls.get_type()} entities")
+        comms_fn, is_owner = cls.remote_prefilter_counter(filters=filters)
+        count = comms_fn(filters=filters, is_owner=is_owner)
+        return count
