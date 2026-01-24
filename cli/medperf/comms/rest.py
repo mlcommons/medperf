@@ -70,6 +70,7 @@ class REST(Comms):
             )
 
     def __get_count(self, url, filters={}, error_msg="") -> int:
+        filters = dict(filters)
         filters.update({"is_valid": True, "limit": 1, "offset": 0})
 
         query_str = "&".join([f"{k}={v}" for k, v in filters.items()])
@@ -110,6 +111,7 @@ class REST(Comms):
             List[dict]: A list of dictionaries representing the retrieved elements.
         """
 
+        filters = dict(filters)
         if filters.get("limit", None) is not None:
             page_size = filters["limit"]
             num_elements = filters["limit"]
