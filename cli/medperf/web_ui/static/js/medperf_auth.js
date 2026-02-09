@@ -1,46 +1,49 @@
 
-function onMedperfLoginSuccess(response){
-    if(response.status === "success"){
-        showReloadModal({
-            title: "Successfully Logged In",
-            seconds: 1,
-            url:"/"
-        });
-    }
-    else{
+function onMedperfLoginSuccess(response) {
+    if (response && response.status === "success") {
+        showReloadModal({ title: "Successfully Logged In", seconds: 1, url: "/" });
+    } else {
         showErrorModal("Login Failed", response);
     }
 }
 
-async function medperfLogin(medperfLoginBtn){
+function medperfLogin(medperfLoginBtn) {
     addSpinner(medperfLoginBtn);
-
-    const formData = new FormData($("#medperf-login-form")[0]);
-    
+    var form = document.getElementById("medperf-login-form");
+    var formData = form ? new FormData(form) : new FormData();
     disableElements("#medperf-login-form input, #medperf-login-form button");
-
-    ajaxRequest(
-        "/medperf_login",
-        "POST",
-        formData,
-        onMedperfLoginSuccess,
-        "Error while logging in:"
-    );
-    window.runningTaskId = await getTaskId();
-    streamEvents(logPanel, stagesList, currentStageElement);
+    ajaxRequest("/medperf_login", "POST", formData, onMedperfLoginSuccess, "Error while logging in:");
+    getTaskId().then(function (id) { window.runningTaskId = id; });
+    if (typeof streamEvents === "function") streamEvents(logPanel, stagesList, currentStageElement);
 }
 
 function checkLoginFormValidity() {
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    const isValid = emailRegex.test($("#email").val());
-    $("#medperf-login-btn").prop("disabled", !isValid);
+    var emailInput = document.getElementById("email");
+    var btn = document.getElementById("medperf-login-btn");
+    if (!emailInput || !btn) return;
+    var emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    btn.disabled = !emailRegex.test(emailInput.value.trim());
 }
 
-$(document).ready(() => {
-    $("#medperf-login-btn").on("click", (e) => {
-        let email =  $("#medperf-login-form input").val()
-        showConfirmModal(e.currentTarget, medperfLogin, `login as <strong>${email}</strong> ?`);
-    });
+function initMedperfAuth() {
+    var loginBtn = document.getElementById("medperf-login-btn");
+    var form = document.getElementById("medperf-login-form");
+    if (loginBtn) {
+        loginBtn.addEventListener("click", function (e) {
+            var emailInput = form && form.querySelector("input");
+            var email = emailInput ? emailInput.value : "";
+            showConfirmModal(e.currentTarget, medperfLogin, "login as <strong>" + email + "</strong> ?");
+        });
+    }
+    if (form) {
+        var input = form.querySelector("input");
+        if (input) input.addEventListener("keyup", checkLoginFormValidity);
+    }
+    checkLoginFormValidity();
+}
 
-    $("#medperf-login-form input").on("keyup", checkLoginFormValidity);
-});
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initMedperfAuth);
+} else {
+    initMedperfAuth();
+}

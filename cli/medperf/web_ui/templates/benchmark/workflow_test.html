@@ -1,53 +1,29 @@
-{# ./cli/medperf/web_ui/templates/bechmark/workflow_test.html #}
-
 {% extends "base.html" %}
-
 {% import "constants/forms_placeholders.html" as placeholders %}
 {% import "constants/tooltips.html" as tooltips %}
+{% import "macros/modal_macros.html" as modal_macros %}
 
 {% block title %}Benchmark Workflow Test{% endblock %}
 
 {% block content %}
 {% set benchmark_workflow_test_running = (task_running and request.app.state.task.name == "benchmark_workflow_test") %}
-<div class="container">
-    <h1 class="text-center">Test your Benchmark Workflow</h1>
-    <form class="my-5" id="workflow-test-form">
-        <div class="form-group my-5">
-            <label for="data-preparation" class="form-label h4">Data Preparation Container Config Path</label>
-            <div class="input-group">
-                <input
-                    name="data_preparation"
-                    class="form-control"
-                    type="text"
-                    id="data-preparation"
-                    placeholder="{{ placeholders.workflow_test_data_preparation_container }}"
-                    {% if task_running %} disabled {% endif %}
-                    {% if benchmark_workflow_test_running %}
-                    value="{{ task_formData.get('data_preparation', '') }}"
-                    {% endif %}
-                >
-                <div class="input-group-append">
-                    <button
-                        type="button"
-                        class="btn btn-outline-secondary"
-                        id="browse-data-prep-btn"
-                        {% if task_running %} disabled {% endif %}   
-                    >Browse</button>
-                </div>
-                <i
-                    class="tooltip-info input-group-text fa fa-info-circle fs-4"
-                    data-bs-toggle="tooltip"
-                    data-bs-placement="top"
-                    data-bs-title="{{ tooltips.workflow_test_data_preparation_container }}"
-                ></i>
+<div class="container mx-auto px-4 py-8 max-w-3xl">
+    <h1 class="text-3xl font-bold medperf-accent dark:text-green-400 text-center mb-8">Test your Benchmark Workflow</h1>
+    <form class="space-y-6" id="workflow-test-form">
+        <div>
+            <label for="data-preparation" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Data Preparation Container Config Path</label>
+            <div class="flex flex-wrap items-stretch gap-2">
+                <input name="data_preparation" type="text" id="data-preparation" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500" placeholder="{{ placeholders.workflow_test_data_preparation_container }}" {% if task_running %}disabled{% endif %} {% if benchmark_workflow_test_running %}value="{{ task_formData.get('data_preparation', '') }}"{% endif %}>
+                <button type="button" class="px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600" id="browse-data-prep-btn" {% if task_running %}disabled{% endif %}>Browse</button>
+                <span class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.workflow_test_data_preparation_container }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
-        <div class="form-group my-5">
-            <label for="data-preparation-parameters" class="form-label h4">Data Preparation Container Parameters File Path</label>
-            <div class="input-group">
+        <div>
+            <label for="data-preparation-parameters" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Data Preparation Container Parameters File Path</label>
+            <div class="flex flex-wrap items-stretch gap-2">
                 <input
                     name="data_preparation_parameters"
-                    class="form-control"
+                    class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500"
                     type="text"
                     id="data-preparation-parameters"
                     placeholder="{{ placeholders.workflow_test_data_preparation_parameters }}"
@@ -56,28 +32,21 @@
                     value="{{ task_formData.get('data_preparation_parameters', '') }}"
                     {% endif %}
                 >
-                <div class="input-group-append">
-                    <button
+                <button
                         type="button"
-                        class="btn btn-outline-secondary"
+                        class="px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600"
                         id="browse-data-prep-parameters-btn"
                         {% if task_running %} disabled {% endif %}   
                     >Browse</button>
-                </div>
-                <i
-                    class="tooltip-info input-group-text fa fa-info-circle fs-4"
-                    data-bs-toggle="tooltip"
-                    data-bs-placement="top"
-                    data-bs-title="{{ tooltips.workflow_test_data_preparation_parameters }}"
-                ></i>
+                <span class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.workflow_test_data_preparation_parameters }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
-        <div class="form-group my-5">
-            <label for="data-preparation-additional" class="form-label h4">Data Preparation Container Additional Files Folder Path</label>
-            <div class="input-group">
+        <div>
+            <label for="data-preparation-additional" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Data Preparation Container Additional Files Folder Path</label>
+            <div class="flex flex-wrap items-stretch gap-2">
                 <input
                     name="data_preparation_additional"
-                    class="form-control"
+                    class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500"
                     type="text"
                     id="data-preparation-additional"
                     placeholder="{{ placeholders.workflow_test_data_preparation_additional }}"
@@ -86,28 +55,21 @@
                     value="{{ task_formData.get('data_preparation_additional', '') }}"
                     {% endif %}
                 >
-                <div class="input-group-append">
-                    <button
+                <button
                         type="button"
-                        class="btn btn-outline-secondary"
+                        class="px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600"
                         id="browse-data-prep-additional-btn"
                         {% if task_running %} disabled {% endif %}   
                     >Browse</button>
-                </div>
-                <i
-                    class="tooltip-info input-group-text fa fa-info-circle fs-4"
-                    data-bs-toggle="tooltip"
-                    data-bs-placement="top"
-                    data-bs-title="{{ tooltips.workflow_test_data_preparation_additional }}"
-                ></i>
+                <span class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.workflow_test_data_preparation_additional }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
-        <div class="form-group my-5">
-            <label for="model-path" class="form-label h4">Reference Model Config Path</label>
-            <div class="input-group">
+        <div>
+            <label for="model-path" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Reference Model Config Path</label>
+            <div class="flex flex-wrap items-stretch gap-2">
                 <input
                     name="model_path"
-                    class="form-control"
+                    class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500"
                     type="text"
                     id="model-path"
                     placeholder="{{ placeholders.workflow_test_reference_model_path }}"
@@ -116,28 +78,21 @@
                     value="{{ task_formData.get('model_path', '') }}"
                     {% endif %}
                 >
-                <div class="input-group-append">
-                    <button
+                <button
                         type="button"
-                        class="btn btn-outline-secondary"
+                        class="px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600"
                         id="browse-ref-btn"
                         {% if task_running %} disabled {% endif %}   
                     >Browse</button>
-                </div>
-                <i
-                    class="tooltip-info input-group-text fa fa-info-circle fs-4"
-                    data-bs-toggle="tooltip"
-                    data-bs-placement="top"
-                    data-bs-title="{{ tooltips.workflow_test_reference_model_path }}"
-                ></i>
+                <span class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.workflow_test_reference_model_path }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
-        <div class="form-group my-5">
-            <label for="model-parameters-path" class="form-label h4">Reference Model Parameters File Path</label>
-            <div class="input-group">
+        <div>
+            <label for="model-parameters-path" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Reference Model Parameters File Path</label>
+            <div class="flex flex-wrap items-stretch gap-2">
                 <input
                     name="model_parameters_path"
-                    class="form-control"
+                    class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500"
                     type="text"
                     id="model-parameters-path"
                     placeholder="{{ placeholders.workflow_test_reference_model_parameters }}"
@@ -146,28 +101,21 @@
                     value="{{ task_formData.get('model_parameters_path', '') }}"
                     {% endif %}
                 >
-                <div class="input-group-append">
-                    <button
+                <button
                         type="button"
-                        class="btn btn-outline-secondary"
+                        class="px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600"
                         id="browse-ref-parameters-btn"
                         {% if task_running %} disabled {% endif %}   
                     >Browse</button>
-                </div>
-                <i
-                    class="tooltip-info input-group-text fa fa-info-circle fs-4"
-                    data-bs-toggle="tooltip"
-                    data-bs-placement="top"
-                    data-bs-title="{{ tooltips.workflow_test_reference_model_parameters }}"
-                ></i>
+                <span class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.workflow_test_reference_model_parameters }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
-        <div class="form-group my-5">
-            <label for="model-additional-path" class="form-label h4">Reference Model Additional Files Folder Path</label>
-            <div class="input-group">
+        <div>
+            <label for="model-additional-path" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Reference Model Additional Files Folder Path</label>
+            <div class="flex flex-wrap items-stretch gap-2">
                 <input
                     name="model_additional_path"
-                    class="form-control"
+                    class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500"
                     type="text"
                     id="model-additional-path"
                     placeholder="{{ placeholders.workflow_test_reference_model_additional }}"
@@ -176,28 +124,21 @@
                     value="{{ task_formData.get('model_additional_path', '') }}"
                     {% endif %}
                 >
-                <div class="input-group-append">
-                    <button
+                <button
                         type="button"
-                        class="btn btn-outline-secondary"
+                        class="px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600"
                         id="browse-ref-additional-btn"
                         {% if task_running %} disabled {% endif %}   
                     >Browse</button>
-                </div>
-                <i
-                    class="tooltip-info input-group-text fa fa-info-circle fs-4"
-                    data-bs-toggle="tooltip"
-                    data-bs-placement="top"
-                    data-bs-title="{{ tooltips.workflow_test_reference_model_additional }}"
-                ></i>
+                <span class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.workflow_test_reference_model_additional }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
-        <div class="form-group my-5">
-            <label for="evaluator-path" class="form-label h4">Metrics Container Config Path</label>
-            <div class="input-group">
+        <div>
+            <label for="evaluator-path" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Metrics Container Config Path</label>
+            <div class="flex flex-wrap items-stretch gap-2">
                 <input
                     name="evaluator_path"
-                    class="form-control"
+                    class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500"
                     type="text"
                     id="evaluator-path"
                     placeholder="{{ placeholders.workflow_test_metrics_container_path }}"
@@ -206,28 +147,21 @@
                     value="{{ task_formData.get('evaluator_path', '') }}"
                     {% endif %}
                 >
-                <div class="input-group-append">
-                    <button
+                <button
                         type="button"
-                        class="btn btn-outline-secondary"
+                        class="px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600"
                         id="browse-metrics-btn"
                         {% if task_running %} disabled {% endif %}   
                     >Browse</button>
-                </div>
-                <i
-                    class="tooltip-info input-group-text fa fa-info-circle fs-4"
-                    data-bs-toggle="tooltip"
-                    data-bs-placement="top"
-                    data-bs-title="{{ tooltips.workflow_test_metrics_container_path }}"
-                ></i>
+                <span class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.workflow_test_metrics_container_path }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
-        <div class="form-group my-5">
-            <label for="evaluator-parameters-path" class="form-label h4">Metrics Container Parameters File Path</label>
-            <div class="input-group">
+        <div>
+            <label for="evaluator-parameters-path" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Metrics Container Parameters File Path</label>
+            <div class="flex flex-wrap items-stretch gap-2">
                 <input
                     name="evaluator_parameters_path"
-                    class="form-control"
+                    class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500"
                     type="text"
                     id="evaluator-parameters-path"
                     placeholder="{{ placeholders.workflow_test_metrics_container_parameters }}"
@@ -236,28 +170,21 @@
                     value="{{ task_formData.get('evaluator_parameters_path', '') }}"
                     {% endif %}
                 >
-                <div class="input-group-append">
-                    <button
+                <button
                         type="button"
-                        class="btn btn-outline-secondary"
+                        class="px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600"
                         id="browse-metrics-parameters-btn"
                         {% if task_running %} disabled {% endif %}   
                     >Browse</button>
-                </div>
-                <i
-                    class="tooltip-info input-group-text fa fa-info-circle fs-4"
-                    data-bs-toggle="tooltip"
-                    data-bs-placement="top"
-                    data-bs-title="{{ tooltips.workflow_test_metrics_container_parameters }}"
-                ></i>
+                <span class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.workflow_test_metrics_container_parameters }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
-        <div class="form-group my-5">
-            <label for="evaluator-additional-path" class="form-label h4">Metrics Container Additional Files Folder Path</label>
-            <div class="input-group">
+        <div>
+            <label for="evaluator-additional-path" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Metrics Container Additional Files Folder Path</label>
+            <div class="flex flex-wrap items-stretch gap-2">
                 <input
                     name="evaluator_additional_path"
-                    class="form-control"
+                    class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500"
                     type="text"
                     id="evaluator-additional-path"
                     placeholder="{{ placeholders.workflow_test_metrics_container_additional }}"
@@ -266,28 +193,21 @@
                     value="{{ task_formData.get('evaluator_additional_path', '') }}"
                     {% endif %}
                 >
-                <div class="input-group-append">
-                    <button
+                <button
                         type="button"
-                        class="btn btn-outline-secondary"
+                        class="px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600"
                         id="browse-metrics-additional-btn"
                         {% if task_running %} disabled {% endif %}   
                     >Browse</button>
-                </div>
-                <i
-                    class="tooltip-info input-group-text fa fa-info-circle fs-4"
-                    data-bs-toggle="tooltip"
-                    data-bs-placement="top"
-                    data-bs-title="{{ tooltips.workflow_test_metrics_container_additional }}"
-                ></i>
+                <span class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.workflow_test_metrics_container_additional }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
-        <div class="form-group my-5">
-            <label for="data-path" class="form-label h4">Reference Dataset's Data Path</label>
-            <div class="input-group">
+        <div>
+            <label for="data-path" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Reference Dataset's Data Path</label>
+            <div class="flex flex-wrap items-stretch gap-2">
                 <input
                     name="data_path"
-                    class="form-control"
+                    class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500"
                     type="text"
                     id="data-path"
                     placeholder="{{ placeholders.workflow_test_reference_dataset_data_path }}"
@@ -296,28 +216,21 @@
                     value="{{ task_formData.get('data_path', '') }}"
                     {% endif %}
                 >
-                <div class="input-group-append">
-                    <button
+                <button
                         type="button"
-                        class="btn btn-outline-secondary"
+                        class="px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600"
                         id="browse-data-btn"
                         {% if task_running %} disabled {% endif %}   
                     >Browse</button>
-                </div>
-                <i
-                    class="tooltip-info input-group-text fa fa-info-circle fs-4"
-                    data-bs-toggle="tooltip"
-                    data-bs-placement="top"
-                    data-bs-title="{{ tooltips.workflow_test_reference_dataset_data_path }}"
-                ></i>
+                <span class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.workflow_test_reference_dataset_data_path }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
-        <div class="form-group my-5">
-            <label for="labels-path" class="form-label h4">Reference Dataset's Labels Path</label>
-            <div class="input-group">
+        <div>
+            <label for="labels-path" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Reference Dataset's Labels Path</label>
+            <div class="flex flex-wrap items-stretch gap-2">
                 <input
                     name="labels_path"
-                    class="form-control"
+                    class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500"
                     type="text"
                     id="labels-path"
                     placeholder="{{ placeholders.workflow_test_reference_dataset_labels_path }}"
@@ -326,40 +239,26 @@
                     value="{{ task_formData.get('labels_path', '') }}"
                     {% endif %}
                 >
-                <div class="input-group-append">
-                    <button
+                <button
                         type="button"
-                        class="btn btn-outline-secondary"
+                        class="px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600"
                         id="browse-labels-btn"
                         {% if task_running %} disabled {% endif %}   
                     >Browse</button>
-                </div>
-                <i
-                    class="tooltip-info input-group-text fa fa-info-circle fs-4"
-                    data-bs-toggle="tooltip"
-                    data-bs-placement="top"
-                    data-bs-title="{{ tooltips.workflow_test_reference_dataset_labels_path }}"
-                ></i>
+                <span class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.workflow_test_reference_dataset_labels_path }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
-        <div class="text-center mt-4">
-            <button
-                id="run-workflow-test-btn"
-                type="button"
-                class="btn btn-success mx-3"
-                disabled
-            >
-                Run workflow test
-            </button>
+        <div class="text-center pt-4">
+            <button id="run-workflow-test-btn" type="button" class="px-6 py-3 medperf-bg dark:bg-green-600 text-white rounded-xl font-bold hover:opacity-90 disabled:opacity-50" disabled>Run workflow test</button>
         </div>
     </form>
 
     {{ modal_macros.add_modal(
         modal_id="folder-picker-modal",
-        modal_body='<ul id="folder-list" class="list-group"></ul>',
+        modal_body='<ul id="folder-list" class="divide-y divide-gray-200 dark:divide-gray-600 max-h-96 overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-600"></ul>',
         modal_footer=True,
-        close_button='<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>',
-        success_button='<button type="button" class="btn btn-primary" id="select-folder-btn">Select</button>'
+        close_button='<button type="button" class="px-4 py-2 rounded-xl bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500" data-dismiss-modal="folder-picker-modal">Cancel</button>',
+        success_button='<button type="button" class="px-4 py-2 rounded-xl medperf-bg dark:bg-green-600 text-white font-semibold" id="select-folder-btn">Select</button>'
     ) }}
 
     {% include "partials/panel_container.html" %}
@@ -374,14 +273,6 @@
 <script src="{{ url_for('static', path='js/folder_browsing.js') }}"></script>
 
 {% if task_running and request.app.state.task.name == "benchmark_workflow_test" %}
-<script>
-    $(document).ready(() => {
-        resumeRunningTask(
-            "#run-workflow-test-btn",
-            `Running Workflow Test...`,
-            onBenchmarkWorkflowTestSuccess
-        );
-    });
-</script>
+<script>document.addEventListener("DOMContentLoaded", function() { resumeRunningTask("#run-workflow-test-btn", "Running Workflow Test...", onBenchmarkWorkflowTestSuccess); });</script>
 {% endif %}
 {% endblock extra_js %}

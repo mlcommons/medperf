@@ -1,71 +1,75 @@
-{# ./cli/medperf/web_ui/templates/partials/navbar.html #}
+{% set path = request.url.path %}
+{% set nav_benchmarks = path == "/benchmarks/ui" or path.startswith("/benchmarks/") %}
+{% set nav_containers = path == "/containers/ui" or path.startswith("/containers/") %}
+{% set nav_datasets = path == "/datasets/ui" or path.startswith("/datasets/") %}
 
-<div class="container-fluid py-1" style="background-color: #d0ecd4;">
-    <nav class="navbar navbar-expand-md navbar-light">
-        <a class="navbar-brand ms-3" href="/">
-            <img alt="MedPerf Logo" src="{{ url_for('static', path='images/medperf_logo.svg') }}" style="width: 90px; height: 40px">
-        </a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav">
-                <li class="nav-item"><a class="nav-link" href="/benchmarks/ui">Benchmarks</a></li>
-                <li class="nav-item"><a class="nav-link" href="/containers/ui">Containers</a></li>
-                <li class="nav-item"><a class="nav-link" href="/datasets/ui">Datasets</a></li>
-            </ul>
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item dropdown">
-                    <a class="nav-link me-2 cursor-pointer" href="#" role="button" id="notifiations-dropdown" data-bs-auto-close="outside" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fa fa-bell {% if logged_in %} mt-2 fs-5 {% endif %}"></i>
-                        <span
-                            id="notifications-count"
-                            class="badge rounded-pill badge-notification bg-danger {% if not unread_notifications %} d-none {% endif %}"
-                        >
-                            0
-                        </span>
-                    </a>
-                    <ul id="notifications-list" class="dropdown-menu dropdown-menu-end" aria-labelledby="notifiations-dropdown">
+<nav class="medperf-bg dark:bg-gray-800 shadow-lg sticky top-0 z-40 border-b border-transparent dark:border-gray-700" x-data="{ open: false, notifOpen: false }">
+    <div class="container mx-auto px-4 py-4">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-8">
+                <a href="/" class="text-white text-2xl font-bold flex items-center gap-3">
+                    <img alt="MedPerf Logo" src="{{ url_for('static', path='images/medperf_logo.svg') }}" class="h-10 w-auto brightness-0 invert">
+                    <span class="hidden sm:inline">MedPerf</span>
+                </a>
+                <div class="hidden md:flex gap-6">
+                    <a href="/benchmarks/ui" class="font-semibold pb-1 border-b-2 {% if nav_benchmarks %}text-white border-white{% else %}text-white/80 border-transparent hover:text-white hover:border-white/50{% endif %} transition-colors">Benchmarks</a>
+                    <a href="/containers/ui" class="font-semibold pb-1 border-b-2 {% if nav_containers %}text-white border-white{% else %}text-white/80 border-transparent hover:text-white hover:border-white/50{% endif %} transition-colors">Containers</a>
+                    <a href="/datasets/ui" class="font-semibold pb-1 border-b-2 {% if nav_datasets %}text-white border-white{% else %}text-white/80 border-transparent hover:text-white hover:border-white/50{% endif %} transition-colors">Datasets</a>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <div class="relative" @click.outside="notifOpen = false">
+                    <button type="button" @click="notifOpen = !notifOpen" class="relative p-2 rounded-lg text-white/90 hover:text-white hover:bg-white/10 transition-colors cursor-pointer">
+                        <i class="fa fa-bell text-xl" aria-hidden="true"></i>
+                        <span id="notifications-count" class="absolute -top-0.5 -right-0.5 min-w-[1.25rem] h-5 px-1 bg-red-500 rounded-full flex items-center justify-center text-xs text-white {% if not unread_notifications %}hidden{% endif %}">0</span>
+                    </button>
+                    <ul id="notifications-list" x-show="notifOpen" x-cloak x-transition class="absolute right-0 mt-2 w-80 max-w-[min(20rem,100vw-2rem)] max-h-[70vh] overflow-y-auto overflow-x-hidden bg-white dark:bg-gray-800 rounded-xl shadow-xl border-2 border-gray-200 dark:border-gray-700 py-2 z-50 list-none"
+                        style="display: none;">
                         {% if not notifications %}
-                        <li class="dropdown-item">No notifications yet</li>
+                        <li class="px-4 py-3 text-gray-500 dark:text-gray-400 text-sm">No notifications yet</li>
                         {% endif %}
                     </ul>
-                </li>
+                </div>
+
                 {% if logged_in %}
-                <li class="nav-item dropdown me-3">
-                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button"
-                    data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fas fa-user-circle fs-1"></i>
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                        <li class="dropdown-item-text text-muted small">
-                            Logged in as:<br>
-                            <strong>{{ request.app.state.user_email }}</strong>
-                        </li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <a class="dropdown-item" href="/settings">
-                                <i class="fas fa-cog mr-2"></i> Settings
-                            </a>
-                        </li>
-                        <li>
-                            <button id="logout-btn" type="button" class="dropdown-item text-danger">
-                                <i class="fas fa-sign-out-alt mr-2"></i> Logout
-                            </button>
-                        </li>
-                    </ul>
-                </li>
+                <div class="relative" x-data="{ userOpen: false }" @click.outside="userOpen = false">
+                    <button type="button" @click="userOpen = !userOpen" class="w-10 h-10 rounded-full bg-white/25 flex items-center justify-center border-2 border-white/40 text-white hover:bg-white/35 transition-colors shadow-md cursor-pointer" title="Account">
+                        <i class="fas fa-user text-lg" aria-hidden="true"></i>
+                    </button>
+                    <div x-show="userOpen" x-cloak x-transition class="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-xl shadow-xl border-2 border-gray-200 dark:border-gray-700 py-2 z-50" style="display: none;">
+                        <div class="px-4 py-2 text-gray-500 dark:text-gray-400 text-sm border-b border-gray-200 dark:border-gray-700">
+                            Logged in as:<br><strong class="text-gray-900 dark:text-white">{{ request.app.state.user_email }}</strong>
+                        </div>
+                        <a href="/settings" class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                            <i class="fas fa-cog mr-2 medperf-accent dark:text-green-400"></i> Settings
+                        </a>
+                        <button id="logout-btn" type="button" class="w-full text-left flex items-center px-4 py-2 text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">
+                            <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                        </button>
+                    </div>
+                </div>
                 {% else %}
-                <li class="nav-item">
-                  <a class="nav-link" href="/medperf_login">Login</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/settings">
-                        <i class="fas fa-cog mr-2"></i> Settings
-                    </a>
-                </li>
+                <a href="/medperf_login" class="text-white font-semibold px-4 py-2 rounded-lg hover:bg-white/10 transition-colors">Login</a>
+                <a href="/settings" class="p-2 rounded-lg text-white/90 hover:text-white hover:bg-white/10 transition-colors">
+                    <i class="fas fa-cog" aria-hidden="true"></i>
+                </a>
                 {% endif %}
-            </ul>
+
+                <button type="button" @click="document.documentElement.classList.toggle('dark'); localStorage.setItem('medperf-dark', document.documentElement.classList.contains('dark') ? '1' : '0')" class="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors inline-flex items-center justify-center w-10 h-10 cursor-pointer" aria-label="Toggle dark mode">
+                    <span class="dark:hidden inline-block" aria-hidden="true"><i class="fas fa-moon"></i></span>
+                    <span class="hidden dark:inline-block" aria-hidden="true"><i class="fas fa-sun"></i></span>
+                </button>
+
+                <button type="button" @click="open = !open" class="md:hidden p-2 text-white rounded-lg hover:bg-white/10 cursor-pointer" aria-label="Menu">
+                    <i class="fas fa-bars" aria-hidden="true"></i>
+                </button>
+            </div>
         </div>
-    </nav>
-</div>
+        <div x-show="open" x-cloak x-transition class="md:hidden mt-4 pt-4 border-t border-white/20" style="display: none;">
+            <a href="/benchmarks/ui" class="block py-2 text-white/90 hover:text-white">Benchmarks</a>
+            <a href="/containers/ui" class="block py-2 text-white/90 hover:text-white">Containers</a>
+            <a href="/datasets/ui" class="block py-2 text-white/90 hover:text-white">Datasets</a>
+        </div>
+    </div>
+</nav>

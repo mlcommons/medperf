@@ -1,17 +1,37 @@
-{# ./cli/medperf/web_ui/templates/macros/container_macros.html #}
-
 {% macro container_link(container) %}
-<span class="container-link {% if not container.is_valid %}invalid-card{% endif %} d-inline-flex align-items-center p-1 mb-2 flex-grow-1">
+<span class="inline-flex items-center gap-2 p-2 rounded-lg {% if not container.is_valid %}invalid-card{% endif %}">
     <strong>
-        <a href="/containers/ui/display/{{ container.id }}" class="text-primary">{{ container.name }}</a>
+        <a href="/containers/ui/display/{{ container.id }}" class="medperf-accent dark:text-green-400 hover:underline">{{ container.name }}</a>
     </strong>
-    <small class="text-muted ms-2" data-date="{{ container.modified_at }}"></small>
-    <span class="ms-2">
+    <small class="text-gray-500 dark:text-gray-400" data-date="{{ container.modified_at }}"></small>
     {% if container.state == 'OPERATION' %}
-        <i class="fas fa-check-circle text-success"></i>
+    <i class="fas fa-check-circle text-green-600 dark:text-green-400"></i>
     {% else %}
-        <i class="fas fa-exclamation-circle text-warning"></i>
+    <i class="fas fa-exclamation-circle text-yellow-600 dark:text-yellow-400"></i>
     {% endif %}
-    </span>
 </span>
+{% endmacro %}
+
+{% macro container_card(container) %}
+<div class="bg-white dark:bg-gray-800 medperf-card dark:border-green-500/50 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all border border-transparent dark:border-gray-700 {% if not container.is_valid %}invalid-card{% endif %} flex flex-col h-full">
+    <div class="flex items-start justify-between mb-4">
+        <div class="flex-1 min-w-0">
+            <div class="flex items-center mb-2">
+                <i class="fas fa-cube medperf-accent dark:text-green-400 mr-2 flex-shrink-0"></i>
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white truncate">
+                    <a href="/containers/ui/display/{{ container.id }}" class="hover:medperf-accent dark:hover:text-green-400 transition-colors" data-testid="cont-name">{{ container.name }}</a>
+                </h3>
+            </div>
+            <p class="text-sm text-gray-500 dark:text-gray-400" data-testid="cont-id">ID: {{ container.id }}</p>
+        </div>
+        <span class="px-4 py-1 rounded-full text-xs font-bold border-2 flex-shrink-0 {% if container.state == 'OPERATION' %}bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 border-green-200 dark:border-green-700{% else %}bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-300 border-yellow-200 dark:border-yellow-700{% endif %}" data-testid="cont-state">{% if container.state == 'OPERATION' %}OPERATIONAL{% else %}{{ container.state }}{% endif %}</span>
+    </div>
+    <div class="flex items-center justify-between pt-4 mt-auto border-t-2 border-gray-100 dark:border-gray-700">
+        <div class="flex items-center space-x-2">
+            <i class="fas {% if container.is_valid %}fa-check-circle text-green-600 dark:text-green-400{% else %}fa-times-circle text-red-600 dark:text-red-400{% endif %}"></i>
+            <span class="text-sm font-medium text-gray-700 dark:text-gray-300" data-testid="cont-is-valid">{{ 'Valid' if container.is_valid else 'Invalid' }}</span>
+        </div>
+        <span class="text-xs text-gray-500 dark:text-gray-400" data-testid="cont-created-at" data-date="{{ container.created_at }}" data-date-format="timeago"></span>
+    </div>
+</div>
 {% endmacro %}

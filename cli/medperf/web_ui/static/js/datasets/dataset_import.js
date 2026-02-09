@@ -1,85 +1,65 @@
-function onDatasetImportSuccess(response){
+function onDatasetImportSuccess(response) {
     markAllStagesAsComplete();
-    if(response.status === "success"){
-        showReloadModal({
-            title: "Dataset Imported Successfully",
-            seconds: 3,
-            url: "/datasets/ui/display/"+response.dataset_id
-        });
-    }
-    else{
-        showErrorModal("Failed to Import Dataset", response)
+    if (response && response.status === "success") {
+        showReloadModal({ title: "Dataset Imported Successfully", seconds: 3, url: "/datasets/ui/display/" + response.dataset_id });
+    } else {
+        showErrorModal("Failed to Import Dataset", response);
     }
 }
 
-async function importDataset(importButton){
+function importDataset(importButton) {
     addSpinner(importButton);
-    
-    const formData = new FormData($("#dataset-import-form")[0]);
-
+    var form = document.getElementById("dataset-import-form");
+    var formData = form ? new FormData(form) : new FormData();
     disableElements("#dataset-import-form input, #dataset-import-form button");
-
-    ajaxRequest(
-        "/datasets/import",
-        "POST",
-        formData,
-        onDatasetImportSuccess,
-        "Error importing dataset:"
-    );
-
-    window.runningTaskId = await getTaskId();
-    streamEvents(logPanel, stagesList, currentStageElement);
+    ajaxRequest("/datasets/import", "POST", formData, onDatasetImportSuccess, "Error importing dataset:");
+    getTaskId().then(function (id) { window.runningTaskId = id; });
+    if (typeof streamEvents === "function") streamEvents(logPanel, stagesList, currentStageElement);
 }
 
 function checkImportFormValidity() {
-    var datasetIdValue = $("#dataset-id").val();
-    datasetIdValue = datasetIdValue ? Number(datasetIdValue) : 0;
-
-    const inputPathValue = $("#input-path").val().trim();
-    const selectedMode = $('input[name="dataset_type"]:checked').val();
-    const rawPathValue = $("#raw-path").val().trim();
-
-    let isValid = false;
-
+    var datasetIdEl = document.getElementById("dataset-id");
+    var datasetIdValue = datasetIdEl && datasetIdEl.value ? Number(datasetIdEl.value) : 0;
+    var inputPathEl = document.getElementById("input-path");
+    var inputPathValue = inputPathEl ? inputPathEl.value.trim() : "";
+    var checked = document.querySelector('input[name="dataset_type"]:checked');
+    var selectedMode = checked ? checked.value : "";
+    var rawPathEl = document.getElementById("raw-path");
+    var rawPathValue = rawPathEl ? rawPathEl.value.trim() : "";
+    var isValid = false;
     if (datasetIdValue > 0 && inputPathValue) {
-        if (selectedMode === "development") {
-            isValid = Boolean(rawPathValue);
-        }
-        else if (selectedMode === "operational") {
-            isValid = true;
-        }
+        if (selectedMode === "development") isValid = !!rawPathValue;
+        else if (selectedMode === "operational") isValid = true;
     }
-
-    $("#import-dataset-btn").prop("disabled", !isValid);
+    var btn = document.getElementById("import-dataset-btn");
+    if (btn) btn.disabled = !isValid;
 }
 
-$(document).ready(() => {
-    $("#import-dataset-btn").on("click", (e) => {
-        showConfirmModal(e.currentTarget, importDataset, "import this dataset?");
+function init() {
+    var btn = document.getElementById("import-dataset-btn");
+    if (btn) btn.addEventListener("click", function (e) { showConfirmModal(e.currentTarget, importDataset, "import this dataset?"); });
+    var form = document.getElementById("dataset-import-form");
+    if (form) form.querySelectorAll("input").forEach(function (el) {
+        el.addEventListener("change", checkImportFormValidity);
+        el.addEventListener("keyup", checkImportFormValidity);
     });
-    $("#dataset-import-form input").on("change keyup", checkImportFormValidity);
-
-    $("#browse-input-btn").on("click", () => {
-        browseWithFiles = true;
-        browseFolderHandler("input-path");
-    });
-
-    $("#browse-raw-btn").on("click", () => {
-        browseWithFiles = false;
-        browseFolderHandler("raw-path");
-    });
-
-    $("input[name='dataset_type']").on("change", (e) => {
-        if (e.currentTarget.value === "development"){
-            if ($("#raw-data-group").hasClass("d-none")) {
-                $("#raw-data-group").removeClass("d-none");
+    var browseInput = document.getElementById("browse-input-btn");
+    var browseRaw = document.getElementById("browse-raw-btn");
+    if (browseInput) browseInput.addEventListener("click", function () { browseWithFiles = true; browseFolderHandler("input-path"); });
+    if (browseRaw) browseRaw.addEventListener("click", function () { browseWithFiles = false; browseFolderHandler("raw-path"); });
+    document.querySelectorAll("input[name='dataset_type']").forEach(function (radio) {
+        radio.addEventListener("change", function () {
+            var rawGroup = document.getElementById("raw-data-group");
+            var rawPath = document.getElementById("raw-path");
+            if (this.value === "development") {
+                if (rawGroup) { rawGroup.classList.remove("hidden"); rawGroup.style.display = ""; }
+            } else {
+                if (rawGroup) { rawGroup.classList.add("hidden"); rawGroup.style.display = "none"; }
+                if (rawPath) rawPath.value = "";
             }
-        }
-        else{
-            if (!$("#raw-data-group").hasClass("d-none")) {
-                $("#raw-data-group").addClass("d-none");
-                $("#raw-path").val("");
-            }
-        }
+        });
     });
-});
+    checkImportFormValidity();
+}
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+else init();

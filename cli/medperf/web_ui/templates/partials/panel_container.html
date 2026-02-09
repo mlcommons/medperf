@@ -1,13 +1,9 @@
-{# ./cli/medperf/web_ui/templates/partials/panel_container.html #}
-
-<div id="panel" class="my-5 hidden-element">
-    <h2 id="panel-title"></h2>
-    <div class="stages">
-        <ul class="list-group mb-3" id="stages-list"></ul>
+<div id="panel" class="my-8 hidden" style="display: none;">
+    <h2 id="panel-title" class="text-xl font-bold medperf-accent dark:text-green-400 mb-4"></h2>
+    <div class="mb-4">
+        <ul id="stages-list" class="space-y-2"></ul>
     </div>
-    <div class="card mt-5">
-        <div class="card-body">
-            <pre id="log-panel"></pre>
-        </div>
+    <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border-2 border-green-100 dark:border-gray-700 mt-6">
+        <pre id="log-panel" class="text-sm overflow-x-auto whitespace-pre-wrap font-mono bg-gray-100 dark:bg-gray-700 p-4 rounded-lg max-h-[300px] overflow-y-auto"></pre>
     </div>
 </div>
