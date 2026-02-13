@@ -44,13 +44,13 @@ class IsAssociatedModelOwner(BasePermission):
 
         latest_models_assocs_status = (
             BenchmarkModel.objects.all()
-            .filter(benchmark__id=pk, model_mlcube__id=OuterRef("id"))
+            .filter(benchmark__id=pk, model__id=OuterRef("id"))
             .order_by("-created_at")[:1]
             .values("approval_status")
         )
 
         user_associated_models = (
-            request.user.mlcube_set.all()
+            request.user.model_set.all()
             .annotate(assoc_status=Subquery(latest_models_assocs_status))
             .filter(assoc_status="APPROVED")
         )

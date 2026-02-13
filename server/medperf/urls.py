@@ -32,6 +32,8 @@ urlpatterns = [
     path(API_PREFIX, include([
         path("benchmarks/", include("benchmark.urls", namespace=API_VERSION), name="benchmark"),
         path("mlcubes/", include("mlcube.urls", namespace=API_VERSION), name="mlcube"),
+        path("assets/", include("asset.urls", namespace=API_VERSION), name="asset"),
+        path("models/", include("model.urls", namespace=API_VERSION), name="model"),
         path("datasets/", include("dataset.urls", namespace=API_VERSION), name="dataset"),
         path("results/", include("result.urls", namespace=API_VERSION), name="result"),
         path("users/", include("user.urls", namespace=API_VERSION), name="users"),

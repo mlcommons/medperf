@@ -20,9 +20,9 @@ class ModelResultSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         benchmark = data["benchmark"]
-        mlcube = data["model"]
+        model = data["model"]
         dataset = data["dataset"]
-        is_reference_model = benchmark.reference_model_mlcube.id == mlcube.id
+        is_reference_model = benchmark.reference_model.id == model.id
 
         if is_reference_model:
             # any dataset can create a result with the reference model
@@ -30,7 +30,7 @@ class ModelResultSerializer(serializers.ModelSerializer):
 
         last_benchmarkmodel = (
             BenchmarkModel.objects.filter(
-                benchmark__id=benchmark.id, model_mlcube__id=mlcube.id
+                benchmark__id=benchmark.id, model__id=model.id
             )
             .order_by("-created_at")
             .first()

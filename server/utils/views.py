@@ -1,5 +1,7 @@
 from user.serializers import UserSerializer
 from mlcube.serializers import MlCubeSerializer
+from asset.serializers import AssetSerializer
+from model.serializers import ModelSerializer
 from dataset.serializers import DatasetFullSerializer
 from result.serializers import ModelResultSerializer
 from benchmark.serializers import BenchmarkSerializer
@@ -8,6 +10,8 @@ from benchmarkmodel.serializers import BenchmarkModelListSerializer
 from benchmark.models import Benchmark
 from dataset.models import Dataset
 from mlcube.models import MlCube
+from asset.models import Asset
+from model.models import Model
 from result.models import ModelResult
 from benchmarkmodel.models import BenchmarkModel
 from benchmarkdataset.models import BenchmarkDataset
@@ -170,6 +174,46 @@ class MlCubeList(GenericAPIView):
         return self.get_paginated_response(serializer.data)
 
 
+class AssetList(GenericAPIView):
+    serializer_class = AssetSerializer
+    queryset = ""
+
+    def get_object(self, pk):
+        try:
+            return Asset.objects.filter(owner__id=pk)
+        except Asset.DoesNotExist:
+            raise Http404
+
+    def get(self, request, format=None):
+        """
+        Retrieve all assets associated with the current user
+        """
+        assets = self.get_object(request.user.id)
+        assets = self.paginate_queryset(assets)
+        serializer = AssetSerializer(assets, many=True)
+        return self.get_paginated_response(serializer.data)
+
+
+class ModelList(GenericAPIView):
+    serializer_class = ModelSerializer
+    queryset = ""
+
+    def get_object(self, pk):
+        try:
+            return Model.objects.filter(owner__id=pk)
+        except Model.DoesNotExist:
+            raise Http404
+
+    def get(self, request, format=None):
+        """
+        Retrieve all models associated with the current user
+        """
+        models = self.get_object(request.user.id)
+        models = self.paginate_queryset(models)
+        serializer = ModelSerializer(models, many=True)
+        return self.get_paginated_response(serializer.data)
+
+
 class DatasetList(GenericAPIView):
     serializer_class = DatasetFullSerializer
     queryset = ""
@@ -276,14 +320,14 @@ class DatasetAssociationList(GenericAPIView):
         return self.get_paginated_response(serializer.data)
 
 
-class MlCubeAssociationList(GenericAPIView):
+class ModelAssociationList(GenericAPIView):
     serializer_class = BenchmarkModelListSerializer
     queryset = ""
 
     def get_object(self, pk):
         try:
             return BenchmarkModel.objects.filter(
-                Q(model_mlcube__owner__id=pk) | Q(benchmark__owner__id=pk)
+                Q(model__owner__id=pk) | Q(benchmark__owner__id=pk)
             )
         except BenchmarkModel.DoesNotExist:
             raise Http404

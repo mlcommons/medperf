@@ -153,11 +153,11 @@ class MedPerfTest(TestCase):
         target_approval_status = data["approval_status"]
         if not set_status_directly:
             data["approval_status"] = "PENDING"
-        response = self.__create_asset(data, self.api_prefix + "/mlcubes/benchmarks/")
+        response = self.__create_asset(data, self.api_prefix + "/models/benchmarks/")
         if target_approval_status != "PENDING" and not set_status_directly:
-            mlcube_id = data["model_mlcube"]
+            mlcube_id = data["model"]
             benchmark_id = data["benchmark"]
-            url = self.api_prefix + f"/mlcubes/{mlcube_id}/benchmarks/{benchmark_id}/"
+            url = self.api_prefix + f"/models/{mlcube_id}/benchmarks/{benchmark_id}/"
             self.set_credentials(approving_user)
             response = self.client.put(
                 url, {"approval_status": target_approval_status}, format="json"

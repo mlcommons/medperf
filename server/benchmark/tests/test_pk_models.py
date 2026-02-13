@@ -114,7 +114,7 @@ class BenchmarkModelGetListTest(BenchmarkTest):
         )
         self.create_mlcube_association(assoc, self.mlcube2_owner, self.bmk_owner)
 
-        self.visible_fields = ["approval_status", "created_at", "model_mlcube"]
+        self.visible_fields = ["approval_status", "created_at", "model"]
         self.set_credentials(self.actor)
 
     def test_generic_get_benchmark_models_list(self):

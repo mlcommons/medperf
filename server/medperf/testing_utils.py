@@ -103,7 +103,7 @@ def mock_dataset(data_preparation_mlcube, **kwargs):
 
 def mock_benchmark(
     data_preparation_mlcube,
-    reference_model_mlcube,
+    reference_model,
     data_evaluator_mlcube,
     **kwargs,
 ):
@@ -115,7 +115,7 @@ def mock_benchmark(
         "demo_dataset_tarball_hash": "string",
         "demo_dataset_generated_uid": "string",
         "data_preparation_mlcube": data_preparation_mlcube,
-        "reference_model_mlcube": reference_model_mlcube,
+        "reference_model": reference_model,
         "data_evaluator_mlcube": data_evaluator_mlcube,
         "metadata": {"key": "value"},
         "state": "DEVELOPMENT",
@@ -176,7 +176,7 @@ def mock_dataset_association(benchmark, dataset, **kwargs):
 
 def mock_mlcube_association(benchmark, mlcube, **kwargs):
     data = {
-        "model_mlcube": mlcube,
+        "model": mlcube,
         "benchmark": benchmark,
         "metadata": {"key": "value"},
         "approval_status": "PENDING",
