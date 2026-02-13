@@ -33,6 +33,7 @@ class SubmitTrainingExp:
             updated_benchmark_body = submission.submit()
         ui.print("Uploaded")
         submission.write(updated_benchmark_body)
+        return submission.training_exp.id
 
     def __init__(self, training_exp_info: dict):
         self.ui = config.ui
