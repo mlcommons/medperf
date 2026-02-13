@@ -17,7 +17,7 @@ from .singularity_utils import (
     craft_singularity_run_command,
     convert_docker_image_to_sif,
 )
-from medperf.encryption import decrypt_gpg_file, check_gpg
+from medperf.encryption import SymmetricEncryption
 
 import os
 from medperf import config
@@ -43,7 +43,7 @@ class SingularityRunner(Runner):
         self.docker_image_hash: str = None
 
         if self.parser.is_container_encrypted():
-            check_gpg()
+            SymmetricEncryption().check()
 
     def _supports_nvccli(self):
         # TODO: later perhaps also check if nvidia-container-cli is installed
@@ -231,7 +231,7 @@ class SingularityRunner(Runner):
         decrypted_sif_file = tmp_path_for_file_decryption()
         try:
             # decrypt file
-            decrypt_gpg_file(
+            SymmetricEncryption().decrypt_file(
                 self.image_file_path,
                 container_decryption_key_file,
                 decrypted_sif_file,
@@ -259,7 +259,7 @@ class SingularityRunner(Runner):
         decrypted_archive_file = tmp_path_for_file_decryption()
         try:
             # decrypt file
-            decrypt_gpg_file(
+            SymmetricEncryption().decrypt_file(
                 self.image_file_path,
                 container_decryption_key_file,
                 decrypted_archive_file,
