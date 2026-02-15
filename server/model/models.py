@@ -23,10 +23,10 @@ class Model(models.Model):
     user_metadata = models.JSONField(default=dict, blank=True, null=True)
 
     type = models.CharField(choices=MODEL_TYPE, max_length=100)
-    container = models.ForeignKey(
+    container = models.OneToOneField(
         "mlcube.MlCube", null=True, blank=True, on_delete=models.PROTECT
     )
-    asset = models.ForeignKey(
+    asset = models.OneToOneField(
         "asset.Asset", null=True, blank=True, on_delete=models.PROTECT
     )
 
