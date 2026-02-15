@@ -71,7 +71,7 @@ class TestProcessBenchmark:
         benchmark_data = {
             "id": 1,
             "data_preparation_mlcube": 1,
-            "reference_model_mlcube": 2,
+            "reference_model": 2,
             "data_evaluator_mlcube": 3,
             "demo_dataset_tarball_url": "demo_url",
             "demo_dataset_tarball_hash": "demo_hash",
@@ -111,7 +111,7 @@ class TestProcessBenchmark:
         self.exec_instance.process_benchmark()
 
         # Assert
-        assert self.exec_instance.model is self.benchmark.reference_model_mlcube
+        assert self.exec_instance.model is self.benchmark.reference_model
         assert self.exec_instance.evaluator is self.benchmark.data_evaluator_mlcube
 
     @pytest.mark.parametrize("data_source", ["path", "demo", "benchmark"])
@@ -148,7 +148,7 @@ class TestProcessBenchmark:
 
         # Assert
         assert self.exec_instance.data_prep != self.benchmark.data_preparation_mlcube
-        assert self.exec_instance.model != self.benchmark.reference_model_mlcube
+        assert self.exec_instance.model != self.benchmark.reference_model
         assert self.exec_instance.evaluator != self.benchmark.data_evaluator_mlcube
 
     def test_demo_info_set_from_benchmark_when_data_source_is_benchmark(self):

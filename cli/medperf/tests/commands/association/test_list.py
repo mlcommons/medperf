@@ -15,7 +15,7 @@ PATCH_LIST = "medperf.commands.association.list.{}"
         ),
         (
             {"benchmark": True, "mlcube": True},
-            ["benchmark", "model_mlcube"],
+            ["benchmark", "model"],
         ),
         (
             {"training_exp": True, "dataset": True},

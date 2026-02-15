@@ -27,7 +27,7 @@ def mock_benchmark(mocker, state_variables):
             name="bmk name",
             data_evaluator_mlcube=evaluator["uid"],
             data_preparation_mlcube=benchmark_prep_cube,
-            reference_model_mlcube=benchmark_models[0],
+            reference_model=benchmark_models[0],
         )
 
     mocker.patch(PATCH_EXECUTION.format("Benchmark.get"), side_effect=__get_side_effect)

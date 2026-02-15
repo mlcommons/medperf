@@ -272,7 +272,7 @@ def test_get_benchmarks_calls_benchmarks_path(mocker, server, body):
 
 def test_get_benchmark_model_associations_calls_expected_functions(mocker, server):
     # Arrange
-    assocs = [{"model_mlcube": uid} for uid in [1, 2, 3]]
+    assocs = [{"model": uid} for uid in [1, 2, 3]]
     spy_list = mocker.patch(
         patch_server.format("REST._REST__get_list"), return_value=assocs
     )
@@ -446,7 +446,7 @@ def test_associate_benchmark_model_posts_association_data(
     # Arrange
     data = {
         "approval_status": Status.PENDING.value,
-        "model_mlcube": cube_uid,
+        "model": cube_uid,
         "benchmark": benchmark_uid,
         "metadata": {},
     }
