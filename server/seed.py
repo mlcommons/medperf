@@ -34,7 +34,7 @@ def populate_mock_benchmarks(api_server, admin_token):
                 "demo_dataset_tarball_hash": "71faabd59139bee698010a0ae3a69e16d97bc4f2dde799d9e187b94ff9157c00",
                 "demo_dataset_generated_uid": "730d2474d8f22340d9da89fa2eb925fcb95683e0",
                 "data_preparation_mlcube": 1,
-                "reference_model_mlcube": 1,
+                "reference_model": 1,
                 "data_evaluator_mlcube": 1,
                 "state": "OPERATION",
             },

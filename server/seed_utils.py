@@ -168,10 +168,6 @@ def create_benchmark(api_server, benchmark_owner_token, assets_path):
         },
         "id",
     )
-    print(
-        "Reference Model Executor MlCube Created(by Benchmark Owner). ID:",
-        reference_model_executor_mlcube,
-    )
 
     # Update state of the Reference Model Executor MLCube to OPERATION
     reference_model_executor_mlcube_state = api_server.request(
@@ -185,6 +181,23 @@ def create_benchmark(api_server, benchmark_owner_token, assets_path):
         "Reference Model Executor MlCube state updated to",
         reference_model_executor_mlcube_state,
         "by Benchmark Owner",
+    )
+    # create reference model executor
+    reference_model_executor = api_server.request(
+        "/models/",
+        "POST",
+        benchmark_owner_token,
+        {
+            "name": "chestxray_cnn_model",
+            "type": "CONTAINER",
+            "container": reference_model_executor_mlcube,
+            "metadata": {},
+        },
+        "id",
+    )
+    print(
+        "Reference Model Executor Created(by Benchmark Owner). ID:",
+        reference_model_executor,
     )
 
     evaluator_container_config = load_container_config(assets_path, "metrics")
@@ -237,7 +250,7 @@ def create_benchmark(api_server, benchmark_owner_token, assets_path):
             "demo_dataset_tarball_hash": "71faabd59139bee698010a0ae3a69e16d97bc4f2dde799d9e187b94ff9157c00",
             "demo_dataset_generated_uid": "730d2474d8f22340d9da89fa2eb925fcb95683e0",
             "data_preparation_mlcube": data_preprocessor_mlcube,
-            "reference_model_mlcube": reference_model_executor_mlcube,
+            "reference_model": reference_model_executor,
             "data_evaluator_mlcube": data_evaluator_mlcube,
         },
         "id",
@@ -287,7 +300,6 @@ def create_model(
         },
         "id",
     )
-    print("Model MLCube Created(by Model Owner). ID:", model_executor1_mlcube)
 
     # Update state of the Model MLCube to OPERATION
     model_executor1_mlcube_state = api_server.request(
@@ -303,13 +315,31 @@ def create_model(
         "by Model Owner",
     )
 
+    # create model executor
+    model_executor1 = api_server.request(
+        "/models/",
+        "POST",
+        benchmark_owner_token,
+        {
+            "name": "chestxray_mobilenet_model",
+            "type": "CONTAINER",
+            "container": model_executor1_mlcube,
+            "metadata": {},
+        },
+        "id",
+    )
+    print(
+        "Model Executor Created(by Model Owner). ID:",
+        model_executor1,
+    )
+
     # Associate the model-executor1 mlcube to the created benchmark by model owner user
     model_executor1_in_benchmark = api_server.request(
-        "/mlcubes/benchmarks/",
+        "/models/benchmarks/",
         "POST",
         model_owner_token,
         {
-            "model_mlcube": model_executor1_mlcube,
+            "model": model_executor1,
             "benchmark": benchmark,
             "metadata": {"key1": "value1", "key2": "value2"},
         },
@@ -317,8 +347,8 @@ def create_model(
     )
 
     print(
-        "Model MlCube Id:",
-        model_executor1_mlcube,
+        "Model Executor Id:",
+        model_executor1,
         "associated to Benchmark Id:",
         benchmark,
         "(by Model Owner) which is in",
@@ -328,19 +358,15 @@ def create_model(
 
     # Mark the model-executor1 association with created benchmark as approved by benchmark owner
     model_executor1_in_benchmark_status = api_server.request(
-        "/mlcubes/"
-        + str(model_executor1_mlcube)
-        + "/benchmarks/"
-        + str(benchmark)
-        + "/",
+        "/models/" + str(model_executor1) + "/benchmarks/" + str(benchmark) + "/",
         "PUT",
         benchmark_owner_token,
         {"approval_status": "APPROVED"},
         "approval_status",
     )
     print(
-        "Model MlCube Id:",
-        model_executor1_mlcube,
+        "Model Executor Id:",
+        model_executor1,
         "associated to Benchmark Id:",
         benchmark,
         "is marked",
