@@ -8,7 +8,6 @@ from medperf.commands.list import EntityList
 from medperf.commands.view import EntityView
 from medperf.commands.mlcube.create import CreateCube
 from medperf.commands.mlcube.submit import SubmitCube
-from medperf.commands.mlcube.associate import AssociateCube
 from medperf.commands.mlcube.run_test import run_mlcube
 from medperf.commands.mlcube.grant_access import GrantAccess
 from medperf.commands.mlcube.revoke_user_access import RevokeUserAccess
@@ -194,23 +193,6 @@ def submit(
         parameters_config=parameters_file,
         decryption_key=decryption_key,
     )
-    config.ui.print("✅ Done!")
-
-
-@app.command("associate")
-@clean_except
-def associate(
-    benchmark_uid: int = typer.Option(..., "--benchmark", "-b", help="Benchmark UID"),
-    model_uid: int = typer.Option(..., "--model_uid", "-m", help="Model UID"),
-    approval: bool = typer.Option(False, "-y", help="Skip approval step"),
-    no_cache: bool = typer.Option(
-        False,
-        "--no-cache",
-        help="Execute the test even if results already exist",
-    ),
-):
-    """Associates a model to a benchmark"""
-    AssociateCube.run(model_uid, benchmark_uid, approved=approval, no_cache=no_cache)
     config.ui.print("✅ Done!")
 
 

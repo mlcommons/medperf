@@ -8,7 +8,7 @@ from medperf.entities.report import TestReport
 from medperf.exceptions import InvalidArgumentError
 from medperf.utils import sanitize_path
 from .validate_params import CompatibilityTestParamsValidator
-from .utils import download_demo_data, prepare_cube, create_test_dataset
+from .utils import download_demo_data, prepare_cube, create_test_dataset, prepare_model
 import medperf.config as config
 
 
@@ -106,6 +106,7 @@ class CompatibilityTestExecution:
         test_exec.process_benchmark()
         with config.ui.interactive():
             test_exec.prepare_cubes()
+            test_exec.prepare_model()
             test_exec.prepare_dataset()
         test_exec.initialize_report()
         results = test_exec.cached_results()
@@ -165,7 +166,7 @@ class CompatibilityTestExecution:
 
         self.dataset = None
         self.data_prep_cube = None
-        self.model_cube = None
+        self.model = None
         self.evaluator_cube = None
 
         # Decryption key is used for compatibility test of encrypted containers
@@ -204,7 +205,7 @@ class CompatibilityTestExecution:
         benchmark = Benchmark.get(self.benchmark_uid, local_only=self.offline)
         if self.data_source != "prepared":
             self.data_prep = self.data_prep or benchmark.data_preparation_mlcube
-        self.model = self.model or benchmark.reference_model_mlcube
+        self.model = self.model or benchmark.reference_model
         self.evaluator = self.evaluator or benchmark.data_evaluator_mlcube
         if self.data_source == "benchmark":
             self.demo_dataset_url = benchmark.demo_dataset_tarball_url
@@ -228,21 +229,22 @@ class CompatibilityTestExecution:
                 local_only=self.offline,
             )
 
-        logging.info(f"Establishing the model container: {self.model}")
-        self.model_cube = prepare_cube(
-            self.model,
-            self.model_parameters,
-            self.model_additional,
-            local_only=self.offline,
-            use_local_container_image=self.use_local_model_image,
-            decryption_key_file_path=self.model_decryption_key,
-        )
         logging.info(f"Establishing the evaluator container: {self.evaluator}")
         self.evaluator_cube = prepare_cube(
             self.evaluator,
             self.evaluator_parameters,
             self.evaluator_additional,
             local_only=self.offline,
+        )
+
+    def prepare_model(self):
+        logging.info(f"Establishing the model container: {self.model}")
+        self.model = prepare_model(
+            self.model,
+            self.model_parameters,
+            self.model_additional,
+            local_only=self.offline,
+            decryption_key_file_path=self.model_decryption_key,
         )
 
     def prepare_dataset(self):
@@ -283,7 +285,7 @@ class CompatibilityTestExecution:
             "labels_path": self.labels_path,
             "prepared_data_hash": self.data_uid,
             "data_preparation_mlcube": self.data_prep_cube.identifier,
-            "model": self.model_cube.identifier,
+            "model": self.model.identifier,
             "data_evaluator_mlcube": self.evaluator_cube.identifier,
         }
         self.report = TestReport(**report_data)
@@ -315,9 +317,10 @@ class CompatibilityTestExecution:
         """
         execution_summary = ExecutionFlow.run(
             dataset=self.dataset,
-            model=self.model_cube,
+            model=self.model,
             evaluator=self.evaluator_cube,
             ignore_model_errors=False,
+            local_model=self.use_local_model_image,
         )
         return execution_summary["results"]
 

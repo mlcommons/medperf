@@ -69,7 +69,7 @@ class DockerRunner(Runner):
         get_hash_timeout: int = None,
     ):
         file_url = self.parser.get_setup_args()
-        image_path, computed_image_hash = resources.get_cube_image(
+        image_path, computed_image_hash = resources.get_hashed_file(
             file_url, expected_image_hash
         )  # Hash checking happens in resources
         self.image_archive_path = image_path

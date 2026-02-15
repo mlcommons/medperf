@@ -7,7 +7,6 @@ from medperf.entities.benchmark import Benchmark
 from medperf.commands.list import EntityList
 from medperf.commands.view import EntityView
 from medperf.commands.benchmark.submit import SubmitBenchmark
-from medperf.commands.benchmark.associate import AssociateBenchmark
 from medperf.commands.execution.create import BenchmarkExecution
 from medperf.commands.benchmark.update_associations_poilcy import (
     UpdateAssociationsPolicy,
@@ -88,8 +87,8 @@ def submit(
     data_preparation_container: int = typer.Option(
         ..., "--data-preparation-container", "-p", help="Data Preparation container UID"
     ),
-    reference_model_container: int = typer.Option(
-        ..., "--reference-model-container", "-m", help="Reference Model container UID"
+    reference_model: int = typer.Option(
+        ..., "--reference-model", "-m", help="Reference Model UID"
     ),
     evaluator_container: int = typer.Option(
         ..., "--evaluator-container", "-e", help="Evaluator container UID"
@@ -113,39 +112,13 @@ def submit(
         "demo_dataset_tarball_url": demo_url,
         "demo_dataset_tarball_hash": demo_hash,
         "data_preparation_mlcube": data_preparation_container,
-        "reference_model_mlcube": reference_model_container,
+        "reference_model": reference_model,
         "data_evaluator_mlcube": evaluator_container,
         "state": "OPERATION" if operational else "DEVELOPMENT",
     }
     SubmitBenchmark.run(
         benchmark_info,
         skip_data_preparation_step=skip_data_preparation_step,
-    )
-    config.ui.print("✅ Done!")
-
-
-@app.command("associate")
-@clean_except
-def associate(
-    benchmark_uid: int = typer.Option(
-        ..., "--benchmark_uid", "-b", help="UID of benchmark to associate with"
-    ),
-    model_uid: int = typer.Option(
-        None, "--model_uid", "-m", help="UID of model container to associate"
-    ),
-    dataset_uid: int = typer.Option(
-        None, "--data_uid", "-d", help="Server UID of registered dataset to associate"
-    ),
-    approval: bool = typer.Option(False, "-y", help="Skip approval step"),
-    no_cache: bool = typer.Option(
-        False,
-        "--no-cache",
-        help="Execute the test even if results already exist",
-    ),
-):
-    """Associates a benchmark with a given model or dataset. Only one option at a time."""
-    AssociateBenchmark.run(
-        benchmark_uid, model_uid, dataset_uid, approved=approval, no_cache=no_cache
     )
     config.ui.print("✅ Done!")
 

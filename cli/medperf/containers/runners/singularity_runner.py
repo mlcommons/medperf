@@ -88,7 +88,7 @@ class SingularityRunner(Runner):
         get_hash_timeout: int = None,
     ):
         image_file_url = self.parser.get_setup_args()
-        image_file_path, computed_image_hash = resources.get_cube_image(
+        image_file_path, computed_image_hash = resources.get_hashed_file(
             image_file_url, expected_image_hash
         )  # Hash checking happens in resources
         self.image_file_path = image_file_path

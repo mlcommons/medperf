@@ -9,13 +9,14 @@ from medperf.utils import (
     store_decryption_key,
 )
 from medperf.exceptions import InvalidArgumentError, InvalidEntityError
-
+from medperf.entities.model import Model
 from medperf.comms.entity_resources import resources
 from medperf.entities.cube import Cube
 import medperf.config as config
 import os
 import yaml
 import logging
+from medperf.enums import ModelType
 
 
 def download_demo_data(dset_url, dset_hash):
@@ -67,6 +68,43 @@ def prepare_local_cube(container_config_path, parameters=None, additional=None):
         cube.additional_files_folder_path = additional
 
     return cube
+
+
+def prepare_model(
+    model_uid: str,
+    parameters: str = None,
+    additional: str = None,
+    local_only: bool = False,
+    decryption_key_file_path: os.PathLike = None,
+):
+    # Test if value looks like an model id, if so skip path validation
+    if str(model_uid).isdigit():
+        logging.info(f"model identifier {model_uid} resembles a server ID")
+        model = Model.get(model_uid, local_only=local_only)
+        if model.type == ModelType.CONTAINER.value:
+            # execution later will download run files if needed
+            container_obj = Cube.get(model.container, local_only=local_only)
+            setup_cube(container_obj, False, decryption_key_file_path)
+        return model
+
+    else:
+        # it's a local container path
+        container = prepare_cube(
+            model_uid,
+            parameters,
+            additional,
+            local_only,
+            False,
+            decryption_key_file_path,
+        )
+        temp_metadata = {
+            "id": None,
+            "type": ModelType.CONTAINER.value,
+            "name": "local_" + generate_tmp_uid(),
+            "container": container.identifier,
+            "for_test": True,
+        }
+        return Model(**temp_metadata)
 
 
 def prepare_cube(

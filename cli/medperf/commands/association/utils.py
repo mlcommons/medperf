@@ -3,13 +3,11 @@ from medperf import config
 from pydantic.datetime_parse import parse_datetime
 
 
-def validate_args(
-    benchmark, training_exp, dataset, model_mlcube, aggregator, approval_status
-):
+def validate_args(benchmark, training_exp, dataset, model, aggregator, approval_status):
     training_exp = bool(training_exp)
     benchmark = bool(benchmark)
     dataset = bool(dataset)
-    model_mlcube = bool(model_mlcube)
+    model = bool(model)
     aggregator = bool(aggregator)
 
     if approval_status is not None:
@@ -21,11 +19,11 @@ def validate_args(
         raise InvalidArgumentError(
             "One training experiment or a benchmark flag must be provided"
         )
-    if sum([dataset, model_mlcube, aggregator]) != 1:
+    if sum([dataset, model, aggregator]) != 1:
         raise InvalidArgumentError(
-            "One dataset, container, or aggregator flag must be provided"
+            "One dataset, model, or aggregator flag must be provided"
         )
-    if training_exp and model_mlcube:
+    if training_exp and model:
         raise InvalidArgumentError(
             "Invalid combination of arguments. There are no associations"
             " between training experiments and models"
@@ -85,7 +83,7 @@ def get_experiment_associations(
             "dataset": config.comms.get_training_datasets_associations,
         },
         "benchmark": {
-            "model_mlcube": config.comms.get_benchmark_models_associations,
+            "model": config.comms.get_benchmark_models_associations,
         },
     }
     try:
@@ -118,7 +116,7 @@ def get_user_associations(
         },
         "benchmark": {
             "dataset": config.comms.get_user_benchmarks_datasets_associations,
-            "model_mlcube": config.comms.get_user_benchmarks_models_associations,
+            "model": config.comms.get_user_benchmarks_models_associations,
         },
     }
     try:

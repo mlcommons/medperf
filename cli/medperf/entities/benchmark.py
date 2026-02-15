@@ -28,7 +28,7 @@ class Benchmark(Entity, ApprovableSchema, DeployableSchema):
     demo_dataset_tarball_hash: Optional[str]
     demo_dataset_generated_uid: Optional[str]
     data_preparation_mlcube: int
-    reference_model_mlcube: int
+    reference_model: int
     data_evaluator_mlcube: int
     metadata: dict = {}
     user_metadata: dict = {}
@@ -98,10 +98,10 @@ class Benchmark(Entity, ApprovableSchema, DeployableSchema):
         associations = get_experiment_associations(
             experiment_id=benchmark_uid,
             experiment_type="benchmark",
-            component_type="model_mlcube",
+            component_type="model",
             approval_status="APPROVED",
         )
-        models_uids = [assoc["model_mlcube"] for assoc in associations]
+        models_uids = [assoc["model"] for assoc in associations]
         return models_uids
 
     @classmethod
@@ -129,7 +129,7 @@ class Benchmark(Entity, ApprovableSchema, DeployableSchema):
         """
 
         experiment_type = "benchmark"
-        component_type = "model_mlcube"
+        component_type = "model"
 
         associations = get_user_associations(
             experiment_type=experiment_type,
@@ -173,7 +173,7 @@ class Benchmark(Entity, ApprovableSchema, DeployableSchema):
             "Documentation": self.docs_url,
             "Created At": self.created_at,
             "Data Preparation Container": int(self.data_preparation_mlcube),
-            "Reference Model Container": int(self.reference_model_mlcube),
+            "Reference Model": int(self.reference_model),
             "Data Evaluator Container": int(self.data_evaluator_mlcube),
             "State": self.state,
             "Approval Status": self.approval_status,

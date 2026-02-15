@@ -294,6 +294,32 @@ class REST(Comms):
         error_msg = "Could not retrieve training event"
         return self.__get(url, error_msg)
 
+    def get_asset(self, asset_uid: int) -> dict:
+        """Retrieves a specific asset
+
+        Args:
+            asset_uid (int): Asset UID
+
+        Returns:
+            dict: Asset metadata
+        """
+        url = f"{self.server_url}/assets/{asset_uid}/"
+        error_msg = "Could not retrieve asset"
+        return self.__get(url, error_msg)
+
+    def get_model(self, model_uid: int) -> dict:
+        """Retrieves a specific model
+
+        Args:
+            model_uid (int): Model UID
+
+        Returns:
+            dict: Model metadata
+        """
+        url = f"{self.server_url}/models/{model_uid}/"
+        error_msg = "Could not retrieve model"
+        return self.__get(url, error_msg)
+
     # get object of an object
     def get_experiment_event(self, training_exp_id: int) -> dict:
         """Retrieves the training experiment's event object from the server
@@ -422,6 +448,26 @@ class REST(Comms):
         error_msg = "Could not retrieve encrypted keys"
         return self.__get_list(url, filters=filters, error_msg=error_msg)
 
+    def get_assets(self, filters=dict()) -> List[dict]:
+        """Retrieves all assets in the platform
+
+        Returns:
+            List[dict]: List of data from all assets
+        """
+        url = f"{self.server_url}/assets/"
+        error_msg = "Could not retrieve assets"
+        return self.__get_list(url, filters=filters, error_msg=error_msg)
+
+    def get_models(self, filters=dict()) -> List[dict]:
+        """Retrieves all models in the platform
+
+        Returns:
+            List[dict]: List of data from all models
+        """
+        url = f"{self.server_url}/models/"
+        error_msg = "Could not retrieve models"
+        return self.__get_list(url, filters=filters, error_msg=error_msg)
+
     # get user list
     def get_user_cubes(self, filters=dict()) -> List[dict]:
         """Retrieves metadata from all cubes registered by the user
@@ -498,6 +544,26 @@ class REST(Comms):
         error_msg = "Could not retrieve user Encrypted Keys"
         return self.__get_list(url, filters=filters, error_msg=error_msg)
 
+    def get_user_assets(self, filters=dict()) -> List[dict]:
+        """Retrieves all assets registered by the user
+
+        Returns:
+            List[dict]: List of dictionaries containing the assets registration information
+        """
+        url = f"{self.server_url}/me/assets/"
+        error_msg = "Could not retrieve user assets"
+        return self.__get_list(url, filters=filters, error_msg=error_msg)
+
+    def get_user_models(self, filters=dict()) -> List[dict]:
+        """Retrieves all models registered by the user
+
+        Returns:
+            List[dict]: List of dictionaries containing the models registration information
+        """
+        url = f"{self.server_url}/me/models/"
+        error_msg = "Could not retrieve user models"
+        return self.__get_list(url, filters=filters, error_msg=error_msg)
+
     def get_user_certificates(self, filters=dict()) -> dict:
         """Retrieves all certificates owned by the user
 
@@ -530,13 +596,13 @@ class REST(Comms):
         return self.__get_list(url, filters=filters, error_msg=error_msg)
 
     def get_user_benchmarks_models_associations(self, filters=dict()) -> List[dict]:
-        """Get all cube associations related to the current user
+        """Get all model associations related to the current user
 
         Returns:
             List[dict]: List containing all associations information
         """
-        url = f"{self.server_url}/me/mlcubes/associations/"
-        error_msg = "Could not retrieve user mlcubes benchmark associations"
+        url = f"{self.server_url}/me/models/associations/"
+        error_msg = "Could not retrieve user models benchmark associations"
         return self.__get_list(url, filters=filters, error_msg=error_msg)
 
     def get_user_training_datasets_associations(self, filters=dict()) -> List[dict]:
@@ -686,6 +752,32 @@ class REST(Comms):
         error_msg = "could not upload training event"
         return self.__post(url, json=trainnig_event_dict, error_msg=error_msg)
 
+    def upload_asset(self, asset_dict: dict) -> int:
+        """Uploads a new asset to the platform
+
+        Args:
+            asset_dict (dict): Dictionary containing asset data
+
+        Returns:
+            int: id of the created asset instance
+        """
+        url = f"{self.server_url}/assets/"
+        error_msg = "could not upload asset"
+        return self.__post(url, json=asset_dict, error_msg=error_msg)
+
+    def upload_model(self, model_dict: dict) -> int:
+        """Uploads a new model to the platform
+
+        Args:
+            model_dict (dict): Dictionary containing model data
+
+        Returns:
+            int: id of the created model instance
+        """
+        url = f"{self.server_url}/models/"
+        error_msg = "could not upload model"
+        return self.__post(url, json=model_dict, error_msg=error_msg)
+
     def upload_certificate(self, certificate_dict: dict) -> int:
         """Uploads a new training event to the server.
 
@@ -721,23 +813,23 @@ class REST(Comms):
         return self.__post(url, json=data, error_msg=error_msg)
 
     def associate_benchmark_model(
-        self, cube_uid: int, benchmark_uid: int, metadata: dict = {}
+        self, model_uid: int, benchmark_uid: int, metadata: dict = {}
     ):
-        """Create an MLCube-Benchmark association
+        """Create a Model-Benchmark association
 
         Args:
-            cube_uid (int): MLCube UID
+            model_uid (int): Model UID
             benchmark_uid (int): Benchmark UID
             metadata (dict, optional): Additional metadata. Defaults to {}.
         """
-        url = f"{self.server_url}/mlcubes/benchmarks/"
+        url = f"{self.server_url}/models/benchmarks/"
         data = {
             "approval_status": Status.PENDING.value,
-            "model_mlcube": cube_uid,
+            "model": model_uid,
             "benchmark": benchmark_uid,
             "metadata": metadata,
         }
-        error_msg = "Could not associate mlcube to benchmark"
+        error_msg = "Could not associate model to benchmark"
         return self.__post(url, json=data, error_msg=error_msg)
 
     def associate_training_dataset(self, data_uid: int, training_exp_id: int):
@@ -789,19 +881,17 @@ class REST(Comms):
         self.__put(url, json=data, error_msg=error_msg)
 
     def update_benchmark_model_association(
-        self, benchmark_uid: int, mlcube_uid: int, data: dict
+        self, benchmark_uid: int, model_uid: int, data: dict
     ):
-        """Approves an mlcube association
+        """Approves a model association
 
         Args:
-            mlcube_uid (int): Dataset UID
+            model_uid (int): Model UID
             benchmark_uid (int): Benchmark UID
             status (str): Approval status to set for the association
         """
-        url = f"{self.server_url}/mlcubes/{mlcube_uid}/benchmarks/{benchmark_uid}/"
-        error_msg = (
-            f"Could update association: mlcube {mlcube_uid}, benchmark {benchmark_uid}"
-        )
+        url = f"{self.server_url}/models/{model_uid}/benchmarks/{benchmark_uid}/"
+        error_msg = f"Could not update association: model {model_uid}, benchmark {benchmark_uid}"
         self.__put(url, json=data, error_msg=error_msg)
 
     def update_training_aggregator_association(
@@ -872,6 +962,16 @@ class REST(Comms):
     def update_many_encrypted_keys(self, data: list[dict]):
         url = f"{self.server_url}/encrypted_keys/bulk/"
         error_msg = "Could not update encrypted keys"
+        return self.__put(url, json=data, error_msg=error_msg)
+
+    def update_asset(self, asset_id: int, data: dict):
+        url = f"{self.server_url}/assets/{asset_id}/"
+        error_msg = "Could not update asset"
+        return self.__put(url, json=data, error_msg=error_msg)
+
+    def update_model(self, model_id: int, data: dict):
+        url = f"{self.server_url}/models/{model_id}/"
+        error_msg = "Could not update model"
         return self.__put(url, json=data, error_msg=error_msg)
 
     # misc

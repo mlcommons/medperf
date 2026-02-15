@@ -26,7 +26,7 @@ class SubmitBenchmark:
                     demo_url (str): benchmark demo dataset url
                     demo_hash (str): benchmark demo dataset hash
                     data_preparation_mlcube (int): benchmark data preparation mlcube uid
-                    reference_model_mlcube (int): benchmark reference model mlcube uid
+                    reference_model (int): benchmark reference model uid
                     evaluator_mlcube (int): benchmark data evaluator mlcube uid
         """
         ui = config.ui

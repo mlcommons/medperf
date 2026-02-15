@@ -32,7 +32,7 @@ class AssociateBenchmarkDataset:
         execution = BenchmarkExecution.run(
             benchmark_uid,
             data_uid,
-            [benchmark.reference_model_mlcube],
+            [benchmark.reference_model],
             no_cache=no_cache,
         )[0]
         results = execution.read_results()
