@@ -16,17 +16,17 @@ def createmodelsfromcontainers(
 
     model_container_ids = set()
     model_container_ids.update(
-        Benchmark.objects.exclude(cube__isnull=True)
+        Benchmark.objects.exclude(reference_model_mlcube__isnull=True)
         .values_list("reference_model_mlcube", flat=True)
         .distinct()
     )
     model_container_ids.update(
-        BenchmarkModel.objects.exclude(cube__isnull=True)
+        BenchmarkModel.objects.exclude(model_mlcube__isnull=True)
         .values_list("model_mlcube", flat=True)
         .distinct()
     )
     model_container_ids.update(
-        ModelResult.objects.exclude(cube__isnull=True)
+        ModelResult.objects.exclude(model__isnull=True)
         .values_list("model", flat=True)
         .distinct()
     )
