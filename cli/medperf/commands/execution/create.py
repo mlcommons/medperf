@@ -213,6 +213,7 @@ class BenchmarkExecution:
                         "cached": True,
                         "error": "",
                         "partial": execution.is_partial(),
+                        "confidential": "N/A",
                     }
                 )
                 continue
@@ -235,6 +236,7 @@ class BenchmarkExecution:
                         "cached": False,
                         "error": str(e),
                         "partial": "N/A",
+                        "confidential": model.is_cc_mode(),
                     }
                 )
                 continue
@@ -251,6 +253,7 @@ class BenchmarkExecution:
                     "cached": False,
                     "error": "",
                     "partial": execution_summary["partial"],
+                    "confidential": model.is_cc_mode(),
                 }
             )
         return [experiment["execution"] for experiment in self.experiments]
@@ -287,7 +290,14 @@ class BenchmarkExecution:
         return f"b{self.benchmark_uid}m{model_uid}d{self.data_uid}"
 
     def print_summary(self):
-        headers = ["model", "Execution UID", "partial result", "from cache", "error"]
+        headers = [
+            "model",
+            "Execution UID",
+            "partial result",
+            "from cache",
+            "confidential",
+            "error",
+        ]
         data_lists_for_display = []
 
         num_total = len(self.experiments)
@@ -305,12 +315,20 @@ class BenchmarkExecution:
                         experiment["execution"].id,
                         experiment["partial"],
                         experiment["cached"],
+                        experiment["confidential"],
                         experiment["error"],
                     ]
                 )
             else:
                 data_lists_for_display.append(
-                    [experiment["model_uid"], "", "", "", experiment["error"]]
+                    [
+                        experiment["model_uid"],
+                        "",
+                        "",
+                        "",
+                        experiment["confidential"],
+                        experiment["error"],
+                    ]
                 )
 
             # statistics

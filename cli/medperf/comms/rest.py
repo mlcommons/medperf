@@ -974,7 +974,25 @@ class REST(Comms):
         error_msg = "Could not update model"
         return self.__put(url, json=data, error_msg=error_msg)
 
+    def update_user(self, user_id: int, data: dict):
+        url = f"{self.server_url}/users/{user_id}/"
+        error_msg = "Could not update user"
+        return self.__put(url, json=data, error_msg=error_msg)
+
     # misc
+    def get_user_metadata(self, user_id: int) -> dict:
+        """Retrieves a specific user's metadata
+
+        Args:
+            user_id (int): User ID
+
+        Returns:
+            dict: User metadata
+        """
+        url = f"{self.server_url}/users/{user_id}/metadata/"
+        error_msg = "Could not retrieve user metadata"
+        return self.__get(url, error_msg)
+
     def get_benchmark_executions(self, benchmark_id: int, filters=dict()) -> dict:
         """Retrieves all executions for a given benchmark
 

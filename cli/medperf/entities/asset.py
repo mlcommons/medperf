@@ -89,7 +89,7 @@ class Asset(Entity, DeployableSchema):
         )
         return asset_archive_path
 
-    def __get_archive_path(self):
+    def get_archive_path(self):
         if self.asset_url == "local":
             return self.__prepare_local_asset()
         else:
@@ -100,7 +100,7 @@ class Asset(Entity, DeployableSchema):
         untar(archive_path, remove=False, extract_to=self.asset_files_path)
 
     def prepare_asset_files(self):
-        archive_file_path = self.__get_archive_path()
+        archive_file_path = self.get_archive_path()
         self.__extract_asset(archive_file_path)
 
     def display_dict(self):

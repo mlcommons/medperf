@@ -22,6 +22,7 @@ import medperf.commands.ca.ca as ca
 import medperf.commands.certificate.certificate as certificate
 import medperf.commands.asset.asset as asset
 import medperf.commands.model.model as model_cmds
+import medperf.commands.cc.cc as cc_cmds
 import medperf.commands.storage as storage
 import medperf.web_ui.app as web_ui
 from medperf.utils import check_for_updates, get_webui_properties
@@ -44,6 +45,7 @@ app.add_typer(ca.app, name="ca", help="Manage CAs")
 app.add_typer(certificate.app, name="certificate", help="Manage certificates")
 app.add_typer(asset.app, name="asset", help="Manage assets")
 app.add_typer(model_cmds.app, name="model", help="Manage models")
+app.add_typer(cc_cmds.app, name="confidential", help="Manage confidential computing")
 app.add_typer(web_ui.app, name="web-ui", help="local web UI to manage medperf entities")
 
 

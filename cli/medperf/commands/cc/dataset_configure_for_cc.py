@@ -1,0 +1,26 @@
+from medperf.entities.dataset import Dataset
+from medperf.asset_management.asset_management import setup_dataset_for_cc
+import json
+from medperf import config
+from medperf.exceptions import MedperfException
+
+
+class DatasetConfigureForCC:
+    @classmethod
+    def run(cls, data_uid: int, cc_config_file: str):
+        dataset = Dataset.get(data_uid)
+        if dataset.is_cc_configured():
+            raise MedperfException(
+                f"Dataset {dataset.id} is already configured for confidential computing."
+            )
+        with open(cc_config_file) as f:
+            cc_config = json.load(f)
+        dataset.set_cc_config(cc_config)
+        body = {"user_metadata": dataset.user_metadata}
+        config.comms.update_dataset(dataset.id, body)
+        setup_dataset_for_cc(dataset)
+
+        # mark as set
+        dataset.mark_cc_configured()
+        body = {"user_metadata": dataset.user_metadata}
+        config.comms.update_dataset(dataset.id, body)

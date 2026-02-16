@@ -2,6 +2,7 @@ from .token_storage import TokenStore
 from medperf.config_management import read_config, write_config
 from medperf import config
 from medperf.exceptions import AuthenticationError
+from medperf.entities.user import User
 
 
 def read_user_account():
@@ -87,8 +88,11 @@ def set_medperf_user_data():
     return medperf_user
 
 
-def get_medperf_user_data():
+def get_medperf_user_data(use_cache=True):
     """Return cached medperf user data. Get from the server if not found"""
+    if not use_cache:
+        return set_medperf_user_data()
+
     config_p = read_config()
     if config.credentials_keyword not in config_p.active_profile:
         raise AuthenticationError("You are not logged in")
@@ -100,3 +104,9 @@ def get_medperf_user_data():
         medperf_user = set_medperf_user_data()
 
     return medperf_user
+
+
+def get_medperf_user_object():
+    """Get the MedPerf user as a User object"""
+    user_data = get_medperf_user_data(False)
+    return User(**user_data)

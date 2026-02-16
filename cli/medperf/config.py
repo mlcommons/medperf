@@ -69,6 +69,7 @@ creds_folder = str(config_storage / ".tokens")
 tokens_db = str(config_storage / ".tokens_db")
 pki_assets = str(config_storage / ".pki_assets")
 container_keys_dir = str(config_storage / ".container_keys")
+cc_artifacts_dir = str(config_storage / ".cc_artifacts")
 webui_host_props = str(config_storage / ".webui_host_props")
 
 # TODO: should we change this?

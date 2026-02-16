@@ -1,6 +1,7 @@
 from typing import List, Optional
 
 from pydantic import validator
+from medperf.exceptions import MedperfException
 import medperf.config as config
 from medperf.entities.interface import Entity
 from medperf.entities.schemas import DeployableSchema
@@ -65,6 +66,30 @@ class Model(Entity, DeployableSchema):
     @property
     def local_id(self):
         return self.name
+
+    def is_cc_mode(self):
+        return "cc" in self.user_metadata
+
+    def get_cc_config(self):
+        cc_values = self.user_metadata.get("cc", {})
+        return cc_values.get("config", None)
+
+    def set_cc_config(self, cc_config: dict):
+        if "cc" not in self.user_metadata:
+            self.user_metadata["cc"] = {}
+        self.user_metadata["cc"]["config"] = cc_config
+
+    def mark_cc_configured(self):
+        if "cc" not in self.user_metadata:
+            raise MedperfException(
+                "Model does not have a cc configuration to be marked as configured"
+            )
+        self.user_metadata["cc"]["configured"] = True
+
+    def is_cc_configured(self):
+        if "cc" not in self.user_metadata:
+            return False
+        return self.user_metadata["cc"].get("configured", False)
 
     @staticmethod
     def remote_prefilter(filters: dict) -> callable:

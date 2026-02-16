@@ -56,3 +56,13 @@ class OperatorManager:
         self.__allow_operator_to_use_service_account()
         self.__grant_confidential_computing_workload_user()
         self.__grant_logging_log_writer()
+
+    def run_workload(self, dataset_cc_config: dict, model_cc_config: dict):
+        """Run workload using operator's service account"""
+        service_account_email = (
+            f"{self.workload_service_account}@"
+            f"{self.operator_project_id}.iam.gserviceaccount.com"
+        )
+        gcp_utils.run_workload_with_service_account(
+            service_account_email, dataset_cc_config, model_cc_config
+        )
