@@ -16,24 +16,20 @@ def createmodelsfromcontainers(
 
     model_container_ids = set()
     model_container_ids.update(
-        Benchmark.objects.exclude(reference_model_mlcube__isnull=True)
+        Benchmark.objects.all()
         .values_list("reference_model_mlcube", flat=True)
         .distinct()
     )
     model_container_ids.update(
-        BenchmarkModel.objects.exclude(model_mlcube__isnull=True)
-        .values_list("model_mlcube", flat=True)
-        .distinct()
+        BenchmarkModel.objects.all().values_list("model_mlcube", flat=True).distinct()
     )
     model_container_ids.update(
-        ModelResult.objects.exclude(model__isnull=True)
-        .values_list("model", flat=True)
-        .distinct()
+        ModelResult.objects.all().values_list("model", flat=True).distinct()
     )
     container_to_model = {}
     for container_id in model_container_ids:
         container = MlCube.objects.get(id=container_id)
-        owner = User.objects.get(id=container.owner_id)
+        owner = container.owner
         model_obj = Model.objects.create(
             name=f"Model for container {container.name}",
             container=container,
@@ -44,16 +40,18 @@ def createmodelsfromcontainers(
         )
         container_to_model[container_id] = model_obj
 
-    for benchmark in Benchmark.objects.exclude(reference_model_mlcube__isnull=True):
-        benchmark.reference_model = container_to_model[benchmark.reference_model_mlcube]
+    for benchmark in Benchmark.objects.all():
+        benchmark.reference_model = container_to_model[
+            benchmark.reference_model_mlcube.id
+        ]
         benchmark.save()
 
-    for benchmark_model in BenchmarkModel.objects.exclude(model_mlcube__isnull=True):
-        benchmark_model.model = container_to_model[benchmark_model.model_mlcube]
+    for benchmark_model in BenchmarkModel.objects.all():
+        benchmark_model.model = container_to_model[benchmark_model.model_mlcube.id]
         benchmark_model.save()
 
-    for model_result in ModelResult.objects.exclude(model__isnull=True):
-        model_result.the_model = container_to_model[model_result.model]
+    for model_result in ModelResult.objects.all():
+        model_result.the_model = container_to_model[model_result.model.id]
         model_result.save()
 
 
