@@ -4,17 +4,21 @@ from medperf.asset_management import gcp_utils
 
 class AssetPolicyManager:
     def __init__(self, config: dict, encryption_key_file: str):
+        asset_config = gcp_utils.GCPAssetConfig(**config)
         self.encryption_key_file = encryption_key_file
 
-        self.asset_path = config["asset_path"]
-        self.gcp_project_id = config["gcp_project_id"]
-        self.gcp_project_number = config["gcp_project_number"]
-        self.gcp_keyring_name = config["gcp_keyring_name"]
-        self.gcp_key_name = config["gcp_key_name"]
-        self.gcp_account = config["gcp_account"]
-        self.gcp_wip = config["gcp_wip"]
-        self.gcp_bucket = config["gcp_bucket"]
-        self.gcp_encrypted_key_bucket_file = config["gcp_encrypted_key_bucket_file"]
+        self.asset_path = asset_config.encrypted_asset_bucket_file
+        self.gcp_project_id = asset_config.project_id
+        self.gcp_project_number = asset_config.project_number
+        self.gcp_keyring_name = asset_config.keyring_name
+        self.gcp_key_name = asset_config.key_name
+        self.gcp_account = asset_config.account
+        self.gcp_wip = asset_config.wip
+        self.gcp_bucket = asset_config.bucket
+        self.gcp_encrypted_key_bucket_file = asset_config.encrypted_key_bucket_file
+
+        self.full_key_name = asset_config.full_key_name
+        self.full_wip_name = asset_config.full_wip_name
 
     def __create_keyring(self):
         gcp_utils.create_keyring(self.gcp_keyring_name)
@@ -23,12 +27,8 @@ class AssetPolicyManager:
         gcp_utils.create_kms_key(self.gcp_key_name, self.gcp_keyring_name)
 
     def __add_key_iam_binding(self):
-        key_resource = (
-            f"projects/{self.gcp_project_id}/locations/global/"
-            f"keyRings/{self.gcp_keyring_name}/cryptoKeys/{self.gcp_key_name}"
-        )
         gcp_utils.add_kms_key_iam_policy_binding(
-            key_resource,
+            self.full_key_name,
             f"user:{self.gcp_account}",
             "roles/cloudkms.cryptoKeyEncrypter",
         )
@@ -38,14 +38,11 @@ class AssetPolicyManager:
 
     def __encrypt_key(self):
         tmp_encrypted_key_path = generate_tmp_path()
-        key_resource = (
-            f"projects/{self.gcp_project_id}/locations/global/"
-            f"keyRings/{self.gcp_keyring_name}/cryptoKeys/{self.gcp_key_name}"
-        )
+
         gcp_utils.encrypt_with_kms_key(
             self.encryption_key_file,
             tmp_encrypted_key_path,
-            key_resource,
+            self.full_key_name,
         )
         return tmp_encrypted_key_path
 
@@ -64,56 +61,56 @@ class AssetPolicyManager:
             '+assertion.submods.gce.project_number+"::"'
             "+assertion.submods.gce.instance_id"
         )
-        attributes = [google_subject_attr]
-        for key in policy:
-            attribute = f"attribute.{key}={gcp_utils.POLICY_ATTRIBUTES_MAPPING[key]}"
-            attributes.append(attribute)
+        workload_uid_attr = (
+            "attribute.workload_uid="
+            'assertion.submods.container.image_digest+"::"+'
+            'assertion.submods.container.env_override.EXPECTED_DATA_HASH+"::"+'
+            'assertion.submods.container.env_override.EXPECTED_MODEL_HASH+"::"+'
+            "assertion.submods.container.env_override.EXPECTED_RESULT_COLLECTOR_HASH"
+        )
 
-        attribute_mapping = ",".join(attributes)
+        attribute_mapping = google_subject_attr + "," + workload_uid_attr
+        attribute_condition = 'assertion.swname == "CONFIDENTIAL_SPACE"'
+
+        if "location" in policy:
+            location_condition = f'assertion.submods.gce.zone == "{policy["location"]}"'
+            attribute_condition += f" && {location_condition}"
+
+        if "hardware" in policy:
+            hardware_condition = f'assertion.hwmodel == "{policy["hardware"]}"'
+            attribute_condition += f" && {hardware_condition}"
+
+        if "gpu_cc_mode" in policy:
+            gpu_cc_mode_condition = (
+                f'assertion.submods.nvidia_gpu.cc_mode == "{policy["gpu_cc_mode"]}"'
+            )
+            attribute_condition += f" && {gpu_cc_mode_condition}"
 
         gcp_utils.create_workload_identity_pool_oidc_provider(
-            self.gcp_wip, attribute_mapping
+            self.gcp_wip, attribute_mapping, attribute_condition
         )
 
-    def __bind_kms_decrypter_role(self, policy: dict[str, str]):
-        key_resource = (
-            f"projects/{self.gcp_project_id}/locations/global/"
-            f"keyRings/{self.gcp_keyring_name}/cryptoKeys/{self.gcp_key_name}"
-        )
-
+    def __bind_kms_decrypter_role(self, permitted_workloads: list[dict[str, str]]):
         principal_set = (
             f"principalSet://iam.googleapis.com/projects/{self.gcp_project_number}/"
-            f"locations/global/workloadIdentityPools/{self.gcp_wip}"
+            f"locations/global/workloadIdentityPools/{self.gcp_wip}/attribute.workload_uid/"
         )
-        for key, val in policy.items():
-            principal_set += f"/attribute.{key}/{val}"
+        principal_set_list = []
 
-        gcp_utils.add_kms_key_iam_policy_binding(
-            key_resource,
-            principal_set,
+        for workload in permitted_workloads:
+            workload_props = [
+                workload["image_digest"],
+                workload["EXPECTED_DATA_HASH"],
+                workload["EXPECTED_MODEL_HASH"],
+                workload["EXPECTED_RESULT_COLLECTOR_HASH"],
+            ]
+            principal_set_list.append(principal_set + "::".join(workload_props))
+
+        gcp_utils.set_kms_iam_policy(
+            self.full_key_name,
+            principal_set_list,
             "roles/cloudkms.cryptoKeyDecrypter",
         )
-
-    def __reset_kms_binding(self, role, member):
-        """Clear all members from a role, then add the new member"""
-        key_name = self.__get_kms_key_resource()
-
-        # Get current policy
-        policy = self.kms_client.get_iam_policy(request={"resource": key_name})
-
-        # Remove all bindings for this role
-        policy.bindings[:] = [
-            binding for binding in policy.bindings if binding.role != role
-        ]
-
-        # Add new binding
-        new_binding = policy_pb2.Binding(role=role, members=[member])
-        policy.bindings.append(new_binding)
-
-        # Set updated policy
-        self.kms_client.set_iam_policy(request={"resource": key_name, "policy": policy})
-
-        print(f"Set {role} to: {member}")
 
     def setup(self):
         self.__create_keyring()
@@ -121,11 +118,10 @@ class AssetPolicyManager:
         self.__add_key_iam_binding()
         self.__create_workload_identity_pool()
 
-    def setup_policy(self):
+    def setup_policy(self, policy: dict[str, str]):
         tmp_encrypted_key_path = self.__encrypt_key()
         self.__upload_encrypted_key(tmp_encrypted_key_path)
-
-    def configure_policy(self, policy: dict[str, str]):
-        # todo: split to create, and update. use gcloud python sdk
         self.__create_wip_oidc_provider(policy)
-        self.__bind_kms_decrypter_role(policy)
+
+    def configure_policy(self, permitted_workloads: list[dict[str, str]]):
+        self.__bind_kms_decrypter_role(permitted_workloads)

@@ -83,6 +83,15 @@ class Dataset(Entity, DeployableSchema):
             self.user_metadata["cc"] = {}
         self.user_metadata["cc"]["config"] = cc_config
 
+    def get_cc_policy(self):
+        cc_values = self.user_metadata.get("cc", {})
+        return cc_values.get("policy", None)
+
+    def set_cc_policy(self, cc_policy: dict):
+        if "cc" not in self.user_metadata:
+            self.user_metadata["cc"] = {}
+        self.user_metadata["cc"]["policy"] = cc_policy
+
     def mark_cc_configured(self):
         if "cc" not in self.user_metadata:
             raise MedperfException(

@@ -1094,3 +1094,33 @@ class REST(Comms):
         url = f"{self.server_url}/certificates/{certificate_id}/encrypted_keys/"
         error_msg = f"Could not retrieve encrypted keys of certificate {certificate_id}"
         return self.__get_list(url=url, filters=filters, error_msg=error_msg)
+
+    def get_model_benchmarks_associations(
+        self, model_uid: int, filters=dict()
+    ) -> List[int]:
+        """Retrieves all the benchmark associations of a model.
+
+        Args:
+            model_uid (int): UID of the desired model
+
+        Returns:
+            list[int]: List of benchmark model associations
+        """
+        url = f"{self.server_url}/models/{model_uid}/benchmarks/"
+        error_msg = "Could not get model benchmarks associations"
+        return self.__get_list(url, filters=filters, error_msg=error_msg)
+
+    def get_dataset_benchmarks_associations(
+        self, dataset_uid: int, filters=dict()
+    ) -> List[int]:
+        """Retrieves all the benchmark associations of a dataset.
+
+        Args:
+            dataset_uid (int): UID of the desired dataset
+
+        Returns:
+            list[int]: List of benchmark dataset associations
+        """
+        url = f"{self.server_url}/datasets/{dataset_uid}/benchmarks/"
+        error_msg = "Could not get dataset benchmarks associations"
+        return self.__get_list(url, filters=filters, error_msg=error_msg)

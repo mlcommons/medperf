@@ -21,11 +21,15 @@ def generate_encryption_key(encryption_key_file: str):
 
 def setup_dataset_for_cc(dataset: Dataset):
     cc_config = dataset.get_cc_config()
+    cc_policy = dataset.get_cc_policy()
     if not cc_config:
         raise ValueError(
             f"Dataset {dataset.id} does not have a configuration for confidential computing."
         )
-
+    if not cc_policy:
+        raise ValueError(
+            f"Dataset {dataset.id} does not have a policy for confidential computing."
+        )
     # create dataset asset
     asset_path = generate_tmp_path()
     tar(asset_path, [dataset.data_path, dataset.labels_path])
@@ -38,14 +42,19 @@ def setup_dataset_for_cc(dataset: Dataset):
     encryption_key_file = os.path.join(encryption_key_folder, "encryption_key.bin")
     generate_encryption_key(encryption_key_file)
 
-    __setup_asset_for_cc(cc_config, asset_path, encryption_key_file)
+    __setup_asset_for_cc(cc_config, cc_policy, asset_path, encryption_key_file)
 
 
 def setup_model_for_cc(model: Model):
     cc_config = model.get_cc_config()
+    cc_policy = model.get_cc_policy()
     if not cc_config:
         raise ValueError(
             f"Model {model.id} does not have a configuration for confidential computing."
+        )
+    if not cc_policy:
+        raise ValueError(
+            f"Model {model.id} does not have a policy for confidential computing."
         )
     if model.type != "ASSET":
         raise ValueError(
@@ -64,10 +73,12 @@ def setup_model_for_cc(model: Model):
     encryption_key_file = os.path.join(encryption_key_folder, "encryption_key.bin")
     generate_encryption_key(encryption_key_file)
 
-    __setup_asset_for_cc(cc_config, asset_path, encryption_key_file)
+    __setup_asset_for_cc(cc_config, cc_policy, asset_path, encryption_key_file)
 
 
-def __setup_asset_for_cc(cc_config: dict, asset_path: str, encryption_key_file: str):
+def __setup_asset_for_cc(
+    cc_config: dict, cc_policy: dict, asset_path: str, encryption_key_file: str
+):
     # asset storage setup
     asset_storage_manager = AssetStorageManager(
         cc_config, asset_path, encryption_key_file
@@ -78,10 +89,10 @@ def __setup_asset_for_cc(cc_config: dict, asset_path: str, encryption_key_file: 
     # policy setup
     asset_policy_manager = AssetPolicyManager(cc_config, encryption_key_file)
     asset_policy_manager.setup()
-    asset_policy_manager.setup_policy()
+    asset_policy_manager.setup_policy(cc_policy)
 
 
-def update_dataset_cc_policy(dataset: Dataset, policy: dict):
+def update_dataset_cc_policy(dataset: Dataset, permitted_workloads: list):
     cc_config = dataset.get_cc_config()
     if not cc_config:
         raise ValueError(
@@ -94,10 +105,10 @@ def update_dataset_cc_policy(dataset: Dataset, policy: dict):
     encryption_key_file = os.path.join(encryption_key_folder, "encryption_key.bin")
 
     asset_policy_manager = AssetPolicyManager(cc_config, encryption_key_file)
-    asset_policy_manager.configure_policy(policy)
+    asset_policy_manager.configure_policy(permitted_workloads)
 
 
-def update_model_cc_policy(model: Model, policy: dict):
+def update_model_cc_policy(model: Model, permitted_workloads: list):
     cc_config = model.get_cc_config()
     if not cc_config:
         raise ValueError(
@@ -114,7 +125,7 @@ def update_model_cc_policy(model: Model, policy: dict):
     encryption_key_file = os.path.join(encryption_key_folder, "encryption_key.bin")
 
     asset_policy_manager = AssetPolicyManager(cc_config, encryption_key_file)
-    asset_policy_manager.configure_policy(policy)
+    asset_policy_manager.configure_policy(permitted_workloads)
 
 
 def setup_operator(user: User):
@@ -129,7 +140,21 @@ def setup_operator(user: User):
 
 
 def run_workload(
-    dataset_cc_config: dict, model_cc_config: dict, operator_cc_config: dict
+    docker_image: str,
+    workload_dict: dict,
+    dataset_cc_config: dict,
+    model_cc_config: dict,
+    operator_cc_config: dict,
+    result_collector_public_key: str,
 ):
+
     operator_manager = OperatorManager(operator_cc_config)
-    operator_manager.run_workload(dataset_cc_config, model_cc_config)
+    operator_manager.run_workload(
+        docker_image,
+        workload_dict,
+        dataset_cc_config,
+        model_cc_config,
+        workload_dict["EXPECTED_DATA_HASH"],
+        workload_dict["EXPECTED_MODEL_HASH"],
+        result_collector_public_key,
+    )

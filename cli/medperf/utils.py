@@ -26,6 +26,18 @@ import shlex
 from email_validator import validate_email, EmailNotValidError
 
 
+def get_string_hash(string: bytes) -> str:
+    """Calculates the sha256 hash for a given string.
+
+    Args:
+        string (bytes): String to be hashed.
+    """
+    sha = hashlib.sha256()
+    sha.update(string)
+    sha_val = sha.hexdigest()
+    return sha_val
+
+
 def get_file_hash(path: str) -> str:
     """Calculates the sha256 hash for a given file.
 

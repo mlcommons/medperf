@@ -221,6 +221,7 @@ class BenchmarkExecution:
             try:
                 model = Model.get(model_uid)
                 execution_summary = ExecutionFlow.run(
+                    benchmark_id=self.benchmark_uid,
                     dataset=self.dataset,
                     model=model,
                     evaluator=self.evaluator,

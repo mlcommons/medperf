@@ -1,6 +1,7 @@
 from __future__ import annotations
 from rest_framework.permissions import BasePermission
 from benchmarkmodel.models import BenchmarkModel
+from benchmark.models import Benchmark
 from .models import Certificate
 from django.db.models import OuterRef, Subquery
 
@@ -25,6 +26,27 @@ class IsCertificateOwner(BasePermission):
         if not certificate:
             return False
         if certificate.owner.id == request.user.id:
+            return True
+        else:
+            return False
+
+
+class IsBenchmarkOwner(BasePermission):
+    def get_object(self, pk):
+        try:
+            return Benchmark.objects.get(pk=pk)
+        except Benchmark.DoesNotExist:
+            return None
+
+    def has_permission(self, request, view):
+        pk = view.kwargs.get("pk", None)
+        if not pk:
+            return False
+
+        benchmark = self.get_object(pk)
+        if not benchmark:
+            return False
+        if benchmark.owner.id == request.user.id:
             return True
         else:
             return False

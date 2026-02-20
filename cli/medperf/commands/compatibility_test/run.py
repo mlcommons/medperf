@@ -316,6 +316,7 @@ class CompatibilityTestExecution:
             dict: returns the results of the test execution.
         """
         execution_summary = ExecutionFlow.run(
+            benchmark_id=self.benchmark_uid,
             dataset=self.dataset,
             model=self.model,
             evaluator=self.evaluator_cube,

@@ -16,7 +16,7 @@ class BenchmarkModelList(GenericAPIView):
     permission_classes = [IsAdmin | IsBenchmarkOwner | IsModelOwner]
     serializer_class = BenchmarkModelListSerializer
     queryset = ""
-    filterset_fields = ('model', 'benchmark', 'initiated_by', 'priority')
+    filterset_fields = ("model", "benchmark", "initiated_by", "priority")
 
     def post(self, request, format=None):
         """
@@ -34,6 +34,7 @@ class BenchmarkModelList(GenericAPIView):
 class ModelBenchmarksList(GenericAPIView):
     serializer_class = BenchmarkModelListSerializer
     queryset = ""
+    permission_classes = [IsAdmin | IsModelOwner]
 
     def get_object(self, pk):
         try:

@@ -8,6 +8,8 @@ from medperf.utils import generate_tmp_path
 import base64
 from typing import List, Tuple
 import logging
+from cryptography import x509
+from cryptography.hazmat.primitives import serialization
 
 
 class Certificate(Entity):
@@ -101,6 +103,15 @@ class Certificate(Entity):
         if "owner" in filters and filters["owner"] == get_medperf_user_data()["id"]:
             comms_fn = config.comms.get_user_certificates
         return comms_fn
+
+    def public_key(self):
+        certificate_bytes = base64.b64decode(self.certificate_content_base64)
+        certificate_obj = x509.load_pem_x509_certificate(data=certificate_bytes)
+        public_key_bytes = certificate_obj.public_key().public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo,
+        )
+        return public_key_bytes
 
     def display_dict(self):
         return {

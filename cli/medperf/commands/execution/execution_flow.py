@@ -14,6 +14,7 @@ class ExecutionFlow:
     @classmethod
     def run(
         cls,
+        benchmark_id: int,
         dataset: Dataset,
         model: Model,
         evaluator: Cube,
@@ -31,7 +32,7 @@ class ExecutionFlow:
             and not user_is_model_owner
         ):
             return ConfidentialExecution.run(
-                dataset, model, evaluator, execution, ignore_model_errors
+                benchmark_id, dataset, model, evaluator, execution, ignore_model_errors
             )
         elif model.type == ModelType.ASSET.value:
             asset = Asset.get(model.asset)

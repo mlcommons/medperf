@@ -18,10 +18,13 @@ def configure_dataset_for_cc(
     cc_config_file: str = typer.Option(
         ..., "--cc_config_file", "-c", help="path to cc config file"
     ),
+    cc_policy_file: str = typer.Option(
+        ..., "--cc_policy_file", "-p", help="path to cc policy file"
+    ),
 ):
     """Configure dataset for confidential computing execution"""
     ui = config.ui
-    DatasetConfigureForCC.run(data_uid, cc_config_file)
+    DatasetConfigureForCC.run(data_uid, cc_config_file, cc_policy_file)
     ui.print("✅ Done!")
 
 
@@ -32,10 +35,13 @@ def configure_model_for_cc(
     cc_config_file: str = typer.Option(
         ..., "--cc_config_file", "-c", help="path to cc config file"
     ),
+    cc_policy_file: str = typer.Option(
+        ..., "--cc_policy_file", "-p", help="path to cc policy file"
+    ),
 ):
     """Configure model for confidential computing execution"""
     ui = config.ui
-    ModelConfigureForCC.run(model_uid, cc_config_file)
+    ModelConfigureForCC.run(model_uid, cc_config_file, cc_policy_file)
     ui.print("✅ Done!")
 
 
