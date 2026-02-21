@@ -9,7 +9,7 @@ from medperf.entities.certificate import Certificate
 from medperf.entities.cube import Cube
 from medperf.entities.benchmark import Benchmark
 from medperf.commands.compatibility_test.run import CompatibilityTestExecution
-from medperf.commands.mlcube.associate import AssociateCube
+from medperf.commands.model.associate import AssociateModel
 from medperf.commands.mlcube.delete_keys import DeleteKeys
 from medperf.commands.mlcube.grant_access import GrantAccess
 from medperf.commands.mlcube.revoke_user_access import RevokeUserAccess
@@ -218,7 +218,7 @@ def associate(
     initialize_state_task(request, task_name="container_association")
     return_response = {"status": "", "error": ""}
     try:
-        AssociateCube.run(cube_uid=container_id, benchmark_uid=benchmark_id)
+        AssociateModel.run(cube_uid=container_id, benchmark_uid=benchmark_id)
         return_response["status"] = "success"
         notification_message = "Successfully requested container association!"
     except Exception as exp:
