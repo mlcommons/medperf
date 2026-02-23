@@ -1,9 +1,12 @@
 from dataclasses import dataclass
 from google.auth.credentials import Credentials
 from google.auth import load_credentials_from_dict
+import os
 
 
 def get_credentials(wippro: str) -> Credentials:
+    if os.getenv("DRY_RUN", None):
+        return
     info = {
         "type": "external_account",
         "audience": f"//iam.googleapis.com/{wippro}",

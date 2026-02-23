@@ -4,52 +4,38 @@ from medperf.asset_management import gcp_utils
 
 class AssetPolicyManager:
     def __init__(self, config: dict, encryption_key_file: str):
-        asset_config = gcp_utils.GCPAssetConfig(**config)
+        self.config = gcp_utils.GCPAssetConfig(**config)
         self.encryption_key_file = encryption_key_file
 
-        self.asset_path = asset_config.encrypted_asset_bucket_file
-        self.gcp_project_id = asset_config.project_id
-        self.gcp_project_number = asset_config.project_number
-        self.gcp_keyring_name = asset_config.keyring_name
-        self.gcp_key_name = asset_config.key_name
-        self.gcp_account = asset_config.account
-        self.gcp_wip = asset_config.wip
-        self.gcp_bucket = asset_config.bucket
-        self.gcp_encrypted_key_bucket_file = asset_config.encrypted_key_bucket_file
-
-        self.full_key_name = asset_config.full_key_name
-        self.full_wip_name = asset_config.full_wip_name
-
     def __create_keyring(self):
-        gcp_utils.create_keyring(self.gcp_keyring_name)
+        gcp_utils.create_keyring(self.config)
 
     def __create_key(self):
-        gcp_utils.create_kms_key(self.gcp_key_name, self.gcp_keyring_name)
+        gcp_utils.create_kms_key(self.config)
 
     def __add_key_iam_binding(self):
         gcp_utils.add_kms_key_iam_policy_binding(
-            self.full_key_name,
-            f"user:{self.gcp_account}",
+            self.config,
+            f"user:{self.config.account}",
             "roles/cloudkms.cryptoKeyEncrypter",
         )
 
     def __create_workload_identity_pool(self):
-        gcp_utils.create_workload_identity_pool(self.gcp_wip)
+        gcp_utils.create_workload_identity_pool(self.config)
 
     def __encrypt_key(self):
         tmp_encrypted_key_path = generate_tmp_path()
 
         gcp_utils.encrypt_with_kms_key(
-            self.encryption_key_file,
-            tmp_encrypted_key_path,
-            self.full_key_name,
+            self.config, self.encryption_key_file, tmp_encrypted_key_path
         )
         return tmp_encrypted_key_path
 
     def __upload_encrypted_key(self, tmp_encrypted_key_path):
         gcp_utils.upload_file_to_gcs(
+            self.config,
             tmp_encrypted_key_path,
-            f"gs://{self.gcp_bucket}/{self.gcp_encrypted_key_bucket_file}",
+            f"gs://{self.config.bucket}/{self.config.encrypted_key_bucket_file}",
         )
 
     def __create_wip_oidc_provider(self, policy: dict[str, str]):
@@ -87,13 +73,13 @@ class AssetPolicyManager:
             attribute_condition += f" && {gpu_cc_mode_condition}"
 
         gcp_utils.create_workload_identity_pool_oidc_provider(
-            self.gcp_wip, attribute_mapping, attribute_condition
+            self.config, attribute_mapping, attribute_condition
         )
 
     def __bind_kms_decrypter_role(self, permitted_workloads: list[dict[str, str]]):
         principal_set = (
-            f"principalSet://iam.googleapis.com/projects/{self.gcp_project_number}/"
-            f"locations/global/workloadIdentityPools/{self.gcp_wip}/attribute.workload_uid/"
+            f"principalSet://iam.googleapis.com/projects/{self.config.project_number}/"
+            f"locations/global/workloadIdentityPools/{self.config.wip}/attribute.workload_uid/"
         )
         principal_set_list = []
 
@@ -107,7 +93,7 @@ class AssetPolicyManager:
             principal_set_list.append(principal_set + "::".join(workload_props))
 
         gcp_utils.set_kms_iam_policy(
-            self.full_key_name,
+            self.config,
             principal_set_list,
             "roles/cloudkms.cryptoKeyDecrypter",
         )

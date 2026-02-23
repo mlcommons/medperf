@@ -10,7 +10,8 @@ decryption.check()
 
 
 def __check_folder_hash(folder_path: str, expected_hash: str) -> None:
-    actual_hash = get_folders_hash(os.listdir(folder_path))
+    paths = [os.path.join(folder_path, "data"), os.path.join(folder_path, "labels")]
+    actual_hash = get_folders_hash(paths)
     if actual_hash != expected_hash:
         raise ValueError(
             f"Asset folder hash mismatch: expected {expected_hash}, got {actual_hash}"
@@ -87,9 +88,9 @@ def setup_assets(args) -> None:
     model_config = json.loads(model_config_str)
 
     tmp_data_archive = __setup_asset_archive(data_config)
-    tmp_model_archive = __setup_asset_archive(model_config)
-
     __untar_dataset(tmp_data_archive, data_files_path, expected_data_hash)
+
+    tmp_model_archive = __setup_asset_archive(model_config)
     __untar_model(tmp_model_archive, model_files_path, expected_model_hash)
 
     # also, verify early that the result collector's public key hash is as expected

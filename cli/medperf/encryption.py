@@ -1,3 +1,4 @@
+import os
 from medperf.exceptions import (
     DecryptionError,
     EncryptionError,
@@ -33,7 +34,10 @@ class SymmetricEncryption:
         logging.debug(f"Encrypted file path: {encrypted_file_path}")
         logging.debug(f"Output path: {output_path}")
         logging.debug(f"Decryption key file path: {decryption_key_file}")
-
+        if os.path.exists(output_path):
+            raise MedperfException(
+                f"Output file for decryption {output_path} already exists"
+            )
         gpg_decrypt_command = [
             self.gpg_exec,
             "--batch",
@@ -57,7 +61,10 @@ class SymmetricEncryption:
         logging.debug(f"Plaintext file path: {plaintext_file_path}")
         logging.debug(f"Output path: {output_path}")
         logging.debug(f"Decryption key file path: {decryption_key_file}")
-
+        if os.path.exists(output_path):
+            raise MedperfException(
+                f"Output file for encryption {output_path} already exists"
+            )
         gpg_encrypt_command = [
             self.gpg_exec,
             "--batch",

@@ -1,3 +1,5 @@
+set -eo pipefail
+
 [[ -n "${DATA_CONFIG:-}" ]] || { echo "Error: DATA_CONFIG not set or empty" >&2; exit 1; }
 [[ -n "${MODEL_CONFIG:-}" ]] || { echo "Error: MODEL_CONFIG not set or empty" >&2; exit 1; }
 [[ -n "${RESULT_CONFIG:-}" ]] || { echo "Error: RESULT_CONFIG not set or empty" >&2; exit 1; }
@@ -12,6 +14,7 @@ export TMP_FILES=/tmp/files
 DATA_FILES=$TMP_FILES/data_files
 MODEL_FILES=$TMP_FILES/model_files
 RESULT_FILES=$TMP_FILES/results
+mkdir -p $RESULT_FILES
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 

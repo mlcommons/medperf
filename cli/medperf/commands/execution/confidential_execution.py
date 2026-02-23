@@ -94,19 +94,24 @@ class ConfidentialExecution:
 
     def run_workload(self):
         docker_image = self.script.parser.get_setup_args()
-        datasets_certs = config.comms.get_benchmark_datasets_certificates(
-            self.benchmark_id
-        )
-        for cert in datasets_certs:
-            if cert["owner"]["id"] == self.dataset.owner:
-                cert.pop("owner")
-                cert_obj = Certificate(**cert)
-                public_key_bytes = cert_obj.public_key()
-                result_collector_public_key = base64.b64encode(public_key_bytes)
-                break
+        # TODO: docker.io/
+        docker_image = "docker.io/" + docker_image
+        if self.dataset.owner == self.operator.id:
+            cert_obj = Certificate.get_user_certificate()
         else:
-            raise ExecutionError("Dataset not associated.")
+            datasets_certs = config.comms.get_benchmark_datasets_certificates(
+                self.benchmark_id
+            )
+            for cert in datasets_certs:
+                if cert["owner"]["id"] == self.dataset.owner:
+                    cert.pop("owner")
+                    cert_obj = Certificate(**cert)
+                    break
+            else:
+                raise ExecutionError("Dataset not associated.")
 
+        public_key_bytes = cert_obj.public_key()
+        result_collector_public_key = base64.b64encode(public_key_bytes)
         workload_dict = {
             "image_digest": self.script.image_hash,
             "EXPECTED_DATA_HASH": self.dataset.generated_uid,

@@ -1,4 +1,5 @@
 #!/bin/bash
+set -eo pipefail
 
 # Default values
 INPUT_DATA=""
@@ -62,5 +63,9 @@ fi
 #     --model-files "$MODEL_FILES" \
 #     --output-results "$OUTPUT_RESULTS"
 
-echo "NOT IMPLEMENTED" >&2
-exit 1
+if [[ -z "$DRY_RUN" ]]; then
+    echo "NOT IMPLEMENTED" >&2
+    exit 1
+else
+    echo "res: 1" > "$OUTPUT_RESULTS/results.yaml"
+fi

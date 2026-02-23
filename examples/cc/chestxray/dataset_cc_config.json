@@ -1,0 +1,11 @@
+{
+    "project_id": "data-owner-cc",
+    "project_number": "470901555042",
+    "account": "hasankassim8@gmail.com",
+    "bucket": "data-owner-bucket-medperf",
+    "encrypted_asset_bucket_file": "data.enc",
+    "encrypted_key_bucket_file": "key.enc",
+    "keyring_name": "data-owner-keyring",
+    "key_name": "data-owner-key2",
+    "wip": "data-owner-wip"
+}

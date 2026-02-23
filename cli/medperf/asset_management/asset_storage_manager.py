@@ -5,15 +5,13 @@ from medperf.asset_management import gcp_utils
 
 class AssetStorageManager:
     def __init__(self, config: dict, asset_path: str, encryption_key_file: str):
-        asset_config = gcp_utils.GCPAssetConfig(**config)
+        self.config = gcp_utils.GCPAssetConfig(**config)
 
         self.asset_path = asset_path
         self.encryption_key_file = encryption_key_file
-        self.gcp_bucket = asset_config.bucket
-        self.gcp_encrypted_asset_bucket_file = asset_config.encrypted_asset_bucket_file
 
     def __create_bucket(self):
-        gcp_utils.create_storage_bucket(self.gcp_bucket)
+        gcp_utils.create_storage_bucket(self.config)
 
     def __encrypt_asset(self):
         tmp_encrypted_asset_path = generate_tmp_path()
@@ -25,18 +23,19 @@ class AssetStorageManager:
 
     def __upload_encrypted_asset(self, tmp_encrypted_asset_path):
         gcp_utils.upload_file_to_gcs(
+            self.config,
             tmp_encrypted_asset_path,
-            f"gs://{self.gcp_bucket}/{self.gcp_encrypted_asset_bucket_file}",
+            f"gs://{self.config.bucket}/{self.config.encrypted_asset_bucket_file}",
         )
 
-    def __grant_bucket_public_read_access(self, bucket_name):
+    def __grant_bucket_public_read_access(self):
         gcp_utils.add_bucket_iam_policy_binding(
-            bucket_name, "allUsers", "roles/storage.objectViewer"
+            self.config, "allUsers", "roles/storage.objectViewer"
         )
 
     def setup(self):
         self.__create_bucket()
-        self.__grant_bucket_public_read_access(self.gcp_bucket)
+        self.__grant_bucket_public_read_access()
 
     def store_asset(self):
         tmp_encrypted_asset_path, asset_hash = self.__encrypt_asset()

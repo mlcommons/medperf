@@ -26,7 +26,7 @@ def setup_dataset_for_cc(dataset: Dataset):
         raise ValueError(
             f"Dataset {dataset.id} does not have a configuration for confidential computing."
         )
-    if not cc_policy:
+    if cc_policy is None:
         raise ValueError(
             f"Dataset {dataset.id} does not have a policy for confidential computing."
         )
@@ -52,7 +52,7 @@ def setup_model_for_cc(model: Model):
         raise ValueError(
             f"Model {model.id} does not have a configuration for confidential computing."
         )
-    if not cc_policy:
+    if cc_policy is None:
         raise ValueError(
             f"Model {model.id} does not have a policy for confidential computing."
         )

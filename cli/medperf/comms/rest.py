@@ -1049,6 +1049,21 @@ class REST(Comms):
         error_msg = "Could not get benchmark models associations"
         return self.__get_list(url, filters=filters, error_msg=error_msg)
 
+    def get_benchmark_datasets_associations(
+        self, benchmark_uid: int, filters=dict()
+    ) -> List[int]:
+        """Retrieves all the dataset associations of a benchmark.
+
+        Args:
+            benchmark_uid (int): UID of the desired benchmark
+
+        Returns:
+            list[int]: List of benchmark dataset associations
+        """
+        url = f"{self.server_url}/benchmarks/{benchmark_uid}/datasets/"
+        error_msg = "Could not get benchmark datasets associations"
+        return self.__get_list(url, filters=filters, error_msg=error_msg)
+
     def get_training_datasets_with_users(
         self, training_exp_id: int, filters=dict()
     ) -> dict:

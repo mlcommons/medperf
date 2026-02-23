@@ -1,7 +1,7 @@
 container_type: DockerImage
 image: mlcommons/medperf-cc-chestxray:0.0.0
 tasks:
-  infer:
+  run_script:
     input_volumes:
       data_path:
         mount_path: /mlcommons/volumes/data

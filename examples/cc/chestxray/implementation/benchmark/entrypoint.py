@@ -42,8 +42,8 @@ def calculate_metrics(labels, predictions_dict, parameters, output_path):
     predictions = np.stack(predictions)
 
     metrics = {
-        "Accuracy": global_accuracy(labels, predictions, threshold).tolist(),
-        "AUC": global_auc(labels, predictions).tolist(),
+        "Accuracy": global_accuracy(labels, predictions, threshold),
+        "AUC": global_auc(labels, predictions),
     }
 
     with open(output_path, "w") as f:
@@ -51,6 +51,7 @@ def calculate_metrics(labels, predictions_dict, parameters, output_path):
 
 
 data_path = os.getenv("INPUT_DATA")
+print(os.getenv("MODEL_FILES"))
 weights = os.path.join(os.getenv("MODEL_FILES"), "cnn_weights.pth")
 
 in_channels = 1

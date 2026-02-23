@@ -7,7 +7,7 @@ from medperf.asset_management.asset_management import update_dataset_cc_policy
 from medperf import config
 from medperf.account_management.account_management import get_medperf_user_object
 from medperf.entities.cube import Cube
-from medperf.commands.certificate.utils import current_user_certificate_status
+from medperf.entities.certificate import Certificate
 from medperf.utils import get_string_hash
 import base64
 
@@ -16,10 +16,10 @@ def get_permitted_workloads(dataset: Dataset):
     user_obj = get_medperf_user_object()
     if dataset.owner != user_obj.id:
         raise MedperfException("User must be data owner")
-    user_cert = current_user_certificate_status()["user_cert_object"]
+    user_cert = Certificate.get_user_certificate()
     if not user_cert:
         raise MedperfException("User must have a certificate to update cc policy")
-    public_key_bytes = user_cert.public_key
+    public_key_bytes = user_cert.public_key()
     public_key_b64 = base64.b64encode(public_key_bytes)
     public_key_hash = get_string_hash(public_key_b64)
 

@@ -130,9 +130,12 @@ MODEL3_PARAMS="$MEDPERF_ROOT_REPO/examples/tests/model-cpu/workspace/parameters3
 MODEL4_PARAMS="$MEDPERF_ROOT_REPO/examples/tests/model-cpu/workspace/parameters4.yaml"
 
 # chestxray tutorial models
+CHESTXRAY_DATA_PREP="$MEDPERF_ROOT_REPO/examples/chestxray_tutorial/data_preparator/container_config.yaml"
+CHESTXRAY_DATA_PREP_PARAMS="$MEDPERF_ROOT_REPO/examples/chestxray_tutorial/data_preparator/workspace/parameters.yaml"
 CHESTXRAY_ENCRYPTED_MODEL="$MEDPERF_ROOT_REPO/examples/chestxray_tutorial/model_custom_cnn_encrypted/container_config.yaml"
 CHESTXRAY_ENCRYPTED_MODEL_PARAMS="$MEDPERF_ROOT_REPO/examples/chestxray_tutorial/model_custom_cnn_encrypted/workspace/parameters.yaml"
 CHESTXRAY_ENCRYPTED_MODEL_ADD="https://storage.googleapis.com/medperf-storage/chestxray_tutorial/cnn_weights.tar.gz"
+CHESTXRAY_DEMO_URL="https://storage.googleapis.com/medperf-storage/chestxray_tutorial/demo_data.tar.gz"
 
 # metrics cubes
 METRIC_MLCUBE="$MEDPERF_ROOT_REPO/examples/tests/metrics/container_config.yaml"
@@ -162,6 +165,16 @@ PREP_LOCAL="$MEDPERF_ROOT_REPO/examples/chestxray_tutorial/data_preparator"
 MODEL_LOCAL="$MEDPERF_ROOT_REPO/examples/chestxray_tutorial/model_custom_cnn"
 METRIC_LOCAL="$MEDPERF_ROOT_REPO/examples/chestxray_tutorial/metrics"
 PRIVATE_MODEL_LOCAL="$MEDPERF_ROOT_REPO/examples/chestxray_tutorial/model_custom_cnn_encrypted"
+
+# CC Stuff
+CHESTXRAY_CNN_MODEL="https://storage.googleapis.com/medperf-storage/chestxray_tutorial/cnn_weights.tar.gz"
+CHESTXRAY_MOBILENET_MODEL="https://storage.googleapis.com/medperf-storage/chestxray_tutorial/cnn_weights.tar.gz"
+CHESTXRAY_SCRIPT="$MEDPERF_ROOT_REPO/examples/cc/chestxray/implementation/container_config.yaml"
+DATASET_CC_CONFIG="$MEDPERF_ROOT_REPO/examples/cc/chestxray/dataset_cc_config.json"
+MODEL_CC_CONFIG="$MEDPERF_ROOT_REPO/examples/cc/chestxray/model_cc_config.json"
+OPERATOR_CC_CONFIG="$MEDPERF_ROOT_REPO/examples/cc/chestxray/operator_cc_config.json"
+MODEL_CC_POLICY="$MEDPERF_ROOT_REPO/examples/cc/chestxray/model_cc_policy.json"
+DATASET_CC_POLICY="$MEDPERF_ROOT_REPO/examples/cc/chestxray/dataset_cc_policy.json"
 
 TRAINING_CONFIG="$MEDPERF_ROOT_REPO/examples/fl/fl/workspace/training_config.yaml"
 # create storage folders

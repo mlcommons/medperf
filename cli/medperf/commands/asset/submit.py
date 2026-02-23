@@ -79,7 +79,9 @@ class SubmitAsset:
             self.asset_hash = get_file_hash(self.asset_path)
             self.asset_url = "local"
         else:
-            self.asset_hash = resources.get_hashed_file(self.asset_url, self.asset_hash)
+            _, self.asset_hash = resources.get_hashed_file(
+                self.asset_url, self.asset_hash
+            )
             logging.debug("Asset URL provided, downloading asset")
 
     def create_asset_object(self):

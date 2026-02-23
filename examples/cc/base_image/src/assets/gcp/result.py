@@ -20,5 +20,5 @@ class GCPResult:
 
     def write_key(self, key_bytes: bytes) -> None:
         bucket = self.storage_client.bucket(self.bucket_name)
-        blob = bucket.blob(self.output_result_path)
+        blob = bucket.blob(self.output_key_path)
         blob.upload_from_string(key_bytes)

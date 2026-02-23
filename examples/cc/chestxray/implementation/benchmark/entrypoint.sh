@@ -1,4 +1,5 @@
 #!/bin/bash
+set -eo pipefail
 
 # Default values
 INPUT_DATA=""
@@ -55,4 +56,9 @@ fi
 
 # run benchmark
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export USER=appuser
+export INPUT_DATA
+export INPUT_LABELS
+export MODEL_FILES
+export OUTPUT_RESULTS
 python3 "$SCRIPT_DIR/entrypoint.py"
