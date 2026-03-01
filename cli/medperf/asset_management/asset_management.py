@@ -1,3 +1,4 @@
+from medperf.asset_management.gcp_utils import CCWorkloadID
 from medperf.entities.asset import Asset
 from medperf.entities.dataset import Dataset
 from medperf.entities.model import Model
@@ -92,7 +93,7 @@ def __setup_asset_for_cc(
     asset_policy_manager.setup_policy(cc_policy)
 
 
-def update_dataset_cc_policy(dataset: Dataset, permitted_workloads: list):
+def update_dataset_cc_policy(dataset: Dataset, permitted_workloads: list[CCWorkloadID]):
     cc_config = dataset.get_cc_config()
     if not cc_config:
         raise ValueError(
@@ -108,7 +109,7 @@ def update_dataset_cc_policy(dataset: Dataset, permitted_workloads: list):
     asset_policy_manager.configure_policy(permitted_workloads)
 
 
-def update_model_cc_policy(model: Model, permitted_workloads: list):
+def update_model_cc_policy(model: Model, permitted_workloads: list[CCWorkloadID]):
     cc_config = model.get_cc_config()
     if not cc_config:
         raise ValueError(
@@ -141,7 +142,7 @@ def setup_operator(user: User):
 
 def run_workload(
     docker_image: str,
-    workload_dict: dict,
+    workload: CCWorkloadID,
     dataset_cc_config: dict,
     model_cc_config: dict,
     operator_cc_config: dict,
@@ -151,10 +152,20 @@ def run_workload(
     operator_manager = OperatorManager(operator_cc_config)
     operator_manager.run_workload(
         docker_image,
-        workload_dict,
+        workload,
         dataset_cc_config,
         model_cc_config,
-        workload_dict["EXPECTED_DATA_HASH"],
-        workload_dict["EXPECTED_MODEL_HASH"],
         result_collector_public_key,
     )
+    operator_manager.wait_for_workload_completion(workload)
+
+
+def download_results(
+    operator_cc_config: dict,
+    workload: CCWorkloadID,
+    private_key_bytes: str,
+    results_path: str,
+):
+    operator_manager = OperatorManager(operator_cc_config)
+
+    operator_manager.download_results(workload, private_key_bytes, results_path)

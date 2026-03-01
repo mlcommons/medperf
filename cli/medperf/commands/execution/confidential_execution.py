@@ -1,6 +1,11 @@
 import base64
 import logging
+import os
+from time import time
 
+import yaml
+
+from medperf.asset_management.gcp_utils import CCWorkloadID
 from medperf.entities.asset import Asset
 from medperf.entities.cube import Cube
 from medperf.entities.model import Model
@@ -8,11 +13,12 @@ from medperf.entities.dataset import Dataset
 from medperf.entities.execution import Execution
 from medperf.entities.certificate import Certificate
 import medperf.config as config
-from medperf.exceptions import ExecutionError, CommunicationError
+from medperf.exceptions import DecryptionError, ExecutionError, CommunicationError
 
 from medperf.account_management import get_medperf_user_object
-from medperf.asset_management.asset_management import run_workload
+from medperf.asset_management.asset_management import run_workload, download_results
 from medperf.utils import get_string_hash
+from medperf.commands.certificate.utils import load_user_private_key
 
 
 class ConfidentialExecution:
@@ -40,7 +46,9 @@ class ConfidentialExecution:
         execution_flow.validate()
         execution_flow.prepare()
         execution_flow.set_pending_status()
+        execution_flow.setup_workload()
         execution_flow.run_workload()
+        execution_flow.download_results()
         execution_summary = execution_flow.todict()
         return execution_summary
 
@@ -92,10 +100,7 @@ class ConfidentialExecution:
     def set_pending_status(self):
         self.__send_report("pending")
 
-    def run_workload(self):
-        docker_image = self.script.parser.get_setup_args()
-        # TODO: docker.io/
-        docker_image = "docker.io/" + docker_image
+    def setup_workload(self):
         if self.dataset.owner == self.operator.id:
             cert_obj = Certificate.get_user_certificate()
         else:
@@ -112,26 +117,56 @@ class ConfidentialExecution:
 
         public_key_bytes = cert_obj.public_key()
         result_collector_public_key = base64.b64encode(public_key_bytes)
-        workload_dict = {
-            "image_digest": self.script.image_hash,
-            "EXPECTED_DATA_HASH": self.dataset.generated_uid,
-            "EXPECTED_MODEL_HASH": self.asset.asset_hash,
-            "EXPECTED_RESULT_COLLECTOR_HASH": get_string_hash(
-                result_collector_public_key
-            ),
-        }
+        workload = CCWorkloadID(
+            data_hash=self.dataset.generated_uid,
+            model_hash=self.asset.asset_hash,
+            script_hash=self.script.image_hash,
+            result_collector_hash=get_string_hash(result_collector_public_key),
+            data_id=self.dataset.id,
+            model_id=self.asset.id,
+            script_id=self.script.id,
+        )
+
+        self.workload = workload
+        self.result_collector_public_key = result_collector_public_key
+
+    def run_workload(self):
+        docker_image = self.script.parser.get_setup_args()
+        # TODO: docker.io/
+        docker_image = "docker.io/" + docker_image
         run_workload(
             docker_image,
-            workload_dict,
+            self.workload,
             self.dataset_cc_config,
             self.model_cc_config,
             self.operator_cc_config,
-            result_collector_public_key.decode("utf-8"),
+            self.result_collector_public_key.decode("utf-8"),
         )
+
+    def download_results(self):
+        timestamp = str(time()).replace(".", "_")
+        results_path = os.path.join(
+            config.script_result_folder, str(self.execution.id), timestamp
+        )
+        private_key_bytes = load_user_private_key()
+        if private_key_bytes is None:
+            raise DecryptionError("Missing Private Key")
+
+        download_results(
+            self.operator_cc_config, self.workload, private_key_bytes, results_path
+        )
+
+        results_file = os.path.join(results_path, "results.yaml")
+        if os.path.exists(results_file):
+            with open(results_file, "r") as f:
+                results_content = yaml.safe_load(f)
+            self.results = results_content
+        else:
+            self.results = {}
 
     def todict(self):
         return {
-            "results": {},
+            "results": self.results,
             "partial": False,
         }
 

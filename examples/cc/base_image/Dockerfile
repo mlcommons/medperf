@@ -18,3 +18,4 @@ CMD []
 
 # Allow the workload to access the following environment variables
 LABEL "tee.launch_policy.allow_env_override"="DATA_CONFIG,EXPECTED_DATA_HASH,MODEL_CONFIG,EXPECTED_MODEL_HASH,RESULT_CONFIG,RESULT_COLLECTOR,EXPECTED_RESULT_COLLECTOR_HASH"
+LABEL "tee.launch_policy.log_redirect"="always"

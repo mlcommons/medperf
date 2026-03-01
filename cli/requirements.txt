@@ -32,3 +32,4 @@ google-cloud-iam
 google-cloud-kms
 google-cloud-storage
 google-cloud-resource-manager
+google-cloud-compute

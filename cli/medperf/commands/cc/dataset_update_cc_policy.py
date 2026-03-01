@@ -4,6 +4,7 @@ from medperf.entities.benchmark import Benchmark
 from medperf.entities.dataset import Dataset
 from medperf.exceptions import MedperfException
 from medperf.asset_management.asset_management import update_dataset_cc_policy
+from medperf.asset_management.gcp_utils import CCWorkloadID
 from medperf import config
 from medperf.account_management.account_management import get_medperf_user_object
 from medperf.entities.cube import Cube
@@ -29,20 +30,20 @@ def get_permitted_workloads(dataset: Dataset):
         benchmark_id = assoc["benchmark"]
         benchmark = Benchmark.get(benchmark_id)
         evaluator = Cube.get(benchmark.data_evaluator_mlcube)
-        eval_hash = evaluator.image_hash
         model_assocs = config.comms.get_benchmark_models_associations(benchmark_id)
         for model_assoc in model_assocs:
             model = Model.get(model_assoc["model"])
             asset = Asset.get(model.asset)
-            model_hash = asset.asset_hash
-            permitted_workloads.append(
-                {
-                    "EXPECTED_DATA_HASH": dataset.generated_uid,
-                    "EXPECTED_MODEL_HASH": model_hash,
-                    "image_digest": eval_hash,
-                    "EXPECTED_RESULT_COLLECTOR_HASH": public_key_hash,
-                }
+            workload_info = CCWorkloadID(
+                data_hash=dataset.generated_uid,
+                model_hash=asset.asset_hash,
+                script_hash=evaluator.image_hash,
+                result_collector_hash=public_key_hash,
+                data_id=dataset.id,
+                model_id=model.id,
+                script_id=evaluator.id,
             )
+            permitted_workloads.append(workload_info)
 
     return permitted_workloads
 

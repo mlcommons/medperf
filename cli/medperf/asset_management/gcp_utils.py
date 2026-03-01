@@ -9,9 +9,62 @@ from google.cloud import kms
 from google.iam.v1 import policy_pb2
 from google.cloud import storage
 from google.cloud.exceptions import Conflict
+from google.cloud import compute_v1
+from google.api_core.exceptions import NotFound
+import time
 
 
 GCP_EXEC = "gcloud"
+
+
+@dataclass
+class CCWorkloadID:
+    data_hash: str
+    model_hash: str
+    script_hash: str
+    result_collector_hash: str
+    data_id: int
+    model_id: int
+    script_id: int
+
+    @property
+    def id(self):
+        return "::".join(
+            [
+                self.script_hash,
+                self.data_hash,
+                self.model_hash,
+                self.result_collector_hash,
+            ]
+        )
+
+    @property
+    def human_readable_id(self):
+        return f"d{self.data_id}_m{self.model_id}_s{self.script_id}"
+
+    @property
+    def vm_template_name(self):
+        return f"{self.human_readable_id}-vm-template"
+
+    @property
+    def instance_group_name(self):
+        return f"{self.human_readable_id}-vm-instance-group"
+
+    @property
+    def resize_request_name(self):
+        return f"{self.human_readable_id}-vm-instance-group-resize-request"
+
+    @property
+    def vm_name(self):
+        return f"{self.human_readable_id}-cvm"
+
+    @property
+    def results_path(self):
+        return f"{self.human_readable_id}/output"
+
+    @property
+    def results_encryption_key_path(self):
+        return f"{self.human_readable_id}/encryption_key"
 
 
 @dataclass
@@ -19,8 +72,13 @@ class GCPOperatorConfig:
     project_id: str
     service_account_name: str
     account: str
-    vm_name: str
     bucket: str
+    machine_type: str
+    cc_type: str
+    min_cpu_platform: str
+    vm_zone: str
+    gpu: bool
+    run_duration: str
 
     @property
     def service_account_email(self):
@@ -290,6 +348,21 @@ def upload_file_to_gcs(
     run_command(cmd)
 
 
+def download_file_from_gcs(
+    config: Union[GCPAssetConfig, GCPOperatorConfig], gcs_path: str, local_file: str
+):
+    """Download file from Google Cloud Storage."""
+    cmd = [
+        GCP_EXEC,
+        f"--project={config.project_id}",
+        "storage",
+        "cp",
+        gcs_path,
+        local_file,
+    ]
+    run_command(cmd)
+
+
 def add_bucket_iam_policy_binding(
     config: Union[GCPAssetConfig, GCPOperatorConfig], member: str, role: str
 ):
@@ -309,32 +382,116 @@ def add_bucket_iam_policy_binding(
 
 # run
 def run_workload(
-    config: GCPOperatorConfig,
-    metadata: str,
-    zone: str = "us-west1-b",
-    confidential_compute_type: str = "SEV",
-    min_cpu_platform: str = "AMD Milan",
-    image_family: str = "confidential-space-debug",
-    maintenance_policy: str = "MIGRATE",
+    config: GCPOperatorConfig, workload_config: CCWorkloadID, metadata: str
 ):
-
+    # note: machine type and cc type must conform somehow
     cmd = [
-        "gcloud",
+        GCP_EXEC,
         f"--project={config.project_id}",
         "compute",
         "instances",
         "create",
-        config.vm_name,
-        f"--confidential-compute-type={confidential_compute_type}",
+        workload_config.vm_name,
+        f"--confidential-compute-type={config.cc_type}",
         "--shielded-secure-boot",
         "--scopes=cloud-platform",
-        f"--zone={zone}",
-        f"--maintenance-policy={maintenance_policy}",
-        f"--min-cpu-platform={min_cpu_platform}",
+        f"--zone={config.vm_zone}",
+        "--maintenance-policy=MIGRATE",
+        f"--min-cpu-platform={config.min_cpu_platform}",
         "--image-project=confidential-space-images",
-        f"--image-family={image_family}",
+        "--image-family=confidential-space",
+        f"--machine-type={config.machine_type}",
         f"--service-account={config.service_account_email}",
         f"--metadata={metadata}",
     ]
 
     run_command(cmd)
+
+
+def run_gpu_workload(
+    config: GCPOperatorConfig, workload_config: CCWorkloadID, metadata: str
+):
+    # note: --image-family=confidential-space-preview-cgpu
+
+    cmd = [
+        GCP_EXEC,
+        f"--project={config.project_id}",
+        "beta",
+        "compute",
+        "instance-templates",
+        "create",
+        workload_config.vm_template_name,
+        "--provisioning-model=FLEX_START",
+        "--confidential-compute-type=TDX",
+        "--machine-type=a3-highgpu-1g",
+        "--maintenance-policy=TERMINATE",
+        "--shielded-secure-boot",
+        "--image-project=confidential-space-images",
+        "--image-family=confidential-space-debug-preview-cgpu",
+        f"--service-account={config.service_account_email}",
+        "--scopes=cloud-platform",
+        "--boot-disk-size=30G",
+        "--reservation-affinity=none",
+        f"--max-run-duration={config.run_duration}",
+        "--instance-termination-action=DELETE",
+        f"--metadata={metadata}",
+    ]
+
+    run_command(cmd)
+
+    if config.vm_zone not in ["us-central1-a", "europe-west4-c", "us-east5-a"]:
+        raise ValueError(
+            "GPU workloads can only be run in us-central1-a, europe-west4-c, or us-east5-a zones."
+        )
+
+    cmd = [
+        GCP_EXEC,
+        f"--project={config.project_id}",
+        "compute",
+        "instance-groups",
+        "managed",
+        "create",
+        workload_config.instance_group_name,
+        f"--template={workload_config.vm_template_name}",
+        f"--zone={config.vm_zone}",
+        "--size=0",
+        "--default-action-on-vm-failure=do_nothing",
+    ]
+    run_command(cmd)
+
+    cmd = [
+        GCP_EXEC,
+        f"--project={config.project_id}",
+        "compute",
+        "instance-groups",
+        "managed",
+        "resize-requests",
+        "create",
+        workload_config.instance_group_name,
+        f"--resize-request={workload_config.resize_request_name}",
+        "--resize-by=1",
+        f"--zone={config.vm_zone}",
+    ]
+    run_command(cmd)
+
+
+def wait_for_workload_completion(
+    config: GCPOperatorConfig, workload_config: CCWorkloadID, poll_interval: int = 60
+):
+
+    client = compute_v1.InstancesClient()
+    project_id = config.project_id
+    zone = config.vm_zone
+    instance_name = workload_config.vm_name
+
+    while True:
+        try:
+            instance = client.get(project=project_id, zone=zone, instance=instance_name)
+            status = instance.status
+            if status == "TERMINATED":
+                return "TERMINATED"
+
+        except NotFound:
+            return "DELETED"
+
+        time.sleep(poll_interval)

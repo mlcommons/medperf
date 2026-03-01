@@ -57,7 +57,9 @@ class AssetPolicyManager:
 
         attribute_mapping = google_subject_attr + "," + workload_uid_attr
         attribute_condition = 'assertion.swname == "CONFIDENTIAL_SPACE"'
-
+        attribute_condition += (
+            " && 'STABLE' in assertion.submods.confidential_space.support_attributes"
+        )
         if "location" in policy:
             location_condition = f'assertion.submods.gce.zone == "{policy["location"]}"'
             attribute_condition += f" && {location_condition}"
@@ -76,7 +78,9 @@ class AssetPolicyManager:
             self.config, attribute_mapping, attribute_condition
         )
 
-    def __bind_kms_decrypter_role(self, permitted_workloads: list[dict[str, str]]):
+    def __bind_kms_decrypter_role(
+        self, permitted_workloads: list[gcp_utils.CCWorkloadID]
+    ):
         principal_set = (
             f"principalSet://iam.googleapis.com/projects/{self.config.project_number}/"
             f"locations/global/workloadIdentityPools/{self.config.wip}/attribute.workload_uid/"
@@ -84,13 +88,7 @@ class AssetPolicyManager:
         principal_set_list = []
 
         for workload in permitted_workloads:
-            workload_props = [
-                workload["image_digest"],
-                workload["EXPECTED_DATA_HASH"],
-                workload["EXPECTED_MODEL_HASH"],
-                workload["EXPECTED_RESULT_COLLECTOR_HASH"],
-            ]
-            principal_set_list.append(principal_set + "::".join(workload_props))
+            principal_set_list.append(principal_set + workload.id)
 
         gcp_utils.set_kms_iam_policy(
             self.config,
@@ -109,5 +107,5 @@ class AssetPolicyManager:
         self.__upload_encrypted_key(tmp_encrypted_key_path)
         self.__create_wip_oidc_provider(policy)
 
-    def configure_policy(self, permitted_workloads: list[dict[str, str]]):
+    def configure_policy(self, permitted_workloads: list[gcp_utils.CCWorkloadID]):
         self.__bind_kms_decrypter_role(permitted_workloads)
