@@ -12,7 +12,8 @@ from google.cloud.exceptions import Conflict
 from google.cloud import compute_v1
 from google.api_core.exceptions import NotFound
 import time
-
+from colorama import Fore, Style
+import medperf.config as medperf_config
 
 GCP_EXEC = "gcloud"
 
@@ -40,7 +41,7 @@ class CCWorkloadID:
 
     @property
     def human_readable_id(self):
-        return f"d{self.data_id}_m{self.model_id}_s{self.script_id}"
+        return f"d{self.data_id}-m{self.model_id}-s{self.script_id}"
 
     @property
     def vm_template_name(self):
@@ -77,6 +78,7 @@ class GCPOperatorConfig:
     cc_type: str
     min_cpu_platform: str
     vm_zone: str
+    vm_network: str
     gpu: bool
     run_duration: str
 
@@ -396,6 +398,7 @@ def run_workload(
         "--shielded-secure-boot",
         "--scopes=cloud-platform",
         f"--zone={config.vm_zone}",
+        f"--network={config.vm_network}",
         "--maintenance-policy=MIGRATE",
         f"--min-cpu-platform={config.min_cpu_platform}",
         "--image-project=confidential-space-images",
@@ -483,11 +486,23 @@ def wait_for_workload_completion(
     project_id = config.project_id
     zone = config.vm_zone
     instance_name = workload_config.vm_name
-
+    next_start = 0
     while True:
         try:
             instance = client.get(project=project_id, zone=zone, instance=instance_name)
             status = instance.status
+            request = compute_v1.GetSerialPortOutputInstanceRequest(
+                project=project_id,
+                zone=zone,
+                instance=instance_name,
+                start=next_start,
+            )
+            output = client.get_serial_port_output(request=request)
+            if output.contents:
+                next_start = output.next_
+                medperf_config.ui.print_subprocess_logs(
+                    f"{Fore.WHITE}{Style.DIM}{output.contents}{Style.RESET_ALL}"
+                )
             if status == "TERMINATED":
                 return "TERMINATED"
 

@@ -123,7 +123,7 @@ class OperatorManager:
     def download_results(
         self,
         workload: gcp_utils.CCWorkloadID,
-        private_key_bytes: str,
+        private_key_bytes: bytes,
         results_path: str,
     ):
 

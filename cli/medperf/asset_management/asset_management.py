@@ -163,7 +163,7 @@ def run_workload(
 def download_results(
     operator_cc_config: dict,
     workload: CCWorkloadID,
-    private_key_bytes: str,
+    private_key_bytes: bytes,
     results_path: str,
 ):
     operator_manager = OperatorManager(operator_cc_config)

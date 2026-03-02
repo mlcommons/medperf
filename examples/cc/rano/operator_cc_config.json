@@ -1,7 +1,13 @@
 {
-    "project_id": "data-owner-cc",
-    "service_account_name": "workload-sa",
-    "account": "hasankassim8@gmail.com",
-    "vm_name": "cc-benchmark-vm",
-    "bucket": "data-owner-bucket-medperf"
+    "project_id": "medperf-330914",
+    "service_account_name": "cc-workload-operator",
+    "account": "hasan.kassem@mlcommons.org",
+    "bucket": "data-owner-bucket-medperf-cc",
+    "machine_type": "n2d-standard-8",
+    "cc_type": "SEV",
+    "min_cpu_platform": "AMD Milan",
+    "vm_zone": "us-west1-b",
+    "vm_network": "medperf-brats-network",
+    "gpu": false,
+    "run_duration": ""
 }

@@ -131,6 +131,7 @@ class ConfidentialExecution:
         self.result_collector_public_key = result_collector_public_key
 
     def run_workload(self):
+        config.ui.text = "Running CC workload..."
         docker_image = self.script.parser.get_setup_args()
         # TODO: docker.io/
         docker_image = "docker.io/" + docker_image
@@ -144,6 +145,7 @@ class ConfidentialExecution:
         )
 
     def download_results(self):
+        config.ui.text = "Downloading results..."
         timestamp = str(time()).replace(".", "_")
         results_path = os.path.join(
             config.script_result_folder, str(self.execution.id), timestamp
@@ -156,7 +158,7 @@ class ConfidentialExecution:
             self.operator_cc_config, self.workload, private_key_bytes, results_path
         )
 
-        results_file = os.path.join(results_path, "results.yaml")
+        results_file = os.path.join(results_path, "results", "results.yaml")
         if os.path.exists(results_file):
             with open(results_file, "r") as f:
                 results_content = yaml.safe_load(f)
