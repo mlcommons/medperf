@@ -1,0 +1,11 @@
+{
+    "project_id": "model-owner-cc",
+    "project_number": "280894108292",
+    "account": "hasankassim8@gmail.com",
+    "bucket": "model-owner-bucket",
+    "encrypted_asset_bucket_file": "model.enc",
+    "encrypted_key_bucket_file": "key.enc",
+    "keyring_name": "model-owner-keyring",
+    "key_name": "model-owner-key",
+    "wip": "model-owner-wip"
+}

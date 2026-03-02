@@ -1,0 +1,7 @@
+{
+    "project_id": "data-owner-cc",
+    "service_account_name": "workload-sa",
+    "account": "hasankassim8@gmail.com",
+    "vm_name": "cc-benchmark-vm",
+    "bucket": "data-owner-bucket-medperf"
+}
