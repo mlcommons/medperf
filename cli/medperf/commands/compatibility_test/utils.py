@@ -1,14 +1,7 @@
 from medperf.commands.dataset.prepare import DataPreparation
 from medperf.commands.dataset.submit import DataCreation
-from medperf.utils import (
-    generate_tmp_path,
-    get_folders_hash,
-    sanitize_path,
-    remove_path,
-    generate_tmp_uid,
-    store_decryption_key,
-)
-from medperf.exceptions import InvalidArgumentError, InvalidEntityError
+from medperf.utils import get_folders_hash, remove_path, store_decryption_key
+from medperf.exceptions import InvalidEntityError
 from medperf.entities.model import Model
 from medperf.comms.entity_resources import resources
 from medperf.entities.cube import Cube
@@ -46,100 +39,22 @@ def download_demo_data(dset_url, dset_hash):
     return data_path, labels_path, metadata_path
 
 
-def prepare_local_cube(container_config_path, parameters=None, additional=None):
-    parameters_config = None
-    if parameters is not None:
-        with open(parameters, "r") as f:
-            parameters_config = yaml.safe_load(f)
-    with open(container_config_path, "r") as f:
-        container_config = yaml.safe_load(f)
-
-    temp_metadata = {
-        "id": None,
-        "name": "local_" + generate_tmp_uid(),
-        "container_config": container_config,
-        "parameters_config": parameters_config,
-        "additional_files_tarball_hash": "",
-        "for_test": True,
-    }
-    cube = Cube(**temp_metadata)
-    cube.params_path = generate_tmp_path()
-    if additional is not None:
-        cube.additional_files_folder_path = additional
-
-    return cube
+def prepare_model(model_uid: str, decryption_key_file_path: os.PathLike = None):
+    model = Model.get(model_uid)
+    if model.type == ModelType.CONTAINER.value:
+        # execution later will download run files if needed
+        container_obj = Cube.get(model.container)
+        setup_cube(container_obj, decryption_key_file_path, download=False)
+    return model
 
 
-def prepare_model(
-    model_uid: str,
-    parameters: str = None,
-    additional: str = None,
-    local_only: bool = False,
-    decryption_key_file_path: os.PathLike = None,
-):
-    # Test if value looks like an model id, if so skip path validation
-    if str(model_uid).isdigit():
-        logging.info(f"model identifier {model_uid} resembles a server ID")
-        model = Model.get(model_uid, local_only=local_only)
-        if model.type == ModelType.CONTAINER.value:
-            # execution later will download run files if needed
-            container_obj = Cube.get(model.container, local_only=local_only)
-            setup_cube(container_obj, False, decryption_key_file_path)
-        return model
-
-    else:
-        # it's a local container path
-        container = prepare_cube(
-            model_uid,
-            parameters,
-            additional,
-            local_only,
-            False,
-            decryption_key_file_path,
-        )
-        temp_metadata = {
-            "id": None,
-            "type": ModelType.CONTAINER.value,
-            "name": "local_" + generate_tmp_uid(),
-            "container": container.identifier,
-            "for_test": True,
-        }
-        return Model(**temp_metadata)
-
-
-def prepare_cube(
-    cube_uid: str,
-    parameters: str = None,
-    additional: str = None,
-    local_only: bool = False,
-    use_local_container_image: bool = False,
-    decryption_key_file_path: os.PathLike = None,
-):
-
-    # Test if value looks like an mlcube_uid, if so skip path validation
-    if str(cube_uid).isdigit():
-        logging.info(f"Container identifier {cube_uid} resembles a server ID")
-        cube = Cube.get(cube_uid, local_only=local_only)
-        return setup_cube(cube, use_local_container_image, decryption_key_file_path)
-
-    # Check if value is a local mlcube
-    path = sanitize_path(cube_uid)
-
-    if os.path.isfile(path):
-        logging.info("local path provided. Preparing local container")
-        tmp_cube = prepare_local_cube(path, parameters, additional)
-        return setup_cube(tmp_cube, use_local_container_image, decryption_key_file_path)
-
-    logging.error(f"container {cube_uid} was not found")
-    raise InvalidArgumentError(
-        f"The provided container ({cube_uid}) could not be found as a local or remote container"
-    )
+def prepare_cube(cube_uid: str, decryption_key_file_path: os.PathLike = None):
+    cube = Cube.get(cube_uid)
+    return setup_cube(cube, decryption_key_file_path)
 
 
 def setup_cube(
-    cube: Cube,
-    use_local_container_image: bool = False,
-    decryption_key_file_path: os.PathLike = None,
+    cube: Cube, decryption_key_file_path: os.PathLike = None, download=True
 ) -> Cube:
 
     if decryption_key_file_path is not None:
@@ -149,7 +64,7 @@ def setup_cube(
         )
         config.sensitive_tmp_paths.append(decryption_key_path)
 
-    if not use_local_container_image:
+    if download:
         logging.debug("Downloading container run files")
         cube.download_run_files()
     return cube

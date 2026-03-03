@@ -20,7 +20,6 @@ class ExecutionFlow:
         evaluator: Cube,
         execution: Execution = None,
         ignore_model_errors=False,
-        local_model=False,
     ):
         user_is_model_owner = (
             is_user_logged_in() and model.owner == get_medperf_user_data()["id"]
@@ -36,15 +35,13 @@ class ExecutionFlow:
             )
         elif model.type == ModelType.ASSET.value:
             asset = Asset.get(model.asset)
-            if not local_model:
-                asset.prepare_asset_files()
+            asset.prepare_asset_files()
             return ScriptExecution.run(
                 dataset, asset, evaluator, execution, ignore_model_errors
             )
         else:
             container = Cube.get(model.container)
-            if not local_model:
-                container.download_run_files()
+            container.download_run_files()
             return ContainerExecution.run(
                 dataset, container, evaluator, execution, ignore_model_errors
             )
