@@ -103,6 +103,11 @@ def submit(
         "--operational",
         help="Submit the Benchmark as OPERATIONAL",
     ),
+    skip_compatibility_tests: bool = typer.Option(
+        False,
+        "--skip-compatibility-tests",
+        help="Skip compatibility tests during benchmark submission",
+    ),
 ):
     """Submits a new benchmark to the platform"""
     benchmark_info = {
@@ -119,6 +124,7 @@ def submit(
     SubmitBenchmark.run(
         benchmark_info,
         skip_data_preparation_step=skip_data_preparation_step,
+        skip_compatibility_tests=skip_compatibility_tests,
     )
     config.ui.print("✅ Done!")
 

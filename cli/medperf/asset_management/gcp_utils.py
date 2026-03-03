@@ -75,10 +75,12 @@ class GCPOperatorConfig:
     account: str
     bucket: str
     machine_type: str
+    boot_disk_size: str
     cc_type: str
     min_cpu_platform: str
     vm_zone: str
     vm_network: str
+    logs_poll_frequency: int
     gpu: bool
     run_duration: str
 
@@ -397,6 +399,7 @@ def run_workload(
         f"--confidential-compute-type={config.cc_type}",
         "--shielded-secure-boot",
         "--scopes=cloud-platform",
+        f"--boot-disk-size={config.boot_disk_size}",
         f"--zone={config.vm_zone}",
         f"--network={config.vm_network}",
         "--maintenance-policy=MIGRATE",
@@ -415,6 +418,7 @@ def run_gpu_workload(
     config: GCPOperatorConfig, workload_config: CCWorkloadID, metadata: str
 ):
     # note: --image-family=confidential-space-preview-cgpu
+    # note: boot disk size must be at least 30GB
 
     cmd = [
         GCP_EXEC,
@@ -433,7 +437,7 @@ def run_gpu_workload(
         "--image-family=confidential-space-debug-preview-cgpu",
         f"--service-account={config.service_account_email}",
         "--scopes=cloud-platform",
-        "--boot-disk-size=30G",
+        f"--boot-disk-size={config.boot_disk_size}",
         "--reservation-affinity=none",
         f"--max-run-duration={config.run_duration}",
         "--instance-termination-action=DELETE",
@@ -479,7 +483,7 @@ def run_gpu_workload(
 
 
 def wait_for_workload_completion(
-    config: GCPOperatorConfig, workload_config: CCWorkloadID, poll_interval: int = 60
+    config: GCPOperatorConfig, workload_config: CCWorkloadID
 ):
 
     client = compute_v1.InstancesClient()
@@ -491,6 +495,8 @@ def wait_for_workload_completion(
         try:
             instance = client.get(project=project_id, zone=zone, instance=instance_name)
             status = instance.status
+            if status == "TERMINATED":
+                return "TERMINATED"
             request = compute_v1.GetSerialPortOutputInstanceRequest(
                 project=project_id,
                 zone=zone,
@@ -503,10 +509,8 @@ def wait_for_workload_completion(
                 medperf_config.ui.print_subprocess_logs(
                     f"{Fore.WHITE}{Style.DIM}{output.contents}{Style.RESET_ALL}"
                 )
-            if status == "TERMINATED":
-                return "TERMINATED"
 
         except NotFound:
             return "DELETED"
 
-        time.sleep(poll_interval)
+        time.sleep(config.logs_poll_frequency)

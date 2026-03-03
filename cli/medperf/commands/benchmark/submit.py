@@ -15,6 +15,7 @@ class SubmitBenchmark:
         benchmark_info: dict,
         no_cache: bool = True,
         skip_data_preparation_step: bool = False,
+        skip_compatibility_tests: bool = False,
     ):
         """Submits a new cube to the medperf platform
         Args:
@@ -30,7 +31,12 @@ class SubmitBenchmark:
                     evaluator_mlcube (int): benchmark data evaluator mlcube uid
         """
         ui = config.ui
-        submission = cls(benchmark_info, no_cache, skip_data_preparation_step)
+        submission = cls(
+            benchmark_info,
+            no_cache,
+            skip_data_preparation_step,
+            skip_compatibility_tests,
+        )
 
         with ui.interactive():
             ui.text = "Getting additional information"
@@ -48,30 +54,40 @@ class SubmitBenchmark:
         benchmark_info: dict,
         no_cache: bool = True,
         skip_data_preparation_step: bool = False,
+        skip_compatibility_tests: bool = False,
     ):
         self.ui = config.ui
         self.bmk = Benchmark(**benchmark_info)
         self.no_cache = no_cache
         self.skip_data_preparation_step = skip_data_preparation_step
+        self.skip_compatibility_tests = skip_compatibility_tests
         self.bmk.metadata["demo_dataset_already_prepared"] = skip_data_preparation_step
+        self.bmk.metadata["skip_compatibility_tests"] = skip_compatibility_tests
         config.tmp_paths.append(self.bmk.path)
 
     def get_extra_information(self):
         """Retrieves information that must be populated automatically,
         like hash, generated uid and test results
         """
-        bmk_demo_url = self.bmk.demo_dataset_tarball_url
-        bmk_demo_hash = self.bmk.demo_dataset_tarball_hash
-        try:
-            _, demo_hash = resources.get_benchmark_demo_dataset(
-                bmk_demo_url, bmk_demo_hash
-            )
-        except InvalidEntityError as e:
-            raise InvalidEntityError(f"Demo dataset {bmk_demo_url}: {e}")
-        self.bmk.demo_dataset_tarball_hash = demo_hash
-        demo_uid, results = self.run_compatibility_test()
-        self.bmk.demo_dataset_generated_uid = demo_uid
-        self.bmk.metadata["results"] = results
+        if self.skip_compatibility_tests:
+            self.bmk.demo_dataset_tarball_hash = "hash"
+            self.bmk.demo_dataset_generated_uid = "hash"
+            self.bmk.metadata["results"] = {}
+            self.bmk.write()
+        else:
+            bmk_demo_url = self.bmk.demo_dataset_tarball_url
+            bmk_demo_hash = self.bmk.demo_dataset_tarball_hash
+            try:
+                _, demo_hash = resources.get_benchmark_demo_dataset(
+                    bmk_demo_url, bmk_demo_hash
+                )
+            except InvalidEntityError as e:
+                raise InvalidEntityError(f"Demo dataset {bmk_demo_url}: {e}")
+            self.bmk.demo_dataset_tarball_hash = demo_hash
+            demo_uid, results = self.run_compatibility_test()
+
+            self.bmk.demo_dataset_generated_uid = demo_uid
+            self.bmk.metadata["results"] = results
 
     def run_compatibility_test(self):
         """Runs a compatibility test to ensure elements are compatible,

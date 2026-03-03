@@ -30,17 +30,17 @@ print_eval medperf profile create -n testdata
 checkFailed "testdata profile creation failed"
 ##########################################################
 
-echo "\n"
+# echo "\n"
 
-##########################################################
-echo "====================================="
-echo "Retrieving mock datasets"
-echo "====================================="
-echo "downloading files to $DIRECTORY"
-print_eval wget -P $DIRECTORY https://storage.googleapis.com/medperf-storage/rano-inference/reference_dataset.tar.gz
-print_eval tar -xzvf $DIRECTORY/reference_dataset.tar.gz -C $DIRECTORY
-print_eval chmod -R a+w $DIRECTORY
-##########################################################
+# ##########################################################
+# echo "====================================="
+# echo "Retrieving mock datasets"
+# echo "====================================="
+# echo "downloading files to $DIRECTORY"
+# print_eval wget -P $DIRECTORY https://storage.googleapis.com/medperf-storage/rano-inference/reference_dataset.tar.gz
+# print_eval tar -xzvf $DIRECTORY/reference_dataset.tar.gz -C $DIRECTORY
+# print_eval chmod -R a+w $DIRECTORY
+# ##########################################################
 
 echo "\n"
 
@@ -93,7 +93,7 @@ echo "\n"
 echo "====================================="
 echo "Submit prep container (by benchmark owner)"
 echo "====================================="
-print_eval medperf container submit --name cc-prep -m $CHESTXRAY_DATA_PREP -p $CHESTXRAY_DATA_PREP_PARAMS -a "https://duke.app.box.com/index.php?rm=box_download_shared_file&shared_name=3oq5fjeez8hlhspmhpsbbycuztjsduax&file_id=f_1392227948431" --operational
+medperf container submit --name cc-prep -m $RANO_PREP -p $RANO_PREP_PARAMS -a "https://duke.app.box.com/index.php?rm=box_download_shared_file&shared_name=3oq5fjeez8hlhspmhpsbbycuztjsduax&file_id=f_1392227948431" --operational
 checkFailed "Prep container submission failed"
 PREP_UID=$(medperf container ls | grep cc-prep | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 echo "PREP_UID=$PREP_UID" >> "$LAST_ENV_FILE"
@@ -228,7 +228,7 @@ echo "\n"
 echo "====================================="
 echo "Running data submission step"
 echo "====================================="
-print_eval medperf dataset submit -p $PREP_UID -d $DIRECTORY/data -l $DIRECTORY/labels --name='cc_dataset_a' --description='cc-mock-dataset-a' --location='mock-location-a' --submit-as-prepared -y
+print_eval medperf dataset submit -p $PREP_UID -d /home/hasan_kassem/rano_data/testdata_small/data -l /home/hasan_kassem/rano_data/testdata_small/labels --name='cc_dataset_a' --description='cc-mock-dataset-a' --location='mock-location-a' --submit-as-prepared -y
 checkFailed "Data submission step failed"
 DSET_UID=$(medperf dataset ls | grep cc_dataset_a | tr -s ' ' | awk '{$1=$1;print}' | cut -d ' ' -f 1)
 echo "DSET_UID=$DSET_UID" >> "$LAST_ENV_FILE"
@@ -370,8 +370,20 @@ echo "\n"
 echo "====================================="
 echo "Run benchmark execution (data owner is operator)"
 echo "====================================="
-print_eval medperf benchmark run -b $BMK_UID -d $DSET_UID
+print_eval medperf benchmark run -b $BMK_UID -d $DSET_UID --models-from-file /home/hasan_kassem/uids.txt --no-cache --rerun-finalized
 checkFailed "Benchmark execution failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================================================="
+echo "View local result"
+echo "====================================================================="
+MODEL_RESULT_ID=$(medperf result ls --mine | grep b${BMK_UID}m2d${DSET_UID} | tr -s ' ' | awk '{$1=$1;print}' | cut -d ' ' -f 1)
+echo "MODEL_RESULT_ID=$MODEL_RESULT_ID" >> "$LAST_ENV_FILE"
+print_eval medperf result show_local_results $MODEL_RESULT_ID
+checkFailed "show_local_results failed"
 ##########################################################
 
 echo "\n"

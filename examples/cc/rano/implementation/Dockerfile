@@ -12,13 +12,6 @@ COPY ./requirements.txt /project/requirements.txt
 
 RUN pip install --no-cache-dir -r /project/requirements.txt
 
-# Create similar env with cuda118
-RUN apt-get update && apt-get install python3.12-venv -y
-RUN python -m venv /cuda118
-RUN /cuda118/bin/pip install --no-cache-dir --upgrade pip setuptools && /cuda118/bin/pip install --no-cache-dir wheel
-RUN /cuda118/bin/pip install --no-cache-dir torch==2.2.2 torchvision==0.17.2 torchaudio==2.2.2 --index-url https://download.pytorch.org/whl/cu118
-RUN /cuda118/bin/pip install --no-cache-dir -r /project/requirements.txt
-
 RUN git clone https://github.com/rachitsaluja/fets2-eval-LW
 RUN cd fets2-eval-LW && git checkout e8ef3610ffa8afb29b3f3dc748c32d82869044b0
 RUN sed -i '$s/scipy==.*/scipy==1.11.4/' fets2-eval-LW/requirements.txt

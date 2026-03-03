@@ -176,6 +176,11 @@ OPERATOR_CC_CONFIG="$MEDPERF_ROOT_REPO/examples/cc/chestxray/operator_cc_config.
 MODEL_CC_POLICY="$MEDPERF_ROOT_REPO/examples/cc/chestxray/model_cc_policy.json"
 DATASET_CC_POLICY="$MEDPERF_ROOT_REPO/examples/cc/chestxray/dataset_cc_policy.json"
 
+RANO_SCRIPT="$MEDPERF_ROOT_REPO/examples/cc/rano/implementation/container_config.yaml"
+RANO_PREP="$MEDPERF_ROOT_REPO/examples/cc/rano/prep_container_config.yaml"
+RANO_PREP_PARAMS="$MEDPERF_ROOT_REPO/examples/cc/rano/prep_parameters.yaml"
+
+
 TRAINING_CONFIG="$MEDPERF_ROOT_REPO/examples/fl/fl/workspace/training_config.yaml"
 # create storage folders
 mkdir -p "$TEST_ROOT"
