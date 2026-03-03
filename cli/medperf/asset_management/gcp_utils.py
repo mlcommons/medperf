@@ -10,7 +10,6 @@ from google.iam.v1 import policy_pb2
 from google.cloud import storage
 from google.cloud.exceptions import Conflict
 from google.cloud import compute_v1
-from google.api_core.exceptions import NotFound
 import time
 from colorama import Fore, Style
 import medperf.config as medperf_config
@@ -492,25 +491,22 @@ def wait_for_workload_completion(
     instance_name = workload_config.vm_name
     next_start = 0
     while True:
-        try:
-            instance = client.get(project=project_id, zone=zone, instance=instance_name)
-            status = instance.status
-            if status == "TERMINATED":
-                return "TERMINATED"
-            request = compute_v1.GetSerialPortOutputInstanceRequest(
-                project=project_id,
-                zone=zone,
-                instance=instance_name,
-                start=next_start,
+        instance = client.get(project=project_id, zone=zone, instance=instance_name)
+        status = instance.status
+        if status == "TERMINATED":
+            return "TERMINATED"
+        request = compute_v1.GetSerialPortOutputInstanceRequest(
+            project=project_id,
+            zone=zone,
+            instance=instance_name,
+            start=next_start,
+        )
+        output = client.get_serial_port_output(request=request)
+        if output.contents:
+            next_start = output.next_
+            medperf_config.ui.print_subprocess_logs(
+                f"{Fore.WHITE}{Style.DIM}{output.contents}{Style.RESET_ALL}"
             )
-            output = client.get_serial_port_output(request=request)
-            if output.contents:
-                next_start = output.next_
-                medperf_config.ui.print_subprocess_logs(
-                    f"{Fore.WHITE}{Style.DIM}{output.contents}{Style.RESET_ALL}"
-                )
-
-        except NotFound:
-            return "DELETED"
+            logging.debug(output.contents)
 
         time.sleep(config.logs_poll_frequency)
