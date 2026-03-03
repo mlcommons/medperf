@@ -8,10 +8,6 @@ class SetupCCOperator:
     @classmethod
     def run(cls, cc_config_file: str):
         user = get_medperf_user_object()
-        if user.is_cc_configured():
-            raise ValueError(
-                "User already has a configured confidential computing operator."
-            )
         with open(cc_config_file) as f:
             cc_config = json.load(f)
 
