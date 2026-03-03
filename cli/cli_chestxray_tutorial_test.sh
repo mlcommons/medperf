@@ -160,13 +160,25 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Submit a private model"
+echo "Submit a private model container"
 echo "====================================="
-print_eval medperf container submit --name privmodel \
+print_eval medperf container submit --name privmodel-container \
   -m $CHESTXRAY_ENCRYPTED_MODEL -p $CHESTXRAY_ENCRYPTED_MODEL_PARAMS \
   -a $CHESTXRAY_ENCRYPTED_MODEL_ADD --decryption_key $PRIVATE_MODEL_LOCAL/key.bin --operational
 checkFailed "private container submission failed"
-PMODEL_UID=$(medperf container ls | grep privmodel | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+PMODEL_CONT_UID=$(medperf container ls | grep privmodel-container | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Submit a private model"
+echo "====================================="
+
+medperf model submit --name privmodel --container $PMODEL_CONT_UID --operational
+checkFailed "Model submission failed"
+PMODEL_UID=$(medperf model ls | grep privmodel | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 ##########################################################
 
 echo "\n"
@@ -175,7 +187,7 @@ echo "\n"
 echo "====================================="
 echo "Running private model association"
 echo "====================================="
-print_eval medperf container associate -m $PMODEL_UID -b 1 -y
+print_eval medperf model associate -m $PMODEL_UID -b 1 -y
 checkFailed "private model association failed"
 ##########################################################
 
@@ -185,7 +197,7 @@ echo "\n"
 echo "====================================="
 echo "Give Access to Private Model"
 echo "====================================="
-print_eval medperf container grant_access --model-id $PMODEL_UID --benchmark-id 1 -y
+print_eval medperf container grant_access --model-id $PMODEL_CONT_UID --benchmark-id 1 -y
 checkFailed "Failed to Give Model Access to Data owner"
 ##########################################################
 
@@ -206,7 +218,7 @@ echo "====================================="
 echo "Running benchmark execution step - Public"
 echo "====================================="
 # Create results
-print_eval medperf run -b 1 -d $DSET_UID -m 5 -y
+print_eval medperf run -b 1 -d $DSET_UID -m 1 -y
 checkFailed "Benchmark execution step failed (public)"
 ##########################################################
 
