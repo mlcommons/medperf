@@ -160,10 +160,7 @@ AGGOWNER="testao@example.com"
 FLADMIN="testfladmin@example.com"
 PRIVATEMODELOWNER="testpo@example.com"
 
-# local MLCubes for local compatibility tests
-PREP_LOCAL="$MEDPERF_ROOT_REPO/examples/chestxray_tutorial/data_preparator"
-MODEL_LOCAL="$MEDPERF_ROOT_REPO/examples/chestxray_tutorial/model_custom_cnn"
-METRIC_LOCAL="$MEDPERF_ROOT_REPO/examples/chestxray_tutorial/metrics"
+# local private model path for encryption key path
 PRIVATE_MODEL_LOCAL="$MEDPERF_ROOT_REPO/examples/chestxray_tutorial/model_custom_cnn_encrypted"
 
 # CC Stuff

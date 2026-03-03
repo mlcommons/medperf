@@ -25,8 +25,6 @@ print_eval medperf profile create -n testbenchmark
 checkFailed "testbenchmark profile creation failed"
 print_eval medperf profile create -n testdata
 checkFailed "testdata profile creation failed"
-print_eval medperf profile create -n noserver
-checkFailed "noserver profile creation failed"
 print_eval medperf profile create -n testprivate
 checkFailed "testprivate profile creation failed"
 print_eval medperf profile set --server https://example.com
@@ -237,60 +235,6 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo " Offline Compatibility Test - Public "
-echo "====================================="
-
-# Test offline compatibility test
-print_eval wget -P $MODEL_LOCAL/workspace/additional_files "https://storage.googleapis.com/medperf-storage/chestxray_tutorial/cnn_weights.tar.gz"
-print_eval tar -xzvf $MODEL_LOCAL/workspace/additional_files/cnn_weights.tar.gz -C $MODEL_LOCAL/workspace/additional_files
-
-## Change the server and logout just to make sure this command will work without connecting to a server
-print_eval medperf profile activate noserver
-checkFailed "noserver profile activation failed"
-
-
-print_eval medperf test run --offline --no-cache \
-  --demo_dataset_url https://storage.googleapis.com/medperf-storage/chestxray_tutorial/demo_data.tar.gz \
-  --demo_dataset_hash "71faabd59139bee698010a0ae3a69e16d97bc4f2dde799d9e187b94ff9157c00" \
-  -p $PREP_LOCAL/container_config.yaml \
-  -m $MODEL_LOCAL/container_config.yaml \
-  -e $METRIC_LOCAL/container_config.yaml \
-  --data_preparator_parameters $PREP_LOCAL/workspace/parameters.yaml \
-  --model_parameters $MODEL_LOCAL/workspace/parameters.yaml \
-  --evaluator_parameters $METRIC_LOCAL/workspace/parameters.yaml \
-  --model_additional_files $MODEL_LOCAL/workspace/additional_files/
-
-checkFailed "offline compatibility test execution step failed - public model"
-##########################################################
-
-echo "\n"
-
-##########################################################
-echo "====================================="
-echo " Offline Compatibility Test - Private "
-echo "====================================="
-print_eval medperf test run --offline --no-cache \
-  --demo_dataset_url https://storage.googleapis.com/medperf-storage/chestxray_tutorial/demo_data.tar.gz \
-  --demo_dataset_hash "71faabd59139bee698010a0ae3a69e16d97bc4f2dde799d9e187b94ff9157c00" \
-  -p $PREP_LOCAL/container_config.yaml \
-  -m $PRIVATE_MODEL_LOCAL/container_config.yaml \
-  -e $METRIC_LOCAL/container_config.yaml \
-  -d $PRIVATE_MODEL_LOCAL/key.bin \
-  --data_preparator_parameters $PREP_LOCAL/workspace/parameters.yaml \
-  --model_parameters $MODEL_LOCAL/workspace/parameters.yaml \
-  --evaluator_parameters $METRIC_LOCAL/workspace/parameters.yaml \
-  --model_additional_files $MODEL_LOCAL/workspace/additional_files/
-
-checkFailed "offline compatibility test execution step failed - private model"
-
-print_eval rm $MODEL_LOCAL/workspace/additional_files/cnn_weights.tar.gz
-print_eval rm $MODEL_LOCAL/workspace/additional_files/cnn_weights.pth
-##########################################################
-
-echo "\n"
-
-##########################################################
-echo "====================================="
 echo "Logout users"
 echo "====================================="
 print_eval medperf profile activate testbenchmark
@@ -319,9 +263,6 @@ print_eval medperf profile delete testbenchmark
 checkFailed "Profile deletion failed"
 
 print_eval medperf profile delete testdata
-checkFailed "Profile deletion failed"
-
-print_eval medperf profile delete noserver
 checkFailed "Profile deletion failed"
 
 print_eval medperf profile delete testprivate

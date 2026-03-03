@@ -100,27 +100,50 @@ PREP_UID=$(medperf container ls | grep mock-prep | head -n 1 | tr -s ' ' | cut -
 echo "PREP_UID=$PREP_UID"
 
 # Public model docker archive
-print_eval medperf container submit --name model1 -m $MODEL_ARCHIVE_MLCUBE -p $MODEL1_PARAMS -a $MODEL_ADD --operational
+print_eval medperf container submit --name model1-cont -m $MODEL_ARCHIVE_MLCUBE -p $MODEL1_PARAMS -a $MODEL_ADD --operational
 checkFailed "Model1 submission failed"
-MODEL1_UID=$(medperf container ls | grep model1 | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
-echo "MODEL1_UID=$MODEL1_UID"
+MODEL1_CONT_UID=$(medperf container ls | grep model1-cont | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+echo "MODEL1_CONT_UID=$MODEL1_CONT_UID"
 
 # Encrypted model docker archive
-print_eval medperf container submit --name model2 -m $MODEL_ENCRYPTED_ARCHIVE_MLCUBE -p $MODEL2_PARAMS -a $MODEL_ADD --decryption-key $DOCKER_DECRYPTION_KEY --operational
+print_eval medperf container submit --name model2-cont -m $MODEL_ENCRYPTED_ARCHIVE_MLCUBE -p $MODEL2_PARAMS -a $MODEL_ADD --decryption-key $DOCKER_DECRYPTION_KEY --operational
 checkFailed "Model2 submission failed"
-MODEL2_UID=$(medperf container ls | grep model2 | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
-echo "MODEL2_UID=$MODEL2_UID"
+MODEL2_CONT_UID=$(medperf container ls | grep model2-cont | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+echo "MODEL2_CONT_UID=$MODEL2_CONT_UID"
 
 # Encrypted model singularity file
-print_eval medperf --platform singularity container submit --name model3 -m $MODEL_ENCRYPTED_SINGULARITY_MLCUBE -p $MODEL3_PARAMS -a $MODEL_ADD --decryption-key $SINGULARITY_DECRYPTION_KEY --operational
+print_eval medperf --platform singularity container submit --name model3-cont -m $MODEL_ENCRYPTED_SINGULARITY_MLCUBE -p $MODEL3_PARAMS -a $MODEL_ADD --decryption-key $SINGULARITY_DECRYPTION_KEY --operational
 checkFailed "Model3 submission failed"
-MODEL3_UID=$(medperf container ls | grep model3 | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
-echo "MODEL3_UID=$MODEL3_UID"
+MODEL3_CONT_UID=$(medperf container ls | grep model3-cont | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+echo "MODEL3_CONT_UID=$MODEL3_CONT_UID"
 
 print_eval medperf container submit --name mock-metrics -m $METRIC_MLCUBE -p $METRIC_PARAMS --operational
 checkFailed "Metrics submission failed"
 METRICS_UID=$(medperf container ls | grep mock-metrics | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 echo "METRICS_UID=$METRICS_UID"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Submit models"
+echo "====================================="
+
+medperf model submit --name model1 --container $MODEL1_CONT_UID --operational
+checkFailed "Model submission failed"
+MODEL1_UID=$(medperf model ls | grep model1 | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+echo "MODEL1_UID=$MODEL1_UID"
+
+medperf model submit --name model2 --container $MODEL2_CONT_UID --operational
+checkFailed "Model submission failed"
+MODEL2_UID=$(medperf model ls | grep model2 | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+echo "MODEL2_UID=$MODEL2_UID"
+
+medperf model submit --name model3 --container $MODEL3_CONT_UID --operational
+checkFailed "Model submission failed"
+MODEL3_UID=$(medperf model ls | grep model3 | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+echo "MODEL3_UID=$MODEL3_UID"
 ##########################################################
 
 echo "\n"
@@ -139,7 +162,7 @@ echo "\n"
 echo "====================================="
 echo "Submit benchmark (using singularity to test conversion of docker archive during compatibility test)"
 echo "====================================="
-print_eval medperf --platform singularity benchmark submit --name bmk --description bmk --demo-url $DEMO_URL --data-preparation-container $PREP_UID --reference-model-container $MODEL1_UID --evaluator-container $METRICS_UID --operational
+print_eval medperf --platform singularity benchmark submit --name bmk --description bmk --demo-url $DEMO_URL --data-preparation-container $PREP_UID --reference-model $MODEL1_UID --evaluator-container $METRICS_UID --operational
 checkFailed "Benchmark submission failed"
 BMK_UID=$(medperf benchmark ls | grep bmk | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 echo "BMK_UID=$BMK_UID"
@@ -317,7 +340,7 @@ echo "\n"
 echo "====================================="
 echo "Running model2 association (with singularity)"
 echo "====================================="
-print_eval medperf --platform singularity container associate -m $MODEL2_UID -b $BMK_UID -y
+print_eval medperf --platform singularity model associate -m $MODEL2_UID -b $BMK_UID -y
 checkFailed "Model2 association failed"
 ##########################################################
 
@@ -327,7 +350,7 @@ echo "\n"
 echo "====================================="
 echo "Running model3 association (with singularity)"
 echo "====================================="
-print_eval medperf --platform singularity container associate -m $MODEL3_UID -b $BMK_UID -y
+print_eval medperf --platform singularity model associate -m $MODEL3_UID -b $BMK_UID -y
 checkFailed "Model3 association failed"
 ##########################################################
 
@@ -337,7 +360,7 @@ echo "\n"
 echo "====================================="
 echo "Giving access to model 2"
 echo "====================================="
-print_eval medperf container grant_access --model-id $MODEL2_UID --benchmark-id $BMK_UID -y
+print_eval medperf container grant_access --model-id $MODEL2_CONT_UID --benchmark-id $BMK_UID -y
 checkFailed "Model2 giving access failed"
 ##########################################################
 
@@ -347,7 +370,7 @@ echo "\n"
 echo "====================================="
 echo "Giving access to model 3 with filtering"
 echo "====================================="
-print_eval medperf container grant_access --model-id $MODEL3_UID --benchmark-id $BMK_UID --allowed_emails "$DATAOWNER" -y
+print_eval medperf container grant_access --model-id $MODEL3_CONT_UID --benchmark-id $BMK_UID --allowed_emails "$DATAOWNER" -y
 checkFailed "Model2 giving access failed"
 ##########################################################
 
@@ -417,7 +440,7 @@ echo "\n"
 echo "====================================="
 echo "Giving access to model 3 for data owner2"
 echo "====================================="
-print_eval medperf container grant_access --model-id $MODEL3_UID --benchmark-id $BMK_UID -y
+print_eval medperf container grant_access --model-id $MODEL3_CONT_UID --benchmark-id $BMK_UID -y
 checkFailed "Model3 giving access failed"
 ##########################################################
 
@@ -507,7 +530,7 @@ echo "\n"
 echo "====================================="
 echo "Checking access to model3"
 # This will return zero status code if "denied" was in the output
-print_eval medperf container check_access -c $MODEL3_UID | grep -iq "denied"
+print_eval medperf container check_access -c $MODEL3_CONT_UID | grep -iq "denied"
 checkFailed "check access command should print access denied"
 ##########################################################
 
@@ -527,7 +550,7 @@ echo "\n"
 echo "====================================="
 echo "Give back access"
 echo "====================================="
-print_eval medperf container grant_access --model-id $MODEL3_UID --benchmark-id $BMK_UID -y
+print_eval medperf container grant_access --model-id $MODEL3_CONT_UID --benchmark-id $BMK_UID -y
 checkFailed "Model3 giving access failed"
 ##########################################################
 
@@ -547,7 +570,7 @@ echo "\n"
 echo "====================================="
 echo "Checking access to model3"
 # This will return zero status code if "denied" was in the output
-print_eval medperf container check_access -c $MODEL3_UID | grep -iq "denied"
+print_eval medperf container check_access -c $MODEL3_CONT_UID | grep -iq "denied"
 checkSucceeded "check access command should not print access denied"
 ##########################################################
 
@@ -567,7 +590,7 @@ echo "\n"
 echo "====================================="
 echo "Delete all keys of model 3"
 echo "====================================="
-print_eval medperf container delete_keys --container-id $MODEL3_UID -y
+print_eval medperf container delete_keys --container-id $MODEL3_CONT_UID -y
 checkFailed "Model3 giving access failed"
 ##########################################################
 
@@ -587,7 +610,7 @@ echo "\n"
 echo "====================================="
 echo "Checking access to model3"
 # This will return zero status code if "denied" was in the output
-print_eval medperf container check_access -c $MODEL3_UID | grep -iq "denied"
+print_eval medperf container check_access -c $MODEL3_CONT_UID | grep -iq "denied"
 checkFailed "check access command should print access denied"
 ##########################################################
 
@@ -607,7 +630,7 @@ echo "\n"
 echo "====================================="
 echo "Checking access to model3"
 # This will return zero status code if "denied" was in the output
-print_eval medperf container check_access -c $MODEL3_UID | grep -iq "denied"
+print_eval medperf container check_access -c $MODEL3_CONT_UID | grep -iq "denied"
 checkFailed "check access command should print access denied"
 ##########################################################
 

@@ -189,6 +189,7 @@ def create_benchmark(api_server, benchmark_owner_token, assets_path):
         benchmark_owner_token,
         {
             "name": "chestxray_cnn_model",
+            "state": "OPERATION",
             "type": "CONTAINER",
             "container": reference_model_executor_mlcube,
             "metadata": {},
@@ -319,9 +320,10 @@ def create_model(
     model_executor1 = api_server.request(
         "/models/",
         "POST",
-        benchmark_owner_token,
+        model_owner_token,
         {
             "name": "chestxray_mobilenet_model",
+            "state": "OPERATION",
             "type": "CONTAINER",
             "container": model_executor1_mlcube,
             "metadata": {},
