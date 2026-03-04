@@ -450,6 +450,8 @@ def format_errors_dict(errors_dict: dict):
         error_msg += f"- {field}: "
         if isinstance(errors, str):
             error_msg += errors
+        elif isinstance(errors, dict):
+            error_msg += format_errors_dict(errors)
         elif len(errors) == 1:
             # If a single error for a field is given, don't create a sublist
             error_msg += str(errors[0])

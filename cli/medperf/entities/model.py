@@ -125,6 +125,15 @@ class Model(Entity, DeployableSchema):
 
         return associations
 
+    def todict(self):
+        # tmp fix until the parent todict is properly implemented.
+        data = super().todict()
+        if self.type == "CONTAINER":
+            del data["asset"]
+        else:
+            del data["container"]
+        return data
+
     def display_dict(self):
         return {
             "UID": self.identifier,

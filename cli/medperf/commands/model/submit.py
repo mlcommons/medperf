@@ -10,28 +10,6 @@ from medperf.enums import ModelType
 from medperf.commands.mlcube.submit import SubmitCube
 from medperf.commands.asset.submit import SubmitAsset
 
-"""
-    container_info = {
-        "name": name,
-        "image_hash": image_hash,
-        "additional_files_tarball_url": additional_file,
-        "additional_files_tarball_hash": additional_hash,
-        "state": "OPERATION" if operational else "DEVELOPMENT",
-    }
-    SubmitCube.run(
-        mlcube_info,
-        container_config=container_config_file,
-        parameters_config=parameters_file,
-        decryption_key=decryption_key,
-    )
-    SubmitAsset.run(
-        name=name,
-        asset_path=asset_path,
-        asset_url=asset_url,
-        operational=operational,
-    )
-"""
-
 
 class SubmitModel:
     @classmethod
