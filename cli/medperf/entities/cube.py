@@ -90,8 +90,11 @@ class Cube(Entity, DeployableSchema):
     def local_id(self):
         return self.name
 
-    def is_encrypted(self):
+    def is_encrypted(self) -> bool:
         return self.parser.is_container_encrypted()
+
+    def is_model(self) -> bool:
+        return self.parser.is_model_container()
 
     @staticmethod
     def remote_prefilter(filters: dict):

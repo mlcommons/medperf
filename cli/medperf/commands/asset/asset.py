@@ -1,43 +1,12 @@
 import typer
 from typing import Optional
 
-import medperf.config as config
 from medperf.decorators import clean_except
 from medperf.entities.asset import Asset
 from medperf.commands.list import EntityList
 from medperf.commands.view import EntityView
-from medperf.commands.asset.submit import SubmitAsset
 
 app = typer.Typer()
-
-
-@app.command("submit")
-@clean_except
-def submit(
-    name: str = typer.Option(..., "--name", "-n", help="Name of the asset"),
-    asset_path: Optional[str] = typer.Option(
-        None, "--asset-path", "-p", help="Local path to the asset file"
-    ),
-    asset_url: Optional[str] = typer.Option(
-        None, "--asset-url", "-u", help="URL to download the asset from"
-    ),
-    operational: bool = typer.Option(
-        False, "--operational", help="Submit the asset as OPERATIONAL"
-    ),
-):
-    """Registers a new asset to the platform.
-
-    The asset can be provided either as a local file path or a URL.
-    The file will be hashed and stored locally. The hash and URL are
-    uploaded to the server.
-    """
-    SubmitAsset.run(
-        name=name,
-        asset_path=asset_path,
-        asset_url=asset_url,
-        operational=operational,
-    )
-    config.ui.print("Done!")
 
 
 @app.command("ls")

@@ -116,59 +116,31 @@ checkFailed "Prep submission failed"
 PREP_UID=$(medperf container ls | grep mock-prep | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 echo "PREP_UID=$PREP_UID" >> "$LAST_ENV_FILE"
 
-print_eval medperf container submit --name model1-cont -m $MODEL_MLCUBE -p $MODEL1_PARAMS -a $MODEL_ADD --operational
+print_eval medperf model submit --name model1 -m $MODEL_MLCUBE -p $MODEL1_PARAMS -a $MODEL_ADD --operational
 checkFailed "Model1 submission failed"
-MODEL1_CONT_UID=$(medperf container ls | grep model1-cont | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
-echo "MODEL1_CONT_UID=$MODEL1_CONT_UID" >> "$LAST_ENV_FILE"
+MODEL1_UID=$(medperf model ls | grep model1 | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+echo "MODEL1_UID=$MODEL1_UID" >> "$LAST_ENV_FILE"
 
-print_eval medperf container submit --name model2-cont -m $MODEL_ARCHIVE_MLCUBE -p $MODEL2_PARAMS -a $MODEL_ADD --operational
+print_eval medperf model submit --name model2 -m $MODEL_ARCHIVE_MLCUBE -p $MODEL2_PARAMS -a $MODEL_ADD --operational
 checkFailed "Model2 submission failed"
-MODEL2_CONT_UID=$(medperf container ls | grep model2-cont | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
-echo "MODEL2_CONT_UID=$MODEL2_CONT_UID" >> "$LAST_ENV_FILE"
+MODEL2_UID=$(medperf model ls | grep model2 | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+echo "MODEL2_UID=$MODEL2_UID" >> "$LAST_ENV_FILE"
 
 # Container with singularity section
-print_eval medperf --platform singularity container submit --name model3-cont -m $MODEL_WITH_SINGULARITY -p $MODEL3_PARAMS -a $MODEL_ADD --operational
+print_eval medperf --platform singularity model submit --name model3 -m $MODEL_WITH_SINGULARITY -p $MODEL3_PARAMS -a $MODEL_ADD --operational
 checkFailed "Model3 submission failed"
-MODEL3_CONT_UID=$(medperf container ls | grep model3-cont | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
-echo "MODEL3_CONT_UID=$MODEL3_CONT_UID" >> "$LAST_ENV_FILE"
+MODEL3_UID=$(medperf model ls | grep model3 | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+echo "MODEL3_UID=$MODEL3_UID" >> "$LAST_ENV_FILE"
 
-print_eval medperf container submit --name model-fail-cont -m $FAILING_MODEL_MLCUBE -p $MODEL4_PARAMS -a $MODEL_ADD --operational
+print_eval medperf model submit --name model-fail -m $FAILING_MODEL_MLCUBE -p $MODEL4_PARAMS -a $MODEL_ADD --operational
 checkFailed "failing model submission failed"
-FAILING_MODEL_CONT_UID=$(medperf container ls | grep model-fail-cont | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
-echo "FAILING_MODEL_CONT_UID=$FAILING_MODEL_CONT_UID" >> "$LAST_ENV_FILE"
+FAILING_MODEL_UID=$(medperf model ls | grep model-fail | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+echo "FAILING_MODEL_UID=$FAILING_MODEL_UID" >> "$LAST_ENV_FILE"
 
 print_eval medperf container submit --name mock-metrics -m $METRIC_MLCUBE -p $METRIC_PARAMS --operational
 checkFailed "Metrics submission failed"
 METRICS_UID=$(medperf container ls | grep mock-metrics | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 echo "METRICS_UID=$METRICS_UID" >> "$LAST_ENV_FILE"
-##########################################################
-
-echo "\n"
-
-##########################################################
-echo "====================================="
-echo "Submit models"
-echo "====================================="
-
-medperf model submit --name model1 --container $MODEL1_CONT_UID --operational
-checkFailed "Model submission failed"
-MODEL1_UID=$(medperf model ls | grep model1 | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
-echo "MODEL1_UID=$MODEL1_UID" >> "$LAST_ENV_FILE"
-
-medperf model submit --name model2 --container $MODEL2_CONT_UID --operational
-checkFailed "Model submission failed"
-MODEL2_UID=$(medperf model ls | grep model2 | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
-echo "MODEL2_UID=$MODEL2_UID" >> "$LAST_ENV_FILE"
-
-medperf model submit --name model3 --container $MODEL3_CONT_UID --operational
-checkFailed "Model submission failed"
-MODEL3_UID=$(medperf model ls | grep model3 | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
-echo "MODEL3_UID=$MODEL3_UID" >> "$LAST_ENV_FILE"
-
-medperf model submit --name model-fail --container $FAILING_MODEL_CONT_UID --operational
-checkFailed "failing model submission failed"
-FAILING_MODEL_UID=$(medperf model ls | grep model-fail | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
-echo "FAILING_MODEL_UID=$FAILING_MODEL_UID" >> "$LAST_ENV_FILE"
 ##########################################################
 
 echo "\n"

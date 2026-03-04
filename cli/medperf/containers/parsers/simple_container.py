@@ -115,3 +115,6 @@ class SimpleContainerParser(Parser):
             ContainerTypes.DOCKER_IMAGE.value,
         ]
         return self.container_type in file_types
+
+    def is_model_container(self):
+        return "infer" in self.container_config["tasks"]

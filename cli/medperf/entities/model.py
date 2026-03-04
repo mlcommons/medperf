@@ -1,12 +1,13 @@
 from typing import List, Optional
 
-from pydantic import validator
 from medperf.exceptions import MedperfException
 import medperf.config as config
 from medperf.entities.interface import Entity
 from medperf.entities.schemas import DeployableSchema
 from medperf.account_management import get_medperf_user_data
 from medperf.commands.association.utils import get_user_associations
+from medperf.entities.cube import Cube
+from medperf.entities.asset import Asset
 
 
 class Model(Entity, DeployableSchema):
@@ -19,8 +20,8 @@ class Model(Entity, DeployableSchema):
     """
 
     type: str  # ASSET or CONTAINER
-    container: Optional[int]
-    asset: Optional[int]
+    container: Optional[Cube]
+    asset: Optional[Asset]
     metadata: dict = {}
     user_metadata: dict = {}
 
@@ -44,28 +45,17 @@ class Model(Entity, DeployableSchema):
     def get_comms_uploader():
         return config.comms.upload_model
 
-    @validator("container", pre=True, always=True)
-    def check_container(cls, v, *, values, **kwargs):
-        if v is not None and not isinstance(v, int) and not values["for_test"]:
-            raise ValueError(
-                "container must be an integer if not running a compatibility test"
-            )
-        return v
-
-    @validator("asset", pre=True, always=True)
-    def check_asset(cls, v, *, values, **kwargs):
-        if v is not None and not isinstance(v, int) and not values["for_test"]:
-            raise ValueError(
-                "asset must be an integer if not running a compatibility test"
-            )
-        return v
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
     @property
     def local_id(self):
         return self.name
+
+    def is_encrypted(self) -> bool:
+        if self.type == "CONTAINER":
+            return self.container.is_encrypted()
+        return False
 
     def is_cc_mode(self):
         return "cc" in self.user_metadata
@@ -108,6 +98,19 @@ class Model(Entity, DeployableSchema):
         return comms_fn
 
     @classmethod
+    def get_by_container(cls, container_id: int) -> Optional["Model"]:
+        """Returns the Model that wraps the given container, or None if not found.
+
+        Args:
+            container_id (int): The container (Cube) ID to look up.
+
+        Returns:
+            Model or None
+        """
+        model_metadata = config.comms.get_container_model(container_id)
+        return cls(**model_metadata)
+
+    @classmethod
     def get_benchmarks_associations(cls, model_uid: int) -> List[dict]:
         experiment_type = "benchmark"
         component_type = "model"
@@ -128,8 +131,8 @@ class Model(Entity, DeployableSchema):
             "Name": self.name,
             "Type": self.type,
             "State": self.state,
-            "Container": self.container,
-            "Asset": self.asset,
+            "Container": self.container.id if self.container else None,
+            "Asset": self.asset.id if self.asset else None,
             "Created At": self.created_at,
             "Registered": self.is_registered,
         }

@@ -1,4 +1,3 @@
-from medperf.entities.asset import Asset
 from medperf.entities.cube import Cube
 from medperf.entities.model import Model
 from medperf.entities.dataset import Dataset
@@ -34,13 +33,13 @@ class ExecutionFlow:
                 benchmark_id, dataset, model, evaluator, execution, ignore_model_errors
             )
         elif model.type == ModelType.ASSET.value:
-            asset = Asset.get(model.asset)
+            asset = model.asset
             asset.prepare_asset_files()
             return ScriptExecution.run(
                 dataset, asset, evaluator, execution, ignore_model_errors
             )
         else:
-            container = Cube.get(model.container)
+            container = model.container
             container.download_run_files()
             return ContainerExecution.run(
                 dataset, container, evaluator, execution, ignore_model_errors

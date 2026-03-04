@@ -1,5 +1,4 @@
 from medperf.asset_management.gcp_utils import CCWorkloadID
-from medperf.entities.asset import Asset
 from medperf.entities.dataset import Dataset
 from medperf.entities.model import Model
 from medperf.entities.user import User
@@ -62,7 +61,7 @@ def setup_model_for_cc(model: Model):
             f"Model {model.id} is not a file-based asset and cannot be set up for confidential computing."
         )
 
-    asset = Asset.get(model.asset)
+    asset = model.asset
     # create model asset
     asset_path = asset.get_archive_path()
 

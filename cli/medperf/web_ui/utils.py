@@ -3,6 +3,7 @@ from medperf.entities.cube import Cube
 
 
 def get_container_type(container: Cube):
+    # todo: use container parser.
     container_config = container.container_config
     container_tasks = container_config.get("tasks", []).keys()
 

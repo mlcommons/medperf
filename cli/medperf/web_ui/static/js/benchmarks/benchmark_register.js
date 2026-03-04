@@ -39,11 +39,11 @@ function checkBenchmarkFormValidity() {
     const referenceDatasetTarballUrlValue = $("#reference-dataset-tarball-url").val().trim();
 
     var dataPreparationContainerValue = $("#data-preparation-container").val();
-    var referenceModelContainerValue = $("#reference-model-container").val();
+    var referenceModelValue = $("#reference-model").val();
     var evaluatorContainerValue = $("#evaluator-container").val();
 
     dataPreparationContainerValue = dataPreparationContainerValue ? Number(dataPreparationContainerValue) : 0;
-    referenceModelContainerValue = referenceModelContainerValue ? Number(referenceModelContainerValue) : 0;
+    referenceModelValue = referenceModelValue ? Number(referenceModelValue) : 0;
     evaluatorContainerValue = evaluatorContainerValue ? Number(evaluatorContainerValue) : 0;
 
     const isValid = Boolean(
@@ -51,7 +51,7 @@ function checkBenchmarkFormValidity() {
         descriptionValue.length > 0 &&
         referenceDatasetTarballUrlValue.length > 0 &&
         dataPreparationContainerValue > 0 &&
-        referenceModelContainerValue > 0 &&
+        referenceModelValue > 0 &&
         evaluatorContainerValue > 0
     );
     $("#register-benchmark-btn").prop("disabled", !isValid);

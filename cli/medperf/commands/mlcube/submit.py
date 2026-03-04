@@ -29,6 +29,7 @@ class SubmitCube:
         )
         submission.read_config_files()
         submission.create_cube_object()
+        submission.raise_if_model()
 
         with ui.interactive():
             ui.text = "Validating Container can be downloaded"
@@ -102,6 +103,13 @@ class SubmitCube:
         )
         config.tmp_paths.append(self.cube.path)
         os.makedirs(self.cube.path, exist_ok=True)
+
+    def raise_if_model(self):
+        if self.cube.is_model():
+            raise InvalidArgumentError(
+                "The provided container config file seems to be for a model, not a cube. "
+                "Please use the 'model submit' command for model submissions."
+            )
 
     def validate(self):
         if self.cube.is_encrypted() and not self.decryption_key:

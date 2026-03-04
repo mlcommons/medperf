@@ -158,24 +158,12 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Submit a private model container"
-echo "====================================="
-print_eval medperf container submit --name privmodel-container \
-  -m $CHESTXRAY_ENCRYPTED_MODEL -p $CHESTXRAY_ENCRYPTED_MODEL_PARAMS \
-  -a $CHESTXRAY_ENCRYPTED_MODEL_ADD --decryption_key $PRIVATE_MODEL_LOCAL/key.bin --operational
-checkFailed "private container submission failed"
-PMODEL_CONT_UID=$(medperf container ls | grep privmodel-container | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
-##########################################################
-
-echo "\n"
-
-##########################################################
-echo "====================================="
 echo "Submit a private model"
 echo "====================================="
-
-medperf model submit --name privmodel --container $PMODEL_CONT_UID --operational
-checkFailed "Model submission failed"
+print_eval medperf model submit --name privmodel \
+  -m $CHESTXRAY_ENCRYPTED_MODEL -p $CHESTXRAY_ENCRYPTED_MODEL_PARAMS \
+  -a $CHESTXRAY_ENCRYPTED_MODEL_ADD --decryption_key $PRIVATE_MODEL_LOCAL/key.bin --operational
+checkFailed "private model submission failed"
 PMODEL_UID=$(medperf model ls | grep privmodel | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 ##########################################################
 
@@ -195,7 +183,7 @@ echo "\n"
 echo "====================================="
 echo "Give Access to Private Model"
 echo "====================================="
-print_eval medperf container grant_access --model-id $PMODEL_CONT_UID --benchmark-id 1 -y
+print_eval medperf model grant_access --model-id $PMODEL_UID --benchmark-id 1 -y
 checkFailed "Failed to Give Model Access to Data owner"
 ##########################################################
 

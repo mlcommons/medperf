@@ -118,21 +118,9 @@ echo "====================================="
 echo "Submit CNN weights as an Asset (reference model asset)"
 echo "====================================="
 
-print_eval medperf asset submit --name cc-cnn-weights --asset-url https://storage.googleapis.com/medperf-storage/rano-inference/additional_files_initial_model.tar.gz --operational
-checkFailed "CNN asset submission failed"
-CNN_ASSET_UID=$(medperf asset ls | grep cc-cnn-weights | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
-echo "CNN_ASSET_UID=$CNN_ASSET_UID" >> "$LAST_ENV_FILE"
-##########################################################
-
-echo "\n"
-
-##########################################################
-echo "====================================="
-echo "Submit reference model (Asset type, wrapping CNN weights)"
-echo "====================================="
-print_eval medperf model submit --name cc-ref-model --asset $CNN_ASSET_UID --operational
-checkFailed "Reference model submission failed"
-REF_MODEL_UID=$(medperf model ls | grep cc-ref-model | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+print_eval medperf model submit --name cc-cnn-weights --asset-url https://storage.googleapis.com/medperf-storage/rano-inference/additional_files_initial_model.tar.gz --operational
+checkFailed "CNN model submission failed"
+REF_MODEL_UID=$(medperf model ls | grep cc-cnn-weights | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 echo "REF_MODEL_UID=$REF_MODEL_UID" >> "$LAST_ENV_FILE"
 ##########################################################
 
@@ -164,21 +152,9 @@ echo "\n"
 echo "====================================="
 echo "Submit MobileNetV2 weights as an Asset"
 echo "====================================="
-print_eval medperf asset submit --name cc-mobilenet-weights --asset-path "$DIRECTORY/additional_files_single_model.tar.gz" --operational
-checkFailed "MobileNetV2 asset submission failed"
-MOBILENET_ASSET_UID=$(medperf asset ls | grep cc-mobilenet-weights | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
-echo "MOBILENET_ASSET_UID=$MOBILENET_ASSET_UID" >> "$LAST_ENV_FILE"
-##########################################################
-
-echo "\n"
-
-##########################################################
-echo "====================================="
-echo "Submit MobileNetV2 model (Asset type)"
-echo "====================================="
-print_eval medperf model submit --name cc-mobilenet-model --asset $MOBILENET_ASSET_UID --operational
+print_eval medperf model submit --name cc-mobilenet-weights --asset-path "$DIRECTORY/additional_files_single_model.tar.gz" --operational
 checkFailed "MobileNetV2 model submission failed"
-MOBILENET_MODEL_UID=$(medperf model ls | grep cc-mobilenet-model | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+MOBILENET_MODEL_UID=$(medperf model ls | grep cc-mobilenet-weights | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 echo "MOBILENET_MODEL_UID=$MOBILENET_MODEL_UID" >> "$LAST_ENV_FILE"
 ##########################################################
 

@@ -54,7 +54,9 @@ class Server:
         self.version = res["version"]
         return res["version"]
 
-    def request(self, endpoint, method, token, data, out_field=None):
+    def request(
+        self, endpoint, method, token, data, out_field=None, return_full_response=False
+    ):
         headers = {}
         if token:
             headers = {"Authorization": "Bearer " + token}
@@ -81,6 +83,8 @@ class Server:
                 + curlify.to_curl(resp.request)
             )
         res = json.loads(resp.text)
+        if return_full_response:
+            return res
         if out_field:
             if out_field not in res:
                 sys.exit(out_field + "not in reponse" + resp.text)
@@ -150,55 +154,29 @@ def create_benchmark(api_server, benchmark_owner_token, assets_path):
         assets_path, "model_custom_cnn"
     )
     # Create a reference model executor mlcube by Benchmark Owner
-    reference_model_executor_mlcube = api_server.request(
-        "/mlcubes/",
-        "POST",
-        benchmark_owner_token,
-        {
-            "name": "chestxray_cnn",
-            "container_config": model_cnn_container_config,
-            "parameters_config": model_cnn_parameters_config,
-            "additional_files_tarball_url": (
-                "https://storage.googleapis.com/medperf-storage/"
-                "chestxray_tutorial/cnn_weights.tar.gz"
-            ),
-            "additional_files_tarball_hash": "bff003e244759c3d7c8b9784af0819c7f252da8626745671ccf7f46b8f19a0ca",
-            "image_hash": "sha256:a1bdddce05b9d156df359dd570de8031fdd1ea5a858f755139bed4a95fad19d1",
-            "metadata": {},
-        },
-        "id",
-    )
-
-    # Update state of the Reference Model Executor MLCube to OPERATION
-    reference_model_executor_mlcube_state = api_server.request(
-        "/mlcubes/" + str(reference_model_executor_mlcube) + "/",
-        "PUT",
-        benchmark_owner_token,
-        {"state": "OPERATION"},
-        "state",
-    )
-    print(
-        "Reference Model Executor MlCube state updated to",
-        reference_model_executor_mlcube_state,
-        "by Benchmark Owner",
-    )
-    # create reference model executor
     reference_model_executor = api_server.request(
         "/models/",
         "POST",
         benchmark_owner_token,
         {
-            "name": "chestxray_cnn_model",
-            "state": "OPERATION",
+            "name": "chestxray_cnn",
             "type": "CONTAINER",
-            "container": reference_model_executor_mlcube,
-            "metadata": {},
+            "state": "OPERATION",
+            "container": {
+                "name": "chestxray_cnn",
+                "state": "OPERATION",
+                "container_config": model_cnn_container_config,
+                "parameters_config": model_cnn_parameters_config,
+                "additional_files_tarball_url": (
+                    "https://storage.googleapis.com/medperf-storage/"
+                    "chestxray_tutorial/cnn_weights.tar.gz"
+                ),
+                "additional_files_tarball_hash": "bff003e244759c3d7c8b9784af0819c7f252da8626745671ccf7f46b8f19a0ca",
+                "image_hash": "sha256:a1bdddce05b9d156df359dd570de8031fdd1ea5a858f755139bed4a95fad19d1",
+                "metadata": {},
+            },
         },
         "id",
-    )
-    print(
-        "Reference Model Executor Created(by Benchmark Owner). ID:",
-        reference_model_executor,
     )
 
     evaluator_container_config = load_container_config(assets_path, "metrics")
@@ -283,56 +261,41 @@ def create_model(
     )
 
     # Create a model mlcube by Model Owner
-    model_executor1_mlcube = api_server.request(
-        "/mlcubes/",
+    model_executor1 = api_server.request(
+        "/models/",
         "POST",
         model_owner_token,
         {
             "name": "chestxray_mobilenet",
-            "container_config": mobilenet_container_config,
-            "parameters_config": mobilenet_parameters_config,
-            "additional_files_tarball_url": (
-                "https://storage.googleapis.com/medperf-storage/"
-                "chestxray_tutorial/mobilenetv2_weights.tar.gz"
-            ),
-            "additional_files_tarball_hash": "771f67bba92a11c83d16a522f0ba1018020ff758e2277d33f49056680c788892",
-            "image_hash": "sha256:f27deb052eafd48ad1e350ceef7b0b9600aef0ea3f8cba47baee2b1d17411a83",
-            "metadata": {},
+            "type": "CONTAINER",
+            "container": {
+                "name": "chestxray_mobilenet",
+                "container_config": mobilenet_container_config,
+                "parameters_config": mobilenet_parameters_config,
+                "additional_files_tarball_url": (
+                    "https://storage.googleapis.com/medperf-storage/"
+                    "chestxray_tutorial/mobilenetv2_weights.tar.gz"
+                ),
+                "additional_files_tarball_hash": "771f67bba92a11c83d16a522f0ba1018020ff758e2277d33f49056680c788892",
+                "image_hash": "sha256:f27deb052eafd48ad1e350ceef7b0b9600aef0ea3f8cba47baee2b1d17411a83",
+                "metadata": {},
+            },
         },
         "id",
     )
 
-    # Update state of the Model MLCube to OPERATION
+    # Update state of the Model to OPERATION
     model_executor1_mlcube_state = api_server.request(
-        "/mlcubes/" + str(model_executor1_mlcube) + "/",
+        "/models/" + str(model_executor1) + "/",
         "PUT",
         model_owner_token,
         {"state": "OPERATION"},
         "state",
     )
     print(
-        "Model MlCube state updated to",
+        "Model state updated to",
         model_executor1_mlcube_state,
         "by Model Owner",
-    )
-
-    # create model executor
-    model_executor1 = api_server.request(
-        "/models/",
-        "POST",
-        model_owner_token,
-        {
-            "name": "chestxray_mobilenet_model",
-            "state": "OPERATION",
-            "type": "CONTAINER",
-            "container": model_executor1_mlcube,
-            "metadata": {},
-        },
-        "id",
-    )
-    print(
-        "Model Executor Created(by Model Owner). ID:",
-        model_executor1,
     )
 
     # Associate the model-executor1 mlcube to the created benchmark by model owner user

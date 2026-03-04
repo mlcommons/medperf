@@ -3,6 +3,7 @@
 {% extends "detail_base.html" %}
 
 {% import 'macros/container_macros.html' as container_macros %}
+{% import 'macros/model_macros.html' as model_macros %}
 {% import 'macros/benchmark_macros.html' as benchmark_macros %}
 
 {% block title %}Dataset Details{% endblock title %}
@@ -239,7 +240,7 @@
 <!-- Display associated models with improved layout and dynamic actions -->
 {% for assoc in benchmark_associations %}
 	{% if assoc in approved_benchmarks %}
-	{% set reference_model = benchmarks[assoc].reference_model_mlcube %}
+	{% set reference_model = benchmarks[assoc].reference_model %}
 	<div class="card mb-4 shadow-sm mt-5">
 		<div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
 			<h4 class="mb-0">
@@ -268,7 +269,7 @@
 						<!-- Left section: Model info -->
 						<div class="model-info d-flex flex-column">
                             <small class="text-muted">&nbsp;Reference Model</small>
-							{{ container_macros.container_link(reference_model) }}
+							{{ model_macros.model_link(reference_model) }}
 						</div>
 						<div class="d-flex align-items-center">
 							<div class="mx-2">
@@ -342,7 +343,7 @@
                             {% endif %}
                             </div>
                             {% endif %}
-							{{ container_macros.container_link(model) }}
+							{{ model_macros.model_link(model) }}
 						</div>
 						<div class="d-flex align-items-center">
 							<div class="mx-2">

@@ -6,7 +6,6 @@ from time import time
 import yaml
 
 from medperf.asset_management.gcp_utils import CCWorkloadID
-from medperf.entities.asset import Asset
 from medperf.entities.cube import Cube
 from medperf.entities.model import Model
 from medperf.entities.dataset import Dataset
@@ -95,7 +94,7 @@ class ConfidentialExecution:
         self.dataset_cc_config = self.dataset.get_cc_config()
         self.model_cc_config = self.model.get_cc_config()
         self.operator_cc_config = self.operator.get_cc_config()
-        self.asset = Asset.get(self.model.asset)
+        self.asset = self.model.asset
 
     def set_pending_status(self):
         self.__send_report("pending")

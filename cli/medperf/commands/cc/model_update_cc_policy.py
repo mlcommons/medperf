@@ -3,7 +3,6 @@ from medperf.entities.model import Model
 from medperf.exceptions import MedperfException
 from medperf.asset_management.asset_management import update_model_cc_policy
 from medperf.asset_management.gcp_utils import CCWorkloadID
-from medperf.entities.asset import Asset
 from medperf.entities.benchmark import Benchmark
 from medperf.entities.dataset import Dataset
 from medperf import config
@@ -17,7 +16,7 @@ def get_permitted_workloads(model: Model):
     user_obj = get_medperf_user_object()
     if model.owner != user_obj.id:
         raise MedperfException("User must be model owner")
-    asset = Asset.get(model.asset)
+    asset = model.asset
 
     permitted_workloads = []
     assocs = config.comms.get_model_benchmarks_associations(model.id)

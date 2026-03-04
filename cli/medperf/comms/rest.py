@@ -347,6 +347,19 @@ class REST(Comms):
         error_msg = "Could not retrieve training experiment aggregator"
         return self.__get(url, error_msg)
 
+    def get_container_model(self, container_id: int) -> dict:
+        """Retrieves the model for the given container ID
+
+        Args:
+            container_id (int): Container (MlCube) ID
+
+        Returns:
+            dict: Model metadata
+        """
+        url = f"{self.server_url}/mlcubes/{container_id}/model/"
+        error_msg = f"Could not retrieve model for container {container_id}"
+        return self.__get(url, error_msg)
+
     # get list
     def get_benchmarks(self, filters=dict()) -> List[dict]:
         """Retrieves all benchmarks in the platform.
