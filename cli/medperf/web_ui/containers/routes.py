@@ -7,9 +7,9 @@ from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from medperf.account_management import get_medperf_user_data
 from medperf.entities.certificate import Certificate
 from medperf.entities.cube import Cube
+from medperf.entities.model import Model
 from medperf.entities.benchmark import Benchmark
 from medperf.commands.compatibility_test.run import CompatibilityTestExecution
-from medperf.commands.model.associate import AssociateModel
 from medperf.commands.mlcube.delete_keys import DeleteKeys
 from medperf.commands.mlcube.grant_access import GrantAccess
 from medperf.commands.mlcube.revoke_user_access import RevokeUserAccess
@@ -62,6 +62,13 @@ def container_detail_ui(
     current_user: bool = Depends(check_user_ui),
 ):
     container = Cube.get(cube_uid=container_id, valid_only=False)
+
+    # If this container is used by a model, redirect to the model dashboard
+
+    if container.is_model():
+        model = Model.get_by_container(container_id)
+        redirect_url = sanitize_redirect_url(f"/models/ui/display/{model.id}")
+        return RedirectResponse(url=redirect_url)
 
     benchmark_assocs = Cube.get_benchmarks_associations(mlcube_uid=container_id)
 
@@ -204,35 +211,6 @@ def test_container(
         message=notification_message,
         return_response=return_response,
         url="/containers/register/ui",
-    )
-    return return_response
-
-
-@router.post("/associate", response_class=JSONResponse)
-def associate(
-    request: Request,
-    container_id: int = Form(...),
-    benchmark_id: int = Form(...),
-    current_user: bool = Depends(check_user_api),
-):
-    initialize_state_task(request, task_name="container_association")
-    return_response = {"status": "", "error": ""}
-    try:
-        AssociateModel.run(cube_uid=container_id, benchmark_uid=benchmark_id)
-        return_response["status"] = "success"
-        notification_message = "Successfully requested container association!"
-    except Exception as exp:
-        return_response["status"] = "failed"
-        return_response["error"] = str(exp)
-        notification_message = "Failed to request container association"
-        logger.exception(exp)
-
-    config.ui.end_task(return_response)
-    reset_state_task(request)
-    config.ui.add_notification(
-        message=notification_message,
-        return_response=return_response,
-        url=f"/containers/ui/display/{container_id}",
     )
     return return_response
 
