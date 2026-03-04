@@ -1,0 +1,282 @@
+{# ./cli/medperf/web_ui/templates/model/register_model.html #}
+
+{% extends "base.html" %}
+
+{% import "constants/forms_placeholders.html" as placeholders %}
+{% import "constants/tooltips.html" as tooltips %}
+
+{% block title %}Register Model{% endblock %}
+
+{% block content %}
+{% set model_register_running = (task_running and request.app.state.task.name == "model_registration") %}
+<div class="container mt-5">
+    <h1 class="text-center">Register a New Model</h1>
+    <div class="text-center fs-5 mt-4">
+        A model can be backed by a <strong>container</strong> (MLCube) or a file-based <strong>asset</strong>.<br>
+        The container or asset will be submitted first, then the model referencing it.
+    </div>
+
+    <form class="my-5" id="model-register-form">
+        <div class="form-group my-5">
+            <label for="name" class="form-label h4">Model Name</label>
+            <div class="input-group">
+                <input
+                    name="name"
+                    class="form-control"
+                    type="text"
+                    id="name"
+                    placeholder="e.g. My Model v1"
+                    {% if model_register_running %}
+                    value="{{ task_formData.get('name', '') }}"
+                    disabled
+                    {% endif %}
+                    maxlength="128"
+                >
+            </div>
+        </div>
+
+        <div class="form-group mt-3 d-flex flex-row justify-content-evenly">
+            <div>
+                <input class="form-check-input border-black" type="radio" name="model_type" id="type-container" value="container"
+                    {% if model_register_running and task_formData.get('model_type', 'container') == 'container' %} checked {% elif not model_register_running %} checked {% endif %}
+                    {% if model_register_running %} disabled {% endif %}
+                >
+                <label class="form-check-label fs-5" for="type-container">Container-backed Model</label>
+            </div>
+            <div>
+                <input class="form-check-input border-black" type="radio" name="model_type" id="type-asset" value="asset"
+                    {% if model_register_running and task_formData.get('model_type', '') == 'asset' %} checked {% endif %}
+                    {% if model_register_running %} disabled {% endif %}
+                >
+                <label class="form-check-label fs-5" for="type-asset">Asset-backed Model</label>
+            </div>
+        </div>
+
+        {# Container fields #}
+        <div id="container-fields">
+            <div class="form-group my-5">
+                <label for="container-file" class="form-label h4">Container Config File</label>
+                <div class="input-group">
+                    <input
+                        name="container_file"
+                        class="form-control"
+                        type="text"
+                        id="container-file"
+                        placeholder="{{ placeholders.register_container_manifest_file }}"
+                        {% if task_running %} disabled {% endif %}
+                        {% if model_register_running %}
+                        value="{{ task_formData.get('container_file', '') }}"
+                        {% endif %}
+                    >
+                    <div class="input-group-append">
+                        <button
+                            type="button"
+                            class="btn btn-outline-secondary"
+                            id="browse-container-btn"
+                            {% if task_running %} disabled {% endif %}
+                        >Browse</button>
+                    </div>
+                    <i
+                        class="tooltip-info input-group-text fa fa-info-circle fs-4"
+                        data-bs-toggle="tooltip"
+                        data-bs-placement="top"
+                        data-bs-title="{{ tooltips.register_container_manifest_file }}"
+                    ></i>
+                </div>
+            </div>
+            <div class="form-group my-5">
+                <label for="parameters-file" class="form-label h4">Parameters File</label>
+                <div class="input-group">
+                    <input
+                        name="parameters_file"
+                        class="form-control"
+                        type="text"
+                        id="parameters-file"
+                        placeholder="{{ placeholders.register_container_parameters_file }}"
+                        {% if task_running %} disabled {% endif %}
+                        {% if model_register_running %}
+                        value="{{ task_formData.get('parameters_file', '') }}"
+                        {% endif %}
+                    >
+                    <div class="input-group-append">
+                        <button
+                            type="button"
+                            class="btn btn-outline-secondary"
+                            id="browse-parameters-btn"
+                            {% if task_running %} disabled {% endif %}
+                        >Browse</button>
+                    </div>
+                    <i
+                        class="tooltip-info input-group-text fa fa-info-circle fs-4"
+                        data-bs-toggle="tooltip"
+                        data-bs-placement="top"
+                        data-bs-title="{{ tooltips.register_container_parameters_file }}"
+                    ></i>
+                </div>
+            </div>
+            <div class="form-group my-5">
+                <label for="additional-file" class="form-label h4">Additional Files URL</label>
+                <div class="input-group">
+                    <input
+                        name="additional_file"
+                        class="form-control"
+                        type="text"
+                        id="additional-file"
+                        placeholder="{{ placeholders.register_container_additional_file }}"
+                        {% if task_running %} disabled {% endif %}
+                        {% if model_register_running %}
+                        value="{{ task_formData.get('additional_file', '') }}"
+                        {% endif %}
+                    >
+                    <i
+                        class="tooltip-info input-group-text fa fa-info-circle fs-4"
+                        data-bs-toggle="tooltip"
+                        data-bs-placement="top"
+                        data-bs-title="{{ tooltips.register_container_additional_file }}"
+                    ></i>
+                </div>
+            </div>
+            <div class="form-group mt-3 d-flex flex-row justify-content-evenly">
+                <div>
+                    <input class="form-check-input border-black" type="radio" name="model_encrypted" id="without-encryption" value="false"
+                        {% if not model_register_running %} checked {% elif task_formData.get('model_encrypted', 'false') == 'false' %} checked {% endif %}
+                        {% if task_running %} disabled {% endif %}
+                    >
+                    <label class="form-check-label" for="without-encryption">Not Encrypted Model</label>
+                </div>
+                <div>
+                    <input class="form-check-input border-black" type="radio" name="model_encrypted" id="with-encryption" value="true"
+                        {% if model_register_running and task_formData.get('model_encrypted', '') == 'true' %} checked {% endif %}
+                        {% if task_running %} disabled {% endif %}
+                    >
+                    <label class="form-check-label" for="with-encryption">Encrypted Model</label>
+                </div>
+            </div>
+            <div id="decryption-file-container" class="form-group my-3 hidden-element">
+                <label for="decryption-file" class="form-label h4">Decryption Key File Path</label>
+                <div class="input-group mb-3">
+                    <input
+                        type="text"
+                        id="decryption-file"
+                        name="decryption_file"
+                        class="form-control"
+                        placeholder="{{ placeholders.register_container_decryption_file }}"
+                        {% if task_running %} disabled {% endif %}
+                        {% if model_register_running %}
+                        value="{{ task_formData.get('decryption_file', '') }}"
+                        {% endif %}
+                    >
+                    <div class="input-group-append">
+                        <button
+                            type="button"
+                            class="btn btn-outline-secondary"
+                            id="browse-decryption-btn"
+                            {% if task_running %} disabled {% endif %}
+                        >Browse</button>
+                    </div>
+                    <i
+                        class="tooltip-info input-group-text fa fa-info-circle fs-4"
+                        data-bs-toggle="tooltip"
+                        data-bs-placement="top"
+                        data-bs-title="{{ tooltips.register_container_decryption_file }}"
+                    ></i>
+                </div>
+            </div>
+        </div>
+
+        {# Asset fields #}
+        <div id="asset-fields" class="hidden-element">
+            <div class="form-group my-5">
+                <label class="form-label h4">Asset Source</label>
+                <div class="d-flex flex-row justify-content-evenly mt-2">
+                    <div>
+                        <input class="form-check-input border-black" type="radio" name="asset_source" id="asset-from-path" value="path" checked>
+                        <label class="form-check-label" for="asset-from-path">Local File Path</label>
+                    </div>
+                    <div>
+                        <input class="form-check-input border-black" type="radio" name="asset_source" id="asset-from-url" value="url">
+                        <label class="form-check-label" for="asset-from-url">Remote URL</label>
+                    </div>
+                </div>
+            </div>
+            <div id="asset-path-container" class="form-group my-5">
+                <label for="asset-path" class="form-label h4">Asset File Path</label>
+                <div class="input-group">
+                    <input
+                        name="asset_path"
+                        class="form-control"
+                        type="text"
+                        id="asset-path"
+                        placeholder="Path to local asset tar.gz file"
+                        {% if task_running %} disabled {% endif %}
+                        {% if model_register_running %}
+                        value="{{ task_formData.get('asset_path', '') }}"
+                        {% endif %}
+                    >
+                    <div class="input-group-append">
+                        <button
+                            type="button"
+                            class="btn btn-outline-secondary"
+                            id="browse-asset-btn"
+                            {% if task_running %} disabled {% endif %}
+                        >Browse</button>
+                    </div>
+                </div>
+            </div>
+            <div id="asset-url-container" class="form-group my-5 hidden-element">
+                <label for="asset-url" class="form-label h4">Asset URL</label>
+                <div class="input-group">
+                    <input
+                        name="asset_url"
+                        class="form-control"
+                        type="text"
+                        id="asset-url"
+                        placeholder="https://example.com/asset.tar.gz"
+                        {% if task_running %} disabled {% endif %}
+                        {% if model_register_running %}
+                        value="{{ task_formData.get('asset_url', '') }}"
+                        {% endif %}
+                    >
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-4">
+            <button id="register-model-btn" type="button" class="btn btn-success mx-3" disabled>
+                Register
+            </button>
+        </div>
+    </form>
+
+    {{ modal_macros.add_modal(
+        modal_id="folder-picker-modal",
+        modal_body='<ul id="folder-list" class="list-group"></ul>',
+        modal_footer=True,
+        close_button='<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>',
+        success_button='<button type="button" class="btn btn-primary" id="select-folder-btn">Select</button>'
+    ) }}
+
+    {% include "partials/panel_container.html" %}
+    {% include "partials/text_content_container.html" %}
+    {% include "partials/yaml_container.html" %}
+    {% include "partials/prompt_container.html" %}
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
+<script src="{{ url_for('static', path='js/models/model_register.js') }}"></script>
+<script src="{{ url_for('static', path='js/folder_browsing.js') }}"></script>
+
+{% if task_running and request.app.state.task.name == "model_registration" %}
+<script>
+    $(document).ready(() => {
+        resumeRunningTask(
+            "#register-model-btn",
+            `Registering Model...`,
+            onModelRegisterSuccess
+        )
+    });
+</script>
+{% endif %}
+{% endblock extra_js %}
