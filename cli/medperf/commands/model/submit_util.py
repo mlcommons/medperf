@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 class ContinueCubeSubmission:
     @classmethod
-    def run(cls, container_submission: SubmitCube):
+    def run(cls, container_submission: "SubmitCube"):
         """Finalizes the container submission.
 
         Args:
@@ -27,7 +27,7 @@ class ContinueCubeSubmission:
         submission.write(updated_body)
         return submission.model.container.id
 
-    def __init__(self, container_submission: SubmitCube):
+    def __init__(self, container_submission: "SubmitCube"):
         self.container_submission = container_submission
         self.model = None
 
@@ -64,7 +64,7 @@ class ContinueCubeSubmission:
 
 class ContinueAssetSubmission:
     @classmethod
-    def run(cls, asset_submission: SubmitAsset):
+    def run(cls, asset_submission: "SubmitAsset"):
         """Finalizes the asset submission.
 
         Args:
@@ -78,7 +78,7 @@ class ContinueAssetSubmission:
         submission.write(updated_body)
         return submission.model.asset.id
 
-    def __init__(self, asset_submission: SubmitAsset):
+    def __init__(self, asset_submission: "SubmitAsset"):
         self.asset_submission = asset_submission
         self.model = None
 
