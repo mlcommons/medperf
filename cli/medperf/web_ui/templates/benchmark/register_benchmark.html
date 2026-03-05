@@ -140,7 +140,7 @@
                     {% if benchmark_register_running %}
                     {% if task_formData.get("reference_model") == model['id']|string %} selected {% endif %}
                     {% endif %}
-                >{{ model.name }} [{{ model.type }}]</option>
+                >{{ model.name }}</option>
                 {% endfor %}
                 {% else %}
                 <option value="" disabled>No Models available - register a model first</option>
