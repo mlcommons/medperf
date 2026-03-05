@@ -19,7 +19,7 @@ class DeleteKeys:
     def get_approval(self):
         msg = (
             "Please confirm that you wish to revoke access to the "
-            f"container {self.container_id} by deleting all its keys."
+            "container by deleting all its keys."
         )
 
         if not self.approved and not approval_prompt(msg):

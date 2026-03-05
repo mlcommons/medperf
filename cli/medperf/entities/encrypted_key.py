@@ -55,9 +55,8 @@ class EncryptedKey(MedperfSchema):
             user_cert.id, filters=filters
         )
         if len(keys) == 0:
-            raise PrivateContainerAccessError(
-                f"You don't have access to the container {container_id}"
-            )
+            logging.debug(f"No keys found for container {container_id}")
+            raise PrivateContainerAccessError("You don't have access to the container")
 
         if len(keys) > 1:
             raise MedperfException("Internal error: expected only one key.")
