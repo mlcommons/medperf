@@ -7,7 +7,6 @@ def createmodelsfromcontainers(
     apps: StateApps, schema_editor: DatabaseSchemaEditor
 ) -> None:
 
-    User = apps.get_model("auth", "User")
     Benchmark = apps.get_model("benchmark", "Benchmark")
     BenchmarkModel = apps.get_model("benchmarkmodel", "BenchmarkModel")
     ModelResult = apps.get_model("result", "ModelResult")
@@ -29,11 +28,10 @@ def createmodelsfromcontainers(
     container_to_model = {}
     for container_id in model_container_ids:
         container = MlCube.objects.get(id=container_id)
-        owner = container.owner
         model_obj = Model.objects.create(
-            name=f"Model for container {container.name}",
+            name=container.name,
             container=container,
-            owner=owner,
+            owner=container.owner,
             type="CONTAINER",
             state=container.state,
             is_valid=container.is_valid,
