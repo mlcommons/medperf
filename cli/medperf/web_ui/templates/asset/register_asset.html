@@ -1,0 +1,141 @@
+{# ./cli/medperf/web_ui/templates/asset/register_asset.html #}
+
+{% extends "base.html" %}
+
+{% import "constants/forms_placeholders.html" as placeholders %}
+{% import "constants/tooltips.html" as tooltips %}
+
+{% block title %}Register Asset{% endblock %}
+
+{% block content %}
+{% set asset_register_running = (task_running and request.app.state.task.name == "asset_registration") %}
+<div class="container mt-5">
+    <h1 class="text-center">Register a New Asset</h1>
+
+    <form class="my-5" id="asset-register-form">
+        <div class="form-group my-5">
+            <label for="name" class="form-label h4">Asset name</label>
+            <div class="input-group">
+                <input
+                    name="name"
+                    class="form-control"
+                    type="text"
+                    id="name"
+                    placeholder="{{ placeholders.register_asset_name }}"
+                    {% if asset_register_running %}
+                    value="{{ task_formData.get('name', '') }}"
+                    disabled
+                    {% endif %}
+                    maxlength="128"
+                >
+                <i
+                    class="tooltip-info input-group-text fa fa-info-circle fs-4"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    data-bs-title="{{ tooltips.register_asset_name }}"
+                ></i>
+            </div>
+        </div>
+        <div class="form-group mt-3 d-flex flex-row justify-content-evenly">
+            <div>
+                <input class="form-check-input border-black" type="radio" name="asset_is_remote" id="local" value="false">
+                <label class="form-check-label" for="local">Local Asset</label>
+            </div>
+            <div>
+                <input class="form-check-input border-black" type="radio" name="asset_is_remote" id="remote" value="true">
+                <label class="form-check-label" for="remote">Remote Asset</label>
+            </div>
+        </div>
+
+        <div id="asset-url-container" class="form-group my-5">
+            <label for="asset-url" class="form-label h4">Asset URL</label>
+            <div class="input-group">
+                <input
+                    name="asset_url"
+                    class="form-control"
+                    type="text"
+                    id="asset-url"
+                    placeholder="{{ placeholders.register_asset_url }}"
+                    {% if task_running %} disabled {% endif %}
+                    {% if asset_register_running %}
+                    value="{{ task_formData.get('asset_url', '') }}"
+                    {% endif %}
+                >
+                <i
+                    class="tooltip-info input-group-text fa fa-info-circle fs-4"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    data-bs-title="{{ tooltips.register_asset_url }}"
+                ></i>
+            </div>
+        </div>
+
+        <div id="asset-path-container" class="form-group my-3 hidden-element">
+            <label for="asset-path" class="form-label h4">Asset Path</label>
+            <div class="input-group mb-3">
+                <input
+                    type="text"
+                    id="asset-path"
+                    name="asset_path"
+                    class="form-control"
+                    placeholder="{{ placeholders.register_asset_path }}"
+                    {% if task_running %} disabled {% endif %}
+                    {% if asset_register_running %}
+                    value="{{ task_formData.get('asset_path', '') }}"
+                    {% endif %}
+                >
+                <div class="input-group-append">
+                    <button
+                        type="button"
+                        class="btn btn-outline-secondary"
+                        id="browse-asset-btn"
+                        {% if task_running %} disabled {% endif %}
+                    >Browse</button>
+                </div>
+                <i
+                    class="tooltip-info input-group-text fa fa-info-circle fs-4"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    data-bs-title="{{ tooltips.register_asset_path }}"
+                ></i>
+            </div>
+        </div>
+        <div class="text-center mt-4">
+            <button id="register-asset-btn" type="button" class="btn btn-success mx-3" disabled>
+                Register
+            </button>
+        </div>
+    </form>
+
+    {{ modal_macros.add_modal(
+        modal_id="folder-picker-modal",
+        modal_body='<ul id="folder-list" class="list-group"></ul>',
+        modal_footer=True,
+        close_button='<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>',
+        success_button='<button type="button" class="btn btn-primary" id="select-folder-btn">Select</button>'
+    ) }}
+
+    {% include "partials/panel_container.html" %}
+    {% include "partials/text_content_container.html" %}
+    {% include "partials/yaml_container.html" %}
+    {% include "partials/prompt_container.html" %}
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
+<script src="{{ url_for('static', path='js/assets/asset_register.js') }}"></script>
+<script src="{{ url_for('static', path='js/folder_browsing.js') }}"></script>
+
+{% if task_running and request.app.state.task.name == "asset_registration" %}
+<script>
+    $(document).ready(() => {
+        resumeRunningTask(
+            "#register-asset-btn",
+            `Registering Asset...`,
+            onAssetRegisterSuccess
+        )
+    });
+</script>
+{% endif %}
+{% endblock extra_js %}

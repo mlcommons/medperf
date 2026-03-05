@@ -3,14 +3,14 @@
 {% extends "detail_base.html" %}
 
 {% import 'macros/association_card_macros.html' as association_card_macros %}
-{% import 'macros/benchmark_macros.html' as benchmark_macros %}
+{% import 'macros/model_detail_util_macro.html' as model_detail_util_macro %}
 
 {% block title %}Model Details{% endblock %}
 
 {% block detail_panel %}
 <h1 class="my-4">
-    {{ entity.name }}
-    {% if container and not is_owner and container._encrypted %}
+    {{ entity.name }} 
+    {% if not owner and entity._encrypted %}
     <i
         class="fas fa-lock fs-4"
         data-bs-toggle="tooltip"
@@ -30,85 +30,30 @@
                 {% if entity.is_valid %}VALID{% else %}INVALID{% endif %}
             </span>
         </div>
-
-        {# Model core info #}
         <div class="card mb-3">
             <div class="card-body">
                 <p class="card-text">
-                    <strong>Model ID:</strong>
+                    <strong>Model ID:</strong> 
                     {{ entity.id }}
                 </p>
-                <p class="card-text">
-                    <strong>Type:</strong>
-                    <span class="badge bg-secondary">{{ entity.type }}</span>
-                </p>
-                {% if entity.type == "CONTAINER" and container %}
-                <p class="card-text">
-                    <strong>Container ID:</strong>
-                    {{ container.id }}
-                </p>
-                {% elif entity.type == "ASSET" and asset %}
-                <p class="card-text">
-                    <strong>Asset ID:</strong>
-                    {{ asset.id }}
-                </p>
-                {% endif %}
-            </div>
-        </div>
-
-        {# Container details #}
-        {% if entity.type == "CONTAINER" and container %}
-        <div class="card mb-3">
-            <div class="card-body">
-                <h6 class="card-subtitle mb-2 text-muted">Container Details</h6>
-                <p class="card-text">
-                    <strong>Container Manifest:</strong>
-                    <button
-                        data-field="Container Config"
-                        data-yaml-data='{{ container.container_config | tojson }}'
-                        class="btn btn-link text-primary yaml-link text-decoration-underline m-0 p-0"
-                        >Click to display Container Configuration
-                    </button>
-                </p>
-                <p class="card-text">
-                    <strong>Parameters:</strong>
-                    {% if container.parameters_config is none %}
-                    <span>Not Available</span>
-                    {% else %}
-                    <button
-                        data-field="Parameters"
-                        data-yaml-data='{{ container.parameters_config | tojson }}'
-                        class="btn btn-link text-primary yaml-link text-decoration-underline m-0 p-0"
-                        >Click to display Parameters
-                    </button>
-                    {% endif %}
-                </p>
-                {% if container.additional_files_tarball_url %}
-                <p class="card-text">
-                    <strong>Additional Files:</strong>
-                    <a
-                        href="{{ container.additional_files_tarball_url }}"
-                        class="text-primary"
-                        target="_blank">Click to Download the File
-                    </a>
-                </p>
+                
+                {% if entity_is_container %}
+                {{ model_detail_util_macro.container_detail_util(entity.container) }}
                 {% else %}
-                <p class="card-text">
-                    <strong>Additional Files:</strong>
-                    Not Available
-                </p>
+                {{ model_detail_util_macro.asset_detail_util(entity.asset) }}
                 {% endif %}
-                {% if not is_owner and container._encrypted %}
+
+                {% if not is_owner and entity._encrypted %}
                 <p class="card-text mt-3">
                     <strong>Access:</strong>
-                    {% if container.access_status["has_access"] %}
+                    {% if entity.access_status["has_access"] %}
                         <small class="text-success fw-bold ms-2">Access Granted</small>
                     {% else %}
                         <small
                             class="text-danger text-decoration-underline ms-2"
                             data-bs-toggle="tooltip"
                             data-bs-placement="top"
-                            data-bs-title="{{ container.access_status['reason'] }}"
+                            data-bs-title="{{ entity.access_status['reason'] }}"
                         >
                             Access Pending
                         </small>
@@ -117,64 +62,40 @@
                 {% endif %}
             </div>
         </div>
-        {% endif %}
-
-        {# Asset details #}
-        {% if entity.type == "ASSET" and asset %}
-        <div class="card mb-3">
-            <div class="card-body">
-                <h6 class="card-subtitle mb-2 text-muted">Asset Details</h6>
-                <p class="card-text">
-                    <strong>Asset URL:</strong>
-                    {% if asset.asset_url == "local" %}
-                    <span class="text-muted">Local file</span>
-                    {% else %}
-                    <a href="{{ asset.asset_url }}" class="text-primary" target="_blank">{{ asset.asset_url }}</a>
-                    {% endif %}
-                </p>
-                <p class="card-text">
-                    <strong>Asset Hash:</strong>
-                    <span class="text-muted small font-monospace">{{ asset.asset_hash }}</span>
-                </p>
-            </div>
-        </div>
-        {% endif %}
-
         <div class="card mb-3">
             <div class="card-body d-flex justify-content-between flex-wrap">
                 <div class="w-50">
                     <p class="card-text">
-                        <strong>Owner:</strong>
-                        <i class="fas fa-user"></i>
+                        <strong>Owner:</strong> 
+                        <i class="fas fa-user"></i> 
                         <span class="text-muted small">{{ entity.owner }}</span>
                     </p>
                 </div>
                 <div class="text-right w-50">
                     <p class="card-text">
-                        <strong>Created:</strong>
+                        <strong>Created:</strong> 
                         <span class="text-muted small" data-date="{{ entity.created_at }}"></span>
                     </p>
                     <p class="card-text">
-                        <strong>Modified:</strong>
+                        <strong>Modified:</strong> 
                         <span class="text-muted small" data-date="{{ entity.modified_at }}"></span>
                     </p>
                 </div>
             </div>
         </div>
-
         {% if is_owner %}
-        {% if entity.type == "CONTAINER" and container and container.is_encrypted() %}
+        {% if entity._encrypted() %}
         <div class="p-2 card flex-row mt-5 shadow-sm rounded bg-white py-4 bottom-buttons-panel">
             <div class="col-12 text-center">
-                <a class="step-btn btn btn-warning" href="/models/ui/display/{{ entity.id }}/access" data-test-id="manage-access">Manage Access</a>
+                    <a class="step-btn btn btn-warning" href="/containers/ui/display/{{ entity.container.id }}/access" data-test-id="manage-access">Manage Access</a>
                 <br>
-                <small class="step-label ms-2">Manage access permissions for this encrypted model container</small>
+                <small class="step-label ms-2">Manage access permissions for this encrypted model</small>
             </div>
         </div>
         {% endif %}
         <div class="p-2 card flex-row mt-5 shadow-sm rounded bg-white py-4 bottom-buttons-panel">
             <div class="col-12 text-center">
-                {% if entity.state == "OPERATION" %}
+                {% if entity.state=="OPERATION" %}
                 <div class="dropdown">
                     <button
                         class="step-btn btn btn-info dropdown-toggle"
@@ -188,7 +109,7 @@
                     </button>
                     {% set available_benchmarks = [] %}
                     {% for benchmark in benchmarks.values() %}
-                    {% if benchmark.id not in benchmarks_associations or (benchmark.id in benchmarks_associations and benchmarks_associations[benchmark.id].approval_status == "REJECTED") %}
+                    {% if benchmark.id not in benchmark_associations or (benchmark.id in benchmark_associations and benchmark_associations[benchmark.id].approval_status == "REJECTED" ) %}
                     {% set _ = available_benchmarks.append(benchmark) %}
                     {% endif %}
                     {% endfor %}
@@ -213,19 +134,18 @@
                     {% if not available_benchmarks %}
                     <li class="dropdown-item text-muted">No benchmarks available for association</li>
                     {% endif %}
-                    </ul>
+                </ul>
                 </div>
                 {% else %}
                 <button class="step-btn btn btn-info" disabled>Associate with Benchmark</button>
                 <br>
                 {% endif %}
-                <small class="step-label ms-2">Request the benchmark owner to associate your model with the benchmark</small>
+                <small class="step-label ms-2">Make a request to the benchmark owner to associate your model with the benchmark</small>
             </div>
         </div>
         {% endif %}
     </div>
 </div>
-
 {% if is_owner %}
 <div class="associations-panel my-5">
     <div class="associations-column">

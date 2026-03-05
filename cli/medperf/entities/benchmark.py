@@ -158,7 +158,7 @@ class Benchmark(Entity, ApprovableSchema, DeployableSchema):
         associations = get_user_associations(
             experiment_type=experiment_type,
             component_type=component_type,
-            approval_status=None,
+            approval_status=None,  # TODO
         )
 
         associations = [a for a in associations if a["benchmark"] == benchmark_uid]

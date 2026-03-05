@@ -11,9 +11,6 @@
 {% set benchmark_register_running = (task_running and request.app.state.task.name == "benchmark_registration") %}
 <div class="container">
     <h1 class="text-center">Register a New Benchmark</h1>
-    <div class="text-center fs-5 mt-4">
-        It is <strong>recommended</strong> to test the benchmark workflow <a href="/benchmarks/register/workflow_test">here</a> before registration.
-    </div>
 
     <form class="my-5" id="benchmark-register-form">
         <div class="form-group my-5">

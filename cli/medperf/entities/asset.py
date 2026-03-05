@@ -52,6 +52,12 @@ class Asset(Entity, DeployableSchema):
     def local_id(self):
         return self.name
 
+    def is_local(self) -> bool:
+        return self.asset_url == "local"
+
+    def is_model(self) -> bool:
+        return True
+
     @staticmethod
     def remote_prefilter(filters: dict) -> callable:
         comms_fn = config.comms.get_assets

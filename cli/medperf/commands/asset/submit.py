@@ -1,6 +1,7 @@
 import os
 import logging
 
+from medperf.commands.model.submit_util import ContinueAssetSubmission
 from medperf.comms.entity_resources import resources
 import medperf.config as config
 from medperf.entities.asset import Asset
@@ -28,6 +29,9 @@ class SubmitAsset:
             asset_path (str): Local path to the asset file.
             asset_url (str): URL to download the asset from.
             operational (bool): Whether to submit as OPERATIONAL state.
+
+        Returns:
+            str: The ID of submitted asset.
         """
         ui = config.ui
         submission = cls(name, asset_path, asset_url, operational)
@@ -38,10 +42,15 @@ class SubmitAsset:
             submission.prepare_asset()
             submission.create_asset_object()
             submission.validate_asset_file()
-            ui.text = "Submitting asset to MedPerf"
-            updated_body = submission.upload()
-            submission.to_permanent_path(updated_body)
-            submission.write(updated_body)
+
+        if submission.asset.is_model():
+            return ContinueAssetSubmission.run(submission)
+
+        with ui.interactive():
+            ui.text = "Submitting Asset to MedPerf"
+            updated_asset_dict = submission.upload()
+            submission.to_permanent_path(updated_asset_dict)
+            submission.write(updated_asset_dict)
 
         ui.print(f"Asset registered with UID: {submission.asset.id}")
         return submission.asset.id
@@ -103,6 +112,7 @@ class SubmitAsset:
         self.asset.prepare_asset_files()
 
     def upload(self):
+        # Note: this is not used for now
         updated_body = self.asset.upload()
         return updated_body
 

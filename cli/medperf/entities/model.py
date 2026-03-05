@@ -52,10 +52,14 @@ class Model(Entity, DeployableSchema):
     def local_id(self):
         return self.name
 
+    def is_asset(self):
+        return self.type == "ASSET"
+
+    def is_container(self):
+        return self.type == "CONTAINER"
+
     def is_encrypted(self) -> bool:
-        if self.type == "CONTAINER":
-            return self.container.is_encrypted()
-        return False
+        return self.is_container() and self.container.is_encrypted()
 
     def is_cc_mode(self):
         return "cc" in self.user_metadata
@@ -108,6 +112,19 @@ class Model(Entity, DeployableSchema):
             Model or None
         """
         model_metadata = config.comms.get_container_model(container_id)
+        return cls(**model_metadata)
+
+    @classmethod
+    def get_by_asset(cls, asset_id: int) -> Optional["Model"]:
+        """Returns the Model that wraps the given asset, or None if not found.
+
+        Args:
+            asset_id (int): The asset ID to look up.
+
+        Returns:
+            Model or None
+        """
+        model_metadata = config.comms.get_asset_model(asset_id)
         return cls(**model_metadata)
 
     @classmethod

@@ -2,7 +2,7 @@
 
 {% extends "detail_base.html" %}
 
-{% import 'macros/benchmark_macros.html' as benchmark_macros %}
+{% import 'macros/model_detail_util_macro.html' as model_detail_util_macro %}
 
 {% block title %}Container Details{% endblock %}
 
@@ -35,43 +35,7 @@
                     <strong>Container ID:</strong> 
                     {{ entity.id }}
                 </p>
-                <p class="card-text">
-                    <strong>Container Manifest:</strong> 
-                    <button
-                        data-field="Container Config"
-                        data-yaml-data='{{ entity.container_config | tojson }}'
-                        class="btn btn-link text-primary yaml-link text-decoration-underline m-0 p-0"
-                        >Click to display Container Configuration
-                    </button>
-                </p>
-                <p class="card-text">
-                    <strong>Parameters:</strong>
-                    {% if entity.parameters_config is none %} 
-                    <span>Not Available</span>
-                    {% else %}
-                    <button
-                        data-field="Parameters"
-                        data-yaml-data='{{ entity.parameters_config | tojson }}'
-                        class="btn btn-link text-primary yaml-link text-decoration-underline m-0 p-0"
-                        >Click to display Parameters
-                    </button>
-                    {% endif %}
-                </p>
-                {% if entity.additional_files_tarball_url %}
-                <p class="card-text">
-                    <strong>Additional Files:</strong> 
-                    <a
-                        href="{{ entity.additional_files_tarball_url }}"
-                        class="text-primary"
-                        target="_blank">Click to Download the File
-                    </a>
-                </p>
-                {% else %}
-                <p class="card-text">
-                    <strong>Additional Files:</strong> 
-                    Not Available
-                </p>
-                {% endif %}
+                {{ model_detail_util_macro.container_detail_util(entity) }}
                 {% if not is_owner and entity._encrypted %}
                 <p class="card-text mt-3">
                     <strong>Access:</strong>

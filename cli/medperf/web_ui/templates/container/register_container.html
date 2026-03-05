@@ -11,10 +11,6 @@
 {% set container_register_running = (task_running and request.app.state.task.name == "container_registration") %}
 <div class="container mt-5">
     <h1 class="text-center">Register a New Container</h1>
-    <div class="text-center fs-5 mt-4">
-        If you are a model owner registering a model container to participate in a benchmark,<br> It is <strong>recommended</strong>
-        to run the <a href="/containers/register/compatibility_test">compatibility test</a> before submission.
-    </div>
 
     <form class="my-5" id="container-register-form">
         <div class="form-group my-5">

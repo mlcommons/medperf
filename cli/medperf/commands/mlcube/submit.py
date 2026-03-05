@@ -4,6 +4,7 @@ import medperf.config as config
 from medperf.entities.cube import Cube
 from medperf.exceptions import InvalidArgumentError
 from medperf.utils import remove_path, sanitize_path, store_decryption_key
+from medperf.commands.model.submit_util import ContinueCubeSubmission
 import logging
 
 import yaml
@@ -22,6 +23,9 @@ class SubmitCube:
 
         Args:
             submit_info (dict): Dictionary containing the cube information.
+
+        Returns:
+            str: The ID of the submitted cube
         """
         ui = config.ui
         submission = cls(
@@ -29,12 +33,16 @@ class SubmitCube:
         )
         submission.read_config_files()
         submission.create_cube_object()
-        submission.raise_if_model()
 
         with ui.interactive():
             ui.text = "Validating Container can be downloaded"
             submission.validate()
             submission.download_run_files()
+
+        if submission.cube.is_model():
+            return ContinueCubeSubmission.run(submission)
+
+        with ui.interactive():
             ui.text = "Submitting Container to MedPerf"
             updated_cube_dict = submission.upload()
             submission.to_permanent_path(updated_cube_dict)
@@ -103,13 +111,6 @@ class SubmitCube:
         )
         config.tmp_paths.append(self.cube.path)
         os.makedirs(self.cube.path, exist_ok=True)
-
-    def raise_if_model(self):
-        if self.cube.is_model():
-            raise InvalidArgumentError(
-                "The provided container config file seems to be for a model, not a cube. "
-                "Please use the 'model submit' command for model submissions."
-            )
 
     def validate(self):
         if self.cube.is_encrypted() and not self.decryption_key:

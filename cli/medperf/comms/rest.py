@@ -360,6 +360,19 @@ class REST(Comms):
         error_msg = f"Could not retrieve model for container {container_id}"
         return self.__get(url, error_msg)
 
+    def get_asset_model(self, asset_id: int) -> dict:
+        """Retrieves the model for the given asset ID
+
+        Args:
+            asset_id (int): Asset ID
+
+        Returns:
+            dict: Model metadata
+        """
+        url = f"{self.server_url}/assets/{asset_id}/model/"
+        error_msg = f"Could not retrieve model for asset {asset_id}"
+        return self.__get(url, error_msg)
+
     # get list
     def get_benchmarks(self, filters=dict()) -> List[dict]:
         """Retrieves all benchmarks in the platform.

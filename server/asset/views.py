@@ -1,4 +1,6 @@
 from django.http import Http404
+from model.models import Model
+from model.serializers import ModelSerializer
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -79,3 +81,29 @@ class AssetDetail(GenericAPIView):
         asset = self.get_object(pk)
         asset.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class AssetModel(GenericAPIView):
+    serializer_class = ModelSerializer
+    queryset = ""
+
+    def get_object(self, pk):
+        try:
+            return Asset.objects.get(pk=pk)
+        except Asset.DoesNotExist:
+            raise Http404
+
+    def get_related_object(self, asset):
+        try:
+            return asset.model
+        except Model.DoesNotExist:
+            raise Http404
+
+    def get(self, request, pk, format=None):
+        """
+        Retrieve the model associated with an Asset instance.
+        """
+        asset = self.get_object(pk)
+        model = self.get_related_object(asset)
+        serializer = ModelSerializer(model)
+        return Response(serializer.data)
