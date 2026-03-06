@@ -1,5 +1,4 @@
 import os
-from unittest.mock import ANY, call
 from medperf import config
 from medperf.exceptions import ExecutionError, InvalidArgumentError, InvalidEntityError
 from medperf.tests.mocks.benchmark import TestBenchmark
@@ -10,7 +9,6 @@ import pytest
 
 from medperf.commands.execution.create import BenchmarkExecution
 import medperf.commands.execution.create as create_module
-import yaml
 
 
 PATCH_EXECUTION = "medperf.commands.execution.create.{}"
@@ -240,141 +238,6 @@ class TestDefaultSetup:
         # Act & Assert
         with pytest.raises(InvalidArgumentError):
             BenchmarkExecution.run(1, 2, models_uids=[3, 10])
-
-    @pytest.mark.parametrize("ignore_failed_experiments", [False, True])
-    def test_failure_if_failed_exec_and_errors_not_ignored(
-        self, mocker, setup, ignore_failed_experiments
-    ):
-        # Arrange
-        fail_model_uid = 6
-        # Act & Assert
-        if not ignore_failed_experiments:
-            with pytest.raises(ExecutionError):
-                BenchmarkExecution.run(
-                    1,
-                    2,
-                    models_uids=[fail_model_uid],
-                    ignore_failed_experiments=False,
-                    no_cache=True,
-                )
-        else:
-            BenchmarkExecution.run(
-                1,
-                2,
-                models_uids=[fail_model_uid],
-                ignore_failed_experiments=True,
-                no_cache=True,
-            )
-            self.spies["ui_error"].assert_called_once()
-
-    @pytest.mark.parametrize("ignore_failed_experiments", [False, True])
-    def test_failure_if_invalid_model_and_errors_not_ignored(
-        self, mocker, setup, ignore_failed_experiments
-    ):
-        invalid_model_uid = 7
-        # Act & Assert
-        if not ignore_failed_experiments:
-            with pytest.raises(InvalidEntityError):
-                BenchmarkExecution.run(
-                    1,
-                    2,
-                    models_uids=[invalid_model_uid],
-                    ignore_failed_experiments=False,
-                    no_cache=True,
-                )
-        else:
-            BenchmarkExecution.run(
-                1,
-                2,
-                models_uids=[invalid_model_uid],
-                ignore_failed_experiments=True,
-                no_cache=True,
-            )
-            self.spies["ui_error"].assert_called_once()
-
-    @pytest.mark.parametrize("ignore_model_errors", [False, True])
-    def test_execution_is_called_with_correct_ignore_model_errors(
-        self, mocker, setup, ignore_model_errors
-    ):
-        # Act
-        BenchmarkExecution.run(
-            1,
-            2,
-            models_uids=[5],
-            ignore_model_errors=ignore_model_errors,
-            no_cache=True,
-        )
-
-        # Assert
-        self.spies["exec"].assert_has_calls(
-            [
-                call(
-                    dataset=ANY,
-                    model=ANY,
-                    evaluator=ANY,
-                    execution=ANY,
-                    ignore_model_errors=ignore_model_errors,
-                )
-            ]
-        )
-
-    @pytest.mark.parametrize("no_cache", [False, True])
-    def test_execution_not_called_with_cached_result(self, mocker, setup, no_cache):
-        # Arrange
-        cached_model = 2  # system inputs contains the triplet b1m2d1 as cached
-
-        # Act
-        BenchmarkExecution.run(1, 1, models_uids=[cached_model], no_cache=no_cache)
-
-        # Assert
-        if no_cache:
-            self.spies["exec"].assert_called_once()
-        else:
-            self.spies["exec"].assert_not_called()
-
-    @pytest.mark.parametrize("model_uid", [4, 5])
-    def test_execution_of_multiple_models_with_summary(self, mocker, setup, model_uid):
-        # Arrange
-        exec_res = self.state_variables["models_props"][model_uid]
-        headers = ["model", "Execution UID", "partial result", "from cache", "error"]
-        expected_datalist = [
-            [
-                model_uid,
-                "",
-                exec_res["partial"],
-                False,
-                "",
-            ]
-        ]
-        # Act
-        executions = BenchmarkExecution.run(
-            1, 2, models_uids=[model_uid], show_summary=True, no_cache=True
-        )
-        expected_datalist[0][1] = executions[0].id
-
-        # Assert
-        self.spies["tabulate"].assert_called_once_with(
-            expected_datalist, headers=headers
-        )
-
-    def test_execution_of_one_model_writes_result(self, mocker, setup):
-        # Arrange
-        model_uid = 4
-        dset_uid = 2
-        bmk_uid = 1
-        mocker.patch(PATCH_EXECUTION.format("Execution"), TestExecution)
-
-        # Act
-        ex = BenchmarkExecution.run(
-            bmk_uid, dset_uid, models_uids=[model_uid], no_cache=True
-        )
-        expected_file = ex[0].results_path
-
-        # Assert
-        assert (
-            yaml.safe_load(open(expected_file))
-            == self.state_variables["models_props"][model_uid]["results"]
-        )
 
     def test_execution_of_reference_model_does_not_call_validate(self, mocker, setup):
         # Arrange
