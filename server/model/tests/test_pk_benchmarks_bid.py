@@ -5,63 +5,63 @@ from medperf.tests import MedPerfTest
 from parameterized import parameterized, parameterized_class
 
 
-class MlCubeTest(MedPerfTest):
+class ModelTest(MedPerfTest):
     def generic_setup(self):
         # setup users
-        mlcube_owner = "mlcube_owner"
+        model_owner = "model_owner"
         bmk_owner = "bmk_owner"
         bmk_prep_mlcube_owner = "bmk_prep_mlcube_owner"
-        ref_mlcube_owner = "ref_mlcube_owner"
+        ref_model_owner = "ref_model_owner"
         eval_mlcube_owner = "eval_mlcube_owner"
         other_user = "other_user"
 
-        self.create_user(mlcube_owner)
+        self.create_user(model_owner)
         self.create_user(bmk_owner)
         self.create_user(bmk_prep_mlcube_owner)
-        self.create_user(ref_mlcube_owner)
+        self.create_user(ref_model_owner)
         self.create_user(eval_mlcube_owner)
         self.create_user(other_user)
 
-        # create benchmark and mlcube
+        # create benchmark and model
         self.set_credentials(bmk_owner)
         _, _, _, benchmark = self.shortcut_create_benchmark(
             bmk_prep_mlcube_owner,
-            ref_mlcube_owner,
+            ref_model_owner,
             eval_mlcube_owner,
             bmk_owner,
         )
-        self.set_credentials(mlcube_owner)
-        mlcube = self.mock_mlcube(state="OPERATION")
-        mlcube = self.create_mlcube(mlcube).data
+        self.set_credentials(model_owner)
+        model = self.mock_model(state="OPERATION")
+        model = self.create_model(model).data
 
         # setup globals
-        self.mlcube_owner = mlcube_owner
+        self.model_owner = model_owner
         self.bmk_owner = bmk_owner
         self.bmk_prep_mlcube_owner = bmk_prep_mlcube_owner
-        self.ref_mlcube_owner = ref_mlcube_owner
+        self.ref_model_owner = ref_model_owner
         self.eval_mlcube_owner = eval_mlcube_owner
         self.other_user = other_user
 
         self.bmk_id = benchmark["id"]
-        self.mlcube_id = mlcube["id"]
-        self.url = self.api_prefix + "/mlcubes/{0}/benchmarks/{1}/"
+        self.model_id = model["id"]
+        self.url = self.api_prefix + "/models/{0}/benchmarks/{1}/"
         self.set_credentials(None)
 
 
 @parameterized_class(
     [
-        {"initiator": "mlcube_owner", "actor": "bmk_owner"},
-        {"initiator": "bmk_owner", "actor": "mlcube_owner"},
+        {"initiator": "model_owner", "actor": "bmk_owner"},
+        {"initiator": "bmk_owner", "actor": "model_owner"},
     ]
 )
-class BenchmarkMlCubeGetTest(MlCubeTest):
-    """Test module for GET /mlcubes/<pk>"""
+class BenchmarkModelGetTest(ModelTest):
+    """Test module for GET /models/<pk>"""
 
     def setUp(self):
-        super(BenchmarkMlCubeGetTest, self).setUp()
+        super(BenchmarkModelGetTest, self).setUp()
         self.generic_setup()
 
-        self.url = self.url.format(self.mlcube_id, self.bmk_id)
+        self.url = self.url.format(self.model_id, self.bmk_id)
         self.visible_fields = [
             "approval_status",
             "initiated_by",
@@ -71,21 +71,21 @@ class BenchmarkMlCubeGetTest(MlCubeTest):
             "priority",
         ]
 
-        if self.initiator == self.mlcube_owner:
+        if self.initiator == self.model_owner:
             self.approving_user = self.bmk_owner
         else:
-            self.approving_user = self.mlcube_owner
+            self.approving_user = self.model_owner
 
         self.set_credentials(self.actor)
 
     @parameterized.expand([("PENDING",), ("APPROVED",), ("REJECTED",)])
-    def test_generic_get_benchmark_mlcube(self, approval_status):
+    def test_generic_get_benchmark_model(self, approval_status):
         # Arrange
-        testassoc = self.mock_mlcube_association(
-            self.bmk_id, self.mlcube_id, approval_status=approval_status
+        testassoc = self.mock_model_association(
+            self.bmk_id, self.model_id, approval_status=approval_status
         )
 
-        testassoc = self.create_mlcube_association(
+        testassoc = self.create_model_association(
             testassoc, self.initiator, self.approving_user
         ).data
         if isinstance(testassoc, list):
@@ -103,19 +103,19 @@ class BenchmarkMlCubeGetTest(MlCubeTest):
             else:
                 self.assertNotIn(k, response.data[0], f"{k} should not be visible")
 
-    def test_benchmark_mlcube_returns_a_list(self):
+    def test_benchmark_model_returns_a_list(self):
         # Arrange
-        testassoc = self.mock_mlcube_association(
-            self.bmk_id, self.mlcube_id, approval_status="REJECTED"
+        testassoc = self.mock_model_association(
+            self.bmk_id, self.model_id, approval_status="REJECTED"
         )
 
-        self.create_mlcube_association(testassoc, self.initiator, self.approving_user)
+        self.create_model_association(testassoc, self.initiator, self.approving_user)
 
-        testassoc2 = self.mock_mlcube_association(
-            self.bmk_id, self.mlcube_id, approval_status="PENDING"
+        testassoc2 = self.mock_model_association(
+            self.bmk_id, self.model_id, approval_status="PENDING"
         )
 
-        self.create_mlcube_association(testassoc2, self.initiator, self.approving_user)
+        self.create_model_association(testassoc2, self.initiator, self.approving_user)
 
         # Act
         response = self.client.get(self.url)
@@ -127,31 +127,31 @@ class BenchmarkMlCubeGetTest(MlCubeTest):
 
 @parameterized_class(
     [
-        {"initiator": "mlcube_owner", "actor": "bmk_owner"},
-        {"initiator": "bmk_owner", "actor": "mlcube_owner"},
+        {"initiator": "model_owner", "actor": "bmk_owner"},
+        {"initiator": "bmk_owner", "actor": "model_owner"},
     ]
 )
-class MlCubePutTest(MlCubeTest):
-    """Test module for PUT /mlcubes/<pk>"""
+class ModelPutTest(ModelTest):
+    """Test module for PUT /models/<pk>"""
 
     def setUp(self):
-        super(MlCubePutTest, self).setUp()
+        super(ModelPutTest, self).setUp()
         self.generic_setup()
-        self.url = self.url.format(self.mlcube_id, self.bmk_id)
-        if self.initiator == self.mlcube_owner:
+        self.url = self.url.format(self.model_id, self.bmk_id)
+        if self.initiator == self.model_owner:
             self.approving_user = self.bmk_owner
         else:
-            self.approving_user = self.mlcube_owner
+            self.approving_user = self.model_owner
         self.set_credentials(self.actor)
 
     @parameterized.expand([("PENDING",), ("APPROVED",), ("REJECTED",)])
     def test_put_does_not_modify_readonly_fields(self, approval_status):
         # Arrange
-        testassoc = self.mock_mlcube_association(
-            self.bmk_id, self.mlcube_id, approval_status=approval_status
+        testassoc = self.mock_model_association(
+            self.bmk_id, self.model_id, approval_status=approval_status
         )
 
-        self.create_mlcube_association(testassoc, self.initiator, self.approving_user)
+        self.create_model_association(testassoc, self.initiator, self.approving_user)
 
         put_body = {
             "initiated_by": 55,
@@ -172,11 +172,11 @@ class MlCubePutTest(MlCubeTest):
         self, original_approval_status
     ):
         # Arrange
-        testassoc = self.mock_mlcube_association(
-            self.bmk_id, self.mlcube_id, approval_status=original_approval_status
+        testassoc = self.mock_model_association(
+            self.bmk_id, self.model_id, approval_status=original_approval_status
         )
 
-        testassoc = self.create_mlcube_association(
+        testassoc = self.create_model_association(
             testassoc, self.initiator, self.approving_user
         ).data
         if isinstance(testassoc, list):
@@ -202,11 +202,11 @@ class MlCubePutTest(MlCubeTest):
         self, original_approval_status, exp_status
     ):
         # Arrange
-        testassoc = self.mock_mlcube_association(
-            self.bmk_id, self.mlcube_id, approval_status=original_approval_status
+        testassoc = self.mock_model_association(
+            self.bmk_id, self.model_id, approval_status=original_approval_status
         )
 
-        testassoc = self.create_mlcube_association(
+        testassoc = self.create_model_association(
             testassoc, self.initiator, self.approving_user
         ).data
         if isinstance(testassoc, list):
@@ -226,11 +226,11 @@ class MlCubePutTest(MlCubeTest):
         self, original_approval_status
     ):
         # Arrange
-        testassoc = self.mock_mlcube_association(
-            self.bmk_id, self.mlcube_id, approval_status=original_approval_status
+        testassoc = self.mock_model_association(
+            self.bmk_id, self.model_id, approval_status=original_approval_status
         )
 
-        testassoc = self.create_mlcube_association(
+        testassoc = self.create_model_association(
             testassoc, self.initiator, self.approving_user
         ).data
         if isinstance(testassoc, list):
@@ -249,11 +249,11 @@ class MlCubePutTest(MlCubeTest):
         """This is also a permission test"""
 
         # Arrange
-        testassoc = self.mock_mlcube_association(
-            self.bmk_id, self.mlcube_id, approval_status="PENDING"
+        testassoc = self.mock_model_association(
+            self.bmk_id, self.model_id, approval_status="PENDING"
         )
 
-        self.create_mlcube_association(testassoc, self.initiator, None)
+        self.create_model_association(testassoc, self.initiator, None)
 
         put_body = {
             "approval_status": "APPROVED",
@@ -271,17 +271,17 @@ class MlCubePutTest(MlCubeTest):
 
     def test_put_works_on_latest_association(self):
         # Arrange
-        testassoc = self.mock_mlcube_association(
-            self.bmk_id, self.mlcube_id, approval_status="REJECTED"
+        testassoc = self.mock_model_association(
+            self.bmk_id, self.model_id, approval_status="REJECTED"
         )
 
-        self.create_mlcube_association(testassoc, self.initiator, self.approving_user)
+        self.create_model_association(testassoc, self.initiator, self.approving_user)
 
-        testassoc2 = self.mock_mlcube_association(
-            self.bmk_id, self.mlcube_id, approval_status="PENDING"
+        testassoc2 = self.mock_model_association(
+            self.bmk_id, self.model_id, approval_status="PENDING"
         )
 
-        self.create_mlcube_association(testassoc2, self.initiator, self.approving_user)
+        self.create_model_association(testassoc2, self.initiator, self.approving_user)
 
         put_body = {"approval_status": "REJECTED"}
         # this will fail if latest assoc is not pending.
@@ -299,17 +299,17 @@ class MlCubePutTest(MlCubeTest):
         {"actor": "api_admin"},
     ]
 )
-class MlCubeDeleteTest(MlCubeTest):
+class ModelDeleteTest(ModelTest):
     def setUp(self):
-        super(MlCubeDeleteTest, self).setUp()
+        super(ModelDeleteTest, self).setUp()
         self.generic_setup()
-        self.url = self.url.format(self.mlcube_id, self.bmk_id)
+        self.url = self.url.format(self.model_id, self.bmk_id)
         self.set_credentials(self.actor)
 
     def test_deletion_works_as_expected_for_single_assoc(self):
         # Arrange
-        testassoc = self.mock_mlcube_association(self.bmk_id, self.mlcube_id)
-        self.create_mlcube_association(testassoc, self.mlcube_owner, self.bmk_owner)
+        testassoc = self.mock_model_association(self.bmk_id, self.model_id)
+        self.create_model_association(testassoc, self.model_owner, self.bmk_owner)
 
         # Act
         response = self.client.delete(self.url)
@@ -322,13 +322,13 @@ class MlCubeDeleteTest(MlCubeTest):
 
     def test_deletion_works_as_expected_for_multiple_assoc(self):
         # Arrange
-        testassoc = self.mock_mlcube_association(
-            self.bmk_id, self.mlcube_id, approval_status="REJECTED"
+        testassoc = self.mock_model_association(
+            self.bmk_id, self.model_id, approval_status="REJECTED"
         )
-        self.create_mlcube_association(testassoc, self.mlcube_owner, self.bmk_owner)
+        self.create_model_association(testassoc, self.model_owner, self.bmk_owner)
 
-        testassoc2 = self.mock_mlcube_association(self.bmk_id, self.mlcube_id)
-        self.create_mlcube_association(testassoc2, self.mlcube_owner, self.bmk_owner)
+        testassoc2 = self.mock_model_association(self.bmk_id, self.model_id)
+        self.create_model_association(testassoc2, self.model_owner, self.bmk_owner)
 
         # Act
         response = self.client.delete(self.url)
@@ -342,46 +342,46 @@ class MlCubeDeleteTest(MlCubeTest):
 
 @parameterized_class(
     [
-        {"initiator": "mlcube_owner", "association_status": "PENDING"},
+        {"initiator": "model_owner", "association_status": "PENDING"},
         {"initiator": "bmk_owner", "association_status": "PENDING"},
-        {"initiator": "mlcube_owner", "association_status": "REJECTED"},
+        {"initiator": "model_owner", "association_status": "REJECTED"},
         {"initiator": "bmk_owner", "association_status": "REJECTED"},
-        {"initiator": "mlcube_owner", "association_status": "APPROVED"},
+        {"initiator": "model_owner", "association_status": "APPROVED"},
         {"initiator": "bmk_owner", "association_status": "APPROVED"},
     ]
 )
-class PermissionTest(MlCubeTest):
-    """Test module for permissions of /mlcubes/{pk} endpoint
+class PermissionTest(ModelTest):
+    """Test module for permissions of /models/{pk} endpoint
     Non-permitted actions:
-        GET: for all users except mlcube owner, bmk_owner and admin
+        GET: for all users except model owner, bmk_owner and admin
         DELETE: for all users except admin
-        PUT: for all users except mlcube owner, bmk_owner and admin
+        PUT: for all users except model owner, bmk_owner and admin
             if approval_status == APPROVED, initiated_user is not allowed
-            if priority exists in PUT body, mlcube_owner is not allowed
+            if priority exists in PUT body, model_owner is not allowed
     """
 
     def setUp(self):
         super(PermissionTest, self).setUp()
         self.generic_setup()
 
-        self.url = self.url.format(self.mlcube_id, self.bmk_id)
+        self.url = self.url.format(self.model_id, self.bmk_id)
 
-        if self.initiator == self.mlcube_owner:
+        if self.initiator == self.model_owner:
             self.approving_user = self.bmk_owner
         else:
-            self.approving_user = self.mlcube_owner
+            self.approving_user = self.model_owner
 
-        testassoc = self.mock_mlcube_association(
-            self.bmk_id, self.mlcube_id, approval_status=self.association_status
+        testassoc = self.mock_model_association(
+            self.bmk_id, self.model_id, approval_status=self.association_status
         )
 
-        self.create_mlcube_association(testassoc, self.initiator, self.approving_user)
+        self.create_model_association(testassoc, self.initiator, self.approving_user)
 
     # TODO: determine for all tests what should be 404 instead of 400 or 403
     @parameterized.expand(
         [
             ("bmk_prep_mlcube_owner", status.HTTP_403_FORBIDDEN),
-            ("ref_mlcube_owner", status.HTTP_403_FORBIDDEN),
+            ("ref_model_owner", status.HTTP_403_FORBIDDEN),
             ("eval_mlcube_owner", status.HTTP_403_FORBIDDEN),
             ("other_user", status.HTTP_403_FORBIDDEN),
             (None, status.HTTP_401_UNAUTHORIZED),
@@ -400,7 +400,7 @@ class PermissionTest(MlCubeTest):
     @parameterized.expand(
         [
             ("bmk_prep_mlcube_owner", status.HTTP_403_FORBIDDEN),
-            ("ref_mlcube_owner", status.HTTP_403_FORBIDDEN),
+            ("ref_model_owner", status.HTTP_403_FORBIDDEN),
             ("eval_mlcube_owner", status.HTTP_403_FORBIDDEN),
             ("other_user", status.HTTP_403_FORBIDDEN),
             (None, status.HTTP_401_UNAUTHORIZED),
@@ -451,7 +451,7 @@ class PermissionTest(MlCubeTest):
         put_body = {
             "priority": 555,
         }
-        self.set_credentials(self.mlcube_owner)
+        self.set_credentials(self.model_owner)
 
         # Act
         response = self.client.put(self.url, put_body, format="json")
@@ -461,10 +461,10 @@ class PermissionTest(MlCubeTest):
 
     @parameterized.expand(
         [
-            ("mlcube_owner", status.HTTP_403_FORBIDDEN),
+            ("model_owner", status.HTTP_403_FORBIDDEN),
             ("bmk_owner", status.HTTP_403_FORBIDDEN),
             ("bmk_prep_mlcube_owner", status.HTTP_403_FORBIDDEN),
-            ("ref_mlcube_owner", status.HTTP_403_FORBIDDEN),
+            ("ref_model_owner", status.HTTP_403_FORBIDDEN),
             ("eval_mlcube_owner", status.HTTP_403_FORBIDDEN),
             ("other_user", status.HTTP_403_FORBIDDEN),
             (None, status.HTTP_401_UNAUTHORIZED),

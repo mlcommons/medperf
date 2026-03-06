@@ -37,7 +37,7 @@ class BenchmarksTest(MedPerfTest):
                 "name": f"{user}prep",
                 "container_config": {f"{user}prep": f"{user}prep"},
             },
-            ref_mlcube_kwargs={
+            ref_model_kwargs={
                 "name": f"{user}ref",
                 "container_config": {f"{user}ref": f"{user}ref"},
             },
@@ -229,7 +229,7 @@ class BenchmarkDatasetTest(MedPerfTest):
                 "name": f"{user}prep",
                 "container_config": {f"{user}prep": f"{user}prep"},
             },
-            ref_mlcube_kwargs={
+            ref_model_kwargs={
                 "name": f"{user}ref",
                 "container_config": {f"{user}ref": f"{user}ref"},
             },
@@ -280,7 +280,7 @@ class BenchmarkDatasetTest(MedPerfTest):
         self.assertEqual(resp2[0]["id"], assoc2["id"])
 
 
-class BenchmarkMlCubeTest(MedPerfTest):
+class BenchmarkModelTest(MedPerfTest):
     def __create_asset(self, user):
         _, _, _, benchmark = self.shortcut_create_benchmark(
             user,
@@ -291,7 +291,7 @@ class BenchmarkMlCubeTest(MedPerfTest):
                 "name": f"{user}prep",
                 "container_config": {f"{user}prep": f"{user}prep"},
             },
-            ref_mlcube_kwargs={
+            ref_model_kwargs={
                 "name": f"{user}ref",
                 "container_config": {f"{user}ref": f"{user}ref"},
             },
@@ -302,20 +302,20 @@ class BenchmarkMlCubeTest(MedPerfTest):
             name=f"{user}name",
         )
         self.set_credentials(user)
-        mlcube = self.mock_mlcube(
+        model = self.mock_model(
             name=f"{user}name",
             container_config={f"{user}hash": f"{user}hash"},
             state="OPERATION",
         )
-        mlcube = self.create_mlcube(mlcube).data
+        model = self.create_model(model).data
 
-        assoc = self.mock_mlcube_association(benchmark["id"], mlcube["id"])
-        assoc = self.create_mlcube_association(assoc, user, user).data
+        assoc = self.mock_model_association(benchmark["id"], model["id"])
+        assoc = self.create_model_association(assoc, user, user).data
 
         return assoc
 
     def test_endpoint_returns_current_user_assets(self):
-        url = self.api_prefix + "/me/mlcubes/associations/"
+        url = self.api_prefix + "/me/models/associations/"
 
         # setup users
         user1 = "user1"

@@ -174,9 +174,9 @@ def mock_dataset_association(benchmark, dataset, **kwargs):
     return data
 
 
-def mock_mlcube_association(benchmark, mlcube, **kwargs):
+def mock_model_association(benchmark, model, **kwargs):
     data = {
-        "model": mlcube,
+        "model": model,
         "benchmark": benchmark,
         "metadata": {"key": "value"},
         "approval_status": "PENDING",
@@ -256,4 +256,51 @@ def mock_encrypted_key(certificate, container, **kwargs):
             raise ValueError(f"Invalid argument: {key}")
         data[key] = val
 
+    return data
+
+
+def mock_model(**kwargs):
+    mock_container_obj = mock_mlcube(**kwargs)
+    data = {
+        "name": mock_container_obj["name"],
+        "state": mock_container_obj["state"],
+        "is_valid": mock_container_obj["is_valid"],
+        "metadata": mock_container_obj["metadata"],
+        "user_metadata": mock_container_obj["user_metadata"],
+        "container": mock_container_obj,
+        "type": "CONTAINER",
+    }
+    return data
+
+
+def mock_asset(**kwargs):
+    data = {
+        "name": "test_asset",
+        "asset_hash": "string",
+        "asset_url": "string",
+        "state": "DEVELOPMENT",
+        "is_valid": True,
+        "metadata": {"key": "value"},
+        "user_metadata": {"key2": "value2"},
+    }
+
+    for key, val in kwargs.items():
+        if key not in data:
+            raise ValueError(f"Invalid argument: {key}")
+        data[key] = val
+
+    return data
+
+
+def mock_asset_model(**kwargs):
+    mock_asset_obj = mock_asset(**kwargs)
+    data = {
+        "name": mock_asset_obj["name"],
+        "state": mock_asset_obj["state"],
+        "is_valid": mock_asset_obj["is_valid"],
+        "metadata": mock_asset_obj["metadata"],
+        "user_metadata": mock_asset_obj["user_metadata"],
+        "asset": mock_asset_obj,
+        "type": "ASSET",
+    }
     return data

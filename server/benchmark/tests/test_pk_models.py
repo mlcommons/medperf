@@ -10,38 +10,42 @@ class BenchmarkTest(MedPerfTest):
         # setup users
         bmk_owner = "bmk_owner"
         prep_mlcube_owner = "prep_mlcube_owner"
-        ref_mlcube_owner = "ref_mlcube_owner"
+        ref_model_owner = "ref_model_owner"
         eval_mlcube_owner = "eval_mlcube_owner"
-        mlcube1_owner = "mlcube1_owner"
-        mlcube2_owner = "mlcube2_owner"
+        model1_owner = "model1_owner"
+        model2_owner = "model2_owner"
         data1_owner = "data1_owner"
         data2_owner = "data2_owner"
         other_user = "other_user"
 
         self.create_user(bmk_owner)
         self.create_user(prep_mlcube_owner)
-        self.create_user(ref_mlcube_owner)
+        self.create_user(ref_model_owner)
         self.create_user(eval_mlcube_owner)
-        self.create_user(mlcube1_owner)
-        self.create_user(mlcube2_owner)
+        self.create_user(model1_owner)
+        self.create_user(model2_owner)
         self.create_user(data1_owner)
         self.create_user(data2_owner)
         self.create_user(other_user)
 
         # create benchmark and mlcubes
         prep, _, _, benchmark = self.shortcut_create_benchmark(
-            prep_mlcube_owner, ref_mlcube_owner, eval_mlcube_owner, bmk_owner
+            prep_mlcube_owner, ref_model_owner, eval_mlcube_owner, bmk_owner
         )
-        mlcube1 = self.mock_mlcube(
-            name="mlcube1", container_config={"mlcube1hash": "mlcube1hash"}, state="OPERATION"
+        model1 = self.mock_model(
+            name="model1",
+            container_config={"model1hash": "model1hash"},
+            state="OPERATION",
         )
-        mlcube2 = self.mock_mlcube(
-            name="mlcube2", container_config={"mlcube2hash": "mlcube2hash"}, state="OPERATION"
+        model2 = self.mock_model(
+            name="model2",
+            container_config={"model2hash": "model2hash"},
+            state="OPERATION",
         )
-        self.set_credentials(mlcube1_owner)
-        mlcube1 = self.create_mlcube(mlcube1).data
-        self.set_credentials(mlcube2_owner)
-        mlcube2 = self.create_mlcube(mlcube2).data
+        self.set_credentials(model1_owner)
+        model1 = self.create_model(model1).data
+        self.set_credentials(model2_owner)
+        model2 = self.create_model(model2).data
 
         # create datasets
         dataset1 = self.mock_dataset(
@@ -56,7 +60,7 @@ class BenchmarkTest(MedPerfTest):
         dataset2 = self.create_dataset(dataset2).data
 
         # create dataset associations: one approved and one not
-        # This is to test then that data1_owner can't see the mlcube associations
+        # This is to test then that data1_owner can't see the model associations
         # but data2_owner can
         assoc1 = self.mock_dataset_association(
             benchmark["id"], dataset1["id"], approval_status="PENDING"
@@ -70,16 +74,16 @@ class BenchmarkTest(MedPerfTest):
         # setup globals
         self.bmk_owner = bmk_owner
         self.prep_mlcube_owner = prep_mlcube_owner
-        self.ref_mlcube_owner = ref_mlcube_owner
+        self.ref_model_owner = ref_model_owner
         self.eval_mlcube_owner = eval_mlcube_owner
-        self.mlcube1_owner = mlcube1_owner
-        self.mlcube2_owner = mlcube2_owner
+        self.model1_owner = model1_owner
+        self.model2_owner = model2_owner
         self.data1_owner = data1_owner
         self.data2_owner = data2_owner
         self.other_user = other_user
         self.benchmark_id = benchmark["id"]
-        self.mlcube1_id = mlcube1["id"]
-        self.mlcube2_id = mlcube2["id"]
+        self.model1_id = model1["id"]
+        self.model2_id = model2["id"]
 
         self.url = self.api_prefix + "/benchmarks/{0}/models/"
         self.set_credentials(None)
@@ -97,22 +101,22 @@ class BenchmarkModelGetListTest(BenchmarkTest):
     def setUp(self):
         super(BenchmarkModelGetListTest, self).setUp()
         self.generic_setup()
-        # create two association for mlcube1 (one rejected one approved)
-        # and one pending association for mlcube2 (just an arbitrary example)
+        # create two association for model1 (one rejected one approved)
+        # and one pending association for model2 (just an arbitrary example)
 
-        assoc = self.mock_mlcube_association(
-            self.benchmark_id, self.mlcube1_id, approval_status="REJECTED"
+        assoc = self.mock_model_association(
+            self.benchmark_id, self.model1_id, approval_status="REJECTED"
         )
-        self.create_mlcube_association(assoc, self.mlcube1_owner, self.bmk_owner)
-        assoc = self.mock_mlcube_association(
-            self.benchmark_id, self.mlcube1_id, approval_status="APPROVED"
+        self.create_model_association(assoc, self.model1_owner, self.bmk_owner)
+        assoc = self.mock_model_association(
+            self.benchmark_id, self.model1_id, approval_status="APPROVED"
         )
-        self.create_mlcube_association(assoc, self.mlcube1_owner, self.bmk_owner)
+        self.create_model_association(assoc, self.model1_owner, self.bmk_owner)
 
-        assoc = self.mock_mlcube_association(
-            self.benchmark_id, self.mlcube2_id, approval_status="PENDING"
+        assoc = self.mock_model_association(
+            self.benchmark_id, self.model2_id, approval_status="PENDING"
         )
-        self.create_mlcube_association(assoc, self.mlcube2_owner, self.bmk_owner)
+        self.create_model_association(assoc, self.model2_owner, self.bmk_owner)
 
         self.visible_fields = ["approval_status", "created_at", "model"]
         self.set_credentials(self.actor)
@@ -143,23 +147,23 @@ class PermissionTest(BenchmarkTest):
     def setUp(self):
         super(PermissionTest, self).setUp()
         self.generic_setup()
-        # create two association for mlcube1 (one rejected one approved)
-        # and one pending association for mlcube2 (just an arbitrary example)
+        # create two association for model1 (one rejected one approved)
+        # and one pending association for model2 (just an arbitrary example)
 
-        assoc = self.mock_mlcube_association(
-            self.benchmark_id, self.mlcube1_id, approval_status="REJECTED"
+        assoc = self.mock_model_association(
+            self.benchmark_id, self.model1_id, approval_status="REJECTED"
         )
-        self.create_mlcube_association(assoc, self.mlcube1_owner, self.bmk_owner)
+        self.create_model_association(assoc, self.model1_owner, self.bmk_owner)
         self.url = self.url.format(self.benchmark_id)
         self.set_credentials(None)
 
     @parameterized.expand(
         [
             ("prep_mlcube_owner", status.HTTP_403_FORBIDDEN),
-            ("ref_mlcube_owner", status.HTTP_403_FORBIDDEN),
+            ("ref_model_owner", status.HTTP_403_FORBIDDEN),
             ("eval_mlcube_owner", status.HTTP_403_FORBIDDEN),
-            ("mlcube1_owner", status.HTTP_403_FORBIDDEN),
-            ("mlcube2_owner", status.HTTP_403_FORBIDDEN),
+            ("model1_owner", status.HTTP_403_FORBIDDEN),
+            ("model2_owner", status.HTTP_403_FORBIDDEN),
             ("data1_owner", status.HTTP_403_FORBIDDEN),
             ("other_user", status.HTTP_403_FORBIDDEN),
             (None, status.HTTP_401_UNAUTHORIZED),
