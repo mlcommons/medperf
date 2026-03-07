@@ -1,4 +1,4 @@
-# Container Assets: What to Host?
+# Container Files: What to Host?
 
 Once you have built a container ready for MedPerf, you need to host its code (i.e., container image) on the cloud so that it can be identified and retrieved by the MedPerf client on other machines. This requires hosting the container image somewhere on the cloud. Additionally, a container's additional files need to be hosted as well ([Learn more about additional files](../containers/containers.md#extra-mounts)). The following is a description of what needs to be hosted.
 
@@ -22,7 +22,7 @@ Suppose you have your additional files inside a folder named `additional_files`.
 tar -czf additional_files.tar.gz -C <path_to_the_additional_files_folder> .
 ```
 
-This will create the `additional_files.tar.gz` archive that can then be hosted and its URL should be provided to the container submission command.
+This will create the `additional_files.tar.gz` archive that can then be hosted and its URL should be provided to the container/model submission command.
 
 ## See Also
 
