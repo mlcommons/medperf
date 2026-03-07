@@ -1,4 +1,3 @@
-from medperf.exceptions import InvalidArgumentError
 from medperf.tests.mocks.cube import TestCube
 import pytest
 import medperf.commands.compatibility_test.utils as utils
