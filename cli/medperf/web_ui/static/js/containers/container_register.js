@@ -2,13 +2,13 @@ function onContainerRegisterSuccess(response){
     markAllStagesAsComplete();
     if(response.status === "success"){
         showReloadModal({
-            title: "Model Registered Successfully",
+            title: "Container Registered Successfully",
             seconds: 3,
             url: "/containers/ui/display/"+response.container_id
         });
     }
     else{
-        showErrorModal("Failed to Register Model", response);
+        showErrorModal("Failed to Register Container", response);
     }
 }
 

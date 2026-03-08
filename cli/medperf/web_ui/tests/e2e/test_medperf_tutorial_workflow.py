@@ -129,7 +129,7 @@ def test_benchmark_register_data_prep_container(driver):
     while not page_modal.is_displayed():
         time.sleep(0.2)
 
-    assert page.get_text(page.PAGE_MODAL_TITLE) == "Model Registered Successfully"
+    assert page.get_text(page.PAGE_MODAL_TITLE) == "Container Registered Successfully"
 
     page.wait_for_staleness_element(page_modal)
     page.wait_for_url_change(old_url)
@@ -170,7 +170,7 @@ def test_benchmark_register_reference_model_container(driver):
     while not page_modal.is_displayed():
         time.sleep(0.2)
 
-    assert page.get_text(page.PAGE_MODAL_TITLE) == "Model Registered Successfully"
+    assert page.get_text(page.PAGE_MODAL_TITLE) == "Container Registered Successfully"
 
     page.wait_for_staleness_element(page_modal)
     page.wait_for_url_change(old_url)
@@ -211,7 +211,7 @@ def test_benchmark_register_metrics_container(driver):
     while not page_modal.is_displayed():
         time.sleep(0.2)
 
-    assert page.get_text(page.PAGE_MODAL_TITLE) == "Model Registered Successfully"
+    assert page.get_text(page.PAGE_MODAL_TITLE) == "Container Registered Successfully"
 
     page.wait_for_staleness_element(page_modal)
     page.wait_for_url_change(old_url)
@@ -582,7 +582,7 @@ def test_container_registration(driver):
     while not page_modal.is_displayed():
         time.sleep(0.2)
 
-    assert page.get_text(page.PAGE_MODAL_TITLE) == "Model Registered Successfully"
+    assert page.get_text(page.PAGE_MODAL_TITLE) == "Container Registered Successfully"
 
     page.wait_for_staleness_element(page_modal)
     page.wait_for_url_change(old_url)
@@ -676,7 +676,7 @@ def test_encrypted_container_registration(driver):
     while not page_modal.is_displayed():
         time.sleep(0.2)
 
-    assert page.get_text(page.PAGE_MODAL_TITLE) == "Model Registered Successfully"
+    assert page.get_text(page.PAGE_MODAL_TITLE) == "Container Registered Successfully"
 
     page.wait_for_staleness_element(page_modal)
     page.wait_for_url_change(old_url)
