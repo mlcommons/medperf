@@ -1,19 +1,23 @@
-from pydantic import BaseModel
+from medperf.entities.schemas import UserSchema
 from medperf.exceptions import MedperfException
+from medperf.entities.utils import handle_validation_error
 
 
-class User(BaseModel):
+class User:
     """
     Class representing a User
 
     """
 
-    id: int
-    username: str
-    email: str
-    first_name: str
-    last_name: str
-    metadata: dict = {}
+    @handle_validation_error
+    def __init__(self, **kwargs):
+        self._model = UserSchema(**kwargs)
+        self.id = self._model.id
+        self.username = self._model.username
+        self.email = self._model.email
+        self.first_name = self._model.first_name
+        self.last_name = self._model.last_name
+        self.metadata = self._model.metadata
 
     def get_cc_config(self):
         cc_values = self.metadata.get("cc", {})

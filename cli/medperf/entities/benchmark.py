@@ -1,17 +1,17 @@
-from typing import List, Optional
+from typing import List
 from medperf.commands.association.utils import (
     get_experiment_associations,
     get_user_associations,
 )
-from pydantic import HttpUrl, Field
 
 import medperf.config as config
 from medperf.entities.interface import Entity
-from medperf.entities.schemas import ApprovableSchema, DeployableSchema
+from medperf.entities.schemas import BenchmarkSchema
 from medperf.account_management import get_medperf_user_data
+from medperf.entities.utils import handle_validation_error
 
 
-class Benchmark(Entity, ApprovableSchema, DeployableSchema):
+class Benchmark(Entity):
     """
     Class representing a Benchmark
 
@@ -21,22 +21,6 @@ class Benchmark(Entity, ApprovableSchema, DeployableSchema):
     regarding how to prepare datasets for execution, as well as
     what models to run and how to evaluate them.
     """
-
-    description: Optional[str] = Field(None, max_length=256)
-    docs_url: Optional[HttpUrl]
-    demo_dataset_tarball_url: str
-    demo_dataset_tarball_hash: Optional[str]
-    demo_dataset_generated_uid: Optional[str]
-    data_preparation_mlcube: int
-    reference_model: int
-    data_evaluator_mlcube: int
-    metadata: dict = {}
-    user_metadata: dict = {}
-    is_active: bool = True
-    dataset_auto_approval_allow_list: list[str] = []
-    dataset_auto_approval_mode: str = "NEVER"
-    model_auto_approval_allow_list: list[str] = []
-    model_auto_approval_mode: str = "NEVER"
 
     @staticmethod
     def get_type():
@@ -58,13 +42,35 @@ class Benchmark(Entity, ApprovableSchema, DeployableSchema):
     def get_comms_uploader():
         return config.comms.upload_benchmark
 
-    def __init__(self, *args, **kwargs):
+    @handle_validation_error
+    def __init__(self, **kwargs):
         """Creates a new benchmark instance
 
         Args:
             bmk_desc (Union[dict, BenchmarkModel]): Benchmark instance description
         """
-        super().__init__(*args, **kwargs)
+        self._model = BenchmarkSchema(**kwargs)
+        super().__init__()
+        self.state = self._model.state
+        self.approved_at = self._model.approved_at
+        self.approval_status = self._model.approval_status
+        self.description = self._model.description
+        self.docs_url = self._model.docs_url
+        self.demo_dataset_tarball_url = self._model.demo_dataset_tarball_url
+        self.demo_dataset_tarball_hash = self._model.demo_dataset_tarball_hash
+        self.demo_dataset_generated_uid = self._model.demo_dataset_generated_uid
+        self.data_preparation_mlcube = self._model.data_preparation_mlcube
+        self.reference_model = self._model.reference_model
+        self.data_evaluator_mlcube = self._model.data_evaluator_mlcube
+        self.metadata = self._model.metadata
+        self.user_metadata = self._model.user_metadata
+        self.is_active = self._model.is_active
+        self.dataset_auto_approval_allow_list = (
+            self._model.dataset_auto_approval_allow_list
+        )
+        self.dataset_auto_approval_mode = self._model.dataset_auto_approval_mode
+        self.model_auto_approval_allow_list = self._model.model_auto_approval_allow_list
+        self.model_auto_approval_mode = self._model.model_auto_approval_mode
 
     @property
     def local_id(self):

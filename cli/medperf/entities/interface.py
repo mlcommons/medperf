@@ -11,7 +11,17 @@ from typing import Type, TypeVar
 EntityType = TypeVar("EntityType", bound="Entity")
 
 
-class Entity(MedperfSchema, ABC):
+class Entity(ABC):
+
+    def __init__(self):
+        self._model: MedperfSchema
+        self.id = self._model.id
+        self.name = self._model.name
+        self.owner = self._model.owner
+        self.is_valid = self._model.is_valid
+        self.created_at = self._model.created_at
+        self.modified_at = self._model.modified_at
+
     @staticmethod
     def get_type() -> str:
         raise NotImplementedError()
@@ -190,6 +200,9 @@ class Entity(MedperfSchema, ABC):
             data = yaml.safe_load(f)
 
         return data
+
+    def todict(self) -> dict:
+        return self._model.dict()
 
     def write(self) -> str:
         """Writes the entity to the local storage

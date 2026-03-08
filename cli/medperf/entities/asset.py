@@ -7,22 +7,18 @@ from medperf.utils import get_file_hash, remove_path, untar
 from medperf.exceptions import InvalidEntityError, MedperfException
 import medperf.config as config
 from medperf.entities.interface import Entity
-from medperf.entities.schemas import DeployableSchema
+from medperf.entities.schemas import AssetSchema
 from medperf.account_management import get_medperf_user_data
+from medperf.entities.utils import handle_validation_error
 
 
-class Asset(Entity, DeployableSchema):
+class Asset(Entity):
     """
     Class representing an Asset
 
     An asset is a file-based artifact that can be used as a model
     component in the MedPerf platform.
     """
-
-    asset_hash: str
-    asset_url: str
-    metadata: dict = {}
-    user_metadata: dict = {}
 
     @staticmethod
     def get_type():
@@ -44,8 +40,18 @@ class Asset(Entity, DeployableSchema):
     def get_comms_uploader():
         return config.comms.upload_asset
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    @handle_validation_error
+    def __init__(self, **kwargs):
+        self._model = AssetSchema(**kwargs)
+        super().__init__()
+        self.state = self._model.state
+        self.asset_hash = self._model.asset_hash
+        self.asset_url = self._model.asset_url
+        self.metadata = self._model.metadata
+        self.user_metadata = self._model.user_metadata
+        self._set_helper_attributes()
+
+    def _set_helper_attributes(self):
         self.asset_files_path = os.path.join(self.path, config.asset_files_folder)
 
     @property

@@ -1,9 +1,8 @@
 import os
-from typing import Optional, Union
-from pydantic import Field
+from typing import Union
 
 from medperf.entities.interface import Entity
-from medperf.entities.schemas import DeployableSchema
+from medperf.entities.schemas import CubeSchema
 from medperf.exceptions import InvalidEntityError, MedperfException
 import medperf.config as config
 from medperf.comms.entity_resources import resources
@@ -18,9 +17,10 @@ from medperf.utils import (
 )
 from medperf.entities.encrypted_key import EncryptedKey
 import logging
+from medperf.entities.utils import handle_validation_error
 
 
-class Cube(Entity, DeployableSchema):
+class Cube(Entity):
     """
     Class representing an MLCube Container
 
@@ -29,14 +29,6 @@ class Cube(Entity, DeployableSchema):
     containers are software containers (e.g., Docker and Singularity)
     with standard metadata and a consistent file-system level interface.
     """
-
-    container_config: dict
-    parameters_config: Optional[dict]
-    image_hash: Optional[str]
-    additional_files_tarball_url: Optional[str]
-    additional_files_tarball_hash: Optional[str]
-    metadata: dict = Field(default_factory=dict)
-    user_metadata: dict = Field(default_factory=dict)
 
     @staticmethod
     def get_type():
@@ -58,14 +50,27 @@ class Cube(Entity, DeployableSchema):
     def get_comms_uploader():
         return config.comms.upload_mlcube
 
-    def __init__(self, *args, **kwargs):
+    @handle_validation_error
+    def __init__(self, **kwargs):
         """Creates a Cube instance
 
         Args:
             cube_desc (Union[dict, CubeModel]): MLCube Instance description
         """
-        super().__init__(*args, **kwargs)
+        self._model = CubeSchema(**kwargs)
+        super().__init__()
+        self.state = self._model.state
+        self.container_config = self._model.container_config
+        self.parameters_config = self._model.parameters_config
+        self.image_hash = self._model.image_hash
+        self.additional_files_tarball_url = self._model.additional_files_tarball_url
+        self.additional_files_tarball_hash = self._model.additional_files_tarball_hash
+        self.metadata = self._model.metadata
+        self.user_metadata = self._model.user_metadata
 
+        self._set_helper_attributes()
+
+    def _set_helper_attributes(self):
         # Note: the paths can be arbitrary
         self.params_path = os.path.join(self.path, config.params_filename)
         self.additional_files_folder_path = os.path.join(

@@ -1,6 +1,7 @@
 from __future__ import annotations
 import os
 from medperf.entities.interface import Entity
+from medperf.entities.schemas import CertificateSchema
 from medperf.account_management import get_medperf_user_data
 from medperf import config
 from medperf.exceptions import MedperfException
@@ -10,6 +11,7 @@ from typing import List, Tuple
 import logging
 from cryptography import x509
 from cryptography.hazmat.primitives import serialization
+from medperf.entities.utils import handle_validation_error
 
 
 class Certificate(Entity):
@@ -17,9 +19,6 @@ class Certificate(Entity):
     Class representing a Certificate uploaded to the MedPerf server
     Currently only supports Client Certificates (ie common name is a email)
     """
-
-    certificate_content_base64: str
-    ca: int
 
     @staticmethod
     def get_type():
@@ -40,6 +39,13 @@ class Certificate(Entity):
     @staticmethod
     def get_comms_uploader():
         return config.comms.upload_certificate
+
+    @handle_validation_error
+    def __init__(self, **kwargs):
+        self._model = CertificateSchema(**kwargs)
+        super().__init__()
+        self.certificate_content_base64 = self._model.certificate_content_base64
+        self.ca = self._model.ca
 
     @property
     def local_id(self):

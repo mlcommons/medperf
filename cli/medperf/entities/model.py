@@ -3,14 +3,13 @@ from typing import List, Optional
 from medperf.exceptions import MedperfException
 import medperf.config as config
 from medperf.entities.interface import Entity
-from medperf.entities.schemas import DeployableSchema
+from medperf.entities.schemas import ModelSchema
 from medperf.account_management import get_medperf_user_data
 from medperf.commands.association.utils import get_user_associations
-from medperf.entities.cube import Cube
-from medperf.entities.asset import Asset
+from medperf.entities.utils import handle_validation_error
 
 
-class Model(Entity, DeployableSchema):
+class Model(Entity):
     """
     Class representing a Model
 
@@ -18,12 +17,6 @@ class Model(Entity, DeployableSchema):
     file-based asset, allowing models to be either containerized
     or simple file artifacts.
     """
-
-    type: str  # ASSET or CONTAINER
-    container: Optional[Cube]
-    asset: Optional[Asset]
-    metadata: dict = {}
-    user_metadata: dict = {}
 
     @staticmethod
     def get_type():
@@ -45,8 +38,16 @@ class Model(Entity, DeployableSchema):
     def get_comms_uploader():
         return config.comms.upload_model
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    @handle_validation_error
+    def __init__(self, **kwargs):
+        self._model = ModelSchema(**kwargs)
+        super().__init__()
+        self.state = self._model.state
+        self.type = self._model.type
+        self.container = self._model.container
+        self.asset = self._model.asset
+        self.metadata = self._model.metadata
+        self.user_metadata = self._model.user_metadata
 
     @property
     def local_id(self):
