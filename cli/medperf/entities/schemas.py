@@ -49,7 +49,7 @@ class BenchmarkSchema(MedperfSchema):
     approval_status: Status = None
     description: Optional[str] = Field(None, max_length=256)
     docs_url: Optional[str]
-    demo_dataset_tarball_url: str
+    demo_dataset_tarball_url: Optional[str]
     demo_dataset_tarball_hash: Optional[str]
     demo_dataset_generated_uid: Optional[str]
     data_preparation_mlcube: int

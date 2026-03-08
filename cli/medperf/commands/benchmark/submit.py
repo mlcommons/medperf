@@ -70,8 +70,9 @@ class SubmitBenchmark:
         like hash, generated uid and test results
         """
         if self.skip_compatibility_tests:
-            self.bmk.demo_dataset_tarball_hash = ""
-            self.bmk.demo_dataset_generated_uid = ""
+            self.bmk.demo_dataset_tarball_url = "link"
+            self.bmk.demo_dataset_tarball_hash = "hash"
+            self.bmk.demo_dataset_generated_uid = "uid"
             self.bmk.metadata["results"] = {}
             self.bmk.write()
         else:
