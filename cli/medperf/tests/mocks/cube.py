@@ -1,4 +1,3 @@
-from typing import Optional
 from medperf.entities.cube import Cube
 
 
@@ -7,13 +6,17 @@ EMPTY_FILE_HASH = "da39a3ee5e6b4b0d3255bfef95601890afd80709"
 
 class TestCube(Cube):
     __test__ = False
-    id: Optional[int] = 1
-    name: str = "name"
-    container_config: dict = {"key": "value"}
-    parameters_config: Optional[dict] = {"parameter": "value"}
-    additional_files_tarball_url: Optional[str] = (
-        "https://test.com/additional_files.tar.gz"
-    )
-    additional_files_tarball_hash: Optional[str] = EMPTY_FILE_HASH
-    state: str = "OPERATION"
-    is_valid = True
+
+    def __init__(self, **kwargs):
+        defaults = {
+            "id": 1,
+            "name": "name",
+            "container_config": {"key": "value"},
+            "parameters_config": {"parameter": "value"},
+            "additional_files_tarball_url": "https://test.com/additional_files.tar.gz",
+            "additional_files_tarball_hash": EMPTY_FILE_HASH,
+            "state": "OPERATION",
+            "is_valid": True,
+        }
+        defaults.update(kwargs)
+        super().__init__(**defaults)

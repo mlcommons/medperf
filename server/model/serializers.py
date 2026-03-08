@@ -8,8 +8,8 @@ from django.db import transaction
 
 
 class ModelSerializer(serializers.ModelSerializer):
-    container = MlCubeSerializer(required=False)
-    asset = AssetSerializer(required=False)
+    container = MlCubeSerializer(required=False, allow_null=True)
+    asset = AssetSerializer(required=False, allow_null=True)
 
     class Meta:
         model = Model

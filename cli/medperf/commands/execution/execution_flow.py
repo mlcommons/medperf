@@ -33,13 +33,13 @@ class ExecutionFlow:
                 benchmark_id, dataset, model, evaluator, execution, ignore_model_errors
             )
         elif model.type == ModelType.ASSET.value:
-            asset = model.asset
+            asset = model.asset_obj
             asset.prepare_asset_files()
             return ScriptExecution.run(
                 dataset, asset, evaluator, execution, ignore_model_errors
             )
         else:
-            container = model.container
+            container = model.container_obj
             container.download_run_files()
             return ContainerExecution.run(
                 dataset, container, evaluator, execution, ignore_model_errors

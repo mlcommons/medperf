@@ -38,9 +38,9 @@
                 </p>
                 
                 {% if entity_is_container %}
-                {{ model_detail_util_macro.container_detail_util(entity.container) }}
+                {{ model_detail_util_macro.container_detail_util(container_object) }}
                 {% else %}
-                {{ model_detail_util_macro.asset_detail_util(entity.asset) }}
+                {{ model_detail_util_macro.asset_detail_util(asset_object) }}
                 {% endif %}
 
                 {% if not is_owner and entity._encrypted %}

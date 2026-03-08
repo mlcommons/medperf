@@ -66,8 +66,13 @@ def model_detail_ui(
     if model._encrypted:
         model.access_status = check_access_to_container(model.container.id)
 
+    asset_object = None
+    container_object = None
     if model.is_asset():
-        model.asset._is_local = model.asset.is_local()
+        asset_object = model.asset_obj
+        asset_object._is_local = asset_object.is_local()
+    else:
+        container_object = model.container_obj
 
     return templates.TemplateResponse(
         "model/model_detail.html",
@@ -75,6 +80,8 @@ def model_detail_ui(
             "request": request,
             "entity": model,
             "entity_is_container": model.is_container(),
+            "container_object": container_object,
+            "asset_object": asset_object,
             "entity_name": model.name,
             "is_owner": is_owner,
             "benchmarks_associations": benchmark_associations,  #

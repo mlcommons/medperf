@@ -16,7 +16,7 @@ def get_permitted_workloads(model: Model):
     user_obj = get_medperf_user_object()
     if model.owner != user_obj.id:
         raise MedperfException("User must be model owner")
-    asset = model.asset
+    asset = model.asset_obj
 
     permitted_workloads = []
     assocs = config.comms.get_model_benchmarks_associations(model.id)

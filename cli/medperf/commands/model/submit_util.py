@@ -35,7 +35,7 @@ class ContinueCubeSubmission:
         self.model = Model(
             name=self.container_submission.cube.name,
             type=ModelType.CONTAINER.value,
-            container=self.container_submission.cube,
+            container=self.container_submission.cube.todict(),
             state=self.container_submission.cube.state,
         )
         config.tmp_paths.append(self.model.path)
@@ -86,7 +86,7 @@ class ContinueAssetSubmission:
         self.model = Model(
             name=self.asset_submission.asset.name,
             type=ModelType.ASSET.value,
-            asset=self.asset_submission.asset,
+            asset=self.asset_submission.asset.todict(),
             state=self.asset_submission.asset.state,
         )
         config.tmp_paths.append(self.model.path)

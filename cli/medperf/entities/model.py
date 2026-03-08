@@ -4,6 +4,8 @@ from medperf.exceptions import MedperfException
 import medperf.config as config
 from medperf.entities.interface import Entity
 from medperf.entities.schemas import ModelSchema
+from medperf.entities.cube import Cube
+from medperf.entities.asset import Asset
 from medperf.account_management import get_medperf_user_data
 from medperf.commands.association.utils import get_user_associations
 from medperf.entities.utils import handle_validation_error
@@ -59,8 +61,20 @@ class Model(Entity):
     def is_container(self):
         return self.type == "CONTAINER"
 
+    @property
+    def container_obj(self):
+        if not self.is_container():
+            raise MedperfException("Model is not a container")
+        return Cube(**self.container.dict())
+
+    @property
+    def asset_obj(self):
+        if not self.is_asset():
+            raise MedperfException("Model is not an asset")
+        return Asset(**self.asset.dict())
+
     def is_encrypted(self) -> bool:
-        return self.is_container() and self.container.is_encrypted()
+        return self.is_container() and self.container_obj.is_encrypted()
 
     def is_cc_mode(self):
         return "cc" in self.user_metadata
@@ -143,25 +157,14 @@ class Model(Entity):
 
         return associations
 
-    def todict(self):
-        # tmp fix until the parent todict is properly implemented.
-        data = super().todict()
-        if self.type == "CONTAINER":
-            data["container"] = self.container.todict()
-            del data["asset"]
-        else:
-            data["asset"] = self.asset.todict()
-            del data["container"]
-        return data
-
     def display_dict(self):
         return {
             "UID": self.identifier,
             "Name": self.name,
             "Type": self.type,
             "State": self.state,
-            "Container": self.container.id if self.container else None,
-            "Asset": self.asset.id if self.asset else None,
+            "Container": self.container.id if self.is_container() else None,
+            "Asset": self.asset.id if self.is_asset() else None,
             "Created At": self.created_at,
             "Registered": self.is_registered,
         }

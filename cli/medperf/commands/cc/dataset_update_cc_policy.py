@@ -1,4 +1,3 @@
-from medperf.entities.asset import Asset
 from medperf.entities.model import Model
 from medperf.entities.benchmark import Benchmark
 from medperf.entities.dataset import Dataset
@@ -33,7 +32,7 @@ def get_permitted_workloads(dataset: Dataset):
         model_assocs = config.comms.get_benchmark_models_associations(benchmark_id)
         for model_assoc in model_assocs:
             model = Model.get(model_assoc["model"])
-            asset = Asset.get(model.asset)
+            asset = model.asset_obj
             workload_info = CCWorkloadID(
                 data_hash=dataset.generated_uid,
                 model_hash=asset.asset_hash,

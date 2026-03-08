@@ -1,11 +1,12 @@
 from datetime import datetime
-from pydantic import BaseModel, Field, validator, HttpUrl
+from pydantic import BaseModel, Field, validator
 from typing import Optional, Union
 
 from medperf.enums import Status
 
 
 class MedperfSchema(BaseModel):
+    for_test: Optional[bool] = False
     id: Optional[int]
     name: str = Field(..., max_length=128)
     owner: Optional[int]
@@ -47,7 +48,7 @@ class BenchmarkSchema(MedperfSchema):
     approved_at: Optional[datetime]
     approval_status: Status = None
     description: Optional[str] = Field(None, max_length=256)
-    docs_url: Optional[HttpUrl]
+    docs_url: Optional[str]
     demo_dataset_tarball_url: str
     demo_dataset_tarball_hash: Optional[str]
     demo_dataset_generated_uid: Optional[str]
@@ -112,7 +113,7 @@ class DatasetSchema(MedperfSchema):
     generated_uid: str
     data_preparation_mlcube: int
     split_seed: Optional[int]
-    generated_metadata: dict = Field(..., alias="metadata")
+    generated_metadata: dict
     user_metadata: dict = {}
     report: dict = {}
     submitted_as_prepared: bool
@@ -150,8 +151,8 @@ class ExecutionSchema(MedperfSchema):
 class ModelSchema(MedperfSchema):
     state: str = "DEVELOPMENT"
     type: str  # ASSET or CONTAINER
-    container: Optional[int]
-    asset: Optional[int]
+    container: Optional[CubeSchema]
+    asset: Optional[AssetSchema]
     metadata: dict = {}
     user_metadata: dict = {}
 
@@ -172,7 +173,7 @@ class TrainingExpSchema(MedperfSchema):
     approval_status: Status = None
     state: str = "DEVELOPMENT"
     description: Optional[str] = Field(None, max_length=256)
-    docs_url: Optional[HttpUrl]
+    docs_url: Optional[str]
     demo_dataset_tarball_url: str
     demo_dataset_tarball_hash: Optional[str]
     demo_dataset_generated_uid: Optional[str]

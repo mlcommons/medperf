@@ -61,7 +61,7 @@ def setup_model_for_cc(model: Model):
             f"Model {model.id} is not a file-based asset and cannot be set up for confidential computing."
         )
 
-    asset = model.asset
+    asset = model.asset_obj
     # create model asset
     asset_path = asset.get_archive_path()
 

@@ -43,8 +43,7 @@ def prepare_model(model_uid: str, decryption_key_file_path: os.PathLike = None):
     model = Model.get(model_uid)
     if model.type == ModelType.CONTAINER.value:
         # execution later will download run files if needed
-        container_obj = model.container
-        setup_cube(container_obj, decryption_key_file_path, download=False)
+        setup_cube(model.container_obj, decryption_key_file_path, download=False)
     return model
 
 

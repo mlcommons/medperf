@@ -94,7 +94,7 @@ class ConfidentialExecution:
         self.dataset_cc_config = self.dataset.get_cc_config()
         self.model_cc_config = self.model.get_cc_config()
         self.operator_cc_config = self.operator.get_cc_config()
-        self.asset = self.model.asset
+        self.asset = self.model.asset_obj
 
     def set_pending_status(self):
         self.__send_report("pending")
