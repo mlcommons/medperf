@@ -70,11 +70,13 @@ class SubmitBenchmark:
         like hash, generated uid and test results
         """
         if self.skip_compatibility_tests:
-            self.bmk.demo_dataset_tarball_hash = "hash"
-            self.bmk.demo_dataset_generated_uid = "hash"
+            self.bmk.demo_dataset_tarball_hash = ""
+            self.bmk.demo_dataset_generated_uid = ""
             self.bmk.metadata["results"] = {}
             self.bmk.write()
         else:
+            if not self.bmk.demo_dataset_tarball_url:
+                raise InvalidEntityError("Demo dataset URL must be provided")
             bmk_demo_url = self.bmk.demo_dataset_tarball_url
             bmk_demo_hash = self.bmk.demo_dataset_tarball_hash
             try:

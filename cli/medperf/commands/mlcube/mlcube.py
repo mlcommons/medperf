@@ -145,15 +145,15 @@ def submit(
         help="container parameters file.",
     ),
     additional_file: str = typer.Option(
-        None,
+        "",
         "--additional-file",
         "-a",
         help="Identifier to download the additional files tarball. See the description above",
     ),
     additional_hash: str = typer.Option(
-        None, "--additional-hash", help="hash of additional file"
+        "", "--additional-hash", help="hash of additional file"
     ),
-    image_hash: str = typer.Option(None, "--image-hash", help="hash of image file"),
+    image_hash: str = typer.Option("", "--image-hash", help="hash of image file"),
     operational: bool = typer.Option(
         False,
         "--operational",

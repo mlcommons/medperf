@@ -45,9 +45,9 @@ def submit(
         "docs_url": docs_url,
         "fl_mlcube": fl_mlcube,
         "fl_admin_mlcube": fl_admin_mlcube,
-        "demo_dataset_tarball_url": "link",
-        "demo_dataset_tarball_hash": "hash",
-        "demo_dataset_generated_uid": "uid",
+        "demo_dataset_tarball_url": "",
+        "demo_dataset_tarball_hash": "",
+        "demo_dataset_generated_uid": "",
         "data_preparation_mlcube": prep_mlcube,
         "state": "OPERATION" if operational else "DEVELOPMENT",
     }
