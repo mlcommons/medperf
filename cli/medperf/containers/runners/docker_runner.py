@@ -18,7 +18,7 @@ from .docker_utils import (
     load_image,
     delete_images,
 )
-from medperf.encryption import decrypt_gpg_file, check_gpg
+from medperf.encryption import SymmetricEncryption
 from medperf.utils import remove_path, run_command, tmp_path_for_file_decryption
 
 
@@ -27,7 +27,7 @@ class DockerRunner(Runner):
         self.parser = container_config_parser
         self.image: str = None
         if self.parser.is_container_encrypted():
-            check_gpg()
+            SymmetricEncryption().check()
 
     def download(
         self,
@@ -69,7 +69,7 @@ class DockerRunner(Runner):
         get_hash_timeout: int = None,
     ):
         file_url = self.parser.get_setup_args()
-        image_path, computed_image_hash = resources.get_cube_image(
+        image_path, computed_image_hash = resources.get_hashed_file(
             file_url, expected_image_hash
         )  # Hash checking happens in resources
         self.image_archive_path = image_path
@@ -159,7 +159,7 @@ class DockerRunner(Runner):
         repo_tags_list = []
         try:
             # decrypt archive
-            decrypt_gpg_file(
+            SymmetricEncryption().decrypt_file(
                 self.image_archive_path,
                 container_decryption_key_file,
                 decrypted_archive_path,

@@ -1,3 +1,4 @@
+// This file is not being used currently
 function showNextModal(results){
     const modalTitle = "Benchmark Workflow Test Successful";
     const modalBody = `

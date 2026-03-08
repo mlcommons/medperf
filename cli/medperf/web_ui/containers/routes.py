@@ -7,9 +7,8 @@ from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from medperf.account_management import get_medperf_user_data
 from medperf.entities.certificate import Certificate
 from medperf.entities.cube import Cube
+from medperf.entities.model import Model
 from medperf.entities.benchmark import Benchmark
-from medperf.commands.compatibility_test.run import CompatibilityTestExecution
-from medperf.commands.mlcube.associate import AssociateCube
 from medperf.commands.mlcube.delete_keys import DeleteKeys
 from medperf.commands.mlcube.grant_access import GrantAccess
 from medperf.commands.mlcube.revoke_user_access import RevokeUserAccess
@@ -63,15 +62,13 @@ def container_detail_ui(
 ):
     container = Cube.get(cube_uid=container_id, valid_only=False)
 
-    benchmark_assocs = Cube.get_benchmarks_associations(mlcube_uid=container_id)
+    # If this container is used by a model, redirect to the model dashboard
 
-    benchmark_associations = {}
-    for assoc in benchmark_assocs:
-        benchmark_associations[assoc["benchmark"]] = assoc
+    if container.is_model():
+        model = Model.get_by_container(container_id)
+        redirect_url = sanitize_redirect_url(f"/models/ui/display/{model.id}")
+        return RedirectResponse(url=redirect_url)
 
-    benchmarks = Benchmark.all()
-    benchmarks = {b.id: b for b in benchmarks}
-    # benchmarks_associations = sort_associations_display(benchmarks_associations)
     is_owner = container.owner == get_medperf_user_data()["id"]
 
     if not is_owner:
@@ -87,8 +84,6 @@ def container_detail_ui(
             "entity": container,
             "entity_name": container.name,
             "is_owner": is_owner,
-            "benchmarks_associations": benchmark_associations,  #
-            "benchmarks": benchmarks,
         },
     )
 
@@ -103,20 +98,6 @@ def create_container_ui(
     # Render the dataset creation form with the list of benchmarks
     return templates.TemplateResponse(
         "container/register_container.html",
-        {"request": request, "benchmarks": benchmarks},
-    )
-
-
-@router.get("/register/compatibility_test", response_class=HTMLResponse)
-def compatibilty_test_ui(
-    request: Request,
-    current_user: bool = Depends(check_user_ui),
-):
-    # Fetch the list of benchmarks to populate the benchmark dropdown
-    benchmarks = Benchmark.all()
-    # Render the dataset creation form with the list of benchmarks
-    return templates.TemplateResponse(
-        "container/compatibility_test.html",
         {"request": request, "benchmarks": benchmarks},
     )
 
@@ -168,75 +149,6 @@ def register_container(
     return return_response
 
 
-@router.post("/run_compatibility_test", response_class=JSONResponse)
-def test_container(
-    request: Request,
-    benchmark: int = Form(...),
-    container_file: str = Form(...),
-    parameters_file: str = Form(None),
-    additional_file: str = Form(None),
-    model_encrypted: bool = Form(...),
-    decryption_file: str = Form(None),
-    current_user: bool = Depends(check_user_api),
-):
-    initialize_state_task(request, task_name="container_compatibility_test")
-    return_response = {"status": "", "error": "", "results": None}
-    try:
-        _, results = CompatibilityTestExecution.run(
-            benchmark=benchmark,
-            model=container_file,
-            model_parameters=parameters_file,
-            model_additional=additional_file,
-            model_decryption_key=decryption_file,
-        )
-        return_response["status"] = "success"
-        return_response["results"] = results
-        notification_message = "Container compatibility test succeeded!"
-    except Exception as exp:
-        return_response["status"] = "failed"
-        return_response["error"] = str(exp)
-        notification_message = "Container compatibility test failed"
-        logger.exception(exp)
-
-    config.ui.end_task(return_response)
-    reset_state_task(request)
-    config.ui.add_notification(
-        message=notification_message,
-        return_response=return_response,
-        url="/containers/register/ui",
-    )
-    return return_response
-
-
-@router.post("/associate", response_class=JSONResponse)
-def associate(
-    request: Request,
-    container_id: int = Form(...),
-    benchmark_id: int = Form(...),
-    current_user: bool = Depends(check_user_api),
-):
-    initialize_state_task(request, task_name="container_association")
-    return_response = {"status": "", "error": ""}
-    try:
-        AssociateCube.run(cube_uid=container_id, benchmark_uid=benchmark_id)
-        return_response["status"] = "success"
-        notification_message = "Successfully requested container association!"
-    except Exception as exp:
-        return_response["status"] = "failed"
-        return_response["error"] = str(exp)
-        notification_message = "Failed to request container association"
-        logger.exception(exp)
-
-    config.ui.end_task(return_response)
-    reset_state_task(request)
-    config.ui.add_notification(
-        message=notification_message,
-        return_response=return_response,
-        url=f"/containers/ui/display/{container_id}",
-    )
-    return return_response
-
-
 @router.get("/ui/display/{container_id}/access", response_class=HTMLResponse)
 def container_access_ui(
     request: Request,
@@ -260,7 +172,8 @@ def container_access_ui(
         redirect_url = sanitize_redirect_url(f"/containers/ui/display/{container_id}")
         return RedirectResponse(url=redirect_url)
 
-    benchmark_assocs = Cube.get_benchmarks_associations(mlcube_uid=container_id)
+    container_model = Model.get_by_container(container_id)
+    benchmark_assocs = Model.get_benchmarks_associations(model_uid=container_model.id)
 
     benchmark_associations = {}
     for assoc in benchmark_assocs:

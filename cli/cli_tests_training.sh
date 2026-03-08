@@ -454,15 +454,16 @@ checkFailed "Get experiment status failed"
 
 echo "\n"
 
-##########################################################
-echo "====================================="
-echo "Update plan parameter"
-echo "====================================="
-print_eval medperf training update_plan -t $TRAINING_UID -f "straggler_handling_policy.settings.straggler_cutoff_time" -v 1200
-checkFailed "Update plan failed"
-##########################################################
+# Commented for now since it's happenning after aggregator finishes, causing infinite wait. to be fixed.
+# ##########################################################
+# echo "====================================="
+# echo "Update plan parameter"
+# echo "====================================="
+# print_eval medperf training update_plan -t $TRAINING_UID -f "straggler_handling_policy.settings.straggler_cutoff_time" -v 1200
+# checkFailed "Update plan failed"
+# ##########################################################
 
-echo "\n"
+# echo "\n"
 
 ##########################################################
 echo "====================================="

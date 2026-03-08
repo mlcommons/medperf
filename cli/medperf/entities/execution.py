@@ -1,16 +1,14 @@
 import os
 from medperf.entities.interface import Entity
-from medperf.entities.schemas import ApprovableSchema
+from medperf.entities.schemas import ExecutionSchema
 import medperf.config as config
 from medperf.account_management import get_medperf_user_data
-from typing import Optional
-from datetime import datetime
-
 from medperf.utils import remove_path
 import yaml
+from medperf.entities.utils import handle_validation_error
 
 
-class Execution(Entity, ApprovableSchema):
+class Execution(Entity):
     """
     Class representing an Execution entry
 
@@ -20,17 +18,6 @@ class Execution(Entity, ApprovableSchema):
     results themselves. This class provides methods for working with
     benchmark executions and how to upload them to the backend.
     """
-
-    benchmark: int
-    model: int
-    dataset: int
-    results: dict = {}
-    metadata: dict = {}
-    user_metadata: dict = {}
-    model_report: dict = {}
-    evaluation_report: dict = {}
-    finalized: bool = False
-    finalized_at: Optional[datetime]
 
     @staticmethod
     def get_type():
@@ -52,9 +39,27 @@ class Execution(Entity, ApprovableSchema):
     def get_comms_uploader():
         return config.comms.upload_execution
 
-    def __init__(self, *args, **kwargs):
+    @handle_validation_error
+    def __init__(self, **kwargs):
         """Creates a new execution instance"""
-        super().__init__(*args, **kwargs)
+        self._model = ExecutionSchema(**kwargs)
+        super().__init__()
+        self.approved_at = self._model.approved_at
+        self.approval_status = self._model.approval_status
+        self.benchmark = self._model.benchmark
+        self.model = self._model.model
+        self.dataset = self._model.dataset
+        self.results = self._model.results
+        self.metadata = self._model.metadata
+        self.user_metadata = self._model.user_metadata
+        self.model_report = self._model.model_report
+        self.evaluation_report = self._model.evaluation_report
+        self.finalized = self._model.finalized
+        self.finalized_at = self._model.finalized_at
+
+        self._set_helper_attributes()
+
+    def _set_helper_attributes(self):
         self.results_path = os.path.join(self.path, config.results_filename)
         self.local_outputs_path = os.path.join(self.path, config.local_metrics_outputs)
 

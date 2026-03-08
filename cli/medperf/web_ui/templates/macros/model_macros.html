@@ -1,0 +1,17 @@
+{# ./cli/medperf/web_ui/templates/macros/model_macros.html #}
+
+{% macro model_link(model) %}
+<span class="container-link {% if not model.is_valid %}invalid-card{% endif %} d-inline-flex align-items-center p-1 mb-2 flex-grow-1">
+    <strong>
+        <a href="/models/ui/display/{{ model.id }}" class="text-primary">{{ model.name }}</a>
+    </strong>
+    <small class="text-muted ms-2" data-date="{{ model.modified_at }}"></small>
+    <span class="ms-2">
+    {% if model.state == 'OPERATION' %}
+        <i class="fas fa-check-circle text-success"></i>
+    {% else %}
+        <i class="fas fa-exclamation-circle text-warning"></i>
+    {% endif %}
+    </span>
+</span>
+{% endmacro %}

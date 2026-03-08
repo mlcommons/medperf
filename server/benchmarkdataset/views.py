@@ -34,6 +34,8 @@ class DatasetBenchmarksList(GenericAPIView):
     serializer_class = BenchmarkDatasetListSerializer
     queryset = ""
 
+    permission_classes = [IsAdmin | IsDatasetOwner]
+
     def get_object(self, pk):
         try:
             return BenchmarkDataset.objects.filter(dataset__id=pk)

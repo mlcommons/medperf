@@ -9,6 +9,7 @@ from medperf.commands.execution.utils import filter_latest_executions
 from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
+from medperf.entities.model import Model
 import medperf.config as config
 from medperf.exceptions import (
     InvalidArgumentError,
@@ -126,13 +127,13 @@ class BenchmarkExecution:
         if self.models_input_file:
             self.models_uids = self.__get_models_from_file()
 
-        if self.models_uids == [self.benchmark.reference_model_mlcube]:
+        if self.models_uids == [self.benchmark.reference_model]:
             # avoid the need of sending a request to the server for
             # finding the benchmark's associated models
             return
 
         benchmark_models = Benchmark.get_models_uids(self.benchmark_uid)
-        benchmark_models.append(self.benchmark.reference_model_mlcube)
+        benchmark_models.append(self.benchmark.reference_model)
 
         if self.models_uids is None:
             self.models_uids = benchmark_models
@@ -155,12 +156,12 @@ class BenchmarkExecution:
     def __validate_models(self, benchmark_models):
         models_set = set(self.models_uids)
         benchmark_models_set = set(benchmark_models)
-        non_assoc_cubes = models_set.difference(benchmark_models_set)
-        if non_assoc_cubes:
-            if len(non_assoc_cubes) > 1:
-                msg = f"Model of UID {non_assoc_cubes} is not associated with the specified benchmark."
+        non_assoc_models = models_set.difference(benchmark_models_set)
+        if non_assoc_models:
+            if len(non_assoc_models) > 1:
+                msg = f"Model of UID {non_assoc_models} is not associated with the specified benchmark."
             else:
-                msg = f"Models of UIDs {non_assoc_cubes} are not associated with the specified benchmark."
+                msg = f"Models of UIDs {non_assoc_models} are not associated with the specified benchmark."
             raise InvalidArgumentError(msg)
 
     def load_existing_executions(self):
@@ -212,15 +213,17 @@ class BenchmarkExecution:
                         "cached": True,
                         "error": "",
                         "partial": execution.is_partial(),
+                        "confidential": "N/A",
                     }
                 )
                 continue
 
             try:
-                model_cube = self.__get_cube(model_uid, "Model")
+                model = Model.get(model_uid)
                 execution_summary = ExecutionFlow.run(
+                    benchmark_id=self.benchmark_uid,
                     dataset=self.dataset,
-                    model=model_cube,
+                    model=model,
                     evaluator=self.evaluator,
                     execution=execution,
                     ignore_model_errors=self.ignore_model_errors,
@@ -234,6 +237,7 @@ class BenchmarkExecution:
                         "cached": False,
                         "error": str(e),
                         "partial": "N/A",
+                        "confidential": model.is_cc_mode(),
                     }
                 )
                 continue
@@ -250,6 +254,7 @@ class BenchmarkExecution:
                     "cached": False,
                     "error": "",
                     "partial": execution_summary["partial"],
+                    "confidential": model.is_cc_mode(),
                 }
             )
         return [experiment["execution"] for experiment in self.experiments]
@@ -286,7 +291,14 @@ class BenchmarkExecution:
         return f"b{self.benchmark_uid}m{model_uid}d{self.data_uid}"
 
     def print_summary(self):
-        headers = ["model", "Execution UID", "partial result", "from cache", "error"]
+        headers = [
+            "model",
+            "Execution UID",
+            "partial result",
+            "from cache",
+            "confidential",
+            "error",
+        ]
         data_lists_for_display = []
 
         num_total = len(self.experiments)
@@ -304,12 +316,20 @@ class BenchmarkExecution:
                         experiment["execution"].id,
                         experiment["partial"],
                         experiment["cached"],
+                        experiment["confidential"],
                         experiment["error"],
                     ]
                 )
             else:
                 data_lists_for_display.append(
-                    [experiment["model_uid"], "", "", "", experiment["error"]]
+                    [
+                        experiment["model_uid"],
+                        "",
+                        "",
+                        "",
+                        experiment["confidential"],
+                        experiment["error"],
+                    ]
                 )
 
             # statistics

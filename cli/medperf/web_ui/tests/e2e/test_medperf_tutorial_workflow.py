@@ -7,13 +7,9 @@ from medperf.web_ui.tests.pages.security_page import SecurityPage
 from medperf.web_ui.tests.pages.settings_page import SettingsPage
 from medperf.web_ui.tests.pages.login_page import LoginPage
 
-from medperf.web_ui.tests.pages.benchmark.workflow_test_page import WorkflowTestPage
 from medperf.web_ui.tests.pages.benchmark.register_page import RegBenchmarkPage
 from medperf.web_ui.tests.pages.benchmark.details_page import BenchmarkDetailsPage
 
-from medperf.web_ui.tests.pages.container.compatibility_test_page import (
-    CompatibilityTestPage,
-)
 from medperf.web_ui.tests.pages.container.register_page import RegContainerPage
 from medperf.web_ui.tests.pages.container.details_page import ContainerDetailsPage
 
@@ -100,64 +96,7 @@ def test_benchmark_login(driver):
     login(page=page, url=url, email=tests_config.BMK_OWNER_EMAIL)
 
 
-@pytest.mark.dependency(name="workflow_test", depends=["benchmark_login"])
-def test_benchmark_workflow_test(driver):
-    page = WorkflowTestPage(driver)
-    page.open(BASE_URL.format("/benchmarks/ui"))
-
-    old_url = page.current_url
-    page.click(page.BMK_REG_BTN)
-    page.wait_for_url_change(old_url)
-    page.wait_for_presence_selector(page.NAVBAR)
-
-    assert "/benchmarks/register/ui" in page.current_url
-
-    old_url = page.current_url
-    page.click(page.WF_BTN)
-    page.wait_for_url_change(old_url)
-    page.wait_for_presence_selector(page.NAVBAR)
-
-    assert "/benchmarks/register/workflow_test" in page.current_url
-    assert page.find(page.RUN_TEST_BTN).is_enabled() is False
-
-    page_modal = page.find(page.PAGE_MODAL)
-    panel = page.find(page.PANEL)
-
-    assert page_modal.is_displayed() is False
-    assert panel.is_displayed() is False
-
-    page.run_test(
-        data_prep=tests_config.BMK_DATA_PREP,
-        ref_model=tests_config.BMK_REF_MODEL,
-        evaluator=tests_config.BMK_EVALUATOR,
-        data_path=tests_config.BMK_DATA_PATH,
-        labels_path=tests_config.BMK_LABELS_PATH,
-    )
-
-    old_url = page.current_url
-    page.wait_for_visibility_element(page_modal)
-
-    assert page.is_confirmation_modal() is True
-    assert "run the workflow test?" in page.get_text(page.CONFIRM_TEXT)
-
-    page.confirm_run_task()
-    page.wait_for_visibility_element(panel)
-
-    while not page_modal.is_displayed():
-        time.sleep(0.2)
-
-    assert page.get_text(page.PAGE_MODAL_TITLE) == "Benchmark Workflow Test Successful"
-
-    continue_btn = page_modal.find_element(*page.CONTINUE_BTN)
-    page.ensure_element_ready(continue_btn)
-    continue_btn.click()
-    page.wait_for_staleness_element(page_modal)
-    page.wait_for_url_change(old_url)
-
-    assert "/benchmarks/register/ui" in page.current_url
-
-
-@pytest.mark.dependency(name="register_data_prep", depends=["workflow_test"])
+@pytest.mark.dependency(name="register_data_prep", depends=["benchmark_login"])
 def test_benchmark_register_data_prep_container(driver):
     page = RegContainerPage(driver)
     page.open(BASE_URL.format("/containers/ui"))
@@ -236,7 +175,7 @@ def test_benchmark_register_reference_model_container(driver):
     page.wait_for_staleness_element(page_modal)
     page.wait_for_url_change(old_url)
 
-    assert "/containers/ui/display/" in page.current_url
+    assert "/models/ui/display/" in page.current_url
 
 
 @pytest.mark.dependency(name="register_metrics", depends=["register_ref_model"])
@@ -594,7 +533,7 @@ def test_dataset_submit_certificate(driver):
     assert page.get_text(page.CERTIFICATE_STATUS) == "valid"
 
 
-@pytest.mark.dependency(name="dataset_logout", depends=["dataset_association"])
+@pytest.mark.dependency(name="dataset_logout", depends=["dataset_submit_certificate"])
 def test_dataset_logout(driver):
     page = BasePage(driver)
     page.open(BASE_URL.format("/benchmarks/ui"))
@@ -610,58 +549,7 @@ def test_model_login(driver):
     login(page=page, url=url, email=tests_config.MODEL_OWNER_EMAIL)
 
 
-@pytest.mark.dependency(name="comp_test", depends=["model_login"])
-def test_container_comp_test(driver):
-    page = CompatibilityTestPage(driver)
-    page.open(BASE_URL.format("/containers/ui"))
-
-    old_url = page.current_url
-    page.click(page.REG_CONT_BTN)
-    page.wait_for_url_change(old_url)
-    page.wait_for_presence_selector(page.NAVBAR)
-
-    assert "/containers/register/ui" in page.current_url
-
-    old_url = page.current_url
-    page.click(page.COMP_BTN)
-    page.wait_for_url_change(old_url)
-    page.wait_for_presence_selector(page.NAVBAR)
-
-    assert "/containers/register/compatibility_test" in page.current_url
-    assert page.find(page.RUN_TEST_BTN).is_enabled() is False
-
-    page_modal = page.find(page.PAGE_MODAL)
-    panel = page.find(page.PANEL)
-
-    assert page_modal.is_displayed() is False
-    assert panel.is_displayed() is False
-
-    page.run_test(benchmark=tests_config.BMK_NAME, model=tests_config.MODEL)
-
-    old_url = page.current_url
-    page.wait_for_visibility_element(page_modal)
-
-    assert page.is_confirmation_modal() is True
-    assert "run the compatibility test?" in page.get_text(page.CONFIRM_TEXT)
-
-    page.confirm_run_task()
-    page.wait_for_visibility_element(panel)
-
-    while not page_modal.is_displayed():
-        time.sleep(0.2)
-
-    assert page.get_text(page.PAGE_MODAL_TITLE) == "Model Compatibility Test Successful"
-
-    continue_btn = page_modal.find_element(*page.CONTINUE_BTN)
-    page.ensure_element_ready(continue_btn)
-    continue_btn.click()
-    page.wait_for_staleness_element(page_modal)
-    page.wait_for_url_change(old_url)
-
-    assert "/containers/register/ui" in page.current_url
-
-
-@pytest.mark.dependency(name="container_registration", depends=["comp_test"])
+@pytest.mark.dependency(name="container_registration", depends=["model_login"])
 def test_container_registration(driver):
     page = RegContainerPage(driver)
     page.open(BASE_URL.format("/containers/ui"))
@@ -699,7 +587,7 @@ def test_container_registration(driver):
     page.wait_for_staleness_element(page_modal)
     page.wait_for_url_change(old_url)
 
-    assert "/containers/ui/display/" in page.current_url
+    assert "/models/ui/display/" in page.current_url
 
 
 @pytest.mark.dependency(
@@ -726,7 +614,7 @@ def test_container_association(driver):
     page.wait_for_visibility_element(page_modal)
 
     assert page.is_confirmation_modal() is True
-    assert "request container association?" in page.get_text(page.CONFIRM_TEXT)
+    assert "request model association?" in page.get_text(page.CONFIRM_TEXT)
 
     page.confirm_run_task()
     page.wait_for_visibility_element(panel)
@@ -746,7 +634,7 @@ def test_container_association(driver):
 
     page.wait_for_staleness_element(page_modal)
 
-    assert "/containers/ui/display/" in page.current_url
+    assert "/models/ui/display/" in page.current_url
     assert tests_config.BMK_NAME in page.get_association_cards_titles()
 
 
@@ -793,7 +681,7 @@ def test_encrypted_container_registration(driver):
     page.wait_for_staleness_element(page_modal)
     page.wait_for_url_change(old_url)
 
-    assert "/containers/ui/display/" in page.current_url
+    assert "/models/ui/display/" in page.current_url
 
 
 @pytest.mark.dependency(
@@ -820,7 +708,7 @@ def test_encrypted_container_association(driver):
     page.wait_for_visibility_element(page_modal)
 
     assert page.is_confirmation_modal() is True
-    assert "request container association?" in page.get_text(page.CONFIRM_TEXT)
+    assert "request model association?" in page.get_text(page.CONFIRM_TEXT)
 
     page.confirm_run_task()
     page.wait_for_visibility_element(panel)
@@ -840,7 +728,7 @@ def test_encrypted_container_association(driver):
 
     page.wait_for_staleness_element(page_modal)
 
-    assert "/containers/ui/display/" in page.current_url
+    assert "/models/ui/display/" in page.current_url
     assert tests_config.BMK_NAME in page.get_association_cards_titles()
 
 

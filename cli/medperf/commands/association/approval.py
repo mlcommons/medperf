@@ -9,7 +9,7 @@ class Approval:
         benchmark_uid: int = None,
         training_exp_uid: int = None,
         dataset_uid: int = None,
-        mlcube_uid: int = None,
+        model_uid: int = None,
         aggregator_uid: int = None,
     ):
         """Sets approval status for an association between a benchmark and a dataset or mlcube
@@ -27,7 +27,7 @@ class Approval:
             benchmark_uid,
             training_exp_uid,
             dataset_uid,
-            mlcube_uid,
+            model_uid,
             aggregator_uid,
             approval_status.value,
         )
@@ -38,9 +38,9 @@ class Approval:
                     benchmark_uid, dataset_uid, update
                 )
 
-            if mlcube_uid:
+            if model_uid:
                 comms.update_benchmark_model_association(
-                    benchmark_uid, mlcube_uid, update
+                    benchmark_uid, model_uid, update
                 )
         if training_exp_uid:
             if dataset_uid:

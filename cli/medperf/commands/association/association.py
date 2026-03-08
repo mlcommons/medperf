@@ -16,7 +16,7 @@ def list(
     benchmark: bool = typer.Option(False, "-b", help="list benchmark associations"),
     training_exp: bool = typer.Option(False, "-t", help="list training associations"),
     dataset: bool = typer.Option(False, "-d", help="list dataset associations"),
-    mlcube: bool = typer.Option(False, "-m", help="list models associations"),
+    model: bool = typer.Option(False, "-m", help="list models associations"),
     aggregator: bool = typer.Option(False, "-a", help="list aggregator associations"),
     approval_status: str = typer.Option(
         None, "--approval-status", help="Approval status"
@@ -29,7 +29,7 @@ def list(
             Defaults to displaying all user associations.
     """
     ListAssociations.run(
-        approval_status, benchmark, training_exp, dataset, mlcube, aggregator
+        approval_status, benchmark, training_exp, dataset, model, aggregator
     )
 
 

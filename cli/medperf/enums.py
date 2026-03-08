@@ -27,3 +27,8 @@ class ContainerTypes(Enum):
     DOCKER_ARCHIVE = "DockerArchive"
     ENCRYPTED_DOCKER_ARCHIVE = "EncryptedDockerArchive"
     ENCRYPTED_SINGULARITY_FILE = "EncryptedSingularityFile"
+
+
+class ModelType(Enum):
+    ASSET = "ASSET"
+    CONTAINER = "CONTAINER"

@@ -14,7 +14,7 @@ PATCH_APPROVE = "medperf.commands.association.approval.{}"
             "update_benchmark_dataset_association",
         ),
         (
-            {"benchmark_uid": 1, "mlcube_uid": 1},
+            {"benchmark_uid": 1, "model_uid": 1},
             "update_benchmark_model_association",
         ),
         (

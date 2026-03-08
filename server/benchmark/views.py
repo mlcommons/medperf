@@ -16,7 +16,12 @@ from .serializers import (
     BenchmarkApprovalSerializer,
     BenchmarkPublicSerializer,
 )
-from .permissions import IsAdmin, IsBenchmarkOwner, IsAssociatedDatasetOwner
+from .permissions import (
+    IsAdmin,
+    IsBenchmarkOwner,
+    IsAssociatedDatasetOwner,
+    IsAssociatedModelOwner,
+)
 
 
 class BenchmarkList(GenericAPIView):
@@ -82,7 +87,7 @@ class BenchmarkModelList(GenericAPIView):
 
 class BenchmarkDatasetList(GenericAPIView):
     # TODO: should we have an endpoint that returns datasets instead of associations?
-    permission_classes = [IsAdmin | IsBenchmarkOwner]
+    permission_classes = [IsAdmin | IsBenchmarkOwner | IsAssociatedModelOwner]
     serializer_class = BenchmarkListofDatasetsSerializer
     queryset = ""
 

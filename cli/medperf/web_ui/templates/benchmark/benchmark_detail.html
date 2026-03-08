@@ -5,6 +5,7 @@
 {% import 'macros/association_card_macros.html' as association_card_macros %}
 {% import 'macros/result_card_macros.html' as result_card_macros %}
 {% import 'macros/container_macros.html' as container_macros %}
+{% import 'macros/model_macros.html' as model_macros %}
 
 {% import "constants/forms_placeholders.html" as placeholders %}
 {% import "constants/tooltips.html" as tooltips %}
@@ -66,8 +67,8 @@
                         {{ container_macros.container_link(data_preparation_container) }}
                     </p>
                     <p class="card-text">
-                        <strong>Reference Model Container:</strong> 
-                        {{ container_macros.container_link(reference_model_container) }}
+                        <strong>Reference Model:</strong>
+                        {{ model_macros.model_link(reference_model) }}
                     </p>
                     <p class="card-text">
                         <strong>Metrics Container:</strong> 
@@ -215,7 +216,7 @@
 </div>
 <div id="models-associations" style="display: none;">
     {% for assoc in models_associations %}
-    {{ association_card_macros.association_card(assoc, models[assoc.model_mlcube], "container") }}
+    {{ association_card_macros.association_card(assoc, models[assoc.model], "model") }}
     {% endfor %}
 </div>
 <div id="benchmark-results-title" class="d-flex flex-row my-5 border border-secondary rounded p-3 justify-content-between">
