@@ -146,8 +146,10 @@ class Model(Entity, DeployableSchema):
         # tmp fix until the parent todict is properly implemented.
         data = super().todict()
         if self.type == "CONTAINER":
+            data["container"] = self.container.todict()
             del data["asset"]
         else:
+            data["asset"] = self.asset.todict()
             del data["container"]
         return data
 
