@@ -73,14 +73,22 @@ class GCPOperatorConfig(BaseModel):
     account: str
     bucket: str
     machine_type: str
-    boot_disk_size: str
-    cc_type: str
-    min_cpu_platform: str
+    boot_disk_size: int  # GB
     vm_zone: str
     vm_network: str
-    logs_poll_frequency: int
+    logs_poll_frequency: int = 30  # seconds
     gpu: bool
-    run_duration: str
+    run_duration: int = 24  # hours, only applicable for GPU workloads
+
+    @property
+    def min_cpu_platform(self):
+        # TODO: check
+        return "AMD Milan"
+
+    @property
+    def cc_type(self):
+        # TODO: check
+        return "SEV"
 
     @property
     def service_account_email(self):
@@ -434,9 +442,9 @@ def run_gpu_workload(
         "--image-family=confidential-space-debug-preview-cgpu",
         f"--service-account={config.service_account_email}",
         "--scopes=cloud-platform",
-        f"--boot-disk-size={config.boot_disk_size}",
+        f"--boot-disk-size={config.boot_disk_size}G",
         "--reservation-affinity=none",
-        f"--max-run-duration={config.run_duration}",
+        f"--max-run-duration={config.run_duration}h",
         "--instance-termination-action=DELETE",
         f"--metadata={metadata}",
     ]

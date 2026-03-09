@@ -4,12 +4,8 @@
     "account": "hasan.kassem@mlcommons.org",
     "bucket": "data-owner-bucket-medperf-cc",
     "machine_type": "n2d-standard-8",
-    "cc_type": "SEV",
-    "min_cpu_platform": "AMD Milan",
     "vm_zone": "us-west1-b",
     "vm_network": "medperf-brats-network",
-    "boot_disk_size": "100GB",
-    "logs_poll_frequency": 30,
-    "gpu": false,
-    "run_duration": ""
+    "boot_disk_size": 100,
+    "gpu": false
 }
