@@ -4,7 +4,6 @@ import logging
 from typing import Union
 from medperf.exceptions import ExecutionError
 from medperf.utils import run_command
-from dataclasses import dataclass
 from google.cloud import kms
 from google.iam.v1 import policy_pb2
 from google.cloud import storage
@@ -13,12 +12,13 @@ from google.cloud import compute_v1
 import time
 from colorama import Fore, Style
 import medperf.config as medperf_config
+from pydantic import BaseModel
 
 GCP_EXEC = "gcloud"
 
 
-@dataclass
-class CCWorkloadID:
+# TODO: validation of inputs
+class CCWorkloadID(BaseModel):
     data_hash: str
     model_hash: str
     script_hash: str
@@ -67,8 +67,7 @@ class CCWorkloadID:
         return f"{self.human_readable_id}/encryption_key"
 
 
-@dataclass
-class GCPOperatorConfig:
+class GCPOperatorConfig(BaseModel):
     project_id: str
     service_account_name: str
     account: str
@@ -88,8 +87,7 @@ class GCPOperatorConfig:
         return f"{self.service_account_name}@{self.project_id}.iam.gserviceaccount.com"
 
 
-@dataclass
-class GCPAssetConfig:
+class GCPAssetConfig(BaseModel):
     project_id: str
     project_number: str
     account: str

@@ -1,5 +1,8 @@
 from medperf.entities.dataset import Dataset
-from medperf.asset_management.asset_management import setup_dataset_for_cc
+from medperf.asset_management.asset_management import (
+    setup_dataset_for_cc,
+    validate_cc_config,
+)
 import json
 from medperf import config
 
@@ -15,6 +18,7 @@ class DatasetConfigureForCC:
 
     @classmethod
     def run(cls, data_uid: int, cc_config: dict, cc_policy: dict):
+        validate_cc_config(cc_config, "dataset" + str(data_uid))
         dataset = Dataset.get(data_uid)
         dataset.set_cc_config(cc_config)
         dataset.set_cc_policy(cc_policy)

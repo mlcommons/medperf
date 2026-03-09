@@ -1,4 +1,8 @@
-from medperf.asset_management.gcp_utils import CCWorkloadID
+from medperf.asset_management.gcp_utils import (
+    CCWorkloadID,
+    GCPAssetConfig,
+    GCPOperatorConfig,
+)
 from medperf.entities.dataset import Dataset
 from medperf.entities.model import Model
 from medperf.entities.user import User
@@ -17,6 +21,21 @@ def generate_encryption_key(encryption_key_file: str):
     os.chmod(encryption_key_file, 0o700)
     with open(encryption_key_file, "ab") as f:
         f.write(secrets.token_bytes(32))
+
+
+def validate_cc_config(cc_config: dict, asset_name_prefix: str):
+    if cc_config == {}:
+        return
+
+    cc_config["encrypted_asset_bucket_file"] = asset_name_prefix + ".enc"
+    cc_config["encrypted_key_bucket_file"] = asset_name_prefix + "_key.enc"
+    GCPAssetConfig(**cc_config)
+
+
+def validate_cc_operator_config(cc_config: dict):
+    if cc_config == {}:
+        return
+    GCPOperatorConfig(**cc_config)
 
 
 def setup_dataset_for_cc(dataset: Dataset):
