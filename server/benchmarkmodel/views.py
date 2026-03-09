@@ -61,6 +61,8 @@ class ModelApproval(GenericAPIView):
         self.permission_classes = [IsAdmin | IsBenchmarkOwner | IsModelOwner]
         if self.request.method == "PUT" and "priority" in self.request.data:
             self.permission_classes = [IsAdmin | IsBenchmarkOwner]
+        elif self.request.method == "PUT" and "signature" in self.request.data:
+            self.permission_classes = [IsAdmin | IsBenchmarkOwner]
         elif self.request.method == "DELETE":
             self.permission_classes = [IsAdmin]
         return super(self.__class__, self).get_permissions()

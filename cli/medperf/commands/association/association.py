@@ -5,6 +5,7 @@ from medperf.decorators import clean_except
 from medperf.commands.association.list import ListAssociations
 from medperf.commands.association.approval import Approval
 from medperf.commands.association.priority import AssociationPriority
+from medperf.commands.association.sign import SignAssociations
 from medperf.enums import Status
 
 app = typer.Typer()
@@ -122,3 +123,16 @@ def set_priority(
     """
     AssociationPriority.run(benchmark_uid, model_uid, priority)
     config.ui.print("✅ Done!")
+
+
+@app.command("sign")
+@clean_except
+def sign(
+    benchmark_uid: int = typer.Option(..., "--benchmark", "-b", help="Benchmark UID"),
+):
+    """Sign all associations related to a specific benchmark.
+
+    Args:
+        benchmark_uid (int): Benchmark UID.
+    """
+    SignAssociations.run(benchmark_uid)

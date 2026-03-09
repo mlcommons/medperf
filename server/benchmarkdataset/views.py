@@ -61,6 +61,8 @@ class DatasetApproval(GenericAPIView):
         self.permission_classes = [IsAdmin | IsBenchmarkOwner | IsDatasetOwner]
         if self.request.method == "DELETE":
             self.permission_classes = [IsAdmin]
+        elif self.request.method == "PUT" and "signature" in self.request.data:
+            self.permission_classes = [IsAdmin | IsBenchmarkOwner]
         return super(self.__class__, self).get_permissions()
 
     def get_object(self, dataset_id, benchmark_id):

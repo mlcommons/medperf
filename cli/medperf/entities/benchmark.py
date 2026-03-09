@@ -124,11 +124,15 @@ class Benchmark(Entity):
         return uids_with_users
 
     @classmethod
-    def get_models_associations(cls, benchmark_uid: int) -> List[dict]:
+    def get_models_associations(
+        cls, benchmark_uid: int, approval_status: str = None
+    ) -> List[dict]:
         """Retrieves the list of model associations to the benchmark
 
         Args:
             benchmark_uid (int): UID of the benchmark.
+            approval_status (str, optional): Filter associations by approval status.
+                Defaults to None, which retrieves all associations.
 
         Returns:
             List[dict]: List of associations
@@ -140,7 +144,7 @@ class Benchmark(Entity):
         associations = get_user_associations(
             experiment_type=experiment_type,
             component_type=component_type,
-            approval_status=None,
+            approval_status=approval_status,
         )
 
         associations = [a for a in associations if a["benchmark"] == benchmark_uid]
@@ -148,11 +152,15 @@ class Benchmark(Entity):
         return associations
 
     @classmethod
-    def get_datasets_associations(cls, benchmark_uid: int) -> List[dict]:
-        """Retrieves the list of models associated to the benchmark
+    def get_datasets_associations(
+        cls, benchmark_uid: int, approval_status: str = None
+    ) -> List[dict]:
+        """Retrieves the list of datasets associated to the benchmark
 
         Args:
             benchmark_uid (int): UID of the benchmark.
+            approval_status (str, optional): Filter associations by approval status.
+                Defaults to None, which retrieves all associations.
 
         Returns:
             List[dict]: List of associations
@@ -164,7 +172,7 @@ class Benchmark(Entity):
         associations = get_user_associations(
             experiment_type=experiment_type,
             component_type=component_type,
-            approval_status=None,  # TODO
+            approval_status=approval_status,
         )
 
         associations = [a for a in associations if a["benchmark"] == benchmark_uid]

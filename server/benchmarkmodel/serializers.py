@@ -75,6 +75,7 @@ class ModelApprovalSerializer(serializers.ModelSerializer):
             "created_at",
             "modified_at",
             "priority",
+            "signature",
         ]
 
     def validate(self, data):

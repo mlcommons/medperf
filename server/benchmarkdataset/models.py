@@ -20,6 +20,7 @@ class BenchmarkDataset(models.Model):
     approved_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
+    signature = models.CharField(max_length=1000, null=True, blank=True)
 
     class Meta:
         ordering = ["modified_at"]
