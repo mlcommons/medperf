@@ -6,17 +6,15 @@ from medperf import config
 
 class SetupCCOperator:
     @classmethod
-    def run(cls, cc_config_file: str):
-        user = get_medperf_user_object()
+    def run_from_files(cls, cc_config_file: str):
         with open(cc_config_file) as f:
             cc_config = json.load(f)
+        cls.run(cc_config)
 
+    @classmethod
+    def run(cls, cc_config: dict):
+        user = get_medperf_user_object()
         user.set_cc_config(cc_config)
-        body = {"metadata": user.metadata}
-        config.comms.update_user(user.id, body)
         setup_operator(user)
-
-        # mark as set
-        user.mark_cc_configured()
         body = {"metadata": user.metadata}
         config.comms.update_user(user.id, body)

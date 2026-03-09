@@ -76,12 +76,13 @@ class Model(Entity):
     def is_encrypted(self) -> bool:
         return self.is_container() and self.container_obj.is_encrypted()
 
-    def is_cc_mode(self):
-        return "cc" in self.user_metadata
+    def requires_cc(self):
+        # for now, let's do this
+        return self.is_asset() and self.asset_obj.is_local()
 
     def get_cc_config(self):
         cc_values = self.user_metadata.get("cc", {})
-        return cc_values.get("config", None)
+        return cc_values.get("config", {})
 
     def set_cc_config(self, cc_config: dict):
         if "cc" not in self.user_metadata:
@@ -90,24 +91,15 @@ class Model(Entity):
 
     def get_cc_policy(self):
         cc_values = self.user_metadata.get("cc", {})
-        return cc_values.get("policy", None)
+        return cc_values.get("policy", {})
 
     def set_cc_policy(self, cc_policy: dict):
         if "cc" not in self.user_metadata:
             self.user_metadata["cc"] = {}
         self.user_metadata["cc"]["policy"] = cc_policy
 
-    def mark_cc_configured(self):
-        if "cc" not in self.user_metadata:
-            raise MedperfException(
-                "Model does not have a cc configuration to be marked as configured"
-            )
-        self.user_metadata["cc"]["configured"] = True
-
     def is_cc_configured(self):
-        if "cc" not in self.user_metadata:
-            return False
-        return self.user_metadata["cc"].get("configured", False)
+        return self.get_cc_config() != {}
 
     @staticmethod
     def remote_prefilter(filters: dict) -> callable:

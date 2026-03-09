@@ -20,16 +20,11 @@ def generate_encryption_key(encryption_key_file: str):
 
 
 def setup_dataset_for_cc(dataset: Dataset):
+    if not dataset.is_cc_configured():
+        return
     cc_config = dataset.get_cc_config()
     cc_policy = dataset.get_cc_policy()
-    if not cc_config:
-        raise ValueError(
-            f"Dataset {dataset.id} does not have a configuration for confidential computing."
-        )
-    if cc_policy is None:
-        raise ValueError(
-            f"Dataset {dataset.id} does not have a policy for confidential computing."
-        )
+
     # create dataset asset
     asset_path = generate_tmp_path()
     tar(asset_path, [dataset.data_path, dataset.labels_path])
@@ -46,16 +41,10 @@ def setup_dataset_for_cc(dataset: Dataset):
 
 
 def setup_model_for_cc(model: Model):
+    if not model.is_cc_configured():
+        return
     cc_config = model.get_cc_config()
     cc_policy = model.get_cc_policy()
-    if not cc_config:
-        raise ValueError(
-            f"Model {model.id} does not have a configuration for confidential computing."
-        )
-    if cc_policy is None:
-        raise ValueError(
-            f"Model {model.id} does not have a policy for confidential computing."
-        )
     if model.type != "ASSET":
         raise ValueError(
             f"Model {model.id} is not a file-based asset and cannot be set up for confidential computing."
@@ -93,12 +82,12 @@ def __setup_asset_for_cc(
 
 
 def update_dataset_cc_policy(dataset: Dataset, permitted_workloads: list[CCWorkloadID]):
-    cc_config = dataset.get_cc_config()
-    if not cc_config:
+    if not dataset.is_cc_configured():
         raise ValueError(
             f"Dataset {dataset.id} does not have a configuration for confidential computing."
         )
 
+    cc_config = dataset.get_cc_config()
     encryption_key_folder = os.path.join(
         config.cc_artifacts_dir, "dataset" + str(dataset.id)
     )
@@ -109,11 +98,11 @@ def update_dataset_cc_policy(dataset: Dataset, permitted_workloads: list[CCWorkl
 
 
 def update_model_cc_policy(model: Model, permitted_workloads: list[CCWorkloadID]):
-    cc_config = model.get_cc_config()
-    if not cc_config:
+    if not model.is_cc_configured():
         raise ValueError(
             f"Model {model.id} does not have a configuration for confidential computing."
         )
+    cc_config = model.get_cc_config()
     if model.type != "ASSET":
         raise ValueError(
             f"Model {model.id} is not a file-based asset and cannot be set up for confidential computing."
@@ -129,12 +118,10 @@ def update_model_cc_policy(model: Model, permitted_workloads: list[CCWorkloadID]
 
 
 def setup_operator(user: User):
-    cc_config = user.get_cc_config()
-    if not cc_config:
-        raise ValueError(
-            "User does not have a configuration for confidential computing."
-        )
+    if not user.is_cc_configured():
+        return
 
+    cc_config = user.get_cc_config()
     operator_manager = OperatorManager(cc_config)
     operator_manager.setup()
 

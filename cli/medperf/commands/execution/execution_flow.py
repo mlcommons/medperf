@@ -26,7 +26,7 @@ class ExecutionFlow:
 
         if (
             model.type == ModelType.ASSET.value
-            and model.is_cc_mode()
+            and model.requires_cc()
             and not user_is_model_owner
         ):
             return ConfidentialExecution.run(

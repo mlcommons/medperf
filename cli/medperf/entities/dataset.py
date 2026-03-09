@@ -8,7 +8,6 @@ from medperf.entities.interface import Entity
 from medperf.entities.schemas import DatasetSchema
 import medperf.config as config
 from medperf.account_management import get_medperf_user_data
-from medperf.exceptions import MedperfException
 from medperf.entities.utils import handle_validation_error
 
 
@@ -73,7 +72,7 @@ class Dataset(Entity):
 
     def get_cc_config(self):
         cc_values = self.user_metadata.get("cc", {})
-        return cc_values.get("config", None)
+        return cc_values.get("config", {})
 
     def set_cc_config(self, cc_config: dict):
         if "cc" not in self.user_metadata:
@@ -82,24 +81,15 @@ class Dataset(Entity):
 
     def get_cc_policy(self):
         cc_values = self.user_metadata.get("cc", {})
-        return cc_values.get("policy", None)
+        return cc_values.get("policy", {})
 
     def set_cc_policy(self, cc_policy: dict):
         if "cc" not in self.user_metadata:
             self.user_metadata["cc"] = {}
         self.user_metadata["cc"]["policy"] = cc_policy
 
-    def mark_cc_configured(self):
-        if "cc" not in self.user_metadata:
-            raise MedperfException(
-                "Dataset does not have a cc configuration to be marked as configured"
-            )
-        self.user_metadata["cc"]["configured"] = True
-
     def is_cc_configured(self):
-        if "cc" not in self.user_metadata:
-            return False
-        return self.user_metadata["cc"].get("configured", False)
+        return self.get_cc_config() != {}
 
     def set_raw_paths(self, raw_data_path: str, raw_labels_path: str):
         raw_paths_file = os.path.join(self.path, config.dataset_raw_paths_file)
