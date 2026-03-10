@@ -87,16 +87,17 @@ def setup_model_for_cc(model: Model):
 def __setup_asset_for_cc(
     cc_config: dict, cc_policy: dict, asset_path: str, encryption_key_file: str
 ):
-    # asset storage setup
     asset_storage_manager = AssetStorageManager(
         cc_config, asset_path, encryption_key_file
     )
+    asset_policy_manager = AssetPolicyManager(cc_config, encryption_key_file)
     asset_storage_manager.setup()
+    asset_policy_manager.setup()
+
+    # storage
     asset_storage_manager.store_asset()
 
     # policy setup
-    asset_policy_manager = AssetPolicyManager(cc_config, encryption_key_file)
-    asset_policy_manager.setup()
     asset_policy_manager.setup_policy(cc_policy)
 
 

@@ -1,0 +1,233 @@
+import logging
+from google.auth import impersonated_credentials
+import googleapiclient.discovery
+
+
+# ---------------------------------------------------------------------------
+# Helper functions
+# ---------------------------------------------------------------------------
+
+
+def get_testable_permissions(resource):
+    if resource.startswith("//cloudresourcemanager"):
+        # don't find testable permissions for cloudresourcemanager
+        # Since they are a lot.
+        return {
+            "confidentialcomputing.challenges.create",
+            "confidentialcomputing.challenges.verify",
+            "confidentialcomputing.locations.get",
+            "confidentialcomputing.locations.list",
+            "logging.logEntries.create",
+            "logging.logEntries.route",
+        }
+    if "workloadIdentityPools" in resource:
+        # doesn't seem to have an api for this
+        return {
+            "iam.googleapis.com/workloadIdentityPoolProviders.update",
+            "iam.googleapis.com/workloadIdentityPoolProviders.get",
+            "iam.googleapis.com/workloadIdentityPools.get",
+        }
+
+    iam = googleapiclient.discovery.build("iam", "v1")
+    resp = (
+        iam.permissions()
+        .queryTestablePermissions(body={"fullResourceName": resource, "pageSize": 1000})
+        .execute()
+    )
+    return set(p["name"] for p in resp.get("permissions", []))
+
+
+def get_role_permissions(role_name: str, resource: str):
+    service = googleapiclient.discovery.build("iam", "v1")
+    role = service.roles().get(name=role_name).execute()
+    permissions = role.get("includedPermissions", [])
+    testable = get_testable_permissions(resource)
+    return list(testable.intersection(permissions))
+
+
+def impersonate_service_account(base_creds, sa_email):
+    logging.debug(f"Impersonating service account: {sa_email}")
+    try:
+        return impersonated_credentials.Credentials(
+            source_credentials=base_creds,
+            target_principal=sa_email,
+            target_scopes=["https://www.googleapis.com/auth/cloud-platform"],
+        )
+    except Exception as e:
+        logging.debug(f"Failed to impersonate service account {sa_email}: {e}")
+        return None
+
+
+# ---------------------------------------------------------------------------
+# User roles
+# ---------------------------------------------------------------------------
+def check_user_role_on_service_account(base_creds, sa_email, role):
+    permissions = get_role_permissions(
+        role, "//iam.googleapis.com/projects/_/serviceAccounts/_"
+    )
+    logging.debug(f"Checking if user has {role} role on {sa_email}")
+    try:
+        iam = googleapiclient.discovery.build(
+            "iam", "v1", credentials=base_creds, cache_discovery=False
+        )
+        granted = (
+            iam.projects()
+            .serviceAccounts()
+            .testIamPermissions(
+                resource=f"projects/-/serviceAccounts/{sa_email}",
+                body={"permissions": permissions},
+            )
+            .execute()
+        )
+        granted_permissions = granted.get("permissions", [])
+        missing = set(permissions) - set(granted_permissions)
+        if missing:
+            logging.debug(f"Missing permissions: {missing}")
+            return f"(Role {role}) User missing permissions: {missing} on service account: {sa_email}"
+        return None
+    except Exception as e:
+        logging.debug(f"check_user_role_on_service_account exception: {e}")
+        return f"Failed to verify user role on service account: {sa_email}"
+
+
+def check_user_role_on_bucket(user_str, creds, bucket_name, role):
+    permissions = get_role_permissions(
+        role, "//storage.googleapis.com/projects/_/buckets/_"
+    )
+    logging.debug(f"Checking if {user_str} has {role} role on bucket: {bucket_name}")
+    try:
+        iam = googleapiclient.discovery.build(
+            "storage", "v1", credentials=creds, cache_discovery=False
+        )
+        granted = (
+            iam.buckets()
+            .testIamPermissions(bucket=bucket_name, permissions=permissions)
+            .execute()
+        )
+        granted_permissions = granted.get("permissions", [])
+        missing = set(permissions) - set(granted_permissions)
+        if missing:
+            logging.debug(f"Missing permissions: {missing}")
+            return f"(Role {role}) {user_str} missing permissions: {missing} on bucket: {bucket_name}"
+        return None
+    except Exception as e:
+        logging.debug(f"check_user_role_on_bucket exception: {e}")
+        return f"Failed to verify {user_str} role on bucket: {bucket_name}"
+
+
+# ---------------------------------------------------------------------------
+# Service Account roles
+# ---------------------------------------------------------------------------
+
+
+def check_sa_roles_for_project(sa_creds, project_id, role):
+    permissions = get_role_permissions(
+        role, "//cloudresourcemanager.googleapis.com/projects/_"
+    )
+    logging.debug(f"Checking service account project permissions: {project_id}")
+    try:
+        crm = googleapiclient.discovery.build(
+            "cloudresourcemanager", "v1", credentials=sa_creds, cache_discovery=False
+        )
+        granted = (
+            crm.projects()
+            .testIamPermissions(resource=project_id, body={"permissions": permissions})
+            .execute()
+        )
+        granted_permissions = granted.get("permissions", [])
+        missing = set(permissions) - set(granted_permissions)
+        if missing:
+            logging.debug(f"Missing permissions: {missing}")
+            return (
+                f"(Role {role}) Service account missing permissions: "
+                f"{missing} on project: {project_id}"
+            )
+        return None
+    except Exception as e:
+        logging.debug(f"check_sa_project_permissions exception: {e}")
+        return f"Failed to verify service account role on project: {project_id}"
+
+
+# ---------------------------------------------------------------------------
+# KMS roles
+# ---------------------------------------------------------------------------
+
+
+def check_user_role_on_kms_key(base_creds, kms_key_resource, role):
+    logging.debug(f"Checking user role {role} on KMS key {kms_key_resource}")
+
+    try:
+        kms = googleapiclient.discovery.build(
+            "cloudkms", "v1", credentials=base_creds, cache_discovery=False
+        )
+
+        permissions = get_role_permissions(
+            role,
+            "//cloudkms.googleapis.com/projects/_/locations/_/keyRings/_/cryptoKeys/_",
+        )
+
+        granted = (
+            kms.projects()
+            .locations()
+            .keyRings()
+            .cryptoKeys()
+            .testIamPermissions(
+                resource=kms_key_resource,
+                body={"permissions": permissions},
+            )
+            .execute()
+        )
+
+        granted_permissions = granted.get("permissions", [])
+        missing = set(permissions) - set(granted_permissions)
+
+        if missing:
+            return f"(Role {role}) User missing permissions: {missing} on KMS key {kms_key_resource}"
+
+        return None
+
+    except Exception as e:
+        logging.debug(f"KMS permission check failed: {e}")
+        return f"Failed verifying user roles on KMS key {kms_key_resource}"
+
+
+# ---------------------------------------------------------------------------
+# WIP roles
+# ---------------------------------------------------------------------------
+
+
+def check_user_role_on_wip(creds, wip, role):
+
+    logging.debug(f"Checking user role {role} on WIP {wip}")
+
+    try:
+        iam = googleapiclient.discovery.build(
+            "iam", "v1", credentials=creds, cache_discovery=False
+        )
+
+        permissions = get_role_permissions(
+            role, "//iam.googleapis.com/projects/_/locations/_/workloadIdentityPools/_"
+        )
+
+        granted = (
+            iam.projects()
+            .locations()
+            .workloadIdentityPools()
+            .testIamPermissions(
+                resource=wip,
+                body={"permissions": permissions},
+            )
+            .execute()
+        )
+
+        granted_permissions = granted.get("permissions", [])
+        missing = set(permissions) - set(granted_permissions)
+
+        if missing:
+            return f"(Role {role}) User missing permissions: {missing} on WIP {wip}"
+
+        return None
+
+    except Exception as e:
+        logging.debug(f"WIP permission check failed: {e}")
+        return f"Failed verifying user roles on WIP {wip}"
