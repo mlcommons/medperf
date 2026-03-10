@@ -4,6 +4,7 @@
 
 {% import 'macros/association_card_macros.html' as association_card_macros %}
 {% import 'macros/model_detail_util_macro.html' as model_detail_util_macro %}
+{% import 'macros/cc_asset_macro.html' as cc_asset_macro %}
 
 {% block title %}Model Details{% endblock %}
 
@@ -157,6 +158,10 @@
 </div>
 {% endif %}
 
+{% if is_owner %}
+    {{cc_asset_macro.gcp_asset(cc_config_defaults, cc_configured, entity.id, "model", task_running) }}
+{% endif %}
+
 {% include "partials/panel_container.html" %}
 {% include "partials/text_content_container.html" %}
 {% include "partials/yaml_container.html" %}
@@ -166,6 +171,7 @@
 {% block extra_js %}
 <script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
 <script src="{{ url_for('static', path='js/models/model_detail.js') }}"></script>
+<script src="{{ url_for('static', path='js/cc.js') }}"></script>
 {% if task_running and request.app.state.task.name == "model_association" and task_formData.get("model_id", "") == entity.id|string %}
 <script>
     $(document).ready(() => {

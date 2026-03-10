@@ -3,6 +3,7 @@
 {% extends "base.html" %}
 
 {% import "constants/tooltips.html" as tooltips %}
+{% import 'macros/cc_operator_macro.html' as cc_operator_macro %}
 
 {% block title %}Settings{% endblock %}
 
@@ -166,10 +167,15 @@
     {% include "partials/prompt_container.html" %}
 </div>
 
+{% if logged_in %}
+    {{ cc_operator_macro.cc_operator(cc_config_defaults, cc_configured, task_running=task_running) }}
+{% endif %}
+
 {% endblock content %}
 
 {% block extra_js %}
 <script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
+<script src="/static/js/cc_operator.js"></script>
 <script>
     // Save some global variables to be accessible by js scripts
     window.currentSettings = {

@@ -5,6 +5,7 @@
 {% import 'macros/container_macros.html' as container_macros %}
 {% import 'macros/model_macros.html' as model_macros %}
 {% import 'macros/benchmark_macros.html' as benchmark_macros %}
+{% import 'macros/cc_asset_macro.html' as cc_asset_macro %}
 
 {% block title %}Dataset Details{% endblock title %}
 
@@ -410,6 +411,10 @@
 {% endfor %}
 {% endif %}
 
+{% if is_owner %}
+    {{cc_asset_macro.gcp_asset(cc_config_defaults, cc_configured, dataset.id, "dataset", task_running) }}
+{% endif %}
+
 {% include "partials/panel_container.html" %}
 {% include "partials/text_content_container.html" %}
 {% include "partials/yaml_container.html" %}
@@ -421,6 +426,7 @@
 <script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
 <script src="{{ url_for('static', path='js/results/results_utils.js') }}"></script>
 <script src="{{ url_for('static', path='js/datasets/dataset_detail.js') }}"></script>
+<script src="{{ url_for('static', path='js/cc.js') }}"></script>
 
 {% if task_running and task_formData.get("dataset_id", "") == dataset.id|string %}
 {% if request.app.state.task.name == "dataset_preparation" %}

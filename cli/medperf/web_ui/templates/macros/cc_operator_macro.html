@@ -1,0 +1,43 @@
+{# ./cli/medperf/web_ui/templates/macros/cc_operator_macro.html #}
+
+{% macro cc_operator(defaults, configured, task_running=false) %}
+{% set fields = [
+("project_id", "GCP Project ID"),
+("service_account_name", "GCP Service Account Name"),
+("account", "GCP Account Email"),
+("bucket", "GCP Bucket Name"),
+("machine_type", "GCP Machine Type"),
+("vm_zone", "VM Zone"),
+("vm_network", "VM Network"),
+("boot_disk_size", "VM Boot Disk Size (GB)"),
+("gpus", "VM Number of GPUs"),
+] %}
+<div id="edit-cc-operator-container" class="mt-5">
+    <form id="edit-cc-operator-form" class="mt-5">
+        <div class="row mb-4">
+            <div class="col-sm-6 offset-sm-3">
+                <div class="form-check">
+                    <input type="checkbox" id="require-cc-operator" name="require_cc" class="form-check-input" {% if
+                        configured %}checked{% endif %} {% if task_running %}disabled{% endif %}>
+                    <label class="form-check-label h5" for="require-cc-operator">Require Confidential Computing</label>
+                </div>
+            </div>
+        </div>
+        <div id="edit-cc-operator-fields">
+            {% for field_name, field_label in fields %}
+            <div class="row mb-4">
+                <label for="operator-{{ field_name }}" class="col-sm-3 col-form-label h5 text-end">{{ field_label
+                    }}</label>
+                <div class="col-sm-6">
+                    <input type="text" id="operator-{{ field_name }}" name="{{ field_name }}" class="form-control"
+                        value="{{ defaults.get(field_name, '') }}" {% if task_running %}disabled{% endif %}>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-4">
+            <button type="button" id="apply-cc-operator-btn" class="btn btn-primary" disabled>Apply Changes</button>
+        </div>
+    </form>
+</div>
+{% endmacro %}

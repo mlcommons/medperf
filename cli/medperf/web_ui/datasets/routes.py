@@ -17,6 +17,7 @@ from medperf.commands.dataset.submit import DataCreation
 from medperf.commands.execution.create import BenchmarkExecution
 from medperf.commands.execution.submit import ResultSubmission
 from medperf.commands.execution.utils import filter_latest_executions
+from medperf.commands.cc.dataset_configure_for_cc import DatasetConfigureForCC
 from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
@@ -133,6 +134,10 @@ def dataset_detail_ui(  # noqa
                         model.result["results"] = result.read_results()
 
     report_exists = os.path.exists(dataset.report_path)
+
+    cc_config_defaults = dataset.get_cc_config()
+    cc_configured = dataset.is_cc_configured()
+
     return templates.TemplateResponse(
         "dataset/dataset_detail.html",
         {
@@ -147,6 +152,8 @@ def dataset_detail_ui(  # noqa
             "approved_benchmarks": approved_benchmarks,
             "is_owner": is_owner,
             "report_exists": report_exists,
+            "cc_config_defaults": cc_config_defaults,
+            "cc_configured": cc_configured,
         },
     )
 
@@ -475,3 +482,36 @@ def import_dataset(
     )
 
     return return_response
+
+
+@router.post("/edit_cc_config", response_class=JSONResponse)
+def edit_cc_config(
+    entity_id: int = Form(...),
+    require_cc: bool = Form(...),
+    project_id: str = Form(""),
+    project_number: str = Form(""),
+    account: str = Form(""),
+    bucket: str = Form(""),
+    keyring_name: str = Form(""),
+    key_name: str = Form(""),
+    wip: str = Form(""),
+    current_user: bool = Depends(check_user_api),
+):
+    args = {
+        "project_id": project_id,
+        "project_number": project_number,
+        "account": account,
+        "bucket": bucket,
+        "keyring_name": keyring_name,
+        "key_name": key_name,
+        "wip": wip,
+    }
+    if not require_cc:
+        args = {}
+
+    try:
+        DatasetConfigureForCC.run(entity_id, args, {})
+        return {"status": "success", "error": ""}
+    except Exception as exp:
+        logger.exception(exp)
+        return {"status": "failed", "error": str(exp)}
