@@ -4,5 +4,6 @@
     "bucket": "data-owner-bucket-medperf-cc",
     "keyring_name": "data-owner-keyring",
     "key_name": "data-owner-key2",
+    "key_location": "us-west1",
     "wip": "data-owner-wip"
 }

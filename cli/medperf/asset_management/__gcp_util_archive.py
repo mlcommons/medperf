@@ -67,7 +67,7 @@ def create_keyring(config: GCPAssetConfig):
         "keyrings",
         "create",
         config.keyring_name,
-        "--location=global",
+        f"--location={config.key_location}",
     ]
     try:
         run_command(cmd)
@@ -83,7 +83,7 @@ def create_kms_key(config: GCPAssetConfig):
         "keys",
         "create",
         config.key_name,
-        "--location=global",
+        f"--location={config.key_location}",
         f"--keyring={config.keyring_name}",
         "--purpose=encryption",
     ]

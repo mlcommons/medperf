@@ -29,11 +29,12 @@ class GCPAssetConfig:
     encrypted_key_bucket_file: str
     keyring_name: str
     key_name: str
+    key_location: str
     wip: str
 
     @property
     def full_key_name(self) -> str:
-        return f"projects/{self.project_id}/locations/global/keyRings/{self.keyring_name}/cryptoKeys/{self.key_name}"
+        return f"projects/{self.project_id}/locations/{self.key_location}/keyRings/{self.keyring_name}/cryptoKeys/{self.key_name}"
 
     @property
     def full_wip_name(self) -> str:

@@ -4,6 +4,7 @@ const fields = [
     "cc-bucket",
     "cc-keyring_name",
     "cc-key_name",
+    "cc-key_location",
     "cc-wip",
     "require-cc"
 ];

@@ -133,6 +133,7 @@ def edit_cc_config(
     bucket: str = Form(""),
     keyring_name: str = Form(""),
     key_name: str = Form(""),
+    key_location: str = Form(""),
     wip: str = Form(""),
     current_user: bool = Depends(check_user_api),
 ):
@@ -142,6 +143,7 @@ def edit_cc_config(
         "bucket": bucket,
         "keyring_name": keyring_name,
         "key_name": key_name,
+        "key_location": key_location,
         "wip": wip,
     }
     if not require_cc:
