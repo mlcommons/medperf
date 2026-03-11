@@ -38,6 +38,14 @@ def get_testable_permissions(resource):
 
 
 def get_role_permissions(role_name: str, resource: str):
+    if role_name == "roles/storage.objectAdmin":
+        # storage permissions are not fully reflected in the role definition, so we hardcode them here
+        return [
+            "storage.objects.create",
+            "storage.objects.delete",
+            "storage.objects.get",
+            "storage.objects.list",
+        ]
     service = googleapiclient.discovery.build("iam", "v1")
     role = service.roles().get(name=role_name).execute()
     permissions = role.get("includedPermissions", [])
@@ -62,11 +70,11 @@ def impersonate_service_account(base_creds, sa_email):
 # User roles
 # ---------------------------------------------------------------------------
 def check_user_role_on_service_account(base_creds, sa_email, role):
-    permissions = get_role_permissions(
-        role, "//iam.googleapis.com/projects/_/serviceAccounts/_"
-    )
     logging.debug(f"Checking if user has {role} role on {sa_email}")
     try:
+        permissions = get_role_permissions(
+            role, "//iam.googleapis.com/projects/_/serviceAccounts/_"
+        )
         iam = googleapiclient.discovery.build(
             "iam", "v1", credentials=base_creds, cache_discovery=False
         )
@@ -91,11 +99,12 @@ def check_user_role_on_service_account(base_creds, sa_email, role):
 
 
 def check_user_role_on_bucket(user_str, creds, bucket_name, role):
-    permissions = get_role_permissions(
-        role, "//storage.googleapis.com/projects/_/buckets/_"
-    )
+
     logging.debug(f"Checking if {user_str} has {role} role on bucket: {bucket_name}")
     try:
+        permissions = get_role_permissions(
+            role, "//storage.googleapis.com/projects/_/buckets/_"
+        )
         iam = googleapiclient.discovery.build(
             "storage", "v1", credentials=creds, cache_discovery=False
         )
@@ -121,11 +130,12 @@ def check_user_role_on_bucket(user_str, creds, bucket_name, role):
 
 
 def check_sa_roles_for_project(sa_creds, project_id, role):
-    permissions = get_role_permissions(
-        role, "//cloudresourcemanager.googleapis.com/projects/_"
-    )
+
     logging.debug(f"Checking service account project permissions: {project_id}")
     try:
+        permissions = get_role_permissions(
+            role, "//cloudresourcemanager.googleapis.com/projects/_"
+        )
         crm = googleapiclient.discovery.build(
             "cloudresourcemanager", "v1", credentials=sa_creds, cache_discovery=False
         )
