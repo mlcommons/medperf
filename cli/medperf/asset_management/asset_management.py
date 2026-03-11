@@ -81,16 +81,24 @@ def setup_model_for_cc(model: Model):
     encryption_key_file = os.path.join(encryption_key_folder, "encryption_key.bin")
     generate_encryption_key(encryption_key_file)
 
-    __setup_asset_for_cc(cc_config, cc_policy, asset_path, encryption_key_file)
+    __setup_asset_for_cc(
+        cc_config, cc_policy, asset_path, encryption_key_file, for_model=True
+    )
 
 
 def __setup_asset_for_cc(
-    cc_config: dict, cc_policy: dict, asset_path: str, encryption_key_file: str
+    cc_config: dict,
+    cc_policy: dict,
+    asset_path: str,
+    encryption_key_file: str,
+    for_model: bool = False,
 ):
     asset_storage_manager = AssetStorageManager(
         cc_config, asset_path, encryption_key_file
     )
-    asset_policy_manager = AssetPolicyManager(cc_config, encryption_key_file)
+    asset_policy_manager = AssetPolicyManager(
+        cc_config, encryption_key_file, for_model=for_model
+    )
     asset_storage_manager.setup()
     asset_policy_manager.setup()
 
@@ -133,7 +141,9 @@ def update_model_cc_policy(model: Model, permitted_workloads: list[CCWorkloadID]
     )
     encryption_key_file = os.path.join(encryption_key_folder, "encryption_key.bin")
 
-    asset_policy_manager = AssetPolicyManager(cc_config, encryption_key_file)
+    asset_policy_manager = AssetPolicyManager(
+        cc_config, encryption_key_file, for_model=True
+    )
     asset_policy_manager.configure_policy(permitted_workloads)
 
 

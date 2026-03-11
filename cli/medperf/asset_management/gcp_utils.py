@@ -36,6 +36,15 @@ class CCWorkloadID(BaseModel):
         )
 
     @property
+    def id_for_model(self):
+        return "::".join(
+            [
+                self.script_hash,
+                self.model_hash,
+            ]
+        )
+
+    @property
     def human_readable_id(self):
         return f"d{self.data_id}-m{self.model_id}-s{self.script_id}"
 
