@@ -24,7 +24,9 @@ run `gcloud auth application-default login`
 - grant the user write access ("roles/storage.objectAdmin") to the bucket
 
 - create a keyring
+    - select region
 - create a key
+    - software (default)
 - grant the user "roles/cloudkms.cryptoKeyEncrypter" for the key
 - grant the user "roles/cloudkms.admin" for the key
 - create a workload identity pool
