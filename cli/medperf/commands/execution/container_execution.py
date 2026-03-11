@@ -102,8 +102,8 @@ class ContainerExecution:
         return local_outputs_path
 
     def set_pending_status(self):
-        self.__send_model_report("pending")
-        self.__send_evaluator_report("pending")
+        self.send_model_report("pending")
+        self.send_evaluator_report("pending")
 
     def run_inference(self):
         self.ui.text = f"Running inference of model '{self.model.name}' on dataset"
@@ -112,7 +112,7 @@ class ContainerExecution:
             "data_path": self.dataset.data_path,
             "output_path": self.preds_path,
         }
-        self.__send_model_report("started")
+        self.send_model_report("started")
         try:
             self.model.run(
                 task="infer",
@@ -123,7 +123,7 @@ class ContainerExecution:
             self.ui.print("> Model execution complete")
 
         except ExecutionError as e:
-            self.__send_model_report("failed")
+            self.send_model_report("failed")
             if not self.ignore_model_errors:
                 logging.error(f"Model Execution failed: {e}")
                 raise ExecutionError(f"Model Execution failed: {e}")
@@ -133,9 +133,9 @@ class ContainerExecution:
                 return
         except KeyboardInterrupt:
             logging.warning("Model Execution interrupted by user")
-            self.__send_model_report("interrupted")
+            self.send_model_report("interrupted")
             raise CleanExit("Model Execution interrupted by user")
-        self.__send_model_report("finished")
+        self.send_model_report("finished")
 
     def run_evaluation(self):
         self.ui.text = f"Calculating metrics for model '{self.model.name}' predictions"
@@ -146,7 +146,7 @@ class ContainerExecution:
             "output_path": self.results_path,
             "local_outputs_path": self.local_outputs_path,
         }
-        self.__send_evaluator_report("started")
+        self.send_evaluator_report("started")
         try:
             self.evaluator.run(
                 task="evaluate",
@@ -156,13 +156,13 @@ class ContainerExecution:
             )
         except ExecutionError as e:
             logging.error(f"Metrics calculation failed: {e}")
-            self.__send_evaluator_report("failed")
+            self.send_evaluator_report("failed")
             raise ExecutionError(f"Metrics calculation failed: {e}")
         except KeyboardInterrupt:
             logging.warning("Metrics calculation interrupted by user")
-            self.__send_evaluator_report("interrupted")
+            self.send_evaluator_report("interrupted")
             raise CleanExit("Metrics calculation interrupted by user")
-        self.__send_evaluator_report("finished")
+        self.send_evaluator_report("finished")
 
     def todict(self):
         return {
@@ -179,10 +179,10 @@ class ContainerExecution:
             raise ExecutionError("Results file is empty")
         return results
 
-    def __send_model_report(self, status: str):
+    def send_model_report(self, status: str):
         self.__send_report("model_report", status)
 
-    def __send_evaluator_report(self, status: str):
+    def send_evaluator_report(self, status: str):
         self.__send_report("evaluation_report", status)
 
     def __send_report(self, field: str, status: str):
