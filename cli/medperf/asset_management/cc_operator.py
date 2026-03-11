@@ -3,6 +3,7 @@ from medperf.asset_management.gcp_utils import (
     GCPOperatorConfig,
     CCWorkloadID,
     download_file_from_gcs,
+    check_gcs_file_exists,
     run_workload,
     run_gpu_workload,
     wait_for_workload_completion,
@@ -78,6 +79,15 @@ class OperatorManager:
 
     def wait_for_workload_completion(self, workload: CCWorkloadID):
         wait_for_workload_completion(self.config, workload)
+
+    def results_exist(self, workload: CCWorkloadID):
+        results_exist = check_gcs_file_exists(self.config, workload.results_path)
+        if not results_exist:
+            return False
+        decryption_key_exists = check_gcs_file_exists(
+            self.config, workload.results_encryption_key_path
+        )
+        return decryption_key_exists
 
     def download_results(
         self,

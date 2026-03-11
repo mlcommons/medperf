@@ -186,3 +186,8 @@ def download_results(
     operator_manager = OperatorManager(operator_cc_config)
 
     operator_manager.download_results(workload, private_key_bytes, results_path)
+
+
+def workload_results_exists(operator_cc_config: dict, workload: CCWorkloadID) -> bool:
+    operator_manager = OperatorManager(operator_cc_config)
+    return operator_manager.results_exist(workload)

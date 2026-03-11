@@ -5,7 +5,7 @@ from typing import Union
 from medperf.utils import run_command
 from google.cloud import kms
 from google.iam.v1 import policy_pb2
-from google.cloud import compute_v1
+from google.cloud import compute_v1, storage
 import time
 from colorama import Fore, Style
 import medperf.config as medperf_config
@@ -23,6 +23,7 @@ class CCWorkloadID(BaseModel):
     data_id: int
     model_id: int
     script_id: int
+    execution_id: int = None
 
     @property
     def id(self):
@@ -46,6 +47,8 @@ class CCWorkloadID(BaseModel):
 
     @property
     def human_readable_id(self):
+        if self.execution_id:
+            return f"d{self.data_id}-m{self.model_id}-s{self.script_id}-e{self.execution_id}"
         return f"d{self.data_id}-m{self.model_id}-s{self.script_id}"
 
     @property
@@ -215,6 +218,14 @@ def download_file_from_gcs(
         local_file,
     ]
     run_command(cmd)
+
+
+def check_gcs_file_exists(
+    config: Union[GCPAssetConfig, GCPOperatorConfig], gcs_path: str
+) -> bool:
+    client = storage.Client()
+    bucket = client.bucket(config.bucket)
+    return bucket.blob(gcs_path).exists()
 
 
 # run
