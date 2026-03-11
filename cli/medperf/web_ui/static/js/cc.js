@@ -9,6 +9,32 @@ const fields = [
     "require-cc"
 ];
 
+function onCCEditRequestSuccess(response){
+    markAllStagesAsComplete();
+    if (response.status === "success"){
+        showReloadModal({
+            title: "CC Configuration Edited Successfully",
+            seconds: 3
+        });
+    }
+    else {
+        showErrorModal("Failed to Edit CC Configuration", response);
+    }
+}
+
+function onCCPolicyRequestSuccess(response){
+    if (response.status === "success"){
+        showReloadModal({
+            title: "CC Policy Synced Successfully",
+            seconds: 3
+        });
+    }
+    else {
+        showErrorModal("Failed to Sync CC Policy", response);
+    }
+}
+
+
 function checkForCCEditChanges() {
     // const hasChanges = fields.some(field => {
     //     return $(`#${field}`).val() !== window.defaultCCConfig[field];
@@ -18,7 +44,25 @@ function checkForCCEditChanges() {
     $('#apply-cc-asset-btn').prop('disabled', !hasChanges);
 }
 
-function editCCConfig(editCCConfigBtn) {
+function SyncCCPolicy(syncCCPolicyBtn) {
+    const entityId = syncCCPolicyBtn.getAttribute("data-entity-id");
+    const entityType = syncCCPolicyBtn.getAttribute("data-entity-type");
+    const url = `/${entityType}s/sync_cc_policy`;
+    const formData = new FormData();
+    formData.append("entity_id", entityId);
+
+    disableElements(syncCCPolicyBtn);
+    disableElements(".card button");
+    ajaxRequest(
+        url,
+        "POST",
+        formData,
+        onCCPolicyRequestSuccess,
+        "Error syncing CC policy:"
+    );
+}
+
+async function editCCConfig(editCCConfigBtn) {
     const formData = new FormData($("#edit-cc-asset-form")[0]);
     const entityId = editCCConfigBtn.getAttribute("data-entity-id");
     const entityType = editCCConfigBtn.getAttribute("data-entity-type");
@@ -32,19 +76,12 @@ function editCCConfig(editCCConfigBtn) {
         url,
         "POST",
         formData,
-        (response) => {
-            if (response.status === "success"){
-                showReloadModal({
-                    title: "CC Configuration Edited Successfully",
-                    seconds: 3
-                });
-            }
-            else {
-                showErrorModal("Failed to Edit CC Configuration", response);
-            }
-        },
+        onCCEditRequestSuccess,
         "Error editing CC Configuration:"
     );
+    showPanel(`Updating Model CC Configuration...`);
+    window.runningTaskId = await getTaskId();
+    streamEvents(logPanel, stagesList, currentStageElement);
 }
 
 
@@ -62,4 +99,7 @@ $(document).ready(() => {
         showConfirmModal(e.currentTarget, editCCConfig, "edit CC configuration?");
     });
 
+    $("#sync-cc-policy-btn").on("click", (e) => {
+        showConfirmModal(e.currentTarget, SyncCCPolicy, "sync CC policy?");
+    });
 });

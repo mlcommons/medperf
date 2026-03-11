@@ -9,6 +9,7 @@ from medperf.entities.benchmark import Benchmark
 from medperf.commands.model.associate import AssociateModel
 from medperf.commands.mlcube.utils import check_access_to_container
 from medperf.commands.cc.model_configure_for_cc import ModelConfigureForCC
+from medperf.commands.cc.model_update_cc_policy import ModelUpdateCCPolicy
 import medperf.config as config
 from medperf.web_ui.common import (
     check_user_api,
@@ -126,8 +127,9 @@ def associate(
 
 @router.post("/edit_cc_config", response_class=JSONResponse)
 def edit_cc_config(
+    request: Request,
     entity_id: int = Form(...),
-    require_cc: bool = Form(...),
+    require_cc: bool = Form(False),
     project_id: str = Form(""),
     project_number: str = Form(""),
     bucket: str = Form(""),
@@ -149,8 +151,35 @@ def edit_cc_config(
     if not require_cc:
         args = {}
 
+    initialize_state_task(request, task_name="model_update_cc_config")
+    return_response = {"status": "", "error": ""}
     try:
         ModelConfigureForCC.run(entity_id, args, {})
+        return_response["status"] = "success"
+        notification_message = "Successfully updated model CC config!"
+    except Exception as exp:
+        return_response["status"] = "failed"
+        return_response["error"] = str(exp)
+        notification_message = "Failed to update model CC config"
+        logger.exception(exp)
+
+    config.ui.end_task(return_response)
+    reset_state_task(request)
+    config.ui.add_notification(
+        message=notification_message,
+        return_response=return_response,
+        url=f"/models/ui/display/{entity_id}",
+    )
+    return return_response
+
+
+@router.post("/sync_cc_policy", response_class=JSONResponse)
+def sync_cc_policy(
+    entity_id: int = Form(...),
+    current_user: bool = Depends(check_user_api),
+):
+    try:
+        ModelUpdateCCPolicy.run(entity_id)
         return {"status": "success", "error": ""}
     except Exception as exp:
         logger.exception(exp)

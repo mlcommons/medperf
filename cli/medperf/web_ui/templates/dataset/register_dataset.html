@@ -151,6 +151,14 @@
                 ></i>
             </div>
         </div>
+        <div class="row mb-4">
+            <div class="col-sm-6 offset-sm-3">
+                <div class="form-check">
+                    <input type="checkbox" id="submit-as-prepared" name="submit_as_prepared" class="form-check-input" {% if task_running %}disabled{% endif %}>
+                    <label class="form-check-label h5" for="submit-as-prepared">Submit as Prepared</label>
+                </div>
+            </div>
+        </div>
         <div class="text-center mt-5">
             <button
                 type="button"

@@ -159,6 +159,16 @@
 {% endif %}
 
 {% if is_owner %}
+    {% if cc_configured %}
+        <button
+            type="button"
+            class="btn btn-primary"
+            data-entity-id="{{ entity.id }}"
+            data-entity-type="model"
+            id="sync-cc-policy-btn"
+            {% if task_running %} disabled {% endif %}
+        >Sync CC Policy</button>
+    {% endif %}
     {{cc_asset_macro.gcp_asset(cc_config_defaults, cc_configured, entity.id, "model", task_running) }}
 {% endif %}
 
@@ -179,6 +189,18 @@
             "#associate-dropdown-btn",
             `Requesting Model Association...`,
             onModelAssociationRequestSuccess
+        );
+    });
+</script>
+{% endif %}
+
+{% if task_running and request.app.state.task.name == "model_update_cc_config" and task_formData.get("model_id", "") == entity.id|string %}
+<script>
+    $(document).ready(() => {
+        resumeRunningTask(
+            "#apply-cc-asset-btn",
+            `Updating Model CC Configuration...`,
+            onCCEditRequestSuccess
         );
     });
 </script>
