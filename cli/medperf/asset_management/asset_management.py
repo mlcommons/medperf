@@ -13,6 +13,7 @@ from medperf.utils import tar, generate_tmp_path
 import secrets
 import os
 from medperf import config
+from medperf.exceptions import MedperfException
 
 
 def generate_encryption_key(encryption_key_file: str):
@@ -65,7 +66,7 @@ def setup_model_for_cc(model: Model):
     cc_config = model.get_cc_config()
     cc_policy = model.get_cc_policy()
     if model.type != "ASSET":
-        raise ValueError(
+        raise MedperfException(
             f"Model {model.id} is not a file-based asset and cannot be set up for confidential computing."
         )
 
@@ -111,7 +112,7 @@ def __setup_asset_for_cc(
 
 def update_dataset_cc_policy(dataset: Dataset, permitted_workloads: list[CCWorkloadID]):
     if not dataset.is_cc_configured():
-        raise ValueError(
+        raise MedperfException(
             f"Dataset {dataset.id} does not have a configuration for confidential computing."
         )
 
@@ -127,12 +128,12 @@ def update_dataset_cc_policy(dataset: Dataset, permitted_workloads: list[CCWorkl
 
 def update_model_cc_policy(model: Model, permitted_workloads: list[CCWorkloadID]):
     if not model.is_cc_configured():
-        raise ValueError(
+        raise MedperfException(
             f"Model {model.id} does not have a configuration for confidential computing."
         )
     cc_config = model.get_cc_config()
     if model.type != "ASSET":
-        raise ValueError(
+        raise MedperfException(
             f"Model {model.id} is not a file-based asset and cannot be set up for confidential computing."
         )
 
