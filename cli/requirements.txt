@@ -28,6 +28,7 @@ fastapi==0.111.1
 fastapi-login==1.10.2
 cryptography==46.0.3
 click==8.1.8
+docker==7.1.0
 
 google-auth
 google-cloud-storage
