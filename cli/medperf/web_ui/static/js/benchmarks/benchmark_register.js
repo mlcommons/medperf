@@ -37,6 +37,7 @@ function checkBenchmarkFormValidity() {
     const nameValue = $("#name").val().trim();
     const descriptionValue = $("#description").val().trim();
     const referenceDatasetTarballUrlValue = $("#reference-dataset-tarball-url").val().trim();
+    const skipTestsValue = $("input[name='skip_compatibility_tests']:checked").val();
 
     var dataPreparationContainerValue = $("#data-preparation-container").val();
     var referenceModelValue = $("#reference-model").val();
@@ -49,7 +50,7 @@ function checkBenchmarkFormValidity() {
     const isValid = Boolean(
         nameValue.length > 0 &&
         descriptionValue.length > 0 &&
-        referenceDatasetTarballUrlValue.length > 0 &&
+        (skipTestsValue === "true" ? skipTestsValue === "true" : referenceDatasetTarballUrlValue.length > 0) &&
         dataPreparationContainerValue > 0 &&
         referenceModelValue > 0 &&
         evaluatorContainerValue > 0
@@ -63,4 +64,14 @@ $(document).ready(() => {
     });
 
     $("#benchmark-register-form input, #benchmark-register-form textarea, #benchmark-register-form select").on("keyup change", checkBenchmarkFormValidity);
+
+    $("input[name='skip_compatibility_tests']").on("change", () => {
+        if($("#skip-tests").is(":checked")){
+            $("#demo-dataset-input-container").hide();
+            $("#reference-dataset-tarball-url").val("");
+        }
+        else{
+            $("#demo-dataset-input-container").show();
+        }
+    });
 });
