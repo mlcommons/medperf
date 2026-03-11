@@ -19,9 +19,10 @@ class ModelConfigureForCC:
     @classmethod
     def run(cls, model_uid: int, cc_config: dict, cc_policy: dict):
         validate_cc_config(cc_config, "model" + str(model_uid))
-        model = Model.get(model_uid)
-        model.set_cc_config(cc_config)
-        model.set_cc_policy(cc_policy)
-        setup_model_for_cc(model)
-        body = {"user_metadata": model.user_metadata}
-        config.comms.update_model(model.id, body)
+        with config.ui.interactive():
+            model = Model.get(model_uid)
+            model.set_cc_config(cc_config)
+            model.set_cc_policy(cc_policy)
+            setup_model_for_cc(model)
+            body = {"user_metadata": model.user_metadata}
+            config.comms.update_model(model.id, body)
