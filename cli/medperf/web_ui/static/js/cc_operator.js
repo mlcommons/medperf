@@ -1,7 +1,6 @@
 const fields = [
     "operator-project_id",
     "operator-service_account_name",
-    "operator-account",
     "operator-bucket",
     "operator-vm_zone",
     "operator-vm_network",

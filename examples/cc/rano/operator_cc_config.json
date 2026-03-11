@@ -1,7 +1,6 @@
 {
     "project_id": "medperf-330914",
     "service_account_name": "cc-workload-operator",
-    "account": "hasan.kassem@mlcommons.org",
     "bucket": "data-owner-bucket-medperf-cc",
     "machine_type": "n2d-standard-8",
     "vm_zone": "us-west1-b",

@@ -130,7 +130,6 @@ def edit_cc_config(
     require_cc: bool = Form(...),
     project_id: str = Form(""),
     project_number: str = Form(""),
-    account: str = Form(""),
     bucket: str = Form(""),
     keyring_name: str = Form(""),
     key_name: str = Form(""),
@@ -140,7 +139,6 @@ def edit_cc_config(
     args = {
         "project_id": project_id,
         "project_number": project_number,
-        "account": account,
         "bucket": bucket,
         "keyring_name": keyring_name,
         "key_name": key_name,

@@ -24,7 +24,6 @@ def get_credentials(wippro: str) -> Credentials:
 class GCPAssetConfig:
     project_id: str
     project_number: str
-    account: str
     bucket: str
     encrypted_asset_bucket_file: str
     encrypted_key_bucket_file: str

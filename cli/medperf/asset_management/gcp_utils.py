@@ -67,7 +67,6 @@ class CCWorkloadID(BaseModel):
 class GCPOperatorConfig(BaseModel):
     project_id: str
     service_account_name: str
-    account: str
     bucket: str
     machine_type: str
     boot_disk_size: int  # GB
@@ -95,7 +94,6 @@ class GCPOperatorConfig(BaseModel):
 class GCPAssetConfig(BaseModel):
     project_id: str
     project_number: str
-    account: str
     bucket: str
     encrypted_asset_bucket_file: str
     encrypted_key_bucket_file: str

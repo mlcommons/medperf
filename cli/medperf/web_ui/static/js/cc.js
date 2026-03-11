@@ -1,7 +1,6 @@
 const fields = [
     "cc-project_id",
     "cc-project_number",
-    "cc-account",
     "cc-bucket",
     "cc-keyring_name",
     "cc-key_name",
