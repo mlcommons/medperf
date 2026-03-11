@@ -18,6 +18,9 @@ mkdir -p $RESULT_FILES
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# test result writing before running the benchmark
+python3 $SCRIPT_DIR/do_test_write_results.py
+
 # setup assets
 python3 $SCRIPT_DIR/setup_assets.py \
     --data-files $DATA_FILES \
