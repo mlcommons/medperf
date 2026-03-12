@@ -23,11 +23,9 @@ def untar(filepath: str, extract_to: str) -> None:
     os.remove(filepath)
 
 
-def tar(output_path: str, folders_paths: list[str]) -> None:
+def tar(output_path: str, folder_path: str) -> None:
     logging.info(f"Compressing tar.gz at {output_path}")
     tar_arc = tarfile.open(output_path, "w:gz")
-    for folder in folders_paths:
-        arcname = os.path.basename(folder)
-        tar_arc.add(folder, arcname=arcname)
-        logging.info(f"Compressing tar.gz at {output_path}: {folder} Added.")
+    tar_arc.add(folder_path, arcname="")
+    logging.info(f"Compressing tar.gz at {output_path}: {folder_path} Added.")
     tar_arc.close()

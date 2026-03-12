@@ -20,7 +20,7 @@ def store_results(args) -> None:
     os.makedirs(tmp_files, exist_ok=True)
 
     tmp_result_archive = os.path.join(tmp_files, "result.tar.gz")
-    tar(folders_paths=[result_files_path], output_path=tmp_result_archive)
+    tar(output_path=tmp_result_archive, folder_path=result_files_path)
 
     # encrypt file
     encryption_key_file = os.path.join(tmp_files, "tmp_encryption_key")
