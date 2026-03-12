@@ -11,10 +11,15 @@
 ("boot_disk_size", "VM Boot Disk Size (GB)"),
 ("gpus", "VM Number of GPUs"),
 ] %}
-<div id="edit-cc-operator-container" class="mt-5">
+<div id="edit-cc-operator-container">
     <form id="edit-cc-operator-form" class="mt-5">
         <div class="row mb-4">
-            <div class="col-sm-6 offset-sm-3">
+            <div class="col-12">
+                <h4 class="ms-2">
+                    Confidential Computing Operator Settings
+                </h4>
+            </div>
+            <div class="col-12 d-flex justify-content-center mt-5">
                 <div class="form-check">
                     <input type="checkbox" id="require-cc-operator" name="require_cc" class="form-check-input" {% if
                         configured %}checked{% endif %} {% if task_running %}disabled{% endif %}>

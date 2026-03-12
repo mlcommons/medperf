@@ -166,14 +166,20 @@
     </div>
     {% include "partials/prompt_container.html" %}
 </div>
-
+<div class="container">
 {% if logged_in %}
     {{ cc_operator_macro.cc_operator(cc_config_defaults, cc_configured, task_running=task_running) }}
 {% endif %}
-
+</div>
 {% endblock content %}
 
 {% block extra_js %}
+<script>
+    window.ccPreferences = {
+        can_apply: {{ cc_configured|tojson }},
+        defaults: {{ cc_config_defaults|tojson }}
+    }
+</script>
 <script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
 <script src="/static/js/cc_operator.js"></script>
 <script>

@@ -7,16 +7,20 @@ const fields = [
     "operator-boot_disk_size",
     "operator-gpus",
     "operator-machine_type",
-    "require-cc-operator"
 ];
 
 function checkForCCEditChanges() {
-    // const hasChanges = fields.some(field => {
-    //     return $(`#${field}`).val() !== window.defaultCCConfig[field];
-    // });
-    // TODO
-    hasChanges = true;
-    $('#apply-cc-operator-btn').prop('disabled', !hasChanges);
+    const preferences = window.ccPreferences || {};
+    const configured = preferences.can_apply;
+    const defaults = preferences.defaults || {};
+    const requireCCChanged = ($("#require-cc-operator").is(":checked") !== configured)
+    var hasChanges = fields.some(field => {
+        let currentValue = $(`#${field}`).val();
+        let defaultValue = defaults[field] || "";
+        return currentValue !== defaultValue;
+    });
+    hasChanges = hasChanges || requireCCChanged;
+    $('#apply-cc-operator-btn').prop('disabled', !hasChanges);    
 }
 
 function editCCConfig(editCCConfigBtn) {
@@ -54,7 +58,7 @@ $(document).ready(() => {
     });
     $("#edit-cc-operator-fields").toggle(checkbox.is(":checked"));
 
-    fields.forEach(field => $(`#${field}`).on('input', checkForCCEditChanges));
+    fields + ["require-cc-operator"].forEach(field => $(`#${field}`).on('keyup, change', checkForCCEditChanges));
     checkForCCEditChanges();
     
     $("#apply-cc-operator-btn").on("click", (e) => {
