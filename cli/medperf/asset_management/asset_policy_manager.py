@@ -5,6 +5,7 @@ from medperf.asset_management.gcp_utils import (
     upload_file_to_gcs,
     encrypt_with_kms_key,
     set_kms_iam_policy,
+    set_gcs_iam_policy,
     update_workload_identity_pool_oidc_provider,
 )
 
@@ -84,7 +85,7 @@ class AssetPolicyManager:
             self.config, attribute_mapping, attribute_condition
         )
 
-    def __bind_kms_decrypter_role(
+    def __get_principal_set(
         self, permitted_workloads: list[CCWorkloadID], for_model: bool = False
     ):
         principal_set = (
@@ -97,10 +98,26 @@ class AssetPolicyManager:
             workload_id = workload.id_for_model if for_model else workload.id
             principal_set_list.append(principal_set + workload_id)
 
+        return principal_set_list
+
+    def __bind_kms_decrypter_role(
+        self, permitted_workloads: list[CCWorkloadID], for_model: bool = False
+    ):
+        principal_set_list = self.__get_principal_set(permitted_workloads, for_model)
         set_kms_iam_policy(
             self.config,
             principal_set_list,
             "roles/cloudkms.cryptoKeyDecrypter",
+        )
+
+    def __bind_gcs_object_viewer_role(
+        self, permitted_workloads: list[CCWorkloadID], for_model: bool = False
+    ):
+        principal_set_list = self.__get_principal_set(permitted_workloads, for_model)
+        set_gcs_iam_policy(
+            self.config,
+            principal_set_list,
+            "roles/storage.objectViewer",
         )
 
     def setup(self):
@@ -113,3 +130,6 @@ class AssetPolicyManager:
 
     def configure_policy(self, permitted_workloads: list[CCWorkloadID]):
         self.__bind_kms_decrypter_role(permitted_workloads, for_model=self.for_model)
+        self.__bind_gcs_object_viewer_role(
+            permitted_workloads, for_model=self.for_model
+        )

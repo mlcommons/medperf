@@ -229,6 +229,27 @@ def check_gcs_file_exists(
     return bucket.blob(gcs_path).exists()
 
 
+def set_gcs_iam_policy(config: GCPAssetConfig, members: list[str], role: str):
+    client = storage.Client()
+    # Get current policy
+
+    policy = client.bucket(config.bucket).get_iam_policy()
+
+    # remove current objectviewer roles
+    to_remove = []
+    for binding in policy.bindings:
+        if binding.role == role:
+            to_remove.append(binding)
+
+    for binding in to_remove:
+        policy.bindings.remove(binding)
+
+    policy.bindings.append(policy_pb2.Binding(role=role, members=members))
+
+    # Set new policy
+    client.bucket(config.bucket).set_iam_policy(policy)
+
+
 # run
 def run_workload(
     config: GCPOperatorConfig, workload_config: CCWorkloadID, metadata: str

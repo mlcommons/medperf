@@ -46,6 +46,16 @@ def get_role_permissions(role_name: str, resource: str):
             "storage.objects.get",
             "storage.objects.list",
         ]
+    if role_name == "roles/storage.admin":
+        # storage permissions are not fully reflected in the role definition, so we hardcode them here
+        return [
+            "storage.objects.create",
+            "storage.objects.delete",
+            "storage.objects.get",
+            "storage.objects.list",
+            "storage.buckets.setIamPolicy",
+            "storage.buckets.getIamPolicy",
+        ]
     service = googleapiclient.discovery.build("iam", "v1")
     role = service.roles().get(name=role_name).execute()
     permissions = role.get("includedPermissions", [])

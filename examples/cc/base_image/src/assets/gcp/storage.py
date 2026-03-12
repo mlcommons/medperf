@@ -1,17 +1,19 @@
 from google.cloud import storage
-from .utils import GCPAssetConfig
+from .utils import GCPAssetConfig, get_credentials
 
 
 class GCPStorage:
     def __init__(self, asset_config_dict: dict):
         asset_config = GCPAssetConfig(**asset_config_dict)
         self.bucket_name = asset_config.bucket
+        self.wippro = asset_config.full_wip_name
         self.asset_path = asset_config.encrypted_asset_bucket_file
 
         self.storage_client = None
 
     def initialize(self) -> None:
-        self.storage_client = storage.Client()
+        creds = get_credentials(self.wippro)
+        self.storage_client = storage.Client(credentials=creds)
 
     def get_asset(self, output_path: str) -> None:
         bucket = self.storage_client.bucket(self.bucket_name)

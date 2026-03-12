@@ -20,27 +20,27 @@ run `gcloud auth application-default login`
 ## asset owner
 
 - Create a bucket
-- grant public access ("roles/storage.objectViewer") to the bucket
+- grant the user ("roles/storage.admin") to the bucket
 - grant the user write access ("roles/storage.objectAdmin") to the bucket
 
 - create a keyring
-    - select region
+  - select region
 - create a key
-    - software (default)
+  - software (default)
 - grant the user "roles/cloudkms.cryptoKeyEncrypter" for the key
 - grant the user "roles/cloudkms.admin" for the key
 - create a workload identity pool
-    - add name and description
+  - add name and description
 
-    - add OIDC provider
+  - add OIDC provider
         "--issuer-uri=<https://confidentialcomputing.googleapis.com/>",
     "--allowed-audiences=<https://sts.googleapis.com>",
 
-    - select name and ID to be attestation-verifier
-    - add the following as the google subject:
-        - "gcpcs::"+assertion.submods.container.image_digest+"::"+assertion.submods.gce.project_number+"::"+assertion.submods.gce.instance_id
+  - select name and ID to be attestation-verifier
+  - add the following as the google subject:
+    - "gcpcs::"+assertion.submods.container.image_digest+"::"+assertion.submods.gce.project_number+"::"+assertion.submods.gce.instance_id
 
-    - click create/save
+  - click create/save
 
 - grant user update permissions for the wip:
 
