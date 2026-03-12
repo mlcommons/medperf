@@ -6,7 +6,6 @@ const fields = [
     "cc-key_name",
     "cc-key_location",
     "cc-wip",
-    "require-cc"
 ];
 
 function onCCEditRequestSuccess(response){
@@ -36,11 +35,16 @@ function onCCPolicyRequestSuccess(response){
 
 
 function checkForCCEditChanges() {
-    // const hasChanges = fields.some(field => {
-    //     return $(`#${field}`).val() !== window.defaultCCConfig[field];
-    // });
-    // TODO
-    hasChanges = true;
+    const preferences = window.ccPreferences || {};
+    const configured = preferences.can_apply;
+    const defaults = preferences.defaults || {};
+    const requireCCChanged = ($("#require-cc").is(":checked") !== configured)
+    var hasChanges = fields.some(field => {
+        let currentValue = $(`#${field}`).val();
+        let defaultValue = defaults[field] || "";
+        return currentValue !== defaultValue;
+    });
+    hasChanges = hasChanges || requireCCChanged;
     $('#apply-cc-asset-btn').prop('disabled', !hasChanges);
 }
 
@@ -85,14 +89,14 @@ async function editCCConfig(editCCConfigBtn) {
 }
 
 
-$(document).ready(() => {
+$(document).ready(() => {    
     const checkbox = $("#require-cc");
     checkbox.on("change", () => {
         $("#edit-cc-asset-fields").toggle(checkbox.is(":checked"));
     });
     $("#edit-cc-asset-fields").toggle(checkbox.is(":checked"));
 
-    fields.forEach(field => $(`#${field}`).on('input', checkForCCEditChanges));
+    fields + ["require-cc"].forEach(field => $(`#${field}`).on('keyup, change', checkForCCEditChanges));
     checkForCCEditChanges();
     
     $("#apply-cc-asset-btn").on("click", (e) => {

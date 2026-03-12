@@ -10,10 +10,10 @@
 ("key_location", "GCP KMS Key Location"),
 ("wip", "GCP Workload Identity Pool Name"),
 ] %}
-<div id="edit-cc-asset-container" class="mt-5">
+<div id="edit-cc-asset-container">
     <form id="edit-cc-asset-form" class="mt-5">
         <div class="row mb-4">
-            <div class="col-sm-6 offset-sm-3">
+            <div class="col-12 d-inline-flex justify-content-center">
                 <div class="form-check">
                     <input type="checkbox" id="require-cc" name="require_cc" class="form-check-input" {% if configured
                         %}checked{% endif %} {% if task_running %}disabled{% endif %}>
@@ -34,7 +34,7 @@
         </div>
         <div class="text-center mt-4">
             <button type="button" id="apply-cc-asset-btn" data-entity-id="{{ entity_id }}"
-                data-entity-type="{{ entity_type }}" class="btn btn-primary" disabled>Apply Changes</button>
+                data-entity-type="{{ entity_type }}" class="btn btn-primary mb-3" disabled>Apply Changes</button>
         </div>
     </form>
 </div>

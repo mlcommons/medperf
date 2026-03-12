@@ -200,6 +200,27 @@
                 <small class="step-label ms-2">Step 3: Make a request to the benchmark owner to associate your dataset with the benchmark</small>
             </div>
         </div>
+        <div class="card mb-3 mt-5">
+            <div class="card-title">
+                <h5 class="p-4">Confidential Computing Preferences</h5>
+            </div>
+            <div class="card-body">
+            {{cc_asset_macro.gcp_asset(cc_config_defaults, cc_configured, dataset.id, "dataset", task_running) }}
+            </div>
+            {% if cc_configured %}
+            <div class="card-body text-center">
+                <p class="text-muted">Confidential Computing is configured, you can sync the policy.</p>
+                <button
+                    type="button"
+                    class="btn btn-primary"
+                    data-entity-id="{{ dataset.id }}"
+                    data-entity-type="dataset"
+                    id="sync-cc-policy-btn"
+                    {% if task_running %} disabled {% endif %}
+                >Sync CC Policy</button>
+            </div>
+            {% endif %}
+        </div>
         {% endif %}
     </div>
 </div>
@@ -426,20 +447,6 @@
 {% endfor %}
 {% endif %}
 
-{% if is_owner %}
-    {% if cc_configured %}
-        <button
-            type="button"
-            class="btn btn-primary"
-            data-entity-id="{{ dataset.id }}"
-            data-entity-type="dataset"
-            id="sync-cc-policy-btn"
-            {% if task_running %} disabled {% endif %}
-        >Sync CC Policy</button>
-    {% endif %}
-    {{cc_asset_macro.gcp_asset(cc_config_defaults, cc_configured, dataset.id, "dataset", task_running) }}
-{% endif %}
-
 {% include "partials/panel_container.html" %}
 {% include "partials/text_content_container.html" %}
 {% include "partials/yaml_container.html" %}
@@ -448,6 +455,12 @@
 {% endblock detail_panel %}
 
 {% block extra_js %}
+<script>
+    window.ccPreferences = {
+        can_apply: {{ cc_configured|tojson }},
+        defaults: {{ cc_config_defaults|tojson }}
+    }
+</script>
 <script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
 <script src="{{ url_for('static', path='js/results/results_utils.js') }}"></script>
 <script src="{{ url_for('static', path='js/datasets/dataset_detail.js') }}"></script>
