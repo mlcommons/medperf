@@ -1,0 +1,18 @@
+container_type: DockerImage
+image: mlcommons/rano-metrics:0.0.0
+tasks:
+  evaluate:
+    input_volumes:
+      labels:
+        mount_path: /mlcommons/volumes/labels
+        type: directory
+      predictions:
+        mount_path: /mlcommons/volumes/predictions
+        type: directory
+    output_volumes:
+      local_outputs_path:
+        mount_path: /mlcommons/volumes/local_outputs
+        type: directory
+      output_path:
+        mount_path: /mlcommons/volumes/results/results.yaml
+        type: file
