@@ -5,7 +5,6 @@ from medperf.asset_management.gcp_utils import (
     download_file_from_gcs,
     check_gcs_file_exists,
     run_workload,
-    run_gpu_workload,
     wait_for_workload_completion,
 )
 from medperf.asset_management.operator_check import verify_operator_setup
@@ -58,24 +57,21 @@ class OperatorManager:
             "RESULT_COLLECTOR": result_collector_public_key,
             "EXPECTED_RESULT_COLLECTOR_HASH": workload.result_collector_hash,
         }
-        metadata_parts = [
-            f"tee-image-reference={docker_image}",
-            "tee-container-log-redirect=true",
-        ]
+        metadata = {}
+        metadata["tee-image-reference"] = docker_image
+        metadata["tee-container-log-redirect"] = "true"
 
         # Add environment variables
         for key, value in env_vars.items():
-            metadata_parts.append(f"tee-env-{key}={value}")
+            metadata[f"tee-env-{key}"] = value
 
         if self.config.gpu:
-            metadata_parts.append("tee-install-gpu-driver=true")
-
-        metadata = "^~^" + "~".join(metadata_parts)
+            metadata["tee-install-gpu-driver"] = "true"
 
         if self.config.gpu:
-            run_gpu_workload(self.config, workload, metadata)
+            raise MedperfException("GPU workloads are not supported yet")
         else:
-            run_workload(self.config, workload, metadata)
+            run_workload(self.config, metadata)
 
     def wait_for_workload_completion(self, workload: CCWorkloadID):
         wait_for_workload_completion(self.config, workload)

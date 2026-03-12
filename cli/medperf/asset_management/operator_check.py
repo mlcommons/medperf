@@ -4,6 +4,7 @@ from medperf.asset_management.checks_utils import (
     check_sa_roles_for_project,
     check_user_role_on_service_account,
     impersonate_service_account,
+    check_user_role_on_vm,
 )
 
 
@@ -52,6 +53,16 @@ def verify_operator_setup(sa_email, project_id, bucket_name):
         sa_creds,
         bucket_name,
         "roles/storage.objectAdmin",
+    )
+    if result:
+        return False, result
+
+    result = check_user_role_on_vm(
+        base_creds,
+        project_id,
+        vm_name,
+        vm_zone,
+        "roles/compute.instanceAdmin.v1",
     )
     if result:
         return False, result

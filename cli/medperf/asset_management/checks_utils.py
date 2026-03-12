@@ -56,6 +56,13 @@ def get_role_permissions(role_name: str, resource: str):
             "storage.buckets.setIamPolicy",
             "storage.buckets.getIamPolicy",
         ]
+    if role_name == "roles/compute.instanceAdmin.v1":
+        return [
+            "compute.instances.setMetadata",
+            "compute.instances.start",
+            "compute.instances.get",
+            "compute.instances.getSerialPortOutput",
+        ]
     service = googleapiclient.discovery.build("iam", "v1")
     role = service.roles().get(name=role_name).execute()
     permissions = role.get("includedPermissions", [])
@@ -251,3 +258,40 @@ def check_user_role_on_wip(creds, wip, role):
     except Exception as e:
         logging.debug(f"WIP permission check failed: {e}")
         return f"Failed verifying user roles on WIP {wip}"
+
+
+# ---------------------------------------------------------------------------
+# VM roles
+# ---------------------------------------------------------------------------
+
+
+def check_user_role_on_vm(user_str, creds, project_id, vm_name, vm_zone, role):
+
+    logging.debug(f"Checking if {user_str} has {role} role on VM: {vm_name}")
+    try:
+        permissions = get_role_permissions(
+            role,
+            "//compute.googleapis.com/projects/_/zones/_/instances/_",
+        )
+        compute = googleapiclient.discovery.build(
+            "compute", "v1", credentials=creds, cache_discovery=False
+        )
+        granted = (
+            compute.instances()
+            .testIamPermissions(
+                project=project_id,
+                zone=vm_zone,
+                resource=vm_name,
+                body={"permissions": permissions},
+            )
+            .execute()
+        )
+        granted_permissions = granted.get("permissions", [])
+        missing = set(permissions) - set(granted_permissions)
+        if missing:
+            logging.debug(f"Missing permissions: {missing}")
+            return f"(Role {role}) {user_str} missing permissions: {missing} on VM: {vm_name}"
+        return None
+    except Exception as e:
+        logging.debug(f"check_user_role_on_vm exception: {e}")
+        return f"Failed to verify {user_str} role on VM: {vm_name}"

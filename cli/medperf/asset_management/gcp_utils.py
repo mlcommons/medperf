@@ -65,6 +65,7 @@ class CCWorkloadID(BaseModel):
 
     @property
     def vm_name(self):
+        # not used
         return f"{self.human_readable_id}-cvm"
 
     @property
@@ -82,6 +83,7 @@ class GCPOperatorConfig(BaseModel):
     bucket: str
     machine_type: str
     boot_disk_size: int  # GB
+    vm_name: str = "testcc"
     vm_zone: str
     vm_network: str
     logs_poll_frequency: int = 30  # seconds
@@ -250,98 +252,31 @@ def set_gcs_iam_policy(config: GCPAssetConfig, members: list[str], role: str):
     client.bucket(config.bucket).set_iam_policy(policy)
 
 
-# run
-def run_workload(
-    config: GCPOperatorConfig, workload_config: CCWorkloadID, metadata: str
-):
-    # note: machine type and cc type must conform somehow
-    cmd = [
-        GCP_EXEC,
-        "compute",
-        "instances",
-        "create",
-        workload_config.vm_name,
-        f"--confidential-compute-type={config.cc_type}",
-        "--shielded-secure-boot",
-        "--scopes=cloud-platform",
-        f"--boot-disk-size={config.boot_disk_size}G",
-        f"--zone={config.vm_zone}",
-        f"--network={config.vm_network}",
-        "--maintenance-policy=MIGRATE",
-        f"--min-cpu-platform={config.min_cpu_platform}",
-        "--image-project=confidential-space-images",
-        "--image-family=confidential-space",
-        f"--machine-type={config.machine_type}",
-        f"--service-account={config.service_account_email}",
-        f"--metadata={metadata}",
-    ]
+def run_workload(config: GCPOperatorConfig, metadata: dict[str, str]):
+    """Run workload on GCP."""
+    client = compute_v1.InstancesClient()
+    project_id = config.project_id
+    zone = config.vm_zone
+    instance_name = config.vm_name
 
-    run_command(cmd)
+    instance = client.get(project=project_id, zone=zone, instance=instance_name)
+    metadata_items = []
+    for key, value in metadata.items():
+        metadata_items.append(compute_v1.Items(key=key, value=value))
 
+    metadata_resource = compute_v1.Metadata(
+        fingerprint=instance.metadata.fingerprint,
+        items=metadata_items,
+    )
 
-def run_gpu_workload(
-    config: GCPOperatorConfig, workload_config: CCWorkloadID, metadata: str
-):
-    # note: --image-family=confidential-space-preview-cgpu
-    # note: boot disk size must be at least 30GB
+    client.set_metadata(
+        project=project_id,
+        zone=zone,
+        instance=instance_name,
+        metadata_resource=metadata_resource,
+    )
 
-    cmd = [
-        GCP_EXEC,
-        "beta",
-        "compute",
-        "instance-templates",
-        "create",
-        workload_config.vm_template_name,
-        "--provisioning-model=FLEX_START",
-        "--confidential-compute-type=TDX",
-        "--machine-type=a3-highgpu-1g",
-        "--maintenance-policy=TERMINATE",
-        "--shielded-secure-boot",
-        "--image-project=confidential-space-images",
-        "--image-family=confidential-space-debug-preview-cgpu",
-        f"--service-account={config.service_account_email}",
-        "--scopes=cloud-platform",
-        f"--boot-disk-size={config.boot_disk_size}G",
-        "--reservation-affinity=none",
-        f"--max-run-duration={config.run_duration}h",
-        "--instance-termination-action=DELETE",
-        f"--metadata={metadata}",
-    ]
-
-    run_command(cmd)
-
-    if config.vm_zone not in ["us-central1-a", "europe-west4-c", "us-east5-a"]:
-        raise ValueError(
-            "GPU workloads can only be run in us-central1-a, europe-west4-c, or us-east5-a zones."
-        )
-
-    cmd = [
-        GCP_EXEC,
-        "compute",
-        "instance-groups",
-        "managed",
-        "create",
-        workload_config.instance_group_name,
-        f"--template={workload_config.vm_template_name}",
-        f"--zone={config.vm_zone}",
-        "--size=0",
-        "--default-action-on-vm-failure=do_nothing",
-    ]
-    run_command(cmd)
-
-    cmd = [
-        GCP_EXEC,
-        "compute",
-        "instance-groups",
-        "managed",
-        "resize-requests",
-        "create",
-        workload_config.instance_group_name,
-        f"--resize-request={workload_config.resize_request_name}",
-        "--resize-by=1",
-        f"--zone={config.vm_zone}",
-    ]
-    run_command(cmd)
+    client.start(project=project_id, zone=zone, instance=instance_name)
 
 
 def wait_for_workload_completion(
