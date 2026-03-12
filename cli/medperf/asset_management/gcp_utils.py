@@ -113,6 +113,7 @@ class GCPAssetConfig(BaseModel):
     key_name: str
     key_location: str
     wip: str
+    wip_provider: str
 
     @property
     def full_key_name(self) -> str:
@@ -125,7 +126,7 @@ class GCPAssetConfig(BaseModel):
     def full_wip_provider_name(self) -> str:
         return (
             f"projects/{self.project_number}/locations/global/"
-            f"workloadIdentityPools/{self.wip}/providers/attestation-verifier"
+            f"workloadIdentityPools/{self.wip}/providers/{self.wip_provider}"
         )
 
     @property
@@ -179,7 +180,7 @@ def update_workload_identity_pool_oidc_provider(
         "workload-identity-pools",
         "providers",
         "update-oidc",
-        "attestation-verifier",
+        config.wip_provider,
         "--location=global",
         f"--workload-identity-pool={config.wip}",
         f"--attribute-mapping={attribute_mapping}",

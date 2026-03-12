@@ -137,7 +137,7 @@ def create_workload_identity_pool_oidc_provider(
         "workload-identity-pools",
         "providers",
         "create-oidc",
-        "attestation-verifier",
+        config.wip_provider,
         "--location=global",
         f"--workload-identity-pool={config.wip}",
         "--issuer-uri=https://confidentialcomputing.googleapis.com/",
