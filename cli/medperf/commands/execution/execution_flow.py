@@ -11,6 +11,7 @@ from medperf.commands.execution.confidential_model_container_execution import (
     ConfidentialModelContainerExecution,
 )
 from medperf.account_management import get_medperf_user_data, is_user_logged_in
+from medperf.exceptions import ExecutionError
 
 
 class ExecutionFlow:
@@ -55,6 +56,10 @@ class ExecutionFlow:
                 ignore_model_errors,
             )
         elif model.type == ModelType.ASSET.value:
+            if not evaluator.is_script():
+                raise ExecutionError(
+                    "Running a model container with another asset model is not supported yet."
+                )
             asset = model.asset_obj
             asset.prepare_asset_files()
             return ScriptExecution.run(
