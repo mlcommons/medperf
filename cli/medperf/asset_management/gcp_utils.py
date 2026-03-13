@@ -342,7 +342,7 @@ def wait_for_workload_completion(
     client = compute_v1.InstancesClient()
     project_id = config.project_id
     zone = config.vm_zone
-    instance_name = workload_config.vm_name
+    instance_name = config.vm_name
     next_start = 0
     while True:
         instance = client.get(project=project_id, zone=zone, instance=instance_name)

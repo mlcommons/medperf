@@ -198,7 +198,7 @@ def run_workload(
         "compute",
         "instances",
         "create",
-        workload_config.vm_name,
+        config.vm_name,
         f"--confidential-compute-type={config.cc_type}",
         "--shielded-secure-boot",
         "--scopes=cloud-platform",
