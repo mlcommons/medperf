@@ -132,9 +132,9 @@ def register_container(
     decryption_file: str = Form(None),
     current_user: bool = Depends(check_user_api),
 ):
-    initialize_state_task(request, task_name="container_registration")
+    initialize_state_task(request, task_name="register_container")
 
-    return_response = {"status": "", "error": "", "container_id": None}
+    return_response = {"status": "", "error": "", "entity_id": None}
     container_info = {
         "name": name,
         "additional_files_tarball_url": additional_file,
@@ -150,7 +150,7 @@ def register_container(
             decryption_key=decryption_file,
         )
         return_response["status"] = "success"
-        return_response["container_id"] = container_id
+        return_response["entity_id"] = container_id
         notification_message = "Container successfully registered"
     except Exception as exp:
         return_response["status"] = "failed"
