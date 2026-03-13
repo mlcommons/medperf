@@ -6,7 +6,7 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi import Request, APIRouter, Depends, Form
 
 from medperf import config
-from medperf.account_management import get_medperf_user_data
+from medperf.account_management import get_medperf_user_data, get_medperf_user_object
 from medperf.commands.mlcube.utils import check_access_to_container
 from medperf.commands.dataset.associate import AssociateDataset
 from medperf.commands.dataset.export_dataset import ExportDataset
@@ -96,13 +96,14 @@ def dataset_detail_ui(  # noqa
         for i in benchmark_associations
         if benchmark_associations[i]["approval_status"] == "APPROVED"
     ]
-    my_user_id = get_medperf_user_data()["id"]
+    user_obj = get_medperf_user_object()
+    my_user_id = user_obj.id
     is_owner = my_user_id == dataset.owner
 
     # Get all results
     results = []
     if benchmark_assocs:
-        user_id = get_medperf_user_data()["id"]
+        user_id = user_obj.id
         results = Execution.all(filters={"owner": user_id})
         results = filter_latest_executions(results)
 
@@ -125,6 +126,11 @@ def dataset_detail_ui(  # noqa
                     can_run = False
                 elif not model.is_cc_configured():
                     reason = "Wait for model owner to configure their CC settings"
+                    can_run = False
+                elif not user_obj.is_cc_configured():
+                    reason = (
+                        "You haven't configured your workload run settings for CC yet"
+                    )
                     can_run = False
                 else:
                     reason = ""
