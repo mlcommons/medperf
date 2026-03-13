@@ -39,23 +39,67 @@ function applyDateFormatting() {
     });
 }
 
-function displayAlert(type, message) {
+var DISPLAY_ALERT_AUTO_DISMISS_MS = 5000;
+
+function displayAlert(type, message, durationMs) {
+    var duration = durationMs != null ? durationMs : DISPLAY_ALERT_AUTO_DISMISS_MS;
     var classMap = {
-        success: "bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800 text-green-800 dark:text-green-200",
-        danger: "bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800 text-red-800 dark:text-red-200",
-        warning: "bg-yellow-50 dark:bg-yellow-900/30 border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-200",
-        info: "bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-200"
+        success: "display-alert-success",
+        danger: "display-alert-danger",
+        warning: "display-alert-warning",
+        info: "display-alert-info"
     };
-    var alertContainer = document.createElement("div");
-    alertContainer.className = "floating-alert px-4 py-3 rounded-xl border-2 " + (classMap[type] || classMap.info) + " flex items-center justify-between gap-3 shadow-lg";
-    alertContainer.setAttribute("role", "alert");
-    alertContainer.innerHTML = "<span>" + message + "</span><button type=\"button\" class=\"close-alert-btn p-1 rounded hover:opacity-80\" aria-label=\"Close\">&times;</button>";
-    alertContainer.querySelector(".close-alert-btn").addEventListener("click", function () { alertContainer.remove(); });
-    document.body.appendChild(alertContainer);
+    var iconMap = {
+        success: "&#10003;",
+        danger: "&#9888;",
+        warning: "&#9888;",
+        info: "&#8505;"
+    };
+    var alertEl = document.createElement("div");
+    alertEl.className = "display-alert pointer-events-auto " + (classMap[type] || classMap.info);
+    alertEl.setAttribute("role", "alert");
+    alertEl.innerHTML =
+        "<span class=\"display-alert-icon\" aria-hidden=\"true\">" + (iconMap[type] || iconMap.info) + "</span>" +
+        "<span class=\"display-alert-message\">" + escapeHtml(message) + "</span>" +
+        "<button type=\"button\" class=\"display-alert-close\" aria-label=\"Close\">&times;</button>" +
+        "<span class=\"display-alert-progress\"></span>";
+    var container = document.getElementById("toast-container");
+    if (!container) {
+        container = document.body;
+        alertEl.classList.add("display-alert-fixed");
+    }
+    container.appendChild(alertEl);
+
+    var closeBtn = alertEl.querySelector(".display-alert-close");
+    closeBtn.addEventListener("click", function () { removeAlert(alertEl); });
+
+    var progressEl = alertEl.querySelector(".display-alert-progress");
+    if (progressEl) {
+        if (duration > 0) {
+            progressEl.style.animationDuration = (duration / 1000) + "s";
+        } else {
+            progressEl.style.display = "none";
+        }
+    }
+
+    var timeoutId = setTimeout(function () { removeAlert(alertEl); }, duration);
+    alertEl._alertTimeoutId = timeoutId;
+}
+
+function escapeHtml(text) {
+    var div = document.createElement("div");
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function removeAlert(alertEl) {
+    if (alertEl._alertTimeoutId) clearTimeout(alertEl._alertTimeoutId);
+    alertEl.classList.add("display-alert-out");
+    setTimeout(function () { alertEl.remove(); }, 280);
 }
 
 function clearAlerts() {
-    document.querySelectorAll(".floating-alert").forEach(function (a) { a.remove(); });
+    document.querySelectorAll(".floating-alert, .display-alert").forEach(function (a) { a.remove(); });
 }
 
 function onRequestFailure(xhr, status, error, errorMessage) {
@@ -123,13 +167,23 @@ function markAllStagesAsComplete() {
     if (list) list.querySelectorAll(":scope > li").forEach(function (el) { markStageAsComplete(el); });
 }
 
+var STAGE_SPINNER_CLASS = "inline-block w-5 h-5 flex-shrink-0 border-2 border-green-600 dark:border-green-400 border-t-transparent dark:border-t-transparent rounded-full animate-spin";
+
 function addSpinner(element) {
     if (!element) return;
     var span = document.createElement("span");
-    span.className = "inline-block w-5 h-5 ml-2 border-2 border-[#2e7d32] dark:border-green-500 border-t-transparent rounded-full animate-spin";
+    span.className = STAGE_SPINNER_CLASS;
     span.setAttribute("role", "status");
     span.setAttribute("aria-hidden", "true");
-    element.appendChild(span);
+    if (element.tagName === "BUTTON" || element.tagName === "A") {
+        element.disabled = true;
+        element.setAttribute("aria-busy", "true");
+        if (!element.classList.contains("inline-flex")) element.classList.add("inline-flex", "items-center", "gap-2");
+        element.insertBefore(span, element.firstChild);
+    } else {
+        span.classList.add("ml-2");
+        element.appendChild(span);
+    }
 }
 
 function showPanel(title) {
@@ -143,7 +197,7 @@ function showErrorModal(errorTitle, response) {
     var responseError = (response && response.error) || "";
     var responseStatus = (response && response.status) || "";
     var errorText = (responseError + (responseError ? "<br>" : "") + responseStatus).replace(/\n/g, "<br>");
-    var modalBody = "<p id=\"error-text\" class=\"text-lg font-bold text-red-600 dark:text-red-400\">" + errorText + "</p><p class=\"text-end mt-3\"><button type=\"button\" class=\"px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500\" onclick=\"reloadPage();\">Click here to reload</button></p>";
+    var modalBody = "<p id=\"error-text\" class=\"text-lg font-bold text-red-600 dark:text-red-400\">" + errorText + "</p><p class=\"text-end mt-3\"><button type=\"button\" class=\"px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 cursor-pointer\" onclick=\"reloadPage();\">Click here to reload</button></p>";
     var modalFooter = "<button type=\"button\" class=\"px-4 py-2 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 close-modal-btn\">Hide</button>";
     showModal({ title: errorTitle, body: modalBody, footer: modalFooter });
 }
@@ -151,7 +205,7 @@ function showErrorModal(errorTitle, response) {
 function showConfirmModal(clickedBtn, callback, message) {
     var modalTitle = "Confirmation Prompt";
     var modalBody = "<p id=\"confirm-text\" class=\"text-lg\">Are you sure you want to " + message + "</p>";
-    var modalFooter = "<button type=\"button\" class=\"px-4 py-2 rounded-xl bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 close-modal-btn\">Cancel</button><button id=\"confirmation-btn\" type=\"button\" class=\"px-4 py-2 rounded-xl medperf-bg dark:bg-green-600 text-white font-semibold hover:opacity-90 close-modal-btn\">Confirm</button>";
+    var modalFooter = "<button type=\"button\" class=\"px-4 py-2 rounded-xl bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-900 dark:text-white font-semibold close-modal-btn\">Cancel</button><button id=\"confirmation-btn\" type=\"button\" class=\"px-4 py-2 rounded-xl medperf-bg dark:bg-green-600 text-white font-semibold hover:opacity-90 close-modal-btn\">Confirm</button>";
     var extra = function () {
         var confirmBtn = document.getElementById("confirmation-btn");
         if (confirmBtn) confirmBtn.addEventListener("click", function () {
@@ -166,15 +220,9 @@ function showConfirmModal(clickedBtn, callback, message) {
     showModal({ title: modalTitle, body: modalBody, footer: modalFooter, extra_func: extra });
 }
 
-function getTaskId() {
-    return fetch("/current_task", { method: "GET" })
-        .then(function (r) { return r.json(); })
-        .then(function (data) { return data.task_id; })
-        .catch(function (err) { console.error("Failed to get task id:", err); throw err; });
-}
-
 function respondToPrompt(value) {
     var formData = new FormData();
+    formData.append("task_name", window.taskName || "");
     formData.append("is_approved", value ? "true" : "false");
     fetch("/events", { method: "POST", body: formData });
     window.isPromptReceived = false;
@@ -182,24 +230,20 @@ function respondToPrompt(value) {
     var promptContainer = document.getElementById("prompt-container");
     if (promptText) promptText.innerHTML = "";
     if (promptContainer) promptContainer.classList.add("hidden");
-    if (typeof streamEvents === "function") streamEvents(logPanel, stagesList, currentStageElement);
+    streamEvents(logPanel, stagesList, currentStageElement);
 }
 
-function resumeRunningTask(buttonSelector, panelTitle, callback) {
-    if (buttonSelector) {
-        if (typeof buttonSelector === "string") {
-            var el = document.querySelector(buttonSelector);
-            if (el) addSpinner(el);
-        } else if (Array.isArray(buttonSelector)) {
-            buttonSelector.forEach(function (sel) {
-                var el = typeof sel === "string" ? document.querySelector(sel) : sel;
-                if (el) addSpinner(el);
-            });
-        }
-    }
-    if (panelTitle) showPanel(panelTitle);
-    window.onPromptComplete = callback;
-    if (typeof streamEvents === "function") streamEvents(logPanel, stagesList, currentStageElement, true);
+function resumeRunningTask(formSelector) {
+    const form = document.querySelector(formSelector);
+    const submitBtn = document.querySelector(formSelector + ' button[type="submit"]');
+    const panelTitle = document.querySelector(formSelector)?.getAttribute("data-panel-title");
+    const taskName = form.querySelector('input[name="task_name"]')?.value;
+    
+    window.taskName = taskName || "";
+    addSpinner(submitBtn);
+    showPanel(panelTitle + "...");
+    window.onPromptComplete = onActionSuccess(panelTitle, null);
+    streamEvents(logPanel, stagesList, currentStageElement, true);
 }
 
 function reloadPage() {
@@ -222,7 +266,6 @@ function onLogoutSuccess(response) {
 
 function logout() {
     ajaxRequest("/logout", "POST", null, onLogoutSuccess, "Error logging out:");
-    getTaskId().then(function (id) { window.runningTaskId = id; });
 }
 
 function showCriticalPopup(data) {
@@ -263,6 +306,52 @@ document.body.addEventListener("click", function (e) {
         if (m) { m.classList.add("hidden"); document.body.classList.remove("overflow-hidden"); }
     }
 });
+
+function onActionSuccess(panelTitle) {
+    return function (response) {
+        markAllStagesAsComplete();
+        var id = response.entity_id;
+        var url = id && typeof REDIRECT_BASE !== "undefined" ? REDIRECT_BASE + id : null;
+        if (response.status === "success") {
+            showReloadModal({
+                title: panelTitle + " completed successfully",
+                seconds: 3,
+                url: url
+            });
+        } else {
+            showErrorModal("Something when wrong while " + panelTitle.toLowerCase(), response);
+        }
+    };
+}
+
+function submitActionFormWithForm(form) {
+    const formData = new FormData(form);
+    const panelTitle = form.getAttribute("data-panel-title") || "Running task";
+    const taskName = form.querySelector('input[name="task_name"]').value;
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const handlerName = form.getAttribute("data-success-handler");
+
+    disableElements(".detail-container form button, .detail-container form input, .detail-container form select, .detail-container form textarea, .card button");
+    addSpinner(submitBtn);
+    window.taskName = taskName;
+    ajaxRequest(
+        form.action,
+        "POST",
+        formData,
+        function () { /* HTTP success; task completion handled by onPromptComplete */ },
+        "Error: " + panelTitle
+    );
+    showPanel(panelTitle + "...");
+    window.onPromptComplete = (handlerName && typeof window[handlerName] === "function") ? window[handlerName] : onActionSuccess(panelTitle);
+    streamEvents(logPanel, stagesList, currentStageElement);
+}
+
+function submitActionForm(e) {
+    e.preventDefault();
+    var form = e.target;
+    var msg = form.getAttribute("data-confirm-message") || "continue?";
+    showConfirmModal(form, submitActionFormWithForm, msg);
+}
 
 function onDomReady() {
     applyDateFormatting();

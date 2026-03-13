@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 {% import 'macros/dataset_macros.html' as dataset_macros %}
 
+{% set ui_mode = request.app.state.ui_mode %}
+
 {% block title %}Datasets{% endblock %}
 
 {% block content %}
@@ -8,8 +10,8 @@
     <div class="mb-12">
         <div class="flex items-center justify-between mb-8">
             <div>
-                <h1 class="text-5xl font-bold medperf-accent dark:text-green-400 mb-3" data-testid="page-header">Datasets</h1>
-                <p class="text-gray-700 dark:text-gray-300 text-lg">Manage and explore datasets</p>
+                <h1 class="text-5xl font-bold medperf-accent dark:text-green-400 mb-3" data-testid="page-header">Datasets{% if ui_mode == request.app.state.TRAINING_MODE %} (Training){% endif %}</h1>
+                <p class="text-gray-700 dark:text-gray-300 text-lg">{% if ui_mode == request.app.state.TRAINING_MODE %}Associate datasets with training experiments.{% else %}Manage and explore datasets for benchmarks.{% endif %}</p>
             </div>
             <div class="flex flex-wrap gap-3">
                 <a class="px-8 py-4 medperf-bg dark:bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 dark:hover:bg-green-500 transition-all shadow-lg hover:shadow-xl inline-flex items-center" href="/datasets/register/ui" data-testid="reg-dset-btn">

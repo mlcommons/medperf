@@ -92,7 +92,7 @@
     <form id="association-policy-form" class="space-y-6">
         <div>
             <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3" for="dataset-auto-approve-mode">Dataset auto approve mode</label>
-            <select class="px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500 w-auto" name="dataset_auto_approve_mode" id="dataset-auto-approve-mode" {% if task_running %} disabled {% endif %}>
+            <select class="px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500 w-auto cursor-pointer" name="dataset_auto_approve_mode" id="dataset-auto-approve-mode" {% if task_running %} disabled {% endif %}>
                 <option value="NEVER" {% if entity.dataset_auto_approval_mode == "NEVER" %} selected {% endif %}>Never</option>
                 <option value="ALWAYS" {% if entity.dataset_auto_approval_mode == "ALWAYS" %} selected {% endif %}>Always</option>
                 <option value="ALLOWLIST" {% if entity.dataset_auto_approval_mode == "ALLOWLIST" %} selected {% endif %}>Allow List</option>
@@ -106,7 +106,7 @@
         </div>
         <div>
             <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3" for="model-auto-approve-mode">Model auto approve mode</label>
-            <select class="px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500 w-auto" name="model_auto_approve_mode" id="model-auto-approve-mode" {% if task_running %} disabled {% endif %}>
+            <select class="px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500 w-auto cursor-pointer" name="model_auto_approve_mode" id="model-auto-approve-mode" {% if task_running %} disabled {% endif %}>
                 <option value="NEVER" {% if entity.model_auto_approval_mode == "NEVER" %} selected {% endif %}>Never</option>
                 <option value="ALWAYS" {% if entity.model_auto_approval_mode == "ALWAYS" %} selected {% endif %}>Always</option>
                 <option value="ALLOWLIST" {% if entity.model_auto_approval_mode == "ALLOWLIST" %} selected {% endif %}>Allow List</option>
@@ -119,7 +119,7 @@
             </div>
         </div>
         <div class="flex justify-start pt-4">
-            <button type="button" id="save-policy-btn" class="px-8 py-4 medperf-bg dark:bg-green-600 text-white rounded-xl font-bold hover:opacity-90 transition-all shadow-lg" data-benchmark-id="{{ entity.id }}" {% if task_running %} disabled {% endif %}>
+            <button type="button" id="save-policy-btn" class="px-8 py-4 medperf-bg dark:bg-green-600 text-white rounded-xl font-bold hover:opacity-90 transition-all shadow-lg cursor-pointer" data-benchmark-id="{{ entity.id }}" {% if task_running %} disabled {% endif %}>
                 <i class="fas fa-save mr-2"></i>Save Policy
             </button>
         </div>
@@ -189,7 +189,7 @@
     modal_id="folder-picker-modal",
     modal_body='<ul id="folder-list" class="divide-y divide-gray-200 dark:divide-gray-600 max-h-96 overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-600"></ul>',
     modal_footer=True,
-    close_button='<button type="button" class="px-4 py-2 rounded-xl bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500" data-dismiss-modal="folder-picker-modal">Cancel</button>',
+    close_button='<button type="button" class="px-4 py-2 rounded-xl bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-900 dark:text-white font-semibold" data-dismiss-modal="folder-picker-modal">Cancel</button>',
     success_button='<button type="button" class="px-4 py-2 rounded-xl medperf-bg dark:bg-green-600 text-white font-semibold" id="select-folder-btn">Select</button>'
 ) }}
 {% endblock detail_panel %}

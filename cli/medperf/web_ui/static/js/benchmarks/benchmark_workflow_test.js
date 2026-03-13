@@ -25,8 +25,7 @@ function benchmarkWorkflowTest(workflowTestButton) {
     disableElements("#workflow-test-form input, #workflow-test-form button");
     ajaxRequest("/benchmarks/run_workflow_test", "POST", formData, onBenchmarkWorkflowTestSuccess, "Error running benchmark workflow test:");
     showPanel("Running Workflow Test...");
-    getTaskId().then(function (id) { window.runningTaskId = id; });
-    if (typeof streamEvents === "function") streamEvents(logPanel, stagesList, currentStageElement);
+    streamEvents(logPanel, stagesList, currentStageElement);
 }
 
 function showRegisterBenchmark() {

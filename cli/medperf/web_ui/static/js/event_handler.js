@@ -11,13 +11,15 @@ function scrollToElement(selector) {
 }
 
 function streamEvents(logPanel, stagesList, currentStageElement, streamOld) {
-    var url = streamOld ? "/events?stream_old=true" : "/events";
+    var url = "/events?task_name=" + encodeURIComponent(window.taskName);
+    url += streamOld ? "&stream_old=true" : "&stream_old=false";
+    
     var eventSource = new EventSource(url);
     window.evSource = eventSource;
 
     eventSource.onmessage = function (event) {
         var data = JSON.parse(event.data);
-        if (data.task_id !== window.runningTaskId) return;
+        if (data.task_id != null && data.task_id !== window.taskName) return;
         if (data.end) {
             eventSource.close();
             window.evSource = null;
@@ -73,7 +75,7 @@ function handleEvents(event, logPanel, stagesList, currentStageElement) {
 
     if (event.type === "print") {
         var p = create_p(cleanMessage);
-        p.className = "font-bold text-lg";
+        p.className = "font-bold text-lg text-gray-900 dark:text-gray-100";
         if (content) content.appendChild(p);
         if (textContent) { textContent.style.display = ""; textContent.classList.remove("hidden"); }
     } else if (event.type === "warning") {
@@ -90,7 +92,7 @@ function handleEvents(event, logPanel, stagesList, currentStageElement) {
         scrollToElement("#text-content");
     } else if (event.type === "highlight") {
         var p = create_p(cleanMessage);
-        p.className = "text-xl";
+        p.className = "text-xl text-gray-900 dark:text-gray-100";
         if (content) content.appendChild(p);
         if (textContent) { textContent.style.display = ""; textContent.classList.remove("hidden"); }
         scrollToElement("#text-content");
@@ -112,23 +114,32 @@ function handleEvents(event, logPanel, stagesList, currentStageElement) {
         a.href = cleanMessage;
         a.target = "_blank";
         a.textContent = cleanMessage;
-        a.className = "text-lg";
+        a.className = "text-lg text-gray-900 dark:text-gray-100 medperf-accent dark:text-green-400 hover:underline";
         if (content) content.appendChild(a);
         if (textContent) { textContent.style.display = ""; textContent.classList.remove("hidden"); }
     } else if (event.type === "code") {
         var p = create_p(cleanMessage);
-        p.className = "text-xl font-bold mt-4";
+        p.className = "text-xl font-bold mt-4 text-gray-900 dark:text-gray-100";
         if (content) content.appendChild(p);
         if (textContent) { textContent.style.display = ""; textContent.classList.remove("hidden"); }
     }
     return currentStageElement;
 }
 
+var STAGE_SPINNER_CLASS = "inline-block w-5 h-5 flex-shrink-0 border-2 border-green-600 dark:border-green-400 border-t-transparent dark:border-t-transparent rounded-full animate-spin";
+
 function addNewStage(stageText, stagesList) {
     if (!stagesList) return null;
     var listItem = document.createElement("li");
     listItem.className = "flex items-center gap-2 py-2";
-    listItem.innerHTML = "<span class=\"inline-block w-5 h-5 border-2 border-[#2e7d32] dark:border-green-400 border-t-transparent rounded-full animate-spin\" role=\"status\" aria-hidden=\"true\"></span><strong>" + stageText + "</strong>";
+    var spinner = document.createElement("span");
+    spinner.className = STAGE_SPINNER_CLASS;
+    spinner.setAttribute("role", "status");
+    spinner.setAttribute("aria-hidden", "true");
+    var strong = document.createElement("strong");
+    strong.textContent = stageText;
+    listItem.appendChild(spinner);
+    listItem.appendChild(strong);
     stagesList.appendChild(listItem);
     return listItem;
 }
@@ -139,7 +150,7 @@ function markStageAsComplete(stageElement) {
     if (spinner) {
         spinner.remove();
         var check = document.createElement("i");
-        check.className = "fas fa-check-circle text-green-600 dark:text-green-400";
+        check.className = "fas fa-check-circle text-green-600 dark:text-green-400 flex-shrink-0";
         check.setAttribute("aria-hidden", "true");
         stageElement.insertBefore(check, stageElement.firstChild);
     }

@@ -7,7 +7,11 @@
 {% block title %}Export Dataset{% endblock %}
 
 {% block detail_panel %}
-{% set dataset_export_running = (task_running and request.app.state.task.name == "dataset_export") %}
+{% set dataset_export_running = (task_running and "export_dataset" in request.app.state.active_tasks) %}
+{% if dataset_export_running %}
+{% set form_data = request.app.state.active_tasks["export_dataset"].formData %}
+{% endif %}
+
 <div class="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
     <h1 class="text-3xl font-bold medperf-accent dark:text-green-400 text-center mb-6">Export Dataset</h1>
 
@@ -44,18 +48,18 @@
         </div>
     </div>
 
-    <form class="space-y-6" id="dataset-export-form">
-        <input type="hidden" name="dataset_id" value="{{ dataset.id }}">
+    <form id="dataset-export-form" class="space-y-6" action="/dataset/ui/export" method="post" data-panel-title="Exporting dataset" data-confirm-message="export this dataset?">
+        <input type="hidden" name="task_name" value="export_dataset">
         <div>
             <label for="output-path" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Output Folder</label>
             <div class="flex flex-wrap items-stretch gap-2">
-                <input type="text" id="output-path" name="output_path" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500" placeholder="{{ placeholders.export_dataset_output_path }}" {% if task_running %}disabled{% endif %} {% if dataset_export_running %}value="{{ task_formData.get('output_path', '') }}"{% endif %}>
+                <input type="text" id="output-path" name="output_path" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500" placeholder="{{ placeholders.export_dataset_output_path }}" {% if task_running %}disabled{% endif %} {% if dataset_export_running %}value="{{ form_data.get('output_path', '') }}"{% endif %}>
                 <button type="button" class="px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer" id="browse-output-btn" {% if task_running %}disabled{% endif %}>Browse</button>
                 <span class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.export_dataset_output_path }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
         <div class="text-center pt-4">
-            <button type="button" class="px-6 py-3 medperf-bg dark:bg-green-600 text-white rounded-xl font-bold hover:opacity-90 disabled:opacity-50" id="export-dataset-btn" disabled>Export</button>
+            <button id="export-dataset-btn" type="submit" class="px-6 py-3 medperf-bg dark:bg-green-600 text-white rounded-xl font-bold hover:opacity-90 disabled:opacity-50" disabled>Export</button>
         </div>
     </form>
 
@@ -63,7 +67,7 @@
         modal_id="folder-picker-modal",
         modal_body='<ul id="folder-list" class="divide-y divide-gray-200 dark:divide-gray-600 max-h-96 overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-600"></ul>',
         modal_footer=True,
-        close_button='<button type="button" class="px-4 py-2 rounded-xl bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500" data-dismiss-modal="folder-picker-modal">Cancel</button>',
+        close_button='<button type="button" class="px-4 py-2 rounded-xl bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-900 dark:text-white font-semibold" data-dismiss-modal="folder-picker-modal">Cancel</button>',
         success_button='<button type="button" class="px-4 py-2 rounded-xl medperf-bg dark:bg-green-600 text-white font-semibold" id="select-folder-btn">Select</button>'
     ) }}
 
@@ -77,7 +81,11 @@
 <script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
 <script src="{{ url_for('static', path='js/datasets/dataset_export.js') }}"></script>
 <script src="{{ url_for('static', path='js/folder_browsing.js') }}"></script>
-{% if task_running and request.app.state.task.name == "dataset_export" and task_formData.get("dataset_id", "") == dataset.id|string %}
-<script>document.addEventListener("DOMContentLoaded", function() { resumeRunningTask("#export-dataset-btn", null, onDatasetExportSuccess); });</script>
+{% if task_running and "export_dataset" in request.app.state.active_tasks and request.app.state.active_tasks["export_dataset"].formData.get("dataset_id", "") == dataset.id|string %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        resumeRunningTask("#export-dataset-form");
+    });
+</script>
 {% endif %}
 {% endblock extra_js %}

@@ -1,22 +1,4 @@
-function onBenchmarkRegisterSuccess(response) {
-    markAllStagesAsComplete();
-    if (response && response.status === "success") {
-        showReloadModal({ title: "Benchmark Successfully Registered", seconds: 3, url: "/benchmarks/ui/display/" + response.benchmark_id });
-    } else {
-        showErrorModal("Benchmark Registration Failed", response);
-    }
-}
-
-function registerBenchmark(registerButton) {
-    addSpinner(registerButton);
-    var form = document.getElementById("benchmark-register-form");
-    var formData = form ? new FormData(form) : new FormData();
-    disableElements("#benchmark-register-form input, #benchmark-register-form textarea, #benchmark-register-form select, #benchmark-register-form button");
-    ajaxRequest("/benchmarks/register", "POST", formData, onBenchmarkRegisterSuccess, "Error registering benchmark:");
-    showPanel("Registering Benchmark...");
-    getTaskId().then(function (id) { window.runningTaskId = id; });
-    if (typeof streamEvents === "function") streamEvents(logPanel, stagesList, currentStageElement);
-}
+var REDIRECT_BASE = "/benchmarks/ui/display/";
 
 function checkBenchmarkFormValidity() {
     var nameEl = document.getElementById("name");
@@ -37,10 +19,9 @@ function checkBenchmarkFormValidity() {
 }
 
 function init() {
-    var btn = document.getElementById("register-benchmark-btn");
-    if (btn) btn.addEventListener("click", function (e) { showConfirmModal(e.currentTarget, registerBenchmark, "register this benchmark?"); });
     var form = document.getElementById("benchmark-register-form");
     if (form) {
+        form.addEventListener("submit", submitActionForm);
         form.querySelectorAll("input, textarea, select").forEach(function (el) {
             el.addEventListener("keyup", checkBenchmarkFormValidity);
             el.addEventListener("change", checkBenchmarkFormValidity);

@@ -13,8 +13,7 @@ function exportDataset(exportButton) {
     var formData = form ? new FormData(form) : new FormData();
     disableElements("#dataset-export-form input, #dataset-export-form button");
     ajaxRequest("/datasets/export", "POST", formData, onDatasetExportSuccess, "Error exporting dataset:");
-    getTaskId().then(function (id) { window.runningTaskId = id; });
-    if (typeof streamEvents === "function") streamEvents(logPanel, stagesList, currentStageElement);
+    streamEvents(logPanel, stagesList, currentStageElement);
 }
 
 function checkExportFormValidity() {

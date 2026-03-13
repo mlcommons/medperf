@@ -6,22 +6,26 @@
 {% block title %}Import Dataset{% endblock %}
 
 {% block content %}
-{% set dataset_import_running = (task_running and request.app.state.task.name == "dataset_import") %}
+{% set dataset_import_running = (task_running and "import_dataset" in request.app.state.active_tasks) %}
+{% if dataset_import_running %}
+{% set form_data = request.app.state.active_tasks["import_dataset"].formData %}
+{% endif %}
 <div class="container mx-auto px-4 py-8 max-w-3xl">
     <h1 class="text-3xl font-bold medperf-accent dark:text-green-400 text-center mb-8">Import Dataset</h1>
 
-    <form class="space-y-6" id="dataset-import-form">
+    <form id="dataset-import-form" class="space-y-6" action="/dataset/ui/import" method="post" data-panel-title="Importing dataset" data-confirm-message="import this dataset?">
+        <input type="hidden" name="task_name" value="import_dataset">
         <div>
             <label for="dataset-id" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Dataset UID</label>
             <div class="flex flex-wrap items-stretch gap-2">
-                <input type="number" id="dataset-id" name="dataset_id" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500" placeholder="{{ placeholders.import_dataset_id }}" {% if task_running %}disabled{% endif %} {% if dataset_import_running %}value="{{ task_formData.get('dataset_id', '') }}"{% endif %}>
+                <input type="number" id="dataset-id" name="dataset_id" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500" placeholder="{{ placeholders.import_dataset_id }}" {% if task_running %}disabled{% endif %} {% if dataset_import_running %}value="{{ form_data.get('dataset_id', '') }}"{% endif %}>
                 <span class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.import_dataset_id }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
         <div>
             <label for="input-path" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Dataset Backup File</label>
             <div class="flex flex-wrap items-stretch gap-2">
-                <input type="text" id="input-path" name="input_path" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500" placeholder="{{ placeholders.import_dataset_input_path }}" {% if task_running %}disabled{% endif %} {% if dataset_import_running %}value="{{ task_formData.get('input_path', '') }}"{% endif %}>
+                <input type="text" id="input-path" name="input_path" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500" placeholder="{{ placeholders.import_dataset_input_path }}" {% if task_running %}disabled{% endif %} {% if dataset_import_running %}value="{{ form_data.get('input_path', '') }}"{% endif %}>
                 <button type="button" class="px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer" id="browse-input-btn" {% if task_running %}disabled{% endif %}>Browse</button>
                 <span class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.import_dataset_input_path }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
@@ -36,13 +40,13 @@
         <div id="raw-data-group" class="hidden">
             <label for="raw-path" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Raw Dataset Path</label>
             <div class="flex flex-wrap items-stretch gap-2">
-                <input type="text" id="raw-path" name="raw_dataset_path" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500" placeholder="{{ placeholders.import_dataset_raw_path }}" {% if task_running %}disabled{% endif %} {% if dataset_import_running %}value="{{ task_formData.get('raw_dataset_path', '') }}"{% endif %}>
+                <input type="text" id="raw-path" name="raw_dataset_path" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500" placeholder="{{ placeholders.import_dataset_raw_path }}" {% if task_running %}disabled{% endif %} {% if dataset_import_running %}value="{{ form_data.get('raw_dataset_path', '') }}"{% endif %}>
                 <button type="button" class="px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer" id="browse-raw-btn" {% if task_running %}disabled{% endif %}>Browse</button>
                 <span class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.import_dataset_raw_path }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
         <div class="text-center pt-4">
-            <button type="button" class="px-6 py-3 medperf-bg dark:bg-green-600 text-white rounded-xl font-bold hover:opacity-90 disabled:opacity-50" id="import-dataset-btn" disabled>Import</button>
+            <button id="import-dataset-btn" type="submit" class="px-6 py-3 medperf-bg dark:bg-green-600 text-white rounded-xl font-bold hover:opacity-90 disabled:opacity-50" disabled>Import</button>
         </div>
     </form>
 
@@ -50,7 +54,7 @@
         modal_id="folder-picker-modal",
         modal_body='<ul id="folder-list" class="divide-y divide-gray-200 dark:divide-gray-600 max-h-96 overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-600"></ul>',
         modal_footer=True,
-        close_button='<button type="button" class="px-4 py-2 rounded-xl bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500" data-dismiss-modal="folder-picker-modal">Cancel</button>',
+        close_button='<button type="button" class="px-4 py-2 rounded-xl bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-900 dark:text-white font-semibold" data-dismiss-modal="folder-picker-modal">Cancel</button>',
         success_button='<button type="button" class="px-4 py-2 rounded-xl medperf-bg dark:bg-green-600 text-white font-semibold" id="select-folder-btn">Select</button>'
     ) }}
 
@@ -64,7 +68,11 @@
 <script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
 <script src="{{ url_for('static', path='js/datasets/dataset_import.js') }}"></script>
 <script src="{{ url_for('static', path='js/folder_browsing.js') }}"></script>
-{% if task_running and request.app.state.task.name == "dataset_import" and task_formData.get("dataset_id", "") == dataset.id|string %}
-<script>document.addEventListener("DOMContentLoaded", function() { resumeRunningTask("#import-dataset-btn", null, onDatasetImportSuccess); });</script>
+{% if task_running and "import_dataset" in request.app.state.active_tasks and request.app.state.active_tasks["import_dataset"].formData.get("dataset_id", "") == dataset.id|string %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        resumeRunningTask("#import-dataset-form");
+    });
+</script>
 {% endif %}
 {% endblock %}

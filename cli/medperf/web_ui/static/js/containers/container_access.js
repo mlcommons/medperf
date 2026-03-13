@@ -61,25 +61,6 @@ function checkAutoAccessForm() {
     return true;
 }
 
-function onGrantAccessSuccess(response) {
-    if (response && response.status === "success") showReloadModal({ title: "Successfully Granted Access to the Selected Users", seconds: 3 });
-    else showErrorModal("Failed to Grant Access", response);
-}
-
-function grantAccess(grantBtn) {
-    addSpinner(grantBtn);
-    disableElements(".card button, .card input, .card select");
-    var allowListArr = getEmailsList(document.getElementById("allowed-email-list"));
-    var formData = new FormData();
-    formData.append("benchmark_id", document.getElementById("benchmark").value);
-    formData.append("model_id", grantBtn.getAttribute("data-model-id"));
-    formData.append("emails", allowListArr.join(" "));
-    ajaxRequest("/containers/grant_access", "POST", formData, onGrantAccessSuccess, "Failed to grant access");
-    showPanel("Granting Access...");
-    getTaskId().then(function (id) { window.runningTaskId = id; });
-    if (typeof streamEvents === "function") streamEvents(logPanel, stagesList, currentStageElement);
-}
-
 function startAutoGrant(startBtn) {
     disableElements(".card button, .card input, .card select");
     var allowListArr = getEmailsList(document.getElementById("allowed-email-list-auto"));
@@ -102,37 +83,6 @@ function stopAutoGrant(stopBtn) {
         if (response && response.status === "success") showReloadModal({ title: "Successfully Stopped Auto Grant Access", seconds: 2 });
         else showErrorModal("Failed to Stop Auto Grant Access", response);
     }, "Failed to stop auto grant access");
-}
-
-function onrevokeUserAccessSuccess(response) {
-    if (response && response.status === "success") showReloadModal({ title: "Successfully Revoked User Access", seconds: 3 });
-    else showErrorModal("Failed to Revoke User Access", response);
-}
-
-function revokeUserAccess(revokeAccessBtn) {
-    addSpinner(revokeAccessBtn);
-    disableElements(".card button, .card input, .card select");
-    var formData = new FormData();
-    formData.append("model_id", revokeAccessBtn.getAttribute("data-model-id"));
-    formData.append("key_id", revokeAccessBtn.getAttribute("data-key-id"));
-    ajaxRequest("/containers/revoke_user_access", "POST", formData, onDeleteKeysSuccess, "Failed to revoke user access");
-    getTaskId().then(function (id) { window.runningTaskId = id; });
-    if (typeof streamEvents === "function") streamEvents(logPanel, stagesList, currentStageElement);
-}
-
-function onDeleteKeysSuccess(response) {
-    if (response && response.status === "success") showReloadModal({ title: "Successfully Deleted Keys", seconds: 3 });
-    else showErrorModal("Failed to Delete Keys", response);
-}
-
-function deleteKeys(deleteKeysBtn) {
-    addSpinner(deleteKeysBtn);
-    disableElements(".card button, .card input, .card select");
-    var formData = new FormData();
-    formData.append("model_id", deleteKeysBtn.getAttribute("data-model-id"));
-    ajaxRequest("/containers/delete_keys", "POST", formData, onDeleteKeysSuccess, "Failed to delete keys");
-    getTaskId().then(function (id) { window.runningTaskId = id; });
-    if (typeof streamEvents === "function") streamEvents(logPanel, stagesList, currentStageElement);
 }
 
 function showErrorToast(message) {
@@ -164,9 +114,20 @@ function init() {
             input.value = "";
         });
     });
-    var grantBtn = document.getElementById("grant-access-btn");
-    if (grantBtn) grantBtn.addEventListener("click", function (e) {
-        if (checkAccessForm()) showConfirmModal(e.currentTarget, grantAccess, "grant access to the emails added?");
+    document.querySelectorAll("form[id$='-form']").forEach(function (form) {
+        form.addEventListener("submit", function (e) {
+            if (form.id === "grant-access-form") {
+                e.preventDefault();
+                if (!checkAccessForm()) return;
+                var benchEl = document.getElementById("benchmark");
+                var emailsEl = document.getElementById("form-emails");
+                if (benchEl) document.getElementById("form-benchmark-id").value = benchEl.value;
+                if (emailsEl) emailsEl.value = getEmailsList(document.getElementById("allowed-email-list")).join(" ");
+                showConfirmModal(form, submitActionFormWithForm, form.getAttribute("data-confirm-message") || "continue?");
+            } else {
+                submitActionForm(e);
+            }
+        });
     });
     var startBtn = document.getElementById("start-auto-access-btn");
     if (startBtn) startBtn.addEventListener("click", function (e) {
@@ -174,11 +135,6 @@ function init() {
     });
     var stopBtn = document.getElementById("stop-auto-access-btn");
     if (stopBtn) stopBtn.addEventListener("click", function (e) { showConfirmModal(e.currentTarget, stopAutoGrant, "stop automatic grant access?"); });
-    document.querySelectorAll(".revoke-access-btn").forEach(function (btn) {
-        btn.addEventListener("click", function (e) { showConfirmModal(e.currentTarget, revokeUserAccess, "revoke access for the selected user?"); });
-    });
-    var deleteKeysBtn = document.getElementById("delete-keys-btn");
-    if (deleteKeysBtn) deleteKeysBtn.addEventListener("click", function (e) { showConfirmModal(e.currentTarget, deleteKeys, "delete all keys?"); });
 }
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
 else init();

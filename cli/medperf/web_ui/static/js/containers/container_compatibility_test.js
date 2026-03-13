@@ -18,16 +18,7 @@ function onContainerCompatibilityTestSuccess(response) {
     }
 }
 
-function runContainerCompatibilityTest(runCompTestButton) {
-    addSpinner(runCompTestButton);
-    var form = document.getElementById("container-comp-test-form");
-    var formData = form ? new FormData(form) : new FormData();
-    disableElements("#container-comp-test-form input, #container-comp-test-form select, #container-comp-test-form button");
-    ajaxRequest("/containers/run_compatibility_test", "POST", formData, onContainerCompatibilityTestSuccess, "Error running container compatibility test:");
-    showPanel("Running Compatibility Test...");
-    getTaskId().then(function (id) { window.runningTaskId = id; });
-    if (typeof streamEvents === "function") streamEvents(logPanel, stagesList, currentStageElement);
-}
+window.onContainerCompatibilityTestSuccess = onContainerCompatibilityTestSuccess;
 
 function checkCompTestFormValidity() {
     var containerFileEl = document.getElementById("container-file");
@@ -47,13 +38,14 @@ function showRegisterContainer() {
 }
 
 function init() {
-    var runBtn = document.getElementById("run-comp-test-btn");
-    if (runBtn) runBtn.addEventListener("click", function (e) { showConfirmModal(e.currentTarget, runContainerCompatibilityTest, "run the compatibility test?"); });
     var form = document.getElementById("container-comp-test-form");
-    if (form) form.querySelectorAll("input, select").forEach(function (el) {
-        el.addEventListener("change", checkCompTestFormValidity);
-        el.addEventListener("keyup", checkCompTestFormValidity);
-    });
+    if (form) {
+        form.addEventListener("submit", submitActionForm);
+        form.querySelectorAll("input, select").forEach(function (el) {
+            el.addEventListener("keyup", checkCompTestFormValidity);
+            el.addEventListener("change", checkCompTestFormValidity);
+        });
+    }
     var browseDec = document.getElementById("browse-decryption-btn");
     if (browseDec) browseDec.addEventListener("click", function () { browseWithFiles = true; browseFolderHandler("decryption-file"); });
     document.querySelectorAll("input[name='model_encrypted']").forEach(function (radio) {

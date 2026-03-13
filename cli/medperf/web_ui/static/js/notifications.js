@@ -7,12 +7,13 @@ function showToast(title, message, bgClass) {
           <strong class="block">${title}</strong>
           <span class="text-sm opacity-90">${message}</span>
         </div>
-        <button type="button" class="toast-close flex-shrink-0 w-8 h-8 rounded-lg hover:bg-white/20 flex items-center justify-center text-lg leading-none" aria-label="Close">&times;</button>
+        <button type="button" class="toast-close flex-shrink-0 w-8 h-8 rounded-lg hover:bg-white/20 flex items-center justify-center text-lg leading-none cursor-pointer" aria-label="Close">&times;</button>
       </div>
     `;
     const el = document.createElement("div");
     el.innerHTML = toastHTML.trim();
     const toastEl = el.firstChild;
+    toastEl.classList.add("pointer-events-auto");
     const container = document.getElementById("toast-container");
     if (container) container.appendChild(toastEl);
 

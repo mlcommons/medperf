@@ -1,38 +1,4 @@
-
-function showConfirmationPrompt(approveRejectBtn) {
-    var entityType = approveRejectBtn.getAttribute("data-entity-type");
-    var actionName = approveRejectBtn.getAttribute("data-action-name");
-    var benchmarkId = approveRejectBtn.getAttribute("data-benchmark-id");
-    var entityId = approveRejectBtn.getAttribute("data-" + entityType + "-id");
-    var message = actionName + " this association?<br><span class=\"text-lg text-red-600 dark:text-red-400 font-bold\">This action cannot be undone.</span>";
-    var callback = function () {
-        approveRejectAssociation(actionName, benchmarkId, entityId, entityType, approveRejectBtn);
-    };
-    showConfirmModal(approveRejectBtn, callback, message);
-}
-
-function onApproveRejectAssociationSuccess(response, actionName) {
-    var title;
-    if (response && response.status === "success") {
-        title = actionName === "approve" ? "Association Approved Successfully" : "Association Rejected Successfully";
-        showReloadModal({ title: title, seconds: 3 });
-    } else {
-        title = actionName === "approve" ? "Failed to Approve Association" : "Failed to Reject Association";
-        showErrorModal(title, response);
-    }
-}
-
-function approveRejectAssociation(actionName, benchmarkId, entityId, entityType, approveRejectBtn) {
-    addSpinner(approveRejectBtn);
-    disableElements(".card button, [id='datasets-associations'] button, [id='models-associations'] button");
-    var formData = new FormData();
-    formData.append("benchmark_id", benchmarkId);
-    formData.append(entityType + "_id", entityId);
-    ajaxRequest("/benchmarks/" + actionName, "POST", formData, function (response) {
-        onApproveRejectAssociationSuccess(response, actionName);
-    }, "Error approving/rejecting association");
-    getTaskId().then(function (id) { window.runningTaskId = id; });
-}
+var REDIRECT_BASE = "/benchmarks/ui/display/";
 
 function isValidEmail(email) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -121,10 +87,12 @@ function updateAssociationsPolicy(saveBtn) {
     formData.append("dataset_mode", datasetApproveMode);
     formData.append("model_mode", modelApproveMode);
     ajaxRequest("/benchmarks/update_associations_policy", "POST", formData, onUpdateAssociationsPolicySuccess, "Failed to update associations policy");
-    getTaskId().then(function (id) { window.runningTaskId = id; });
 }
 
 function initBenchmarkDetail() {
+    document.querySelectorAll("form.benchmark-action-form").forEach(function (form) {
+        form.addEventListener("submit", submitActionForm);
+    });
     document.querySelectorAll("[id^='show-']").forEach(function (el) {
         el.addEventListener("click", function () { showResult(el); });
     });

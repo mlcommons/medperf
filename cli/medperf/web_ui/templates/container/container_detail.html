@@ -7,6 +7,7 @@
 {% block title %}Container Details{% endblock %}
 
 {% block detail_panel %}
+{% set ui_mode = request.app.state.ui_mode %}
 <div class="mb-8">
     <div class="flex items-center justify-between mb-6">
         <div class="flex items-center mb-3">
@@ -18,7 +19,7 @@
     </div>
 </div>
 
-<div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg border-2 border-green-100 dark:border-gray-700 mb-6 {% if not entity.is_valid %}invalid-card{% endif %} overflow-hidden">
+<div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg border-2 border-green-100 dark:border-gray-700 mb-6 {% if not entity.is_valid %}invalid-card{% endif %}">
     <div class="flex flex-wrap justify-between items-center gap-4 mb-6">
         <h2 class="text-3xl font-bold medperf-accent dark:text-green-400 flex items-center">
             <i class="fas fa-info-circle mr-3"></i>Details
@@ -78,6 +79,7 @@
             <p class="step-label mt-2 text-sm text-gray-600 dark:text-gray-400">Manage access permissions for this encrypted container</p>
         </div>
         {% endif %}
+        {% if ui_mode == request.app.state.EVALUATION_MODE %}
         <div class="mt-6 p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 text-center" x-data="{ associateOpen: false }" @click.outside="associateOpen = false">
             {% if entity.state=="OPERATION" %}
             {% set available_benchmarks = [] %}
@@ -86,15 +88,20 @@
             {% set _ = available_benchmarks.append(benchmark) %}
             {% endif %}
             {% endfor %}
-            <div class="relative inline-block w-full max-w-md">
+            <div class="relative inline-block w-full max-w-lg">
                 <button type="button" id="associate-dropdown-btn" class="step-btn px-6 py-3 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 disabled:opacity-50" @click="associateOpen = !associateOpen" {% if task_running %}disabled{% endif %}>Associate with Benchmark</button>
-                <div id="dropdown-div" class="absolute left-0 right-0 mt-2 rounded-xl bg-white dark:bg-gray-800 shadow-xl border-2 border-gray-200 dark:border-gray-600 py-2 z-20 max-h-[70vh] overflow-y-auto overflow-x-hidden" x-show="associateOpen" x-cloak x-transition style="display: none;">
+                <div id="dropdown-div" class="absolute left-0 right-0 mt-2 rounded-xl bg-white dark:bg-gray-800 shadow-xl border-2 border-gray-200 dark:border-gray-600 py-2 z-20 max-h-[70vh] overflow-y-auto" x-show="associateOpen" x-cloak x-transition style="display: none;">
                     {% for benchmark in available_benchmarks %}
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 border-b border-gray-100 dark:border-gray-700 last:border-b-0">
-                        <div class="font-semibold text-gray-900 dark:text-white min-w-0 break-words">{{ benchmark.id }} – {{ benchmark.name }}</div>
+                        <div class="font-semibold text-gray-900 dark:text-white min-w-0 break-words">{{ benchmark.id }} - {{ benchmark.name }}</div>
                         <div class="flex gap-2 flex-shrink-0">
                             <a href="/benchmarks/ui/display/{{ benchmark.id }}" class="px-3 py-1.5 rounded-lg bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-white text-sm font-semibold hover:opacity-90 whitespace-nowrap">View</a>
-                            <button type="button" class="request-association-btn px-3 py-1.5 rounded-lg medperf-bg dark:bg-green-600 text-white text-sm font-semibold hover:opacity-90 whitespace-nowrap" data-benchmark-id="{{ benchmark.id }}" data-container-id="{{ entity.id }}" {% if task_running %}disabled{% endif %}>Request</button>
+                            <form id="container-association-form-{{ benchmark.id }}" action="/containers/associate" method="post" class="inline" data-panel-title="Requesting container association" data-confirm-message="request container association with this benchmark?">
+                                <input type="hidden" name="task_name" value="container_association">
+                                <input type="hidden" name="container_id" value="{{ entity.id }}">
+                                <input type="hidden" name="benchmark_id" value="{{ benchmark.id }}">
+                                <button type="submit" class="request-association-btn px-3 py-1.5 rounded-lg medperf-bg dark:bg-green-600 text-white text-sm font-semibold hover:opacity-90 whitespace-nowrap cursor-pointer" {% if task_running %}disabled{% endif %}>Request</button>
+                            </form>
                         </div>
                     </div>
                     {% endfor %}
@@ -108,9 +115,10 @@
             {% endif %}
             <p class="step-label mt-2 text-sm text-gray-600 dark:text-gray-400">If this is a model container, make a request to the benchmark owner to associate your model with the benchmark</p>
         </div>
+        {% endif %}
     {% endif %}
 </div>
-{% if is_owner %}
+{% if is_owner and ui_mode == request.app.state.EVALUATION_MODE %}
 <div class="my-8">
     <h2 class="text-xl font-bold medperf-accent dark:text-green-400 my-4">Associated Benchmarks</h2>
     {% for assoc in benchmarks_associations.values() %}
@@ -128,7 +136,13 @@
 {% block extra_js %}
 <script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
 <script src="{{ url_for('static', path='js/containers/container_detail.js') }}"></script>
-{% if task_running and request.app.state.task.name == "container_association" and task_formData.get("container_id", "") == entity.id|string %}
-<script>document.addEventListener("DOMContentLoaded", function() { resumeRunningTask("#associate-dropdown-btn", "Requesting Container Association...", onContainerAssociationRequestSuccess); });</script>
+{% if task_running and  "container_association" in request.app.state.active_tasks and request.app.state.active_tasks["container_association"].formData.get("container_id", "") == entity.id|string %}
+{% set form_data = request.app.state.active_tasks["container_association"].formData %}
+<script>
+    document.addEventListener(
+        "DOMContentLoaded", function() {
+            resumeRunningTask("#container-association-form-{{ form_data.get('benchmark_id', '') }}");
+        });
+</script>
 {% endif %}
 {% endblock %}

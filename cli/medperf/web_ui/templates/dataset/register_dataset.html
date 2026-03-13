@@ -6,45 +6,68 @@
 {% block title %}Register Dataset{% endblock %}
 
 {% block content %}
-{% set dataset_register_running = (task_running and request.app.state.task.name == "dataset_registration") %}
+{% set dataset_register_running = (task_running and "register_dataset" in request.app.state.active_tasks) %}
+{% if dataset_register_running %}
+{% set form_data = request.app.state.active_tasks["register_dataset"].formData %}
+{% endif %}
 <div class="container mx-auto px-4 py-8 max-w-3xl">
     <h1 class="text-3xl font-bold medperf-accent dark:text-green-400 text-center mb-8">Register a New Dataset</h1>
 
-    <form class="space-y-6" id="dataset-register-form">
+    <form id="register-dataset-form" class="space-y-6" action="/datasets/register" method="post" data-panel-title="Registering dataset" data-confirm-message="register this dataset?">
+        <input type="hidden" name="task_name" value="register_dataset">
+        {% if request.app.state.ui_mode == request.app.state.EVALUATION_MODE %}
         <div>
             <label for="benchmark" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Select Benchmark</label>
-            <select name="benchmark" id="benchmark" class="w-full px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500" {% if task_running %}disabled{% endif %}>
+            <select name="benchmark" id="benchmark" class="w-full px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500 cursor-pointer" {% if task_running %}disabled{% endif %}>
                 <option value="" disabled selected>Select a benchmark</option>
                 {% for benchmark in benchmarks %}
-                <option value="{{ benchmark.id }}" {% if dataset_register_running and task_formData.get("benchmark") == benchmark.id|string %}selected{% endif %}>{{ benchmark.name }}</option>
+                <option value="{{ benchmark.id }}" {% if dataset_register_running and form_data.get("benchmark") == benchmark.id|string %}selected{% endif %}>{{ benchmark.name }}</option>
                 {% endfor %}
             </select>
         </div>
+        {% else %}
+        <div>
+            <label for="prep_cube_uid" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Data Preparation Container</label>
+            <div class="flex flex-wrap items-stretch gap-2">
+                <select name="prep_cube_uid" id="data-preparation-container" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500 cursor-pointer" {% if task_running %}disabled{% endif %}>
+                    <option value="" disabled selected>Select a Container</option>
+                    {% if data_prep_containers | length > 0 %}
+                    {% for container in data_prep_containers %}
+                    <option value="{{ container['id'] }}" {% if training_register_running and form_data.get("prep_cube_uid") == container['id']|string %}selected{% endif %}>{{ container.name }}</option>
+                    {% endfor %}
+                    {% else %}
+                    <option value="" disabled>No Data Preparation Containers available</option>
+                    {% endif %}
+                </select>
+                <span class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.register_training_data_preparation_container }}"><i class="fas fa-info-circle text-lg"></i></span>
+            </div>
+        </div>
+        {% endif %}
         <div>
             <label for="name" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Dataset Name</label>
             <div class="flex flex-wrap items-stretch gap-2">
-                <input type="text" name="name" id="name" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500" placeholder="{{ placeholders.register_dataset_name }}" {% if task_running %}disabled{% endif %} {% if dataset_register_running %}value="{{ task_formData.get('name', '') }}"{% endif %} maxlength="128">
+                <input type="text" name="name" id="name" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500" placeholder="{{ placeholders.register_dataset_name }}" {% if task_running %}disabled{% endif %} {% if dataset_register_running %}value="{{ form_data.get('name', '') }}"{% endif %} maxlength="128">
                 <span class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.register_dataset_name }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
         <div>
             <label for="description" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Description</label>
             <div class="flex flex-wrap items-stretch gap-2">
-                <textarea name="description" id="description" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500" placeholder="{{ placeholders.register_dataset_description }}" {% if task_running %}disabled{% endif %} maxlength="256">{% if dataset_register_running %}{{ task_formData.get('description', '') }}{% endif %}</textarea>
+                <textarea name="description" id="description" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500" placeholder="{{ placeholders.register_dataset_description }}" {% if task_running %}disabled{% endif %} maxlength="256">{% if dataset_register_running %}{{ form_data.get('description', '') }}{% endif %}</textarea>
                 <span class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.register_dataset_description }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
         <div>
             <label for="location" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Location</label>
             <div class="flex flex-wrap items-stretch gap-2">
-                <input type="text" name="location" id="location" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500" placeholder="{{ placeholders.register_dataset_location }}" {% if task_running %}disabled{% endif %} {% if dataset_register_running %}value="{{ task_formData.get('location', '') }}"{% endif %} maxlength="128">
+                <input type="text" name="location" id="location" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500" placeholder="{{ placeholders.register_dataset_location }}" {% if task_running %}disabled{% endif %} {% if dataset_register_running %}value="{{ form_data.get('location', '') }}"{% endif %} maxlength="128">
                 <span class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.register_dataset_location }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
         <div>
             <label for="data-path" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Data Folder</label>
             <div class="flex flex-wrap items-stretch gap-2">
-                <input type="text" id="data-path" name="data_path" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500" placeholder="{{ placeholders.register_dataset_data_path }}" {% if task_running %}disabled{% endif %} {% if dataset_register_running %}value="{{ task_formData.get('data_path', '') }}"{% endif %}>
+                <input type="text" id="data-path" name="data_path" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500" placeholder="{{ placeholders.register_dataset_data_path }}" {% if task_running %}disabled{% endif %} {% if dataset_register_running %}value="{{ form_data.get('data_path', '') }}"{% endif %}>
                 <button type="button" class="px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer" id="browse-data-btn" {% if task_running %}disabled{% endif %}>Browse</button>
                 <span class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.register_dataset_data_path }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
@@ -52,13 +75,13 @@
         <div>
             <label for="labels-path" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Labels Folder</label>
             <div class="flex flex-wrap items-stretch gap-2">
-                <input type="text" id="labels-path" name="labels_path" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500" placeholder="{{ placeholders.register_dataset_labels_path }}" {% if task_running %}disabled{% endif %} {% if dataset_register_running %}value="{{ task_formData.get('labels_path', '') }}"{% endif %}>
+                <input type="text" id="labels-path" name="labels_path" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500" placeholder="{{ placeholders.register_dataset_labels_path }}" {% if task_running %}disabled{% endif %} {% if dataset_register_running %}value="{{ form_data.get('labels_path', '') }}"{% endif %}>
                 <button type="button" class="px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer" id="browse-labels-btn" {% if task_running %}disabled{% endif %}>Browse</button>
                 <span class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.register_dataset_labels_path }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
         <div class="text-center pt-4">
-            <button type="button" class="px-6 py-3 medperf-bg dark:bg-green-600 text-white rounded-xl font-bold hover:opacity-90 disabled:opacity-50" id="register-dataset-btn" disabled>Register</button>
+            <button id="register-dataset-btn" type="submit" class="px-6 py-3 medperf-bg dark:bg-green-600 text-white rounded-xl font-bold hover:opacity-90 disabled:opacity-50 cursor-pointer" disabled>Register Dataset</button>
         </div>
     </form>
 
@@ -66,7 +89,7 @@
         modal_id="folder-picker-modal",
         modal_body='<ul id="folder-list" class="divide-y divide-gray-200 dark:divide-gray-600 max-h-96 overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-600"></ul>',
         modal_footer=True,
-        close_button='<button type="button" class="px-4 py-2 rounded-xl bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500" data-dismiss-modal="folder-picker-modal">Cancel</button>',
+        close_button='<button type="button" class="px-4 py-2 rounded-xl bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-900 dark:text-white font-semibold" data-dismiss-modal="folder-picker-modal">Cancel</button>',
         success_button='<button type="button" class="px-4 py-2 rounded-xl medperf-bg dark:bg-green-600 text-white font-semibold" id="select-folder-btn">Select</button>'
     ) }}
 
@@ -80,7 +103,11 @@
 <script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
 <script src="{{ url_for('static', path='js/datasets/dataset_register.js') }}"></script>
 <script src="{{ url_for('static', path='js/folder_browsing.js') }}"></script>
-{% if task_running and request.app.state.task.name == "dataset_registration" %}
-<script>document.addEventListener("DOMContentLoaded", function() { resumeRunningTask("#register-dataset-btn", null, onDatasetRegisterSuccess); });</script>
+{% if task_running and "register_dataset" in request.app.state.active_tasks %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        resumeRunningTask("#register-dataset-form");
+    });
+</script>
 {% endif %}
 {% endblock %}

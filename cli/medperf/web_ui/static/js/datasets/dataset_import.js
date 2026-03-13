@@ -1,21 +1,4 @@
-function onDatasetImportSuccess(response) {
-    markAllStagesAsComplete();
-    if (response && response.status === "success") {
-        showReloadModal({ title: "Dataset Imported Successfully", seconds: 3, url: "/datasets/ui/display/" + response.dataset_id });
-    } else {
-        showErrorModal("Failed to Import Dataset", response);
-    }
-}
-
-function importDataset(importButton) {
-    addSpinner(importButton);
-    var form = document.getElementById("dataset-import-form");
-    var formData = form ? new FormData(form) : new FormData();
-    disableElements("#dataset-import-form input, #dataset-import-form button");
-    ajaxRequest("/datasets/import", "POST", formData, onDatasetImportSuccess, "Error importing dataset:");
-    getTaskId().then(function (id) { window.runningTaskId = id; });
-    if (typeof streamEvents === "function") streamEvents(logPanel, stagesList, currentStageElement);
-}
+REDIRECT_BASE = "/datasets/ui/display/";
 
 function checkImportFormValidity() {
     var datasetIdEl = document.getElementById("dataset-id");
@@ -36,10 +19,9 @@ function checkImportFormValidity() {
 }
 
 function init() {
-    var btn = document.getElementById("import-dataset-btn");
-    if (btn) btn.addEventListener("click", function (e) { showConfirmModal(e.currentTarget, importDataset, "import this dataset?"); });
     var form = document.getElementById("dataset-import-form");
     if (form) form.querySelectorAll("input").forEach(function (el) {
+        form.addEventListener("submit", submitActionForm);
         el.addEventListener("change", checkImportFormValidity);
         el.addEventListener("keyup", checkImportFormValidity);
     });
