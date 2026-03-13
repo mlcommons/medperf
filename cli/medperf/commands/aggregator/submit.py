@@ -42,5 +42,5 @@ class SubmitAggregator:
 
     def write(self, updated_body):
         remove_path(self.aggregator.path)
-        aggregator = Aggregator(**updated_body)
-        aggregator.write()
+        self.aggregator = Aggregator(**updated_body)
+        self.aggregator.write()
