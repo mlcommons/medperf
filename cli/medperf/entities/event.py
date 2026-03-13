@@ -59,7 +59,9 @@ class TrainingEvent(Entity, MedperfSchema):
         self.agg_out_logs = os.path.join(
             self.path, config.training_out_agg_logs + timestamp
         )
-        self.col_out_logs = os.path.join(self.path, config.training_out_col_logs)
+        self.col_out_logs = os.path.join(
+            self.path, config.training_out_col_logs + timestamp
+        )
         self.out_weights = os.path.join(
             self.path, config.training_out_weights + timestamp
         )
