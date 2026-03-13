@@ -22,8 +22,9 @@ class SetPlan:
         """
         planset = cls(training_exp_id, training_config_path, approval)
         planset.validate()
-        planset.prepare()
-        planset.create_plan()
+        with config.ui.interactive():
+            planset.prepare()
+            planset.create_plan()
         planset.update()
         planset.write()
 
