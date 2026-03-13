@@ -240,13 +240,13 @@ def set_gcs_iam_policy(config: GCPAssetConfig, members: list[str], role: str):
     # remove current objectviewer roles
     to_remove = []
     for binding in policy.bindings:
-        if binding.role == role:
+        if binding["role"] == role:
             to_remove.append(binding)
 
     for binding in to_remove:
         policy.bindings.remove(binding)
 
-    policy.bindings.append(policy_pb2.Binding(role=role, members=members))
+    policy.bindings.append({"role": role, "members": members})
 
     # Set new policy
     client.bucket(config.bucket).set_iam_policy(policy)
