@@ -1,5 +1,6 @@
 from queue import Queue
 from contextlib import contextmanager
+import threading
 from yaspin import yaspin
 import typer
 
@@ -13,9 +14,19 @@ class WebUI(CLI):
         self.responses: Queue[dict] = Queue()
         self.is_interactive = False
         self.spinner = yaspin(color="green")
-        self.task_id = None
+        self._task_id_local = threading.local()
+        self._primary_task_id = None
         self.events_manager = EventsManager()
         self.global_events_manager = GlobalEventsManager()
+
+    def _current_task_id(self):
+        """Per-thread task_id so concurrent tasks (e.g. aggregator + training) tag events correctly."""
+        return getattr(self._task_id_local, "task_id", None)
+
+    @property
+    def task_id(self):
+        """Primary task_id for GET /current_task (last task started by a request). Events use _current_task_id()."""
+        return self._primary_task_id
 
     def print_error(self, msg: str):
         """Display an error message on the command line
@@ -44,7 +55,7 @@ class WebUI(CLI):
 
         self.set_event(
             Event(
-                task_id=self.task_id,
+                task_id=self._current_task_id(),
                 type=type,
                 message=msg,
                 interactive=self.is_interactive,
@@ -99,7 +110,7 @@ class WebUI(CLI):
 
         self.set_event(
             Event(
-                task_id=self.task_id,
+                task_id=self._current_task_id(),
                 type="text",
                 message=msg,
                 interactive=self.is_interactive,
@@ -120,7 +131,7 @@ class WebUI(CLI):
         msg = msg.replace(" [Y/n]", "")
         self.set_event(
             Event(
-                task_id=self.task_id,
+                task_id=self._current_task_id(),
                 type="prompt",
                 message=msg,
                 interactive=self.is_interactive,
@@ -182,8 +193,9 @@ class WebUI(CLI):
     def set_event(self, event: Event):
         self.events_manager.process_event(event)
 
-    def get_event(self, timeout=None):
-        return self.events_manager.dequeue_event(timeout=timeout)
+    def get_event(self, task_id=None, timeout=None):
+        """Get next event for the given task_id (required for SSE so each stream gets only its task's events)."""
+        return self.events_manager.dequeue_event(task_id=task_id, timeout=timeout)
 
     def set_response(self, event):
         self.responses.put(event)
@@ -196,7 +208,7 @@ class WebUI(CLI):
 
         self.events_manager.enqueue_event(
             Event(
-                task_id=self.task_id,
+                task_id=self._current_task_id(),
                 type="highlight",
                 message="",
                 interactive=self.is_interactive,
@@ -207,14 +219,16 @@ class WebUI(CLI):
         self.unset_task_id()
 
     def start_task(self, task_id: str):
+        self._primary_task_id = task_id
         self.set_task_id(task_id)
         self.events_manager.start_buffering()
 
     def set_task_id(self, task_id):
-        self.task_id = task_id
+        self._task_id_local.task_id = task_id
 
     def unset_task_id(self):
-        self.task_id = None
+        if hasattr(self._task_id_local, "task_id"):
+            delattr(self._task_id_local, "task_id")
 
     def add_notification(self, message, return_response, url=""):
         self.global_events_manager.add_notification(message, return_response, url)
