@@ -324,3 +324,6 @@ sensitive_tmp_paths = []
 
 # Data Import/Export config
 archive_config_filename = "config.yaml"
+
+# Running containers processes
+running_containers = {}

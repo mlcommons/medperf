@@ -124,6 +124,8 @@ class SingularityRunner(Runner):
         run_args = self.parser.get_run_args(task)
         check_allowed_run_args(run_args)
 
+        run_args["task"] = task
+
         add_medperf_run_args(run_args)
         add_medperf_environment_variables(run_args, medperf_env)
         add_user_defined_run_args(run_args)
@@ -285,8 +287,9 @@ class SingularityRunner(Runner):
 
     def _invoke_run(self, image, run_args, timeout, output_logs):
         run_args["image"] = image
+        task = run_args.pop("task")
 
         # Run
         command = craft_singularity_run_command(run_args, self.executable)
         logging.debug("Running singulairty container")
-        run_command(command, timeout, output_logs)
+        run_command(command, timeout, output_logs, task=task)
