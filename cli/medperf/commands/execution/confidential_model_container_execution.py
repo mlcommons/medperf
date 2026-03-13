@@ -58,7 +58,7 @@ class ConfidentialModelContainerExecution:
             execution_flow.validate()
             execution_flow.prepare()
             execution_flow.setup_workload()
-            if execution_flow.should_run_workload():
+            if not execution_flow.results_exist():
                 execution_flow.run_workload()
             execution_flow.download_predictions()
             execution_flow.run_evaluation()
@@ -167,8 +167,8 @@ class ConfidentialModelContainerExecution:
         self.workload = workload
         self.result_collector_public_key = result_collector_public_key
 
-    def should_run_workload(self):
-        return not workload_results_exists(self.operator_cc_config, self.workload)
+    def results_exist(self):
+        return workload_results_exists(self.operator_cc_config, self.workload)
 
     def run_workload(self):
         config.ui.text = "Running CC workload..."
@@ -182,6 +182,8 @@ class ConfidentialModelContainerExecution:
             self.operator_cc_config,
             self.result_collector_public_key.decode("utf-8"),
         )
+        if not self.results_exist():
+            raise ExecutionError("Workload did not complete successfully.")
 
     def download_predictions(self):
         config.ui.text = "Downloading results..."
@@ -190,7 +192,6 @@ class ConfidentialModelContainerExecution:
         if private_key_bytes is None:
             raise DecryptionError("Missing Private Key")
 
-        # TODO: results_path may contain root name
         download_results(
             self.operator_cc_config, self.workload, private_key_bytes, results_path
         )
