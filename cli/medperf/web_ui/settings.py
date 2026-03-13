@@ -240,7 +240,7 @@ def edit_cc_operator(
         "vm_zone": vm_zone,
         "vm_network": vm_network,
         "boot_disk_size": boot_disk_size,
-        "gpus": gpus,
+        "gpu": gpus,
     }
     if not require_cc:
         args = {}
