@@ -83,7 +83,7 @@ class GCPOperatorConfig(BaseModel):
     bucket: str
     machine_type: str
     boot_disk_size: int  # GB
-    vm_name: str = "testcc"
+    vm_name: str = "gputest"
     vm_zone: str
     vm_network: str
     logs_poll_frequency: int = 30  # seconds
@@ -307,6 +307,9 @@ def run_workload(config: GCPOperatorConfig, metadata: dict[str, str]):
     instance_name = config.vm_name
 
     instance = client.get(project=project_id, zone=zone, instance=instance_name)
+    has_gpu = len(instance.guest_accelerators) > 0
+    if has_gpu:
+        metadata["tee-install-gpu-driver"] = "true"
     metadata_items = []
     for key, value in metadata.items():
         metadata_items.append(compute_v1.Items(key=key, value=value))
