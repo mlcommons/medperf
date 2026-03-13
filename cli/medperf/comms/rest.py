@@ -382,6 +382,21 @@ class REST(Comms):
         error_msg = "Could not retrieve aggregators"
         return self.__get_list(url, filters=filters, error_msg=error_msg)
 
+    def get_aggregator_training_experiments(
+        self, aggregator_id: int, filters=dict()
+    ) -> List[dict]:
+        """Retrieves training experiments that have the given aggregator set.
+
+        Args:
+            aggregator_id (int): Aggregator UID
+
+        Returns:
+            List[dict]: List of training experiment data
+        """
+        url = f"{self.server_url}/aggregators/{aggregator_id}/training_experiments/"
+        error_msg = "Could not retrieve training experiments for aggregator"
+        return self.__get_list(url, filters=filters, error_msg=error_msg)
+
     def get_cas(self, filters=dict()) -> List[dict]:
         """Retrieves all cas
 
@@ -547,16 +562,6 @@ class REST(Comms):
         """
         url = f"{self.server_url}/me/datasets/training_associations/"
         error_msg = "Could not retrieve user datasets training associations"
-        return self.__get_list(url, filters=filters, error_msg=error_msg)
-
-    def get_user_training_aggregators_associations(self, filters=dict()) -> List[dict]:
-        """Get all aggregator associations related to the current user
-
-        Returns:
-            List[dict]: List containing all associations information
-        """
-        url = f"{self.server_url}/me/aggregators/training_associations/"
-        error_msg = "Could not retrieve user aggregators training associations"
         return self.__get_list(url, filters=filters, error_msg=error_msg)
 
     # upload
@@ -757,21 +762,16 @@ class REST(Comms):
         error_msg = "Could not associate dataset to training_exp"
         return self.__post(url, json=data, error_msg=error_msg)
 
-    def associate_training_aggregator(self, aggregator_id: int, training_exp_id: int):
-        """Create a aggregator experiment association
+    def set_training_exp_aggregator(self, training_exp_id: int, data: dict):
+        """Set the aggregator for a training experiment.
 
         Args:
-            aggregator_id (int): Registered aggregator UID
-            training_exp_id (int): training experiment UID
+            training_exp_id (int): Training experiment UID
+            aggregator_id (int): Aggregator UID
         """
-        url = f"{self.server_url}/aggregators/training/"
-        data = {
-            "aggregator": aggregator_id,
-            "training_exp": training_exp_id,
-            "approval_status": Status.PENDING.value,
-        }
-        error_msg = "Could not associate aggregator to training_exp"
-        return self.__post(url, json=data, error_msg=error_msg)
+        url = f"{self.server_url}/training/{training_exp_id}/"
+        error_msg = "Could not set aggregator on training experiment"
+        return self.__put(url, json=data, error_msg=error_msg)
 
     # updates associations
     def update_benchmark_dataset_association(
@@ -801,25 +801,6 @@ class REST(Comms):
         url = f"{self.server_url}/mlcubes/{mlcube_uid}/benchmarks/{benchmark_uid}/"
         error_msg = (
             f"Could update association: mlcube {mlcube_uid}, benchmark {benchmark_uid}"
-        )
-        self.__put(url, json=data, error_msg=error_msg)
-
-    def update_training_aggregator_association(
-        self, training_exp_id: int, aggregator_id: int, data: dict
-    ):
-        """Approves a aggregator association
-
-        Args:
-            dataset_uid (int): Dataset UID
-            benchmark_uid (int): Benchmark UID
-            status (str): Approval status to set for the association
-        """
-        url = (
-            f"{self.server_url}/aggregators/{aggregator_id}/training/{training_exp_id}/"
-        )
-        error_msg = (
-            "Could not update association: aggregator"
-            f" {aggregator_id}, training_exp {training_exp_id}"
         )
         self.__put(url, json=data, error_msg=error_msg)
 

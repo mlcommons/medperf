@@ -4,13 +4,12 @@ from pydantic.datetime_parse import parse_datetime
 
 
 def validate_args(
-    benchmark, training_exp, dataset, model_mlcube, aggregator, approval_status
+    benchmark, training_exp, dataset, model_mlcube, approval_status
 ):
     training_exp = bool(training_exp)
     benchmark = bool(benchmark)
     dataset = bool(dataset)
     model_mlcube = bool(model_mlcube)
-    aggregator = bool(aggregator)
 
     if approval_status is not None:
         if approval_status.lower() not in ["pending", "approved", "rejected"]:
@@ -21,19 +20,14 @@ def validate_args(
         raise InvalidArgumentError(
             "One training experiment or a benchmark flag must be provided"
         )
-    if sum([dataset, model_mlcube, aggregator]) != 1:
+    if sum([dataset, model_mlcube]) != 1:
         raise InvalidArgumentError(
-            "One dataset, container, or aggregator flag must be provided"
+            "One dataset or container flag must be provided"
         )
     if training_exp and model_mlcube:
         raise InvalidArgumentError(
             "Invalid combination of arguments. There are no associations"
             " between training experiments and models"
-        )
-    if benchmark and aggregator:
-        raise InvalidArgumentError(
-            "Invalid combination of arguments. There are no associations"
-            " between benchmarks and aggregators"
         )
 
 
@@ -114,7 +108,6 @@ def get_user_associations(
     comms_functions = {
         "training_exp": {
             "dataset": config.comms.get_user_training_datasets_associations,
-            "aggregator": config.comms.get_user_training_aggregators_associations,
         },
         "benchmark": {
             "dataset": config.comms.get_user_benchmarks_datasets_associations,

@@ -5,7 +5,6 @@ import typer
 import medperf.config as config
 from medperf.decorators import clean_except
 from medperf.commands.aggregator.submit import SubmitAggregator
-from medperf.commands.aggregator.associate import AssociateAggregator
 from medperf.commands.aggregator.run import StartAggregator
 
 from medperf.commands.list import EntityList
@@ -30,22 +29,6 @@ def submit(
 ):
     """Submits an aggregator"""
     SubmitAggregator.run(name, address, port, aggregation_mlcube)
-    config.ui.print("✅ Done!")
-
-
-@app.command("associate")
-@clean_except
-def associate(
-    aggregator_id: int = typer.Option(
-        ..., "--aggregator_id", "-a", help="UID of benchmark to associate with"
-    ),
-    training_exp_id: int = typer.Option(
-        ..., "--training_exp_id", "-t", help="UID of benchmark to associate with"
-    ),
-    approval: bool = typer.Option(False, "-y", help="Skip approval step"),
-):
-    """Associates an aggregator with a training experiment."""
-    AssociateAggregator.run(aggregator_id, training_exp_id, approved=approval)
     config.ui.print("✅ Done!")
 
 

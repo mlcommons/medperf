@@ -25,8 +25,6 @@ from aggregator.models import Aggregator
 from aggregator.serializers import AggregatorSerializer
 from traindataset_association.models import ExperimentDataset
 from traindataset_association.serializers import ExperimentDatasetListSerializer
-from aggregator_association.models import ExperimentAggregator
-from aggregator_association.serializers import ExperimentAggregatorListSerializer
 from trainingevent.serializers import EventDetailSerializer
 from ca.serializers import CASerializer
 from trainingevent.models import TrainingEvent
@@ -318,28 +316,6 @@ class DatasetTrainingAssociationList(GenericAPIView):
         experiment_datasets = self.get_object(request.user.id)
         experiment_datasets = self.paginate_queryset(experiment_datasets)
         serializer = ExperimentDatasetListSerializer(experiment_datasets, many=True)
-        return self.get_paginated_response(serializer.data)
-
-
-class AggregatorAssociationList(GenericAPIView):
-    serializer_class = ExperimentAggregatorListSerializer
-    queryset = ""
-
-    def get_object(self, pk):
-        try:
-            return ExperimentAggregator.objects.filter(
-                Q(aggregator__owner__id=pk) | Q(training_exp__owner__id=pk)
-            )
-        except ExperimentAggregator.DoesNotExist:
-            raise Http404
-
-    def get(self, request, format=None):
-        """
-        Retrieve all aggregator associations involving an asset of mine
-        """
-        experiment_aggs = self.get_object(request.user.id)
-        experiment_aggs = self.paginate_queryset(experiment_aggs)
-        serializer = ExperimentAggregatorListSerializer(experiment_aggs, many=True)
         return self.get_paginated_response(serializer.data)
 
 

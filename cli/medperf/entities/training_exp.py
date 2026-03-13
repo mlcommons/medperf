@@ -29,6 +29,7 @@ class TrainingExp(Entity, MedperfSchema, ApprovableSchema, DeployableSchema):
     data_preparation_mlcube: int
     fl_mlcube: int
     fl_admin_mlcube: Optional[int]
+    aggregator: Optional[int]
     plan: dict = {}
     metadata: dict = {}
     user_metadata: dict = {}
@@ -131,6 +132,7 @@ class TrainingExp(Entity, MedperfSchema, ApprovableSchema, DeployableSchema):
             "Documentation": self.docs_url,
             "Created At": self.created_at,
             "FL Container": int(self.fl_mlcube),
+            "Aggregator": int(self.aggregator) if self.aggregator else None,
             "Plan": self.plan,
             "State": self.state,
             "Registered": self.is_registered,

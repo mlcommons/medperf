@@ -108,7 +108,6 @@ INSTALLED_APPS = [
     "aggregator",
     "ca",
     "traindataset_association",
-    "aggregator_association",
     "ca_association",
     "trainingevent",
     "rest_framework",
