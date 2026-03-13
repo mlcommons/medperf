@@ -16,7 +16,10 @@ from medperf.asset_management.asset_management import (
     workload_results_exists,
 )
 from medperf.utils import get_string_hash
-from medperf.commands.certificate.utils import load_user_private_key
+from medperf.commands.certificate.utils import (
+    current_user_certificate_status,
+    load_user_private_key,
+)
 from medperf.commands.execution.container_execution import ContainerExecution
 from medperf.containers.runners.docker_utils import full_docker_image_name
 
@@ -122,7 +125,18 @@ class ConfidentialModelContainerExecution:
 
     def setup_workload(self):
         if self.dataset.owner == self.operator.id:
-            cert_obj = Certificate.get_user_certificate()
+            status_dict = current_user_certificate_status()
+            user_cert = None
+            if status_dict["should_be_submitted"]:
+                user_cert = Certificate.get_local_user_certificate()
+            elif status_dict["no_action_required"]:
+                user_cert = status_dict["user_cert_object"]
+
+            if not user_cert:
+                raise ExecutionError(
+                    "User must have a certificate to run the confidential model"
+                )
+            cert_obj = user_cert
         else:
             datasets_certs = config.comms.get_benchmark_datasets_certificates(
                 self.benchmark_id
@@ -133,7 +147,9 @@ class ConfidentialModelContainerExecution:
                     cert_obj = Certificate(**cert)
                     break
             else:
-                raise ExecutionError("Dataset not associated.")
+                raise ExecutionError(
+                    "Dataset not associated. Can't find data owner certificate."
+                )
 
         public_key_bytes = cert_obj.public_key()
         result_collector_public_key = base64.b64encode(public_key_bytes)
