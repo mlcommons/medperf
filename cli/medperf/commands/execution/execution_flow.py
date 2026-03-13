@@ -44,8 +44,8 @@ class ExecutionFlow:
             and not user_is_model_owner
         ):
             benchmark = Benchmark.get(benchmark_id)
-            model = Model.get(benchmark.reference_model)
-            script = model.container_obj
+            ref_model = Model.get(benchmark.reference_model)
+            script = ref_model.container_obj
             return ConfidentialModelContainerExecution.run(
                 benchmark_id,
                 dataset,
