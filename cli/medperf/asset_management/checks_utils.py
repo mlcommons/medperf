@@ -1,5 +1,4 @@
 import logging
-from google.auth import impersonated_credentials
 import googleapiclient.discovery
 
 
@@ -70,19 +69,6 @@ def get_role_permissions(role_name: str, resource: str):
     return list(testable.intersection(permissions))
 
 
-def impersonate_service_account(base_creds, sa_email):
-    logging.debug(f"Impersonating service account: {sa_email}")
-    try:
-        return impersonated_credentials.Credentials(
-            source_credentials=base_creds,
-            target_principal=sa_email,
-            target_scopes=["https://www.googleapis.com/auth/cloud-platform"],
-        )
-    except Exception as e:
-        logging.debug(f"Failed to impersonate service account {sa_email}: {e}")
-        return None
-
-
 # ---------------------------------------------------------------------------
 # User roles
 # ---------------------------------------------------------------------------
@@ -139,40 +125,6 @@ def check_user_role_on_bucket(user_str, creds, bucket_name, role):
     except Exception as e:
         logging.debug(f"check_user_role_on_bucket exception: {e}")
         return f"Failed to verify {user_str} role on bucket: {bucket_name}"
-
-
-# ---------------------------------------------------------------------------
-# Service Account roles
-# ---------------------------------------------------------------------------
-
-
-def check_sa_roles_for_project(sa_creds, project_id, role):
-
-    logging.debug(f"Checking service account project permissions: {project_id}")
-    try:
-        permissions = get_role_permissions(
-            role, "//cloudresourcemanager.googleapis.com/projects/_"
-        )
-        crm = googleapiclient.discovery.build(
-            "cloudresourcemanager", "v1", credentials=sa_creds, cache_discovery=False
-        )
-        granted = (
-            crm.projects()
-            .testIamPermissions(resource=project_id, body={"permissions": permissions})
-            .execute()
-        )
-        granted_permissions = granted.get("permissions", [])
-        missing = set(permissions) - set(granted_permissions)
-        if missing:
-            logging.debug(f"Missing permissions: {missing}")
-            return (
-                f"(Role {role}) Service account missing permissions: "
-                f"{missing} on project: {project_id}"
-            )
-        return None
-    except Exception as e:
-        logging.debug(f"check_sa_project_permissions exception: {e}")
-        return f"Failed to verify service account role on project: {project_id}"
 
 
 # ---------------------------------------------------------------------------
