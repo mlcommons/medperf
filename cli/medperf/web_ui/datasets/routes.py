@@ -1,6 +1,7 @@
 import os
 import logging
-from typing import List
+import threading
+from typing import List, Optional
 
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi import Request, APIRouter, Depends, Form
@@ -21,6 +22,10 @@ from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
 from medperf.entities.execution import Execution
+from medperf.entities.training_exp import TrainingExp
+from medperf.commands.association.utils import get_user_associations
+from medperf.commands.dataset.associate_training import AssociateTrainingDataset
+from medperf.commands.dataset.train import TrainingExecution
 from medperf.web_ui.common import (
     templates,
     check_user_ui,
@@ -28,6 +33,7 @@ from medperf.web_ui.common import (
     initialize_state_task,
     reset_state_task,
 )
+from medperf.web_ui.utils import get_container_type
 
 logger = logging.getLogger(__name__)
 
@@ -44,9 +50,7 @@ def datasets_ui(
     my_user_id = get_medperf_user_data()["id"]
     if mine_only:
         filters["owner"] = my_user_id
-    datasets = Dataset.all(
-        filters=filters,
-    )
+    datasets = Dataset.all(filters=filters)
 
     datasets = sorted(datasets, key=lambda x: x.created_at, reverse=True)
     # sort by (mine recent) (mine oldish), (other recent), (other oldish)
@@ -55,7 +59,11 @@ def datasets_ui(
     datasets = mine_datasets + other_datasets
     return templates.TemplateResponse(
         "dataset/datasets.html",
-        {"request": request, "datasets": datasets, "mine_only": mine_only},
+        {
+            "request": request,
+            "datasets": datasets,
+            "mine_only": mine_only,
+        },
     )
 
 
@@ -65,93 +73,135 @@ def dataset_detail_ui(  # noqa
     dataset_id: int,
     current_user: bool = Depends(check_user_ui),
 ):
+    my_user_id = get_medperf_user_data()["id"]
+
     dataset = Dataset.get(dataset_id)
     dataset.read_report()
     dataset.read_statistics()
     prep_cube = Cube.get(cube_uid=dataset.data_preparation_mlcube)
-    benchmark_assocs = Dataset.get_benchmarks_associations(dataset_uid=dataset_id)
-    benchmark_associations = {}
-    for assoc in benchmark_assocs:
-        benchmark_associations[assoc["benchmark"]] = assoc
-    # benchmark_associations = sort_associations_display(benchmark_associations)
 
-    # Get all relevant benchmarks for making an association
-    benchmarks = Benchmark.all()
-    valid_benchmarks = {
-        b.id: b
-        for b in benchmarks
-        if b.data_preparation_mlcube == dataset.data_preparation_mlcube
-    }
-    for benchmark in valid_benchmarks:
-        reference_model_container = valid_benchmarks[benchmark].reference_model_mlcube
-        valid_benchmarks[benchmark].reference_model_mlcube = Cube.get(
-            cube_uid=reference_model_container
-        )
-
+    is_owner = my_user_id == dataset.owner
     dataset_is_operational = dataset.state == "OPERATION"
     dataset_is_prepared = (
         dataset.submitted_as_prepared or dataset.is_ready() or dataset_is_operational
     )
-    approved_benchmarks = [
-        i
-        for i in benchmark_associations
-        if benchmark_associations[i]["approval_status"] == "APPROVED"
-    ]
-    my_user_id = get_medperf_user_data()["id"]
-    is_owner = my_user_id == dataset.owner
-
-    # Get all results
-    results = []
-    if benchmark_assocs:
-        user_id = get_medperf_user_data()["id"]
-        results = Execution.all(filters={"owner": user_id})
-        results = filter_latest_executions(results)
-
-    # Fetch models associated with each benchmark
-    benchmark_models = {}
-    for assoc in benchmark_assocs:
-        if assoc["approval_status"] != "APPROVED":
-            continue  # if association is not approved we cannot list its models
-        models_uids = Benchmark.get_models_uids(benchmark_uid=assoc["benchmark"])
-        models = [Cube.get(cube_uid=model_uid) for model_uid in models_uids]
-        benchmark_models[assoc["benchmark"]] = models
-        for model in models + [
-            valid_benchmarks[assoc["benchmark"]].reference_model_mlcube
-        ]:
-            model._encrypted = model.is_encrypted()
-            if model._encrypted:
-                model.access_status = check_access_to_container(model.id)
-            model.result = None
-            for result in results:
-                if (
-                    result.benchmark == assoc["benchmark"]
-                    and result.dataset == dataset_id
-                    and result.model == model.id
-                ):
-                    model.result = result.todict()
-                    model.result["results_exist"] = (
-                        result.is_executed() or result.finalized
-                    )
-                    if model.result["results_exist"]:
-                        model.result["results"] = result.read_results()
-
     report_exists = os.path.exists(dataset.report_path)
-    return templates.TemplateResponse(
-        "dataset/dataset_detail.html",
-        {
-            "request": request,
-            "dataset": dataset,
-            "prep_cube": prep_cube,
-            "dataset_is_prepared": dataset_is_prepared,
-            "dataset_is_operational": dataset_is_operational,
-            "benchmark_associations": benchmark_associations,  #
-            "benchmarks": valid_benchmarks,  # Benchmarks that can be associated
-            "benchmark_models": benchmark_models,  # Pass associated models without status
-            "approved_benchmarks": approved_benchmarks,
-            "is_owner": is_owner,
-            "report_exists": report_exists,
-        },
-    )
+    ui_mode = request.app.state.ui_mode
+
+    context = {
+        "request": request,
+        "dataset": dataset,
+        "prep_cube": prep_cube,
+        "dataset_is_prepared": dataset_is_prepared,
+        "dataset_is_operational": dataset_is_operational,
+        "is_owner": is_owner,
+        "report_exists": report_exists,
+    }
+
+    if ui_mode == request.app.state.EVALUATION_MODE:
+        benchmark_assocs = Dataset.get_benchmarks_associations(dataset_uid=dataset_id)
+        benchmark_associations = {}
+        for assoc in benchmark_assocs:
+            benchmark_associations[assoc["benchmark"]] = assoc
+        # benchmark_associations = sort_associations_display(benchmark_associations)
+
+        # Get all relevant benchmarks for making an association
+        benchmarks = Benchmark.all()
+        valid_benchmarks = {
+            b.id: b
+            for b in benchmarks
+            if b.data_preparation_mlcube == dataset.data_preparation_mlcube
+        }
+        for benchmark in valid_benchmarks:
+            reference_model_container = valid_benchmarks[
+                benchmark
+            ].reference_model_mlcube
+            valid_benchmarks[benchmark].reference_model_mlcube = Cube.get(
+                cube_uid=reference_model_container
+            )
+        approved_benchmarks = [
+            i
+            for i in benchmark_associations
+            if benchmark_associations[i]["approval_status"] == "APPROVED"
+        ]
+
+        # Get all results
+        results = []
+        if benchmark_assocs:
+            user_id = get_medperf_user_data()["id"]
+            results = Execution.all(filters={"owner": user_id})
+            results = filter_latest_executions(results)
+
+        # Fetch models associated with each benchmark
+        benchmark_models = {}
+        for assoc in benchmark_assocs:
+            if assoc["approval_status"] != "APPROVED":
+                continue  # if association is not approved we cannot list its models
+            models_uids = Benchmark.get_models_uids(benchmark_uid=assoc["benchmark"])
+            models = [Cube.get(cube_uid=model_uid) for model_uid in models_uids]
+            benchmark_models[assoc["benchmark"]] = models
+            for model in models + [
+                valid_benchmarks[assoc["benchmark"]].reference_model_mlcube
+            ]:
+                model._encrypted = model.is_encrypted()
+                if model._encrypted:
+                    model.access_status = check_access_to_container(model.id)
+                model.result = None
+                for result in results:
+                    if (
+                        result.benchmark == assoc["benchmark"]
+                        and result.dataset == dataset_id
+                        and result.model == model.id
+                    ):
+                        model.result = result.todict()
+                        model.result["results_exist"] = (
+                            result.is_executed() or result.finalized
+                        )
+                        if model.result["results_exist"]:
+                            model.result["results"] = result.read_results()
+        context.update(
+            {
+                "benchmark_associations": benchmark_associations,
+                "benchmarks": valid_benchmarks,
+                "benchmark_models": benchmark_models,
+                "approved_benchmarks": approved_benchmarks,
+            }
+        )
+    else:
+        training_associations = {}
+        available_training_experiments = []
+        try:
+            user_training_assocs = get_user_associations(
+                experiment_type="training_exp", component_type="dataset"
+            )
+            for a in user_training_assocs:
+                if a.get("dataset") == dataset_id:
+                    training_associations[a["training_exp"]] = a
+            all_training = TrainingExp.all()
+            available_training_experiments = [
+                t
+                for t in all_training
+                if t.data_preparation_mlcube == dataset.data_preparation_mlcube
+            ]
+        except Exception as e:
+            logger.warning("Could not load training associations: %s", e)
+
+        experiments_by_id = {e.id: e for e in available_training_experiments}
+        for exp_id in training_associations:
+            if exp_id not in experiments_by_id:
+                try:
+                    experiments_by_id[exp_id] = TrainingExp.get(exp_id)
+                except Exception:
+                    pass
+        context.update(
+            {
+                "training_associations": training_associations,
+                "available_training_experiments": available_training_experiments,
+                "experiments_by_id": experiments_by_id,
+            }
+        )
+
+    return templates.TemplateResponse("dataset/dataset_detail.html", context)
 
 
 @router.get("/register/ui", response_class=HTMLResponse)
@@ -159,18 +209,35 @@ def create_dataset_ui(
     request: Request,
     current_user: bool = Depends(check_user_ui),
 ):
-    # Fetch the list of benchmarks to populate the benchmark dropdown
-    benchmarks = Benchmark.all()
-    # Render the dataset creation form with the list of benchmarks
-    return templates.TemplateResponse(
-        "dataset/register_dataset.html", {"request": request, "benchmarks": benchmarks}
-    )
+    ui_mode = request.app.state.ui_mode
+    context = {"request": request}
+
+    if ui_mode == request.app.state.EVALUATION_MODE:
+        benchmarks = Benchmark.all()
+        context["benchmarks"] = benchmarks
+    else:
+        my_containers = Cube.all()
+        containers = []
+        for container in my_containers:
+            container_obj = {
+                "id": container.id,
+                "name": container.name,
+                "type": get_container_type(container),
+            }
+            containers.append(container_obj)
+        data_prep_containers = [
+            c for c in containers if c["type"] == "data-prep-container"
+        ]
+        context["data_prep_containers"] = data_prep_containers
+
+    return templates.TemplateResponse("dataset/register_dataset.html", context)
 
 
 @router.post("/register/", response_class=JSONResponse)
 def register_dataset(
     request: Request,
-    benchmark: int = Form(...),
+    benchmark: Optional[int] = Form(None),
+    prep_cube_uid: Optional[int] = Form(None),
     name: str = Form(...),
     description: str = Form(...),
     location: str = Form(...),
@@ -178,13 +245,13 @@ def register_dataset(
     labels_path: str = Form(...),
     current_user: bool = Depends(check_user_api),
 ):
-    initialize_state_task(request, task_name="dataset_registration")
-    return_response = {"status": "", "dataset_id": None, "error": ""}
+    initialize_state_task(request, task_name="register_dataset")
+    return_response = {"status": "", "entity_id": None, "error": ""}
     dataset_id = None
     try:
         dataset_id = DataCreation.run(
             benchmark_uid=benchmark,
-            prep_cube_uid=None,
+            prep_cube_uid=prep_cube_uid,
             data_path=data_path,
             labels_path=labels_path,
             metadata_path=None,
@@ -195,7 +262,7 @@ def register_dataset(
             submit_as_prepared=False,
         )
         return_response["status"] = "success"
-        return_response["dataset_id"] = dataset_id
+        return_response["entity_id"] = dataset_id
         notification_message = "Dataset successfully registered"
     except Exception as exp:
         return_response["status"] = "failed"
@@ -223,7 +290,7 @@ def prepare(
     dataset_id: int = Form(...),
     current_user: bool = Depends(check_user_api),
 ):
-    initialize_state_task(request, task_name="dataset_preparation")
+    initialize_state_task(request, task_name="prepare")
     return_response = {"status": "", "dataset_id": None, "error": ""}
 
     try:
@@ -307,6 +374,84 @@ def associate(
     return return_response
 
 
+@router.post("/associate_training", response_class=JSONResponse)
+def associate_training(
+    request: Request,
+    dataset_id: int = Form(...),
+    training_exp_id: int = Form(...),
+    current_user: bool = Depends(check_user_api),
+):
+    initialize_state_task(request, task_name="dataset_training_association")
+    return_response = {"status": "", "error": ""}
+    try:
+        AssociateTrainingDataset.run(
+            data_uid=dataset_id,
+            training_exp_uid=training_exp_id,
+            approved=True,
+        )
+        return_response["status"] = "success"
+        notification_message = (
+            "Successfully requested dataset association with training experiment"
+        )
+    except Exception as exp:
+        return_response["status"] = "failed"
+        return_response["error"] = str(exp)
+        notification_message = "Failed to request association with training experiment"
+        logger.exception(exp)
+
+    config.ui.end_task(return_response)
+    reset_state_task(request)
+    config.ui.add_notification(
+        message=notification_message,
+        return_response=return_response,
+        url=f"/datasets/ui/display/{dataset_id}",
+    )
+    return return_response
+
+
+def _run_training_worker(
+    request: Request, training_exp_id: int, dataset_id: int, task_id: str
+):
+    redirect_url = f"/datasets/ui/display/{dataset_id}"
+    return_response = {"status": "", "error": ""}
+    notification_message = "Training successfully finished"
+    config.ui.set_task_id(task_id)
+    try:
+        TrainingExecution.run(training_exp_id=training_exp_id, data_uid=dataset_id)
+        return_response["status"] = "success"
+    except Exception as exp:
+        return_response["status"] = "failed"
+        return_response["error"] = str(exp)
+        notification_message = "An error occurred during training execution"
+        logger.exception(exp)
+
+    config.ui.end_task(return_response)
+    reset_state_task(request, task_id)
+    config.ui.add_notification(
+        message=notification_message,
+        return_response=return_response,
+        url=redirect_url,
+    )
+
+
+@router.post("/start_training", response_class=JSONResponse)
+def start_training(
+    request: Request,
+    dataset_id: int = Form(...),
+    training_exp_id: int = Form(...),
+    current_user: bool = Depends(check_user_api),
+):
+    task_id = initialize_state_task(request, task_name="start_training")
+
+    threading.Thread(
+        target=_run_training_worker,
+        args=(request, training_exp_id, dataset_id, task_id),
+        daemon=True,
+    ).start()
+
+    return {"status": "started", "error": ""}
+
+
 @router.post("/run", response_class=JSONResponse)
 def run(
     request: Request,
@@ -316,7 +461,7 @@ def run(
     run_all: bool = Form(...),
     current_user: bool = Depends(check_user_api),
 ):
-    initialize_state_task(request, task_name="benchmark_run")
+    initialize_state_task(request, task_name="run_benchmark")
     return_response = {"status": "", "error": ""}
 
     try:
@@ -351,7 +496,7 @@ def submit_result(
     result_id: str = Form(...),
     current_user: bool = Depends(check_user_api),
 ):
-    initialize_state_task(request, task_name="result_submit")
+    initialize_state_task(request, task_name="submit_result")
     return_response = {"status": "", "error": ""}
 
     try:
@@ -411,7 +556,7 @@ def export_dataset(
     current_user: bool = Depends(check_user_api),
 ):
 
-    initialize_state_task(request, task_name="dataset_export")
+    initialize_state_task(request, task_name="export_dataset")
     return_response = {"status": "", "error": "", "dataset_id": dataset_id}
 
     try:
@@ -455,7 +600,7 @@ def import_dataset(
     current_user: bool = Depends(check_user_api),
 ):
 
-    initialize_state_task(request, task_name="dataset_import")
+    initialize_state_task(request, task_name="import_dataset")
     return_response = {"status": "", "error": "", "dataset_id": dataset_id}
 
     try:
