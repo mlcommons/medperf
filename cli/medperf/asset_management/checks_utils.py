@@ -217,9 +217,9 @@ def check_user_role_on_wip(creds, wip, role):
 # ---------------------------------------------------------------------------
 
 
-def check_user_role_on_vm(user_str, creds, project_id, vm_name, vm_zone, role):
+def check_user_role_on_vm(creds, project_id, vm_name, vm_zone, role):
 
-    logging.debug(f"Checking if {user_str} has {role} role on VM: {vm_name}")
+    logging.debug(f"Checking if user has {role} role on VM: {vm_name}")
     try:
         permissions = get_role_permissions(
             role,
@@ -242,8 +242,8 @@ def check_user_role_on_vm(user_str, creds, project_id, vm_name, vm_zone, role):
         missing = set(permissions) - set(granted_permissions)
         if missing:
             logging.debug(f"Missing permissions: {missing}")
-            return f"(Role {role}) {user_str} missing permissions: {missing} on VM: {vm_name}"
+            return f"(Role {role}) user missing permissions: {missing} on VM: {vm_name}"
         return None
     except Exception as e:
         logging.debug(f"check_user_role_on_vm exception: {e}")
-        return f"Failed to verify {user_str} role on VM: {vm_name}"
+        return f"Failed to verify user role on VM: {vm_name}"
