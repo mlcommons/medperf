@@ -1,18 +1,33 @@
 {% set path = request.url.path %}
-{% set nav_benchmarks = path == "/benchmarks/ui" or path.startswith("/benchmarks/") %}
-{% set nav_containers = path == "/containers/ui" or path.startswith("/containers/") %}
-{% set nav_datasets = path == "/datasets/ui" or path.startswith("/datasets/") %}
+{% set ui_mode = request.app.state.ui_mode %}
+{% set is_training_mode = (ui_mode == request.app.state.TRAINING_MODE) %}
+{% set nav_benchmarks = path.startswith("/benchmarks/") %}
+{% set nav_containers = path.startswith("/containers/") %}
+{% set nav_datasets = path.startswith("/datasets/") %}
+{% set nav_training = path.startswith("/training/") %}
+{% set nav_aggregators = path.startswith("/aggregators/") %}
+{% set evaluation_mode = request.app.state.EVALUATION_MODE %}
+{% set training_mode = request.app.state.TRAINING_MODE %}
 
 <nav class="medperf-bg dark:bg-gray-800 shadow-lg sticky top-0 z-40 border-b border-transparent dark:border-gray-700" x-data="{ open: false, notifOpen: false }">
     <div class="container mx-auto px-4 py-4">
         <div class="flex items-center justify-between">
-            <div class="flex items-center gap-8">
+            <div class="flex items-center gap-6">
                 <a href="/" class="text-white text-2xl font-bold flex items-center gap-3">
                     <img alt="MedPerf Logo" src="{{ url_for('static', path='images/medperf_logo.svg') }}" class="h-10 w-auto brightness-0 invert">
                     <span class="hidden sm:inline">MedPerf</span>
                 </a>
+                <div class="hidden md:flex rounded-lg bg-white/10 p-1 gap-0.5" role="tablist">
+                    <a href="/set_mode?mode={{evaluation_mode}}" class="px-3 py-1.5 rounded-md text-sm font-semibold transition-colors {% if not is_training_mode %}bg-white/25 text-white{% else %}text-white/80 hover:text-white{% endif %}" role="tab">Evaluation</a>
+                    <a href="/set_mode?mode={{training_mode}}" class="px-3 py-1.5 rounded-md text-sm font-semibold transition-colors {% if is_training_mode %}bg-white/25 text-white{% else %}text-white/80 hover:text-white{% endif %}" role="tab">Training</a>
+                </div>
                 <div class="hidden md:flex gap-6">
+                    {% if is_training_mode %}
+                    <a href="/training/ui" class="font-semibold pb-1 border-b-2 {% if nav_training %}text-white border-white{% else %}text-white/80 border-transparent hover:text-white hover:border-white/50{% endif %} transition-colors">Training</a>
+                    <a href="/aggregators/ui" class="font-semibold pb-1 border-b-2 {% if nav_aggregators %}text-white border-white{% else %}text-white/80 border-transparent hover:text-white hover:border-white/50{% endif %} transition-colors">Aggregators</a>
+                    {% else %}
                     <a href="/benchmarks/ui" class="font-semibold pb-1 border-b-2 {% if nav_benchmarks %}text-white border-white{% else %}text-white/80 border-transparent hover:text-white hover:border-white/50{% endif %} transition-colors">Benchmarks</a>
+                    {% endif %}
                     <a href="/containers/ui" class="font-semibold pb-1 border-b-2 {% if nav_containers %}text-white border-white{% else %}text-white/80 border-transparent hover:text-white hover:border-white/50{% endif %} transition-colors">Containers</a>
                     <a href="/datasets/ui" class="font-semibold pb-1 border-b-2 {% if nav_datasets %}text-white border-white{% else %}text-white/80 border-transparent hover:text-white hover:border-white/50{% endif %} transition-colors">Datasets</a>
                 </div>
@@ -24,7 +39,7 @@
                         <i class="fa fa-bell text-xl" aria-hidden="true"></i>
                         <span id="notifications-count" class="absolute -top-0.5 -right-0.5 min-w-[1.25rem] h-5 px-1 bg-red-500 rounded-full flex items-center justify-center text-xs text-white {% if not unread_notifications %}hidden{% endif %}">0</span>
                     </button>
-                    <ul id="notifications-list" x-show="notifOpen" x-cloak x-transition class="absolute right-0 mt-2 w-80 max-w-[min(20rem,100vw-2rem)] max-h-[70vh] overflow-y-auto overflow-x-hidden bg-white dark:bg-gray-800 rounded-xl shadow-xl border-2 border-gray-200 dark:border-gray-700 py-2 z-50 list-none"
+                    <ul id="notifications-list" x-show="notifOpen" x-cloak x-transition class="absolute right-0 mt-2 w-96 min-w-[20rem] max-w-[min(24rem,100vw-2rem)] max-h-[70vh] overflow-y-auto overflow-x-hidden bg-white dark:bg-gray-800 rounded-xl shadow-xl border-2 border-gray-200 dark:border-gray-700 py-2 z-50 list-none"
                         style="display: none;">
                         {% if not notifications %}
                         <li class="px-4 py-3 text-gray-500 dark:text-gray-400 text-sm">No notifications yet</li>
@@ -67,9 +82,20 @@
             </div>
         </div>
         <div x-show="open" x-cloak x-transition class="md:hidden mt-4 pt-4 border-t border-white/20" style="display: none;">
+            <div class="flex gap-2 mb-3">
+                <a href="/set_mode?mode=evaluation" class="px-3 py-1.5 rounded-lg text-sm font-semibold {% if not is_training_mode %}bg-white/25 text-white{% else %}text-white/80{% endif %}">Evaluation</a>
+                <a href="/set_mode?mode=training" class="px-3 py-1.5 rounded-lg text-sm font-semibold {% if is_training_mode %}bg-white/25 text-white{% else %}text-white/80{% endif %}">Training</a>
+            </div>
+            {% if is_training_mode %}
+            <a href="/training/ui" class="block py-2 text-white/90 hover:text-white">Training</a>
+            <a href="/aggregators/ui" class="block py-2 text-white/90 hover:text-white">Aggregators</a>
+            <a href="/datasets/ui" class="block py-2 text-white/90 hover:text-white">Datasets</a>
+            <a href="/containers/ui" class="block py-2 text-white/90 hover:text-white">Containers</a>
+            {% else %}
             <a href="/benchmarks/ui" class="block py-2 text-white/90 hover:text-white">Benchmarks</a>
             <a href="/containers/ui" class="block py-2 text-white/90 hover:text-white">Containers</a>
             <a href="/datasets/ui" class="block py-2 text-white/90 hover:text-white">Datasets</a>
+            {% endif %}
         </div>
     </div>
 </nav>

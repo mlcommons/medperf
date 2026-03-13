@@ -1,11 +1,8 @@
 {% import 'macros/modal_macros.html' as modal_macros %}
-{% set task_running = request.app.state.task.running %}
+{% set task_running = request.app.state.task_running %}
 {% set logged_in = request.app.state.logged_in %}
 {% set notifications = request.app.state.notifications %}
 {% set unread_notifications = request.app.state.unread_count %}
-{% if task_running %}
-{% set task_formData = request.app.state.task.formData %}
-{% endif %}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -15,6 +12,7 @@
     <title>{% block title %}MedPerf{% endblock %}</title>
     <script>
         (function(){
+            window.taskRunning = true ? "{{ task_running }}" === "True" : false;
             var d = document.documentElement;
             var v = localStorage.getItem('medperf-dark');
             if (v === '1' || (v === null && typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches))
@@ -52,13 +50,12 @@
         #page-modal.modal-visible #page-modal-dialog { transform: scale(1); }
     </style>
     <script>
+        window.ui_mode = "{{ request.app.state.ui_mode }}";
+        window.evaluation_mode = "{{ request.app.state.EVALUATION_MODE }}";
         window.notifications = {{ notifications | tojson }};
         window.maxLogMessages = Number("{{ request.app.state.MAXLOGMESSAGES }}");
         window.evSource = null;
     </script>
-    {% if task_running %}
-    <script>window.runningTaskId = "{{ request.app.state.task.id }}";</script>
-    {% endif %}
     {% block extra_css %} {% endblock extra_css %}
 </head>
 <body class="min-h-screen bg-[#f1f8f4] dark:bg-gray-900">
@@ -76,7 +73,6 @@
             <div id="page-modal-dialog" class="rounded-2xl shadow-xl max-w-md w-full mx-auto relative bg-white dark:bg-gray-800 border-2 border-green-100 dark:border-gray-700 max-h-[90vh] flex flex-col scale-95 transition-transform duration-300 ease-out">
                 <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
                     <h2 id="page-modal-title" class="text-xl font-bold medperf-accent dark:text-green-400"></h2>
-                    <button type="button" id="page-modal-close-btn" class="p-1 rounded text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 cursor-pointer" aria-label="Close">&times;</button>
                 </div>
                 <div id="page-modal-body" class="p-6 overflow-y-auto flex-1 break-words text-gray-900 dark:text-white"></div>
                 <div id="page-modal-footer" class="p-6 border-t border-gray-200 dark:border-gray-700 flex flex-wrap gap-2 justify-end"></div>
