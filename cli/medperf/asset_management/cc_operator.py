@@ -8,7 +8,7 @@ from medperf.asset_management.gcp_utils import (
     wait_for_workload_completion,
 )
 from medperf.asset_management.operator_check import verify_operator_setup
-from medperf.exceptions import MedperfException
+from medperf.exceptions import MedperfException, ExecutionError
 from medperf.utils import generate_tmp_path, untar
 from medperf.encryption import SymmetricEncryption, AsymmetricEncryption
 
@@ -69,7 +69,12 @@ class OperatorManager:
         if self.config.gpu:
             raise MedperfException("GPU workloads are not supported yet")
         else:
-            run_workload(self.config, metadata)
+            try:
+                run_workload(self.config, metadata)
+            except Exception:
+                raise ExecutionError(
+                    "Failed to run workload: User lacks permissions or VM does not exist"
+                )
 
     def wait_for_workload_completion(self, workload: CCWorkloadID):
         wait_for_workload_completion(self.config, workload)
