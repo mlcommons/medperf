@@ -36,6 +36,11 @@ def get_permitted_workloads(dataset: Dataset):
         benchmark_id = assoc["benchmark"]
         benchmark = Benchmark.get(benchmark_id)
         evaluator = Cube.get(benchmark.data_evaluator_mlcube)
+        if evaluator.is_script():
+            script_hash = evaluator.image_hash
+        else:
+            ref_model = Model.get(benchmark.reference_model)
+            script_hash = ref_model.container_obj.image_hash
         model_assocs = config.comms.get_benchmark_models_associations(benchmark_id)
         for model_assoc in model_assocs:
             model = Model.get(model_assoc["model"])
@@ -43,7 +48,7 @@ def get_permitted_workloads(dataset: Dataset):
             workload_info = CCWorkloadID(
                 data_hash=dataset.generated_uid,
                 model_hash=asset.asset_hash,
-                script_hash=evaluator.image_hash,
+                script_hash=script_hash,
                 result_collector_hash=public_key_hash,
                 data_id=dataset.id,
                 model_id=model.id,
