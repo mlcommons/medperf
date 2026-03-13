@@ -20,9 +20,7 @@ class OperatorManager:
     def setup(self):
         """Set up complete operator infrastructure"""
         success, message = verify_operator_setup(
-            self.config.service_account_email,
-            self.config.project_id,
-            self.config.bucket,
+            self.config.service_account_email, self.config.bucket
         )
 
         if not success:
