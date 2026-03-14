@@ -8,6 +8,8 @@ from .storage import (
 )
 from .types import CCWorkloadID, GCPOperatorConfig, GCPAssetConfig
 from .workload_identity import update_workload_identity_pool_oidc_provider
+from . import checks
+from .utils import get_user_credentials
 
 __all__ = [
     "run_workload",
@@ -22,4 +24,6 @@ __all__ = [
     "CCWorkloadID",
     "GCPOperatorConfig",
     "GCPAssetConfig",
+    "checks",
+    "get_user_credentials",
 ]
