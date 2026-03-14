@@ -3,10 +3,7 @@ const fields = [
     "operator-service_account_name",
     "operator-bucket",
     "operator-vm_zone",
-    "operator-vm_network",
-    "operator-boot_disk_size",
-    "operator-gpus",
-    "operator-machine_type",
+    "operator-vm_name",
 ];
 
 function checkForCCEditChanges() {
@@ -20,7 +17,7 @@ function checkForCCEditChanges() {
         return currentValue !== defaultValue;
     });
     hasChanges = hasChanges || requireCCChanged;
-    $('#apply-cc-operator-btn').prop('disabled', !hasChanges);    
+    $('#apply-cc-operator-btn').prop('disabled', !hasChanges);
 }
 
 function editCCConfig(editCCConfigBtn) {
@@ -36,7 +33,7 @@ function editCCConfig(editCCConfigBtn) {
         "POST",
         formData,
         (response) => {
-            if (response.status === "success"){
+            if (response.status === "success") {
                 showReloadModal({
                     title: "CC Configuration Edited Successfully",
                     seconds: 3
@@ -60,7 +57,7 @@ $(document).ready(() => {
 
     fields + ["require-cc-operator"].forEach(field => $(`#${field}`).on('keyup, change', checkForCCEditChanges));
     checkForCCEditChanges();
-    
+
     $("#apply-cc-operator-btn").on("click", (e) => {
         showConfirmModal(e.currentTarget, editCCConfig, "edit CC configuration?");
     });

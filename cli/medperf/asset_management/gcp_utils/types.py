@@ -1,7 +1,6 @@
 from pydantic import BaseModel
 
 
-# TODO: validation of inputs
 class CCWorkloadID(BaseModel):
     data_hash: str
     model_hash: str
@@ -39,23 +38,6 @@ class CCWorkloadID(BaseModel):
         return f"d{self.data_id}-m{self.model_id}-s{self.script_id}"
 
     @property
-    def vm_template_name(self):
-        return f"{self.human_readable_id}-vm-template"
-
-    @property
-    def instance_group_name(self):
-        return f"{self.human_readable_id}-vm-instance-group"
-
-    @property
-    def resize_request_name(self):
-        return f"{self.human_readable_id}-vm-instance-group-resize-request"
-
-    @property
-    def vm_name(self):
-        # not used
-        return f"{self.human_readable_id}-cvm"
-
-    @property
     def results_path(self):
         return f"{self.human_readable_id}/output"
 
@@ -68,24 +50,9 @@ class GCPOperatorConfig(BaseModel):
     project_id: str
     service_account_name: str
     bucket: str
-    machine_type: str
-    boot_disk_size: int  # GB
-    vm_name: str = "gputest"
+    vm_name: str
     vm_zone: str
-    vm_network: str
     logs_poll_frequency: int = 30  # seconds
-    gpu: bool
-    run_duration: int = 24  # hours, only applicable for GPU workloads
-
-    @property
-    def min_cpu_platform(self):
-        # TODO: check
-        return "AMD Milan"
-
-    @property
-    def cc_type(self):
-        # TODO: check
-        return "SEV"
 
     @property
     def service_account_email(self):

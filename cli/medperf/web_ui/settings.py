@@ -224,23 +224,17 @@ def edit_cc_operator(
     require_cc: bool = Form(...),
     project_id: str = Form(""),
     service_account_name: str = Form(""),
-    machine_type: str = Form(""),
     bucket: str = Form(""),
     vm_zone: str = Form(""),
-    vm_network: str = Form(""),
-    boot_disk_size: str = Form(""),
-    gpus: str = Form(""),
+    vm_name: str = Form(""),
     current_user: bool = Depends(check_user_api),
 ):
     args = {
         "project_id": project_id,
         "service_account_name": service_account_name,
-        "machine_type": machine_type,
         "bucket": bucket,
         "vm_zone": vm_zone,
-        "vm_network": vm_network,
-        "boot_disk_size": boot_disk_size,
-        "gpu": gpus,
+        "vm_name": vm_name,
     }
     if not require_cc:
         args = {}

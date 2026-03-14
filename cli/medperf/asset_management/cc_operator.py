@@ -63,18 +63,12 @@ class OperatorManager:
         for key, value in env_vars.items():
             metadata[f"tee-env-{key}"] = value
 
-        if self.config.gpu:
-            metadata["tee-install-gpu-driver"] = "true"
-
-        if self.config.gpu:
-            raise MedperfException("GPU workloads are not supported yet")
-        else:
-            try:
-                run_workload(self.config, metadata)
-            except Exception:
-                raise ExecutionError(
-                    "Failed to run workload: User lacks permissions or VM does not exist"
-                )
+        try:
+            run_workload(self.config, metadata)
+        except Exception:
+            raise ExecutionError(
+                "Failed to run workload: User lacks permissions or VM does not exist"
+            )
 
     def wait_for_workload_completion(self, workload: CCWorkloadID):
         wait_for_workload_completion(self.config, workload)

@@ -40,7 +40,6 @@ def validate_cc_config(cc_config: dict, asset_name_prefix: str):
 def validate_cc_operator_config(cc_config: dict):
     if cc_config == {}:
         return
-    cc_config["gpu"] = bool(int(cc_config.get("gpu", "0")))
     GCPOperatorConfig(**cc_config)
 
 
