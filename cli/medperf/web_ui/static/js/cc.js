@@ -6,6 +6,7 @@ const fields = [
     "cc-key_name",
     "cc-key_location",
     "cc-wip",
+    "cc-wip_provider",
 ];
 
 function onCCEditRequestSuccess(response){

@@ -32,8 +32,6 @@ def validate_cc_config(cc_config: dict, asset_name_prefix: str):
     cc_config["encrypted_key_bucket_file"] = asset_name_prefix + "_key.enc"
 
     # TODO: data hash checks
-    # TODO: remove default values once we have a better way to manage these configurations
-    cc_config["wip_provider"] = cc_config.get("wip_provider", "attestation-verifier")
     GCPAssetConfig(**cc_config)
 
 

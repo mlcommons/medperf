@@ -514,6 +514,7 @@ def edit_cc_config(
     key_name: str = Form(""),
     key_location: str = Form(""),
     wip: str = Form(""),
+    wip_provider: str = Form(""),
     current_user: bool = Depends(check_user_api),
 ):
     args = {
@@ -524,6 +525,7 @@ def edit_cc_config(
         "key_name": key_name,
         "key_location": key_location,
         "wip": wip,
+        "wip_provider": wip_provider,
     }
     if not require_cc:
         args = {}
