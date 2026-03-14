@@ -18,6 +18,8 @@ from medperf.utils import (
     remove_path,
 )
 from medperf.encryption import SymmetricEncryption, AsymmetricEncryption
+from colorama import Fore, Style
+import medperf.config as medperf_config
 
 
 class OperatorManager:
@@ -78,7 +80,10 @@ class OperatorManager:
             )
 
     def wait_for_workload_completion(self, workload: CCWorkloadID):
-        wait_for_workload_completion(self.config, workload)
+        for output in wait_for_workload_completion(self.config, workload):
+            medperf_config.ui.print_subprocess_logs(
+                f"{Fore.WHITE}{Style.DIM}{output}{Style.RESET_ALL}"
+            )
 
     def results_exist(self, workload: CCWorkloadID):
         results_exist = check_gcs_file_exists(self.config, workload.results_path)

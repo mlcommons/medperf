@@ -1,9 +1,6 @@
-
 import logging
 from google.cloud import compute_v1
 import time
-from colorama import Fore, Style
-import medperf.config as medperf_config
 from .types import GCPOperatorConfig, CCWorkloadID
 
 
@@ -106,7 +103,7 @@ def wait_for_workload_completion(
         instance = client.get(project=project_id, zone=zone, instance=instance_name)
         status = instance.status
         if status == "TERMINATED":
-            return "TERMINATED"
+            return
         request = compute_v1.GetSerialPortOutputInstanceRequest(
             project=project_id,
             zone=zone,
@@ -116,9 +113,7 @@ def wait_for_workload_completion(
         output = client.get_serial_port_output(request=request)
         if output.contents:
             next_start = output.next_
-            medperf_config.ui.print_subprocess_logs(
-                f"{Fore.WHITE}{Style.DIM}{output.contents}{Style.RESET_ALL}"
-            )
             logging.debug(output.contents)
+            yield output.contents
 
         time.sleep(config.logs_poll_frequency)
