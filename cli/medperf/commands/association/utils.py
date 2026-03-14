@@ -1,6 +1,10 @@
 from medperf.exceptions import InvalidArgumentError, MedperfException
 from medperf import config
 from pydantic.datetime_parse import parse_datetime
+from medperf.entities.dataset import Dataset
+from medperf.entities.model import Model
+from medperf.encryption import Signing
+from medperf.commands.certificate.utils import load_user_private_key
 
 
 def validate_args(benchmark, training_exp, dataset, model, aggregator, approval_status):
@@ -151,3 +155,29 @@ def _post_process_associtations(
         ]
 
     return assocs
+
+
+def sign_dataset_association(assoc):
+    dataset_id = assoc["dataset"]
+    benchmak_id = assoc["benchmark"]
+    dataset = Dataset.get(dataset_id)
+    dataset_hash = dataset.generated_uid
+    user_private_key = load_user_private_key()
+    signature = Signing().sign_prehashed(user_private_key, dataset_hash)
+    body = {"signature": signature}
+    config.comms.update_benchmark_dataset_association(benchmak_id, dataset_id, body)
+
+
+def sign_model_association(assoc):
+    model_id = assoc["model"]
+    benchmark_id = assoc["benchmark"]
+    model = Model.get(model_id)
+    if model.is_container():
+        model_hash = model.container.image_hash
+        model_hash = model_hash.replace("sha256:", "")
+    else:
+        model_hash = model.asset.asset_hash
+    user_private_key = load_user_private_key()
+    signature = Signing().sign_prehashed(user_private_key, model_hash)
+    body = {"signature": signature}
+    config.comms.update_benchmark_model_association(benchmark_id, model_id, body)
