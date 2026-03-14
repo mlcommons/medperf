@@ -93,14 +93,10 @@ class OperatorManager:
         key_path = generate_tmp_path()
 
         download_file_from_gcs(
-            self.config,
-            f"gs://{self.config.bucket}/{workload.results_path}",
-            encrypted_results_path,
+            self.config, workload.results_path, encrypted_results_path
         )
         download_file_from_gcs(
-            self.config,
-            f"gs://{self.config.bucket}/{workload.results_encryption_key_path}",
-            key_path,
+            self.config, workload.results_encryption_key_path, key_path
         )
 
         with open(key_path, "rb") as key_file:

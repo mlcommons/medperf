@@ -1,37 +1,26 @@
 from typing import Union
-from medperf.utils import run_command
 from google.cloud import storage
 from .types import GCPAssetConfig, GCPOperatorConfig
-
-GCP_EXEC = "gcloud"
 
 
 def upload_file_to_gcs(
     config: Union[GCPAssetConfig, GCPOperatorConfig], local_file: str, gcs_path: str
 ):
     """Upload file to Google Cloud Storage."""
-    cmd = [
-        GCP_EXEC,
-        "storage",
-        "cp",
-        local_file,
-        gcs_path,
-    ]
-    run_command(cmd)
+    client = storage.Client()
+    bucket = client.bucket(config.bucket)
+    blob = bucket.blob(gcs_path)
+    blob.upload_from_filename(local_file)
 
 
 def download_file_from_gcs(
     config: Union[GCPAssetConfig, GCPOperatorConfig], gcs_path: str, local_file: str
 ):
     """Download file from Google Cloud Storage."""
-    cmd = [
-        GCP_EXEC,
-        "storage",
-        "cp",
-        gcs_path,
-        local_file,
-    ]
-    run_command(cmd)
+    client = storage.Client()
+    bucket = client.bucket(config.bucket)
+    blob = bucket.blob(gcs_path)
+    blob.download_to_filename(local_file)
 
 
 def check_gcs_file_exists(

@@ -46,7 +46,7 @@ class AssetPolicyManager:
         upload_file_to_gcs(
             self.config,
             tmp_encrypted_key_path,
-            f"gs://{self.config.bucket}/{self.config.encrypted_key_bucket_file}",
+            self.config.encrypted_key_bucket_file,
         )
 
     def __update_wip_oidc_provider(

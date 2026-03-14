@@ -24,7 +24,7 @@ class AssetStorageManager:
         upload_file_to_gcs(
             self.config,
             tmp_encrypted_asset_path,
-            f"gs://{self.config.bucket}/{self.config.encrypted_asset_bucket_file}",
+            self.config.encrypted_asset_bucket_file,
         )
 
     def setup(self):
