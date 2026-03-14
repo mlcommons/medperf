@@ -1,4 +1,3 @@
-import binascii
 import os
 from medperf.exceptions import (
     DecryptionError,
@@ -7,10 +6,9 @@ from medperf.exceptions import (
     MedperfException,
 )
 from medperf.utils import run_command
-from cryptography.hazmat.primitives.asymmetric import padding, utils
+from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives import serialization
-from cryptography.exceptions import InvalidSignature
 from cryptography import x509
 import logging
 
@@ -113,41 +111,3 @@ class AsymmetricEncryption:
             return data_bytes
         except Exception as e:
             raise DecryptionError(f"Data decryption failed: {str(e)}")
-
-
-class Signing:
-    def __init__(self):
-        self.padding = padding.PSS(
-            mgf=padding.MGF1(hashes.SHA256()),
-            salt_length=padding.PSS.MAX_LENGTH,
-        )
-
-    def sign_prehashed(self, private_key_bytes: bytes, data_hash_hex: str) -> bytes:
-        logging.debug("Performing Asymmetric Signing")
-        try:
-            private_key = serialization.load_pem_private_key(
-                data=private_key_bytes, password=None
-            )
-            data_hash = binascii.unhexlify(data_hash_hex)
-            signature = private_key.sign(
-                data_hash, self.padding, utils.Prehashed(hashes.SHA256())
-            )
-            return signature
-        except Exception as e:
-            raise EncryptionError(f"Data signing failed: {str(e)}")
-
-    def verify_prehashed(
-        self, public_key_bytes: bytes, data_hash_hex: str, signature: bytes
-    ) -> bool:
-        logging.debug("Performing Asymmetric Signature Verification")
-        try:
-            public_key_obj = serialization.load_pem_public_key(public_key_bytes)
-            data_hash = binascii.unhexlify(data_hash_hex)
-            public_key_obj.verify(
-                signature, data_hash, self.padding, utils.Prehashed(hashes.SHA256())
-            )
-            return True
-        except InvalidSignature:
-            return False
-        except Exception as e:
-            raise EncryptionError(f"Signature verification failed: {str(e)}")
