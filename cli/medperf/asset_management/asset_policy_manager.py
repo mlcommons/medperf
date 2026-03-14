@@ -1,3 +1,4 @@
+from medperf.exceptions import MedperfException
 from medperf.utils import generate_tmp_path
 from medperf.asset_management.gcp_utils import (
     GCPAssetConfig,
@@ -13,14 +14,12 @@ from medperf.asset_management.gcp_utils import (
 def get_workload_id_scheme(for_model: bool = False):
     if for_model:
         return (
-            "attribute.workload_uid="
             'assertion.submods.container.image_digest+"::"+'
             "assertion.submods.container.env_override.EXPECTED_MODEL_HASH"
         )
 
     else:
         return (
-            "attribute.workload_uid="
             'assertion.submods.container.image_digest+"::"+'
             'assertion.submods.container.env_override.EXPECTED_DATA_HASH+"::"+'
             'assertion.submods.container.env_override.EXPECTED_MODEL_HASH+"::"+'
@@ -55,14 +54,16 @@ class AssetPolicyManager:
         # IMPORTANT: https://docs.cloud.google.com/confidential-computing/
         # confidential-space/docs/create-grant-access-confidential-resources#attestation-assertions
         google_subject_attr = (
-            'google.subject="gcpcs::"'
+            '"gcpcs::"'
             '+assertion.submods.container.image_digest+"::"'
             '+assertion.submods.gce.project_number+"::"'
             "+assertion.submods.gce.instance_id"
         )
         workload_uid_attr = get_workload_id_scheme(for_model=for_model)
-
-        attribute_mapping = google_subject_attr + "," + workload_uid_attr
+        attribute_mapping = {
+            "google.subject": google_subject_attr,
+            "attribute.workload_uid": workload_uid_attr,
+        }
         attribute_condition = 'assertion.swname == "CONFIDENTIAL_SPACE"'
         attribute_condition += (
             " && 'STABLE' in assertion.submods.confidential_space.support_attributes"
@@ -80,10 +81,14 @@ class AssetPolicyManager:
                 f'assertion.submods.nvidia_gpu.cc_mode == "{policy["gpu_cc_mode"]}"'
             )
             attribute_condition += f" && {gpu_cc_mode_condition}"
-
-        update_workload_identity_pool_oidc_provider(
-            self.config, attribute_mapping, attribute_condition
-        )
+        try:
+            update_workload_identity_pool_oidc_provider(
+                self.config, attribute_mapping, attribute_condition
+            )
+        except Exception as e:
+            raise MedperfException(
+                f"Failed to update workload identity pool OIDC provider: {e}"
+            )
 
     def __get_principal_set(
         self, permitted_workloads: list[CCWorkloadID], for_model: bool = False
