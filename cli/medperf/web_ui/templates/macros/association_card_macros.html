@@ -12,14 +12,14 @@
                 <input type="hidden" name="task_name" value="reject_association">
                 <input type="hidden" name="benchmark_id" value="{{ assoc.benchmark }}">
                 {% if entity_type == "dataset" %}<input type="hidden" name="dataset_id" value="{{ entity.id }}">{% endif %}
-                {% if entity_type == "container" %}<input type="hidden" name="container_id" value="{{ entity.id }}">{% endif %}
+                {% if entity_type == "container" or entity_type == "model" %}<input type="hidden" name="model_id" value="{{ entity.id }}">{% endif %}
                 <button type="submit" class="px-3 py-1.5 rounded-lg bg-red-600 text-white text-sm font-semibold hover:bg-red-700">Reject</button>
             </form>
             <form action="/benchmarks/approve" method="post" class="inline benchmark-action-form" data-panel-title="Approving association" data-confirm-message="approve this association? This action cannot be undone.">
                 <input type="hidden" name="task_name" value="approve_association">
                 <input type="hidden" name="benchmark_id" value="{{ assoc.benchmark }}">
                 {% if entity_type == "dataset" %}<input type="hidden" name="dataset_id" value="{{ entity.id }}">{% endif %}
-                {% if entity_type == "container" %}<input type="hidden" name="container_id" value="{{ entity.id }}">{% endif %}
+                {% if entity_type == "container" or entity_type == "model" %}<input type="hidden" name="model_id" value="{{ entity.id }}">{% endif %}
                 <button type="submit" class="px-3 py-1.5 rounded-lg medperf-bg dark:bg-green-600 text-white text-sm font-semibold hover:opacity-90">Approve</button>
             </form>
         </span>

@@ -136,7 +136,7 @@ def dataset_detail_ui(  # noqa
             if assoc["approval_status"] != "APPROVED":
                 continue  # if association is not approved we cannot list its models
             models_uids = Benchmark.get_models_uids(benchmark_uid=assoc["benchmark"])
-            models = [Model.get(cube_uid=model_uid) for model_uid in models_uids]
+            models = [Model.get(model_uid) for model_uid in models_uids]
             benchmark_models[assoc["benchmark"]] = models
             for model in models + [
                 valid_benchmarks[assoc["benchmark"]].reference_model

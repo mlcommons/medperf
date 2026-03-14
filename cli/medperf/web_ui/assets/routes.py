@@ -58,7 +58,7 @@ def register_asset(
 ):
     initialize_state_task(request, task_name="asset_registration")
 
-    return_response = {"status": "", "error": "", "asset_id": None}
+    return_response = {"status": "", "error": "", "asset_id": None, "entity_id": None}
     asset_id = None
     try:
         asset_id = SubmitAsset.run(
@@ -69,6 +69,7 @@ def register_asset(
         )
         return_response["status"] = "success"
         return_response["asset_id"] = asset_id
+        return_response["entity_id"] = asset_id
         notification_message = "Asset successfully registered"
     except Exception as exp:
         return_response["status"] = "failed"

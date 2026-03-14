@@ -98,7 +98,7 @@ def associate(
     current_user: bool = Depends(check_user_api),
 ):
     initialize_state_task(request, task_name="model_association")
-    return_response = {"status": "", "error": ""}
+    return_response = {"status": "", "error": "", "entity_id": model_id}
     try:
         AssociateModel.run(model_uid=model_id, benchmark_uid=benchmark_id)
         return_response["status"] = "success"

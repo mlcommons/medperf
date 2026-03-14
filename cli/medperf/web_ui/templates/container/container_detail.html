@@ -10,7 +10,7 @@
     <div class="flex items-center justify-between mb-6">
         <div class="flex items-center mb-3">
             <h1 class="text-5xl font-bold medperf-accent dark:text-green-400">{{ entity.name }}</h1>
-            {% if not owner and entity._encrypted %}
+            {% if not is_owner and entity._encrypted %}
             <i class="fas fa-lock text-xl ml-2 text-gray-500 dark:text-gray-400 cursor-help" title="Encrypted"></i>
             {% endif %}
         </div>
