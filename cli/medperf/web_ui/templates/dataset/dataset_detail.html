@@ -17,6 +17,12 @@
         <input class="btn btn-dark float-end my-4" type="submit" name="submit" value="Export Dataset">
     </form>
 </div>
+{% if dataset_hash_mismatch %}
+<p class="card-text">
+    <strong class="text-danger">Data hash mismatch</strong> 
+    <i class="fas fa-exclamation-triangle text-danger"></i>
+</p>
+{% endif %}
 
 <div class="{% if dataset.is_valid %}card{% else %}invalid-card{% endif %}">
     <div class="card-body">

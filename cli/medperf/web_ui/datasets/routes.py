@@ -89,7 +89,7 @@ def dataset_detail_ui(  # noqa
         ref_model_id = valid_benchmarks[benchmark].reference_model
         valid_benchmarks[benchmark].reference_model = Model.get(ref_model_id)
 
-    dataset_is_operational = dataset.state == "OPERATION"
+    dataset_is_operational = dataset.is_operational()
     dataset_is_prepared = dataset.is_ready() or dataset_is_operational
     approved_benchmarks = [
         i
@@ -99,6 +99,9 @@ def dataset_detail_ui(  # noqa
     user_obj = get_medperf_user_object()
     my_user_id = user_obj.id
     is_owner = my_user_id == dataset.owner
+    dataset_hash_mismatch = None
+    if dataset_is_operational and is_owner:
+        dataset_hash_mismatch = not dataset.check_hash()
 
     # Get all results
     results = []
@@ -163,6 +166,7 @@ def dataset_detail_ui(  # noqa
             "prep_cube": prep_cube,
             "dataset_is_prepared": dataset_is_prepared,
             "dataset_is_operational": dataset_is_operational,
+            "dataset_hash_mismatch": dataset_hash_mismatch,
             "benchmark_associations": benchmark_associations,  #
             "benchmarks": valid_benchmarks,  # Benchmarks that can be associated
             "benchmark_models": benchmark_models,  # Pass associated models without status

@@ -31,7 +31,6 @@ def validate_cc_config(cc_config: dict, asset_name_prefix: str):
     cc_config["encrypted_asset_bucket_file"] = asset_name_prefix + ".enc"
     cc_config["encrypted_key_bucket_file"] = asset_name_prefix + "_key.enc"
 
-    # TODO: data hash checks
     GCPAssetConfig(**cc_config)
 
 
