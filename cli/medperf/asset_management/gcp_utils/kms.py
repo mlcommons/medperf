@@ -1,9 +1,7 @@
-from medperf.utils import run_command
-from google.cloud import kms
+from google.cloud import kms_v1 as kms
 from google.iam.v1 import policy_pb2
 from .types import GCPAssetConfig
-
-GCP_EXEC = "gcloud"
+import logging
 
 
 def set_kms_iam_policy(config: GCPAssetConfig, members: list[str], role: str):
@@ -25,16 +23,14 @@ def set_kms_iam_policy(config: GCPAssetConfig, members: list[str], role: str):
     client.set_iam_policy(request={"resource": config.full_key_name, "policy": policy})
 
 
-def encrypt_with_kms_key(
-    config: GCPAssetConfig, plaintext_file: str, ciphertext_file: str
-):
-    """Encrypt file using KMS key."""
-    cmd = [
-        GCP_EXEC,
-        "kms",
-        "encrypt",
-        f"--ciphertext-file={ciphertext_file}",
-        f"--plaintext-file={plaintext_file}",
-        f"--key={config.full_key_name}",
-    ]
-    run_command(cmd)
+def encrypt_with_kms_key(config: GCPAssetConfig, plaintext: bytes) -> bytes:
+    """Encrypt a string using a KMS key via Python client."""
+    client = kms.KeyManagementServiceClient()
+
+    # Encrypt
+    response = client.encrypt(
+        request={"name": config.full_key_name, "plaintext": plaintext}
+    )
+
+    logging.debug(f"Encrypted using {config.full_key_name}")
+    return response.ciphertext

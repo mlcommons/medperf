@@ -2,7 +2,9 @@ from .compute import run_workload, wait_for_workload_completion
 from .kms import set_kms_iam_policy, encrypt_with_kms_key
 from .storage import (
     upload_file_to_gcs,
+    upload_string_to_gcs,
     download_file_from_gcs,
+    download_string_from_gcs,
     check_gcs_file_exists,
     set_gcs_iam_policy,
 )
@@ -17,7 +19,9 @@ __all__ = [
     "set_kms_iam_policy",
     "encrypt_with_kms_key",
     "upload_file_to_gcs",
+    "upload_string_to_gcs",
     "download_file_from_gcs",
+    "download_string_from_gcs",
     "check_gcs_file_exists",
     "set_gcs_iam_policy",
     "update_workload_identity_pool_oidc_provider",

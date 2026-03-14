@@ -11,17 +11,11 @@ from medperf.asset_management.asset_policy_manager import AssetPolicyManager
 from medperf.asset_management.cc_operator import OperatorManager
 from medperf.utils import tar, generate_tmp_path
 import secrets
-import os
-from medperf import config
 from medperf.exceptions import MedperfException
 
 
-def generate_encryption_key(encryption_key_file: str):
-    with open(encryption_key_file, "wb") as f:
-        pass
-    os.chmod(encryption_key_file, 0o700)
-    with open(encryption_key_file, "ab") as f:
-        f.write(secrets.token_bytes(32))
+def generate_encryption_key():
+    return secrets.token_bytes(32)
 
 
 def validate_cc_config(cc_config: dict, asset_name_prefix: str):
@@ -50,15 +44,7 @@ def setup_dataset_for_cc(dataset: Dataset):
     asset_path = generate_tmp_path()
     tar(asset_path, [dataset.data_path, dataset.labels_path])
 
-    # create encryption key
-    encryption_key_folder = os.path.join(
-        config.cc_artifacts_dir, "dataset" + str(dataset.id)
-    )
-    os.makedirs(encryption_key_folder, exist_ok=True)
-    encryption_key_file = os.path.join(encryption_key_folder, "encryption_key.bin")
-    generate_encryption_key(encryption_key_file)
-
-    __setup_asset_for_cc(cc_config, cc_policy, asset_path, encryption_key_file)
+    __setup_asset_for_cc(cc_config, cc_policy, asset_path)
 
 
 def setup_model_for_cc(model: Model):
@@ -75,32 +61,20 @@ def setup_model_for_cc(model: Model):
     # create model asset
     asset_path = asset.get_archive_path()
 
-    # create encryption key
-    encryption_key_folder = os.path.join(
-        config.cc_artifacts_dir, "model" + str(model.id)
-    )
-    os.makedirs(encryption_key_folder, exist_ok=True)
-    encryption_key_file = os.path.join(encryption_key_folder, "encryption_key.bin")
-    generate_encryption_key(encryption_key_file)
-
-    __setup_asset_for_cc(
-        cc_config, cc_policy, asset_path, encryption_key_file, for_model=True
-    )
+    __setup_asset_for_cc(cc_config, cc_policy, asset_path, for_model=True)
 
 
 def __setup_asset_for_cc(
     cc_config: dict,
     cc_policy: dict,
     asset_path: str,
-    encryption_key_file: str,
     for_model: bool = False,
 ):
-    asset_storage_manager = AssetStorageManager(
-        cc_config, asset_path, encryption_key_file
-    )
-    asset_policy_manager = AssetPolicyManager(
-        cc_config, encryption_key_file, for_model=for_model
-    )
+    # create encryption key
+    encryption_key = generate_encryption_key()
+
+    asset_storage_manager = AssetStorageManager(cc_config, asset_path, encryption_key)
+    asset_policy_manager = AssetPolicyManager(cc_config, for_model=for_model)
     asset_storage_manager.setup()
     asset_policy_manager.setup()
 
@@ -108,7 +82,8 @@ def __setup_asset_for_cc(
     asset_storage_manager.store_asset()
 
     # policy setup
-    asset_policy_manager.setup_policy(cc_policy)
+    asset_policy_manager.setup_policy(cc_policy, encryption_key)
+    del encryption_key
 
 
 def update_dataset_cc_policy(dataset: Dataset, permitted_workloads: list[CCWorkloadID]):
@@ -118,12 +93,7 @@ def update_dataset_cc_policy(dataset: Dataset, permitted_workloads: list[CCWorkl
         )
 
     cc_config = dataset.get_cc_config()
-    encryption_key_folder = os.path.join(
-        config.cc_artifacts_dir, "dataset" + str(dataset.id)
-    )
-    encryption_key_file = os.path.join(encryption_key_folder, "encryption_key.bin")
-
-    asset_policy_manager = AssetPolicyManager(cc_config, encryption_key_file)
+    asset_policy_manager = AssetPolicyManager(cc_config)
     asset_policy_manager.configure_policy(permitted_workloads)
 
 
@@ -138,14 +108,7 @@ def update_model_cc_policy(model: Model, permitted_workloads: list[CCWorkloadID]
             f"Model {model.id} is not a file-based asset and cannot be set up for confidential computing."
         )
 
-    encryption_key_folder = os.path.join(
-        config.cc_artifacts_dir, "model" + str(model.id)
-    )
-    encryption_key_file = os.path.join(encryption_key_folder, "encryption_key.bin")
-
-    asset_policy_manager = AssetPolicyManager(
-        cc_config, encryption_key_file, for_model=True
-    )
+    asset_policy_manager = AssetPolicyManager(cc_config, for_model=True)
     asset_policy_manager.configure_policy(permitted_workloads)
 
 

@@ -3,13 +3,20 @@ from medperf.asset_management.gcp_utils import (
     GCPOperatorConfig,
     CCWorkloadID,
     download_file_from_gcs,
+    download_string_from_gcs,
     check_gcs_file_exists,
     run_workload,
     wait_for_workload_completion,
 )
 from medperf.asset_management.operator_check import verify_operator_setup
 from medperf.exceptions import MedperfException, ExecutionError
-from medperf.utils import generate_tmp_path, untar
+from medperf.utils import (
+    generate_tmp_path,
+    untar,
+    tmp_path_for_cc_asset_key,
+    secure_write_to_file,
+    remove_path,
+)
 from medperf.encryption import SymmetricEncryption, AsymmetricEncryption
 
 
@@ -90,30 +97,26 @@ class OperatorManager:
     ):
 
         encrypted_results_path = generate_tmp_path()
-        key_path = generate_tmp_path()
 
         download_file_from_gcs(
             self.config, workload.results_path, encrypted_results_path
         )
-        download_file_from_gcs(
-            self.config, workload.results_encryption_key_path, key_path
+        encrypted_key = download_string_from_gcs(
+            self.config, workload.results_encryption_key_path
         )
-
-        with open(key_path, "rb") as key_file:
-            encrypted_key = key_file.read()
 
         decryption_key = AsymmetricEncryption().decrypt(
             private_key_bytes, encrypted_key
         )
 
-        tmp_key_path = generate_tmp_path()
-        with open(tmp_key_path, "wb") as tmp_key_file:
-            tmp_key_file.write(decryption_key)
-
         results_archive_path = generate_tmp_path()
+        tmp_key_path = tmp_path_for_cc_asset_key()
+        secure_write_to_file(tmp_key_path, decryption_key)
         SymmetricEncryption().decrypt_file(
             encrypted_results_path, tmp_key_path, results_archive_path
         )
+        remove_path(tmp_key_path, sensitive=True)
+        del decryption_key
 
         # Extract results
         untar(results_archive_path, remove=True, extract_to=results_path)

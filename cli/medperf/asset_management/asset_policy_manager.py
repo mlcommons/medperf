@@ -1,9 +1,8 @@
 from medperf.exceptions import MedperfException
-from medperf.utils import generate_tmp_path
 from medperf.asset_management.gcp_utils import (
     GCPAssetConfig,
     CCWorkloadID,
-    upload_file_to_gcs,
+    upload_string_to_gcs,
     encrypt_with_kms_key,
     set_kms_iam_policy,
     set_gcs_iam_policy,
@@ -28,23 +27,18 @@ def get_workload_id_scheme(for_model: bool = False):
 
 
 class AssetPolicyManager:
-    def __init__(self, config: dict, encryption_key_file: str, for_model: bool = False):
+    def __init__(self, config: dict, for_model: bool = False):
         self.config = GCPAssetConfig(**config)
-        self.encryption_key_file = encryption_key_file
         self.for_model = for_model
 
-    def __encrypt_key(self):
-        tmp_encrypted_key_path = generate_tmp_path()
+    def __encrypt_key(self, encryption_key: bytes):
+        encrypted_key = encrypt_with_kms_key(self.config, encryption_key)
+        return encrypted_key
 
-        encrypt_with_kms_key(
-            self.config, self.encryption_key_file, tmp_encrypted_key_path
-        )
-        return tmp_encrypted_key_path
-
-    def __upload_encrypted_key(self, tmp_encrypted_key_path):
-        upload_file_to_gcs(
+    def __upload_encrypted_key(self, encrypted_key):
+        upload_string_to_gcs(
             self.config,
-            tmp_encrypted_key_path,
+            encrypted_key,
             self.config.encrypted_key_bucket_file,
         )
 
@@ -128,9 +122,9 @@ class AssetPolicyManager:
     def setup(self):
         pass
 
-    def setup_policy(self, policy: dict[str, str]):
-        tmp_encrypted_key_path = self.__encrypt_key()
-        self.__upload_encrypted_key(tmp_encrypted_key_path)
+    def setup_policy(self, policy: dict[str, str], encryption_key: bytes):
+        encrypted_key = self.__encrypt_key(encryption_key)
+        self.__upload_encrypted_key(encrypted_key)
         self.__update_wip_oidc_provider(policy, for_model=self.for_model)
 
     def configure_policy(self, permitted_workloads: list[CCWorkloadID]):

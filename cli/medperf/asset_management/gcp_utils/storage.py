@@ -13,6 +13,16 @@ def upload_file_to_gcs(
     blob.upload_from_filename(local_file)
 
 
+def upload_string_to_gcs(
+    config: Union[GCPAssetConfig, GCPOperatorConfig], content: bytes, gcs_path: str
+):
+    """Upload string content to Google Cloud Storage."""
+    client = storage.Client()
+    bucket = client.bucket(config.bucket)
+    blob = bucket.blob(gcs_path)
+    blob.upload_from_string(content)
+
+
 def download_file_from_gcs(
     config: Union[GCPAssetConfig, GCPOperatorConfig], gcs_path: str, local_file: str
 ):
@@ -21,6 +31,16 @@ def download_file_from_gcs(
     bucket = client.bucket(config.bucket)
     blob = bucket.blob(gcs_path)
     blob.download_to_filename(local_file)
+
+
+def download_string_from_gcs(
+    config: Union[GCPAssetConfig, GCPOperatorConfig], gcs_path: str
+) -> bytes:
+    """Download string content from Google Cloud Storage."""
+    client = storage.Client()
+    bucket = client.bucket(config.bucket)
+    blob = bucket.blob(gcs_path)
+    return blob.download_as_bytes()
 
 
 def check_gcs_file_exists(
