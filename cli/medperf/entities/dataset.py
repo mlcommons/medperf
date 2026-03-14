@@ -128,13 +128,13 @@ class Dataset(Entity):
         return calculated_hash
 
     def calculate_prepared_hash(self):
-        if not self.is_operational():
-            raise InvalidEntityError("Dataset is not operational. Cannot check hash.")
         calculated_hash = get_folders_hash([self.data_path, self.labels_path])
         logging.debug(f"Prepared dataset calculated hash: {calculated_hash}")
         return calculated_hash
 
     def check_hash(self):
+        if not self.is_operational():
+            raise InvalidEntityError("Dataset is not operational. Cannot check hash.")
         calculated_hash = self.calculate_prepared_hash()
         return calculated_hash == self.generated_uid
 
