@@ -10,7 +10,12 @@ from .serializers import (
     CertificateDetailSerializer,
     CertificateWithOwnerInfoSerializer,
 )
-from .permissions import IsAssociatedModelOwner, IsCertificateOwner, IsAdmin
+from .permissions import (
+    IsAssociatedModelOwner,
+    IsCertificateOwner,
+    IsAdmin,
+    IsBenchmarkOwner,
+)
 from drf_spectacular.utils import extend_schema
 from dataset.models import Dataset
 from benchmark.models import Benchmark
@@ -86,7 +91,7 @@ class CertificateDetail(GenericAPIView):
 
 
 class CertificatesFromBenchmark(GenericAPIView):
-    permission_classes = [IsAdmin | IsAssociatedModelOwner]
+    permission_classes = [IsAdmin | IsAssociatedModelOwner | IsBenchmarkOwner]
 
     def get_object(self, pk):
         try:

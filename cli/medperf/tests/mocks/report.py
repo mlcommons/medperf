@@ -1,15 +1,18 @@
-from typing import Optional, Union
 from medperf.entities.report import TestReport
 
 
 class TestTestReport(TestReport):
     __test__ = False
-    demo_dataset_url: Optional[str] = "url"
-    demo_dataset_hash: Optional[str] = "hash"
-    data_path: Optional[str]
-    labels_path: Optional[str]
-    prepared_data_hash: Optional[str]
-    data_preparation_mlcube: Optional[Union[int, str]] = 1
-    model: Union[int, str] = 2
-    data_evaluator_mlcube: Union[int, str] = 3
-    results: Optional[dict] = {"acc": 1}
+
+    def __init__(self, **kwargs):
+        defaults = {
+            "demo_dataset_url": "url",
+            "demo_dataset_hash": "hash",
+            "prepared_data_hash": None,
+            "data_preparation_mlcube": 1,
+            "model": 2,
+            "data_evaluator_mlcube": 3,
+            "results": {"acc": 1},
+        }
+        defaults.update(kwargs)
+        super().__init__(**defaults)

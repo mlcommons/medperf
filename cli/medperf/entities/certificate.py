@@ -1,6 +1,7 @@
 from __future__ import annotations
 import os
 from medperf.entities.interface import Entity
+from medperf.entities.schemas import CertificateSchema
 from medperf.account_management import get_medperf_user_data
 from medperf import config
 from medperf.exceptions import MedperfException
@@ -8,6 +9,9 @@ from medperf.utils import generate_tmp_path
 import base64
 from typing import List, Tuple
 import logging
+from cryptography import x509
+from cryptography.hazmat.primitives import serialization
+from medperf.entities.utils import handle_validation_error
 
 
 class Certificate(Entity):
@@ -15,9 +19,6 @@ class Certificate(Entity):
     Class representing a Certificate uploaded to the MedPerf server
     Currently only supports Client Certificates (ie common name is a email)
     """
-
-    certificate_content_base64: str
-    ca: int
 
     @staticmethod
     def get_type():
@@ -38,6 +39,13 @@ class Certificate(Entity):
     @staticmethod
     def get_comms_uploader():
         return config.comms.upload_certificate
+
+    @handle_validation_error
+    def __init__(self, **kwargs):
+        self._model = CertificateSchema(**kwargs)
+        super().__init__()
+        self.certificate_content_base64 = self._model.certificate_content_base64
+        self.ca = self._model.ca
 
     @property
     def local_id(self):
@@ -101,6 +109,15 @@ class Certificate(Entity):
         if "owner" in filters and filters["owner"] == get_medperf_user_data()["id"]:
             comms_fn = config.comms.get_user_certificates
         return comms_fn
+
+    def public_key(self):
+        certificate_bytes = base64.b64decode(self.certificate_content_base64)
+        certificate_obj = x509.load_pem_x509_certificate(data=certificate_bytes)
+        public_key_bytes = certificate_obj.public_key().public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo,
+        )
+        return public_key_bytes
 
     def display_dict(self):
         return {

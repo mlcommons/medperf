@@ -2,17 +2,17 @@ import os
 from typing import List
 
 from medperf.entities.training_exp import TrainingExp
-from pydantic import validator
 
 from medperf.entities.interface import Entity
-from medperf.entities.schemas import MedperfSchema
+from medperf.entities.schemas import AggregatorSchema
 
 import medperf.config as config
 from medperf.account_management import get_medperf_user_data
 import yaml
+from medperf.entities.utils import handle_validation_error
 
 
-class Aggregator(Entity, MedperfSchema):
+class Aggregator(Entity):
     """
     Class representing a compatibility test report entry
 
@@ -26,10 +26,6 @@ class Aggregator(Entity, MedperfSchema):
     - evaluator cube
     - results
     """
-
-    metadata: dict = {}
-    config: dict
-    aggregation_mlcube: int
 
     @staticmethod
     def get_type():
@@ -51,20 +47,16 @@ class Aggregator(Entity, MedperfSchema):
     def get_comms_uploader():
         return config.comms.upload_aggregator
 
-    @validator("config", pre=True, always=True)
-    def check_config(cls, v, *, values, **kwargs):
-        keys = set(v.keys())
-        allowed_keys = {
-            "address",
-            "port",
-        }
-        if keys != allowed_keys:
-            raise ValueError("config must contain two keys only: address and port")
-        return v
+    @handle_validation_error
+    def __init__(self, **kwargs):
+        self._model = AggregatorSchema(**kwargs)
+        super().__init__()
+        self.metadata = self._model.metadata
+        self.config = self._model.config
+        self.aggregation_mlcube = self._model.aggregation_mlcube
+        self._set_helper_attributes()
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
+    def _set_helper_attributes(self):
         self.address = self.config["address"]
         self.port = self.config["port"]
 

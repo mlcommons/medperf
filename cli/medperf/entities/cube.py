@@ -1,10 +1,8 @@
 import os
-from typing import List, Optional, Union
-from medperf.commands.association.utils import get_user_associations
-from pydantic import Field
+from typing import Union
 
 from medperf.entities.interface import Entity
-from medperf.entities.schemas import DeployableSchema
+from medperf.entities.schemas import CubeSchema
 from medperf.exceptions import InvalidEntityError, MedperfException
 import medperf.config as config
 from medperf.comms.entity_resources import resources
@@ -19,9 +17,10 @@ from medperf.utils import (
 )
 from medperf.entities.encrypted_key import EncryptedKey
 import logging
+from medperf.entities.utils import handle_validation_error
 
 
-class Cube(Entity, DeployableSchema):
+class Cube(Entity):
     """
     Class representing an MLCube Container
 
@@ -30,14 +29,6 @@ class Cube(Entity, DeployableSchema):
     containers are software containers (e.g., Docker and Singularity)
     with standard metadata and a consistent file-system level interface.
     """
-
-    container_config: dict
-    parameters_config: Optional[dict]
-    image_hash: Optional[str]
-    additional_files_tarball_url: Optional[str] = Field(None, alias="tarball_url")
-    additional_files_tarball_hash: Optional[str] = Field(None, alias="tarball_hash")
-    metadata: dict = Field(default_factory=dict)
-    user_metadata: dict = Field(default_factory=dict)
 
     @staticmethod
     def get_type():
@@ -59,14 +50,27 @@ class Cube(Entity, DeployableSchema):
     def get_comms_uploader():
         return config.comms.upload_mlcube
 
-    def __init__(self, *args, **kwargs):
+    @handle_validation_error
+    def __init__(self, **kwargs):
         """Creates a Cube instance
 
         Args:
             cube_desc (Union[dict, CubeModel]): MLCube Instance description
         """
-        super().__init__(*args, **kwargs)
+        self._model = CubeSchema(**kwargs)
+        super().__init__()
+        self.state = self._model.state
+        self.container_config = self._model.container_config
+        self.parameters_config = self._model.parameters_config
+        self.image_hash = self._model.image_hash
+        self.additional_files_tarball_url = self._model.additional_files_tarball_url
+        self.additional_files_tarball_hash = self._model.additional_files_tarball_hash
+        self.metadata = self._model.metadata
+        self.user_metadata = self._model.user_metadata
 
+        self._set_helper_attributes()
+
+    def _set_helper_attributes(self):
         # Note: the paths can be arbitrary
         self.params_path = os.path.join(self.path, config.params_filename)
         self.additional_files_folder_path = os.path.join(
@@ -91,8 +95,11 @@ class Cube(Entity, DeployableSchema):
     def local_id(self):
         return self.name
 
-    def is_encrypted(self):
+    def is_encrypted(self) -> bool:
         return self.parser.is_container_encrypted()
+
+    def is_model(self) -> bool:
+        return self.parser.is_model_container()
 
     @staticmethod
     def remote_prefilter(filters: dict):
@@ -265,29 +272,6 @@ class Cube(Entity, DeployableSchema):
 
     def is_metadata_specified(self):
         return self.parser.is_metadata_specified()
-
-    @classmethod
-    def get_benchmarks_associations(cls, mlcube_uid: int) -> List[dict]:
-        """Retrieves the list of benchmarks model is associated with
-
-        Args:
-            mlcube_uid (int): UID of the cube.
-
-        Returns:
-            List[dict]: List of associations
-        """
-        experiment_type = "benchmark"
-        component_type = "model_mlcube"
-
-        associations = get_user_associations(
-            experiment_type=experiment_type,
-            component_type=component_type,
-            approval_status=None,
-        )
-
-        associations = [a for a in associations if a["model_mlcube"] == mlcube_uid]
-
-        return associations
 
     def display_dict(self):
         return {

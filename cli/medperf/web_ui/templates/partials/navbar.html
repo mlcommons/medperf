@@ -6,6 +6,7 @@
 {% set nav_datasets = path.startswith("/datasets/") %}
 {% set nav_training = path.startswith("/training/") %}
 {% set nav_aggregators = path.startswith("/aggregators/") %}
+{% set nav_models = path.startswith("/models/") %}
 {% set evaluation_mode = request.app.state.EVALUATION_MODE %}
 {% set training_mode = request.app.state.TRAINING_MODE %}
 
@@ -28,6 +29,7 @@
                     {% else %}
                     <a href="/benchmarks/ui" class="font-semibold pb-1 border-b-2 {% if nav_benchmarks %}text-white border-white{% else %}text-white/80 border-transparent hover:text-white hover:border-white/50{% endif %} transition-colors">Benchmarks</a>
                     {% endif %}
+                    <a href="/models/ui" class="font-semibold pb-1 border-b-2 {% if nav_models %}text-white border-white{% else %}text-white/80 border-transparent hover:text-white hover:border-white/50{% endif %} transition-colors">Models</a>
                     <a href="/containers/ui" class="font-semibold pb-1 border-b-2 {% if nav_containers %}text-white border-white{% else %}text-white/80 border-transparent hover:text-white hover:border-white/50{% endif %} transition-colors">Containers</a>
                     <a href="/datasets/ui" class="font-semibold pb-1 border-b-2 {% if nav_datasets %}text-white border-white{% else %}text-white/80 border-transparent hover:text-white hover:border-white/50{% endif %} transition-colors">Datasets</a>
                 </div>
@@ -91,8 +93,10 @@
             <a href="/aggregators/ui" class="block py-2 text-white/90 hover:text-white">Aggregators</a>
             <a href="/datasets/ui" class="block py-2 text-white/90 hover:text-white">Datasets</a>
             <a href="/containers/ui" class="block py-2 text-white/90 hover:text-white">Containers</a>
+            <a href="/models/ui" class="block py-2 text-white/90 hover:text-white">Models</a>
             {% else %}
             <a href="/benchmarks/ui" class="block py-2 text-white/90 hover:text-white">Benchmarks</a>
+            <a href="/models/ui" class="block py-2 text-white/90 hover:text-white">Models</a>
             <a href="/containers/ui" class="block py-2 text-white/90 hover:text-white">Containers</a>
             <a href="/datasets/ui" class="block py-2 text-white/90 hover:text-white">Datasets</a>
             {% endif %}

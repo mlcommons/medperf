@@ -2,6 +2,7 @@
 {% extends "detail_base.html" %}
 
 {% import 'macros/container_macros.html' as container_macros %}
+{% import 'macros/model_macros.html' as model_macros %}
 {% import 'macros/benchmark_macros.html' as benchmark_macros %}
 
 {% block title %}Dataset Details - {{ dataset.name }}{% endblock title %}
@@ -268,7 +269,7 @@
 
 {% for assoc in benchmark_associations %}
 	{% if assoc in approved_benchmarks %}
-	{% set reference_model = benchmarks[assoc].reference_model_mlcube %}
+	{% set reference_model = benchmarks[assoc].reference_model %}
 	<div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border-2 border-green-100 dark:border-gray-700 mt-6 mb-4 overflow-hidden">
 		<div class="px-4 py-3 medperf-bg dark:bg-green-700 flex justify-between items-center text-white">
 			<h4 class="mb-0">
@@ -294,7 +295,7 @@
                         {% set results_exist = reference_model.result and reference_model.result.results_exist %}
 						<div class="model-info flex flex-col">
                             <small class="text-gray-500 dark:text-gray-400">&nbsp;Reference Model</small>
-							{{ container_macros.container_link(reference_model) }}
+							{{ model_macros.model_link(reference_model) }}
 						</div>
 						<div class="flex items-center flex-wrap gap-2">
 							<div class="mx-2">
@@ -354,7 +355,7 @@
                             {% endif %}
                             </div>
                             {% endif %}
-							{{ container_macros.container_link(model) }}
+							{{ model_macros.model_link(model) }}
 						</div>
 						<div class="flex items-center flex-wrap gap-2">
 							<div class="mx-2">

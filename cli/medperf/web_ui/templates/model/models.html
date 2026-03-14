@@ -1,0 +1,81 @@
+{# ./cli/medperf/web_ui/templates/model/models.html #}
+
+{% extends "base.html" %}
+
+{% block title %}Models{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row text-center">
+        <div class="col-12">
+            <a class="btn btn-primary my-4" href="/containers/register/ui" data-testid="reg-model-cont-btn">
+                Register a New Container Model
+            </a>
+        </div>
+        <div class="col-12">
+            <a class="btn btn-primary my-4" href="/assets/register/ui" data-testid="reg-model-asset-btn">
+                Register a New Asset Model
+            </a>
+        </div>
+    </div>
+    <div class="row mt-5">
+        <div class="col-12">
+            <h1 class="mt-4 text-center" data-testid="page-header">Models</h1>
+            <div class="form-check form-switch d-flex flex-column align-items-center">
+                <input
+                    class="form-check-input fs-5"
+                    type="checkbox"
+                    role="switch"
+                    id="switch"
+                    data-entity-name="models"
+                    {% if mine_only %}
+                    checked
+                    {% endif %}
+                >
+                <label class="form-check-label fs-6 mt-2" for="switch">Show only my models</label>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="container mt-5" data-testid="cards-model">
+    <div class="row">
+        {% if models %}
+        {% for model in models %}
+        <div class="col-md-4 mb-4">
+            <div class="card {% if not model.is_valid %}invalid-card{% endif %}">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <a
+                            href="/models/ui/display/{{ model.id }}"
+                            class="text-primary"
+                            data-testid="model-name">
+                        {{ model.name }}
+                        </a>
+                    </h5>
+                    <h6 class="card-subtitle mb-2" data-testid="model-id">ID: {{ model.id }}</h6>
+                    <h6 class="card-subtitle mb-2 text-muted" data-testid="model-type">Type: {{ model.type }}</h6>
+                    <h6 class="card-subtitle mb-2 text-muted" data-testid="model-state">{% if model.state == 'OPERATION' %} OPERATIONAL {% else %} {{ model.state }} {% endif %}</h6>
+                    <h6 class="card-subtitle mb-2 text-muted" data-testid="model-is-valid">Is valid: {{ model.is_valid }}</h6>
+                    <p class="card-text" data-testid="model-created-at">
+                        <small class="text-muted" data-date="{{ model.created_at }}"></small>
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <h3 class="col-12 text-center mt-5" data-testid="no-models-msg">
+            No models yet
+        </h3>
+        {% endif %}
+    </div>
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+<script>
+    $("#switch").on("change", (e) => {
+        getEntities(e.currentTarget);
+    });
+</script>
+{% endblock extra_js %}

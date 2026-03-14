@@ -88,9 +88,9 @@ medperf container submit --name prep -m $PREP_MLCUBE -p $PREP_PARAMS --operation
 checkFailed "Prep submission failed"
 PREP_UID=$(medperf container ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
-medperf container submit --name model1 -m $MODEL_MLCUBE -p $MODEL1_PARAMS -a $MODEL_ADD --operational
+medperf model submit --name model1 -m $MODEL_MLCUBE -p $MODEL1_PARAMS -a $MODEL_ADD --operational
 checkFailed "Model1 submission failed"
-MODEL1_UID=$(medperf container ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+MODEL1_UID=$(medperf model ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 
 # wait 30s to make sure the token will be refreshed under the hood
 # (so that this functionality is tested). The chosen place of this is arbitrary
@@ -117,7 +117,7 @@ echo "\n"
 echo "====================================="
 echo "Submit benchmark"
 echo "====================================="
-medperf benchmark submit --name bmk --description bmk --demo-url $DEMO_URL --data-preparation-container $PREP_UID --reference-model-container $MODEL1_UID --evaluator-container $METRICS_UID --operational
+medperf benchmark submit --name bmk --description bmk --demo-url $DEMO_URL --data-preparation-container $PREP_UID --reference-model $MODEL1_UID --evaluator-container $METRICS_UID --operational
 checkFailed "Benchmark submission failed"
 BMK_UID=$(medperf benchmark ls | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 

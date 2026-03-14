@@ -1,0 +1,11 @@
+{
+    "project_id": "medperf-330914",
+    "project_number": "819939352708",
+    "account": "hasan.kassem@mlcommons.org",
+    "bucket": "model-owner-bucket-medperf",
+    "encrypted_asset_bucket_file": "model.enc",
+    "encrypted_key_bucket_file": "key.enc",
+    "keyring_name": "model-owner-keyring",
+    "key_name": "model-owner-key",
+    "wip": "model-owner-wip"
+}

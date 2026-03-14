@@ -9,6 +9,8 @@ from .serializers import MlCubeSerializer, MlCubeDetailSerializer
 from .permissions import IsAdmin, IsMlCubeOwner
 from dataset.serializers import DatasetFullSerializer
 from dataset.models import Dataset
+from model.serializers import ModelSerializer
+from model.models import Model
 
 
 class MlCubeList(GenericAPIView):
@@ -102,3 +104,29 @@ class MlCubeDatasetList(GenericAPIView):
         datasets = self.paginate_queryset(datasets)
         serializer = DatasetFullSerializer(datasets, many=True)
         return self.get_paginated_response(serializer.data)
+
+
+class MlCubeModel(GenericAPIView):
+    serializer_class = ModelSerializer
+    queryset = ""
+
+    def get_object(self, pk):
+        try:
+            return MlCube.objects.get(pk=pk)
+        except MlCube.DoesNotExist:
+            raise Http404
+
+    def get_related_object(self, container):
+        try:
+            return container.model
+        except Model.DoesNotExist:
+            raise Http404
+
+    def get(self, request, pk, format=None):
+        """
+        Retrieve the model associated with an MlCube instance.
+        """
+        mlcube = self.get_object(pk)
+        model = self.get_related_object(mlcube)
+        serializer = ModelSerializer(model)
+        return Response(serializer.data)

@@ -6,7 +6,7 @@ mock_datetime = str(datetime.now())
 
 def generate_benchmarkmodel(**kwargs):
     dict_ = {
-        "model_mlcube": 1,
+        "model": 1,
         "benchmark": 1,
         "initiated_by": 1,
         "metadata": {},

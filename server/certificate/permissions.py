@@ -1,6 +1,7 @@
 from __future__ import annotations
 from rest_framework.permissions import BasePermission
 from benchmarkmodel.models import BenchmarkModel
+from benchmark.models import Benchmark
 from .models import Certificate
 from django.db.models import OuterRef, Subquery
 
@@ -30,6 +31,27 @@ class IsCertificateOwner(BasePermission):
             return False
 
 
+class IsBenchmarkOwner(BasePermission):
+    def get_object(self, pk):
+        try:
+            return Benchmark.objects.get(pk=pk)
+        except Benchmark.DoesNotExist:
+            return None
+
+    def has_permission(self, request, view):
+        pk = view.kwargs.get("pk", None)
+        if not pk:
+            return False
+
+        benchmark = self.get_object(pk)
+        if not benchmark:
+            return False
+        if benchmark.owner.id == request.user.id:
+            return True
+        else:
+            return False
+
+
 # TODO: check effciency / database costs
 class IsAssociatedModelOwner(BasePermission):
     def has_permission(self, request, view):
@@ -44,13 +66,13 @@ class IsAssociatedModelOwner(BasePermission):
 
         latest_models_assocs_status = (
             BenchmarkModel.objects.all()
-            .filter(benchmark__id=pk, model_mlcube__id=OuterRef("id"))
+            .filter(benchmark__id=pk, model__id=OuterRef("id"))
             .order_by("-created_at")[:1]
             .values("approval_status")
         )
 
         user_associated_models = (
-            request.user.mlcube_set.all()
+            request.user.model_set.all()
             .annotate(assoc_status=Subquery(latest_models_assocs_status))
             .filter(assoc_status="APPROVED")
         )

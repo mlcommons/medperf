@@ -101,6 +101,8 @@ INSTALLED_APPS = [
     "dataset",
     "benchmarkdataset",
     "mlcube",
+    "asset",
+    "model",
     "benchmarkmodel",
     "user",
     "result",

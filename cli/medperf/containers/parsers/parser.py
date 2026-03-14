@@ -45,3 +45,7 @@ class Parser(ABC):
     @abstractmethod
     def is_docker_image(self):
         pass
+
+    @abstractmethod
+    def is_model_container(self):
+        pass

@@ -1,6 +1,6 @@
 import os
 from unittest.mock import ANY, call
-from medperf.commands.execution.execution_flow import ExecutionFlow
+from medperf.commands.execution.container_execution import ContainerExecution
 from medperf.exceptions import ExecutionError
 from medperf.tests.mocks.cube import TestCube
 from medperf.tests.mocks.dataset import TestDataset
@@ -10,7 +10,7 @@ from medperf import config
 import yaml
 
 
-PATCH_EXECUTION_FLOW = "medperf.commands.execution.execution_flow.{}"
+PATCH_EXECUTION_FLOW = "medperf.commands.execution.container_execution.{}"
 
 
 INPUT_DATASET = TestDataset()
@@ -63,7 +63,9 @@ def setup(request, mocker, ui, fs):
 
     # mock update
     mocker.patch(
-        PATCH_EXECUTION_FLOW.format("ExecutionFlow._ExecutionFlow__send_report")
+        PATCH_EXECUTION_FLOW.format(
+            "ContainerExecution._ContainerExecution__send_report"
+        )
     )
 
     spies = {
@@ -83,7 +85,7 @@ class TestFailures:
 
         # Act & Assert
         with pytest.raises(ExecutionError):
-            ExecutionFlow.run(
+            ContainerExecution.run(
                 INPUT_DATASET,
                 INPUT_MODEL,
                 INPUT_EVALUATOR,
@@ -98,7 +100,7 @@ class TestFailures:
 
         # Act & Assert
         with pytest.raises(ExecutionError):
-            ExecutionFlow.run(
+            ContainerExecution.run(
                 INPUT_DATASET,
                 INPUT_MODEL,
                 INPUT_EVALUATOR,
@@ -112,7 +114,7 @@ class TestFailures:
         execution = setup[0]["execution"]
 
         # Act & Assert
-        ExecutionFlow.run(
+        ContainerExecution.run(
             INPUT_DATASET,
             INPUT_MODEL,
             INPUT_EVALUATOR,
@@ -127,7 +129,7 @@ def test_partial_result_when_ignore_error_and_failing_model(mocker, setup):
     execution = setup[0]["execution"]
 
     # Act
-    execution_summary = ExecutionFlow.run(
+    execution_summary = ContainerExecution.run(
         INPUT_DATASET,
         INPUT_MODEL,
         INPUT_EVALUATOR,
@@ -145,7 +147,7 @@ def test_no_partial_result_by_default(mocker, setup):
     execution = setup[0]["execution"]
 
     # Act
-    execution_summary = ExecutionFlow.run(
+    execution_summary = ContainerExecution.run(
         INPUT_DATASET, INPUT_MODEL, INPUT_EVALUATOR, execution=execution
     )
 
@@ -159,7 +161,7 @@ def test_results_are_returned(mocker, setup):
     execution = setup[0]["execution"]
 
     # Act
-    execution_summary = ExecutionFlow.run(
+    execution_summary = ContainerExecution.run(
         INPUT_DATASET, INPUT_MODEL, INPUT_EVALUATOR, execution=execution
     )
 
@@ -213,7 +215,9 @@ def test_cube_run_are_called_properly(mocker, setup):
     )
 
     # Act
-    ExecutionFlow.run(INPUT_DATASET, INPUT_MODEL, INPUT_EVALUATOR, execution=execution)
+    ContainerExecution.run(
+        INPUT_DATASET, INPUT_MODEL, INPUT_EVALUATOR, execution=execution
+    )
 
     # Assert
     spies = setup[1]

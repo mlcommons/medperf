@@ -12,8 +12,8 @@ The following outlines the steps involved:
 1. Create your model container (no MedPerf)
 2. Export and encrypt your model container
 3. Host the encrypted file publicly
-4. Login and register your encrypted container
-5. Associate your container with a benchmark
+4. Login and register your encrypted model
+5. Associate your model with a benchmark
 6. Manage access
 7. Revoke access after benchmark completion
 
@@ -33,8 +33,6 @@ Learn more about [containers in MedPerf here](../containers/containers.md). Use 
 
 ## 2. Export and Encrypt Your Model Container
 
-[Placeholder: Screenshot showing encryption workflow diagram]
-
 We [provide a script](https://github.com/mlcommons/medperf/tree/main/scripts/encrypt_container) that you can use to:
 
 - Export your docker image into a docker archive,
@@ -48,26 +46,26 @@ You need to upload your encrypted archive to a publicly accessible location (e.g
 
 After that, make sure your `container_config.yaml` file that you created in step 1 references the URL of the hosted encrypted archive (in the `image` field of the config file).
 
-## 4. Register Your Encrypted Container
+## 4. Register Your Encrypted Model
 
-Now you are ready to register your encrypted container to the MedPerf server. Open the web UI, Make sure you are logged in to MedPerf, and:
+Now you are ready to register your encrypted model to the MedPerf server. Open the web UI, Make sure you are logged in to MedPerf, and:
 
-- Navigate to the `containers` tab
-- Click on `Register container`
-- Fill in the form. Make sure choose the encrypted container option, and insert the path of the decryption key.
+- Navigate to the `Models` tab
+- Click on `Register a New Container Model`
+- Fill in the form. Make sure choose the encrypted model option, and insert the path of the decryption key.
 
-Note that the decryption key will not be uploaded to the MedPerf server. Referencing the key during the container registration is only for the MedPerf client to copy the key to MedPerf-managed folder in your home directory, so that in later steps, the MedPerf client knows where the decryption key resides. The decryption key will be used by the MedPerf client only in the following scenarios:
+Note that the decryption key will not be uploaded to the MedPerf server. Referencing the key during the model registration is only for the MedPerf client to copy the key to MedPerf-managed folder in your home directory, so that in later steps, the MedPerf client knows where the decryption key resides. The decryption key will be used by the MedPerf client only in the following scenarios:
 
-- When associating with a benchmark: a local compatibility test of your model with the benchmark will be executed. So, the MedPerf client will decrypt your container when running the test.
+- When associating with a benchmark: a local compatibility test of your model with the benchmark will be executed. So, the MedPerf client will decrypt your model (locally on your machine) when running the test. This is to make sure that both decrypting your model and running it on a toy dataset work fine.
 - When granting access to authorized data owners: the MedPerf client will read the decryption key, encrypt it to be accessible only to the authorized data owners, and upload the encrypted version of your decryption key to the MedPerf server (to transport it to the authorized data owners).
 
-## 5. Associate Your Container with a Benchmark
+## 5. Associate Your Model with a Benchmark
 
-Now that your encrypted container is registered, you can request to participate in a benchmark.
+Now that your encrypted model is registered, you can request to participate in a benchmark.
 
-### Navigate to Your Container Page
+### Navigate to Your Model Page
 
-From the `Containers` tab, click on your encrypted container to view its detail page.
+From the `Models` tab, click on your encrypted model to view its detail page.
 
 ### Start Association Request
 
@@ -79,7 +77,7 @@ Once your association request is approved by the Benchmark Committee, you need t
 
 ### Navigate to Access Management
 
-On your container's detail page, click on the **"Manage Access"** button.
+On your model's detail page, click on the **"Manage Access"** button.
 
 Under the `Grant Access` section, you should fill the following information:
 
@@ -98,4 +96,4 @@ For this reason, you can use the automatic grant access feature, where the MedPe
 
 At any time you can check the `Current Access` section to see who currently have access. You may also want to revoke access to a certain participant if, for example, you knew their private key was leaked.
 
-Also, after all data owners successfully run your models, it's recommended that you click the `delete keys` button to revoke access to all data owners.
+Also, after all data owners successfully run your model, it's recommended that you click the `delete keys` button to revoke access to all data owners.

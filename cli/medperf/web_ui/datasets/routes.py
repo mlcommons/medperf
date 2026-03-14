@@ -22,6 +22,7 @@ from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
 from medperf.entities.execution import Execution
+from medperf.entities.model import Model
 from medperf.entities.training_exp import TrainingExp
 from medperf.commands.association.utils import get_user_associations
 from medperf.commands.dataset.associate_training import AssociateTrainingDataset
@@ -113,12 +114,9 @@ def dataset_detail_ui(  # noqa
             if b.data_preparation_mlcube == dataset.data_preparation_mlcube
         }
         for benchmark in valid_benchmarks:
-            reference_model_container = valid_benchmarks[
-                benchmark
-            ].reference_model_mlcube
-            valid_benchmarks[benchmark].reference_model_mlcube = Cube.get(
-                cube_uid=reference_model_container
-            )
+            ref_model_id = valid_benchmarks[benchmark].reference_model
+            valid_benchmarks[benchmark].reference_model = Model.get(ref_model_id)
+
         approved_benchmarks = [
             i
             for i in benchmark_associations
@@ -138,14 +136,14 @@ def dataset_detail_ui(  # noqa
             if assoc["approval_status"] != "APPROVED":
                 continue  # if association is not approved we cannot list its models
             models_uids = Benchmark.get_models_uids(benchmark_uid=assoc["benchmark"])
-            models = [Cube.get(cube_uid=model_uid) for model_uid in models_uids]
+            models = [Model.get(cube_uid=model_uid) for model_uid in models_uids]
             benchmark_models[assoc["benchmark"]] = models
             for model in models + [
-                valid_benchmarks[assoc["benchmark"]].reference_model_mlcube
+                valid_benchmarks[assoc["benchmark"]].reference_model
             ]:
                 model._encrypted = model.is_encrypted()
                 if model._encrypted:
-                    model.access_status = check_access_to_container(model.id)
+                    model.access_status = check_access_to_container(model.container.id)
                 model.result = None
                 for result in results:
                     if (

@@ -27,6 +27,18 @@ import time
 from email_validator import validate_email, EmailNotValidError
 
 
+def get_string_hash(string: bytes) -> str:
+    """Calculates the sha256 hash for a given string.
+
+    Args:
+        string (bytes): String to be hashed.
+    """
+    sha = hashlib.sha256()
+    sha.update(string)
+    sha_val = sha.hexdigest()
+    return sha_val
+
+
 def get_file_hash(path: str) -> str:
     """Calculates the sha256 hash for a given file.
 
@@ -439,6 +451,8 @@ def format_errors_dict(errors_dict: dict):
         error_msg += f"- {field}: "
         if isinstance(errors, str):
             error_msg += errors
+        elif isinstance(errors, dict):
+            error_msg += format_errors_dict(errors)
         elif len(errors) == 1:
             # If a single error for a field is given, don't create a sublist
             error_msg += str(errors[0])
