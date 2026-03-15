@@ -178,7 +178,7 @@ function addSpinner(element) {
     if (element.tagName === "BUTTON" || element.tagName === "A") {
         element.disabled = true;
         element.setAttribute("aria-busy", "true");
-        if (!element.classList.contains("inline-flex")) element.classList.add("inline-flex", "items-center", "gap-2");
+        if (!element.classList.contains("inline-flex")) element.classList.add("inline-flex", "items-center", "justify-center", "gap-2");
         element.insertBefore(span, element.firstChild);
     } else {
         span.classList.add("ml-2");
