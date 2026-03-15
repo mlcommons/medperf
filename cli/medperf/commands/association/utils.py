@@ -53,17 +53,6 @@ def filter_latest_associations(associations, experiment_key, component_key):
     return latest_associations
 
 
-def get_last_component(associations, experiment_key):
-    associations.sort(key=lambda assoc: parse_datetime(assoc["created_at"]))
-    experiments_component = {}
-    for assoc in associations:
-        experiment_id = assoc[experiment_key]
-        experiments_component[experiment_id] = assoc
-
-    experiments_component = list(experiments_component.values())
-    return experiments_component
-
-
 def get_experiment_associations(
     experiment_id: int,
     experiment_type: str,
@@ -131,10 +120,6 @@ def _post_process_associtations(
 ):
 
     assocs = filter_latest_associations(associations, experiment_type, component_type)
-    if component_type == "aggregator":
-        # an experiment should only have one aggregator
-        assocs = get_last_component(assocs, experiment_type)
-
     if approval_status:
         approval_status = approval_status.upper()
         assocs = [
