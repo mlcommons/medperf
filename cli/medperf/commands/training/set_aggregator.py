@@ -53,6 +53,6 @@ class SetAggregator:
         self.approved = self.approved or approval_prompt(msg)
 
         if self.approved:
-            self.comms.set_training_exp_aggregator(self.training_exp_id, body)
+            self.comms.update_training_exp(self.training_exp_id, body)
             return
         raise CleanExit("Aggregator setting cancelled")

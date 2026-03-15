@@ -880,17 +880,6 @@ class REST(Comms):
         error_msg = "Could not associate dataset to training_exp"
         return self.__post(url, json=data, error_msg=error_msg)
 
-    def set_training_exp_aggregator(self, training_exp_id: int, data: dict):
-        """Set the aggregator for a training experiment.
-
-        Args:
-            training_exp_id (int): Training experiment UID
-            aggregator_id (int): Aggregator UID
-        """
-        url = f"{self.server_url}/training/{training_exp_id}/"
-        error_msg = "Could not set aggregator on training experiment"
-        return self.__put(url, json=data, error_msg=error_msg)
-
     # updates associations
     def update_benchmark_dataset_association(
         self, benchmark_uid: int, dataset_uid: int, data: str
