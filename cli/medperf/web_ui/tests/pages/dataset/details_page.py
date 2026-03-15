@@ -16,7 +16,6 @@ class DatasetDetailsPage(BasePage):
         "div[data-testid='benchmark-associations'] div[data-testid='associated-benchmark-item'] a",
     )
 
-    # New design: result modal uses page-modal, footer has button.close-modal-btn
     CLOSE_BTN = (By.CSS_SELECTOR, "#page-modal-footer button.close-modal-btn")
 
     def __init__(self, driver, dataset, benchmark=""):
@@ -25,7 +24,6 @@ class DatasetDetailsPage(BasePage):
             By.XPATH,
             f'//h3//a[@data-testid="dset-name" and contains(text(), "{dataset}")]',
         )
-        # New design: benchmark section has h4 > a > strong (benchmark name), run-all-btn, view-result-btn, submit in form
         self.RUN_BTN = (
             By.XPATH,
             f'//div[.//h4//a/strong[contains(normalize-space(.), "{benchmark}")]]//button[contains(@class,"run-all-btn")]',
@@ -36,7 +34,8 @@ class DatasetDetailsPage(BasePage):
         )
         self.SUBMIT_BTNS = (
             By.XPATH,
-            f'//div[.//h4//a/strong[contains(normalize-space(.), "{benchmark}")]]//form[contains(@action,"submit_result")]//button',
+            f'//div[.//h4//a/strong[contains(normalize-space(.), "{benchmark}")]]'
+            + '//form[contains(@action,"submit_result")]//button',
         )
 
         self.ASSOCIATE_BTN = (
