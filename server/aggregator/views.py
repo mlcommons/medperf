@@ -5,7 +5,7 @@ from rest_framework import status
 
 from .models import Aggregator
 from .serializers import AggregatorSerializer
-from training.serializers import WriteTrainingExperimentSerializer
+from training.serializers import ReadTrainingExperimentSerializer
 from drf_spectacular.utils import extend_schema
 
 
@@ -35,7 +35,7 @@ class AggregatorList(GenericAPIView):
 
 
 class AggregatorTrainingExperimentList(GenericAPIView):
-    serializer_class = WriteTrainingExperimentSerializer
+    serializer_class = ReadTrainingExperimentSerializer
     queryset = ""
 
     def get_object(self, pk):
@@ -52,7 +52,7 @@ class AggregatorTrainingExperimentList(GenericAPIView):
         aggregator = self.get_object(pk)
         training_exps = aggregator.training_experiments.all()
         training_exps = self.paginate_queryset(training_exps)
-        serializer = WriteTrainingExperimentSerializer(training_exps, many=True)
+        serializer = ReadTrainingExperimentSerializer(training_exps, many=True)
         return self.get_paginated_response(serializer.data)
 
 

@@ -30,7 +30,7 @@ class SubmitTrainingExp:
             ui.text = "Getting FL admin Container"
             submission.get_fl_admin_mlcube()
             ui.print("> Completed retrieving FL Container")
-            ui.text = "Getting aggregator Container"
+            ui.text = "Checking if an aggregator is provided"
             submission.get_aggregator()
             ui.text = "Submitting TrainingExp to MedPerf"
             updated_benchmark_body = submission.submit()
