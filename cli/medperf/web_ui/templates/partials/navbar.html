@@ -10,7 +10,7 @@
 {% set evaluation_mode = request.app.state.EVALUATION_MODE %}
 {% set training_mode = request.app.state.TRAINING_MODE %}
 
-<nav class="medperf-bg dark:bg-gray-800 shadow-lg sticky top-0 z-40 border-b border-transparent dark:border-gray-700" x-data="{ open: false, notifOpen: false }">
+<nav class="medperf-bg dark:bg-gray-800 shadow-lg sticky top-0 z-40 border-b border-transparent dark:border-gray-700" x-data="{ open: false, notifOpen: false }" data-testid="navbar">
     <div class="container mx-auto px-4 py-4">
         <div class="flex items-center justify-between">
             <div class="flex items-center gap-6">
@@ -51,7 +51,7 @@
 
                 {% if logged_in %}
                 <div class="relative" x-data="{ userOpen: false }" @click.outside="userOpen = false">
-                    <button type="button" @click="userOpen = !userOpen" class="w-10 h-10 rounded-full bg-white/25 flex items-center justify-center border-2 border-white/40 text-white hover:bg-white/35 transition-colors shadow-md cursor-pointer" title="Account">
+                    <button type="button" @click="userOpen = !userOpen" class="w-10 h-10 rounded-full bg-white/25 flex items-center justify-center border-2 border-white/40 text-white hover:bg-white/35 transition-colors shadow-md cursor-pointer" title="Account" data-testid="user-menu-button">
                         <i class="fas fa-user text-lg" aria-hidden="true"></i>
                     </button>
                     <div x-show="userOpen" x-cloak x-transition class="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-xl shadow-xl border-2 border-gray-200 dark:border-gray-700 py-2 z-50" style="display: none;">

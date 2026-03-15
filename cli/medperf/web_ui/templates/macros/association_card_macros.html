@@ -1,5 +1,5 @@
 {% macro association_card(assoc, entity, entity_type) %}
-<div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border-2 border-green-100 dark:border-gray-700 mb-4 {% if assoc.approval_status == 'REJECTED' %}invalid-card{% endif %}">
+<div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border-2 border-green-100 dark:border-gray-700 mb-4 {% if assoc.approval_status == 'REJECTED' %}invalid-card{% endif %}" data-testid="associated-benchmark-item">
     <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-3">
         <a href="/{{ entity_type }}s/ui/display/{{ entity.id }}" class="medperf-accent dark:text-green-400 hover:underline">{{ entity.name }}</a>
     </h3>

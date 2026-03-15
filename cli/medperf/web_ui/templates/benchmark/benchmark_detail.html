@@ -135,7 +135,7 @@
 
 <div class="space-y-4">
     <div class="relative" x-data="{ open: false }" @click.outside="open = false">
-        <button type="button" @click="open = !open" class="w-full bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border-2 border-green-100 dark:border-gray-700 flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors text-left">
+        <button type="button" @click="open = !open" class="w-full bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border-2 border-green-100 dark:border-gray-700 flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors text-left" data-testid="datasets-associations-btn">
             <h3 class="text-xl font-bold medperf-accent dark:text-green-400 flex items-center flex-wrap gap-2">
                 <i class="fas fa-database mr-1"></i>Datasets Associations
                 <span class="px-4 py-1 rounded-full text-sm font-bold text-green-700 dark:text-green-300 border-2 border-green-200 dark:border-green-700 bg-green-100 dark:bg-green-900/50">{{ dataset_assoc_len }}</span>
@@ -143,7 +143,7 @@
             </h3>
             <i class="fas fa-chevron-down text-gray-400 dark:text-gray-500 transition-transform duration-200 flex-shrink-0" :class="open && 'rotate-180'" aria-hidden="true"></i>
         </button>
-        <div id="datasets-associations" x-show="open" x-cloak x-transition class="absolute left-0 right-0 mt-2 rounded-xl bg-white dark:bg-gray-800 shadow-xl border-2 border-green-100 dark:border-gray-700 max-h-[70vh] overflow-y-auto z-20 p-4 flex flex-wrap gap-4 justify-evenly"
+        <div id="datasets-associations" x-show="open" x-cloak x-transition class="mt-2 rounded-xl bg-white dark:bg-gray-800 shadow-xl border-2 border-green-100 dark:border-gray-700 max-h-[70vh] overflow-y-auto p-4 flex flex-wrap gap-4 justify-evenly"
             style="display: none;">
             {% for assoc in datasets_associations %}
             {{ association_card_macros.association_card(assoc, datasets[assoc.dataset], "dataset") }}
@@ -152,7 +152,7 @@
     </div>
 
     <div class="relative" x-data="{ open: false }" @click.outside="open = false">
-        <button type="button" @click="open = !open" class="w-full bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border-2 border-green-100 dark:border-gray-700 flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors text-left">
+        <button type="button" @click="open = !open" class="w-full bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border-2 border-green-100 dark:border-gray-700 flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors text-left" data-testid="models-associations-btn">
             <h3 class="text-xl font-bold medperf-accent dark:text-green-400 flex items-center flex-wrap gap-2">
                 <i class="fas fa-cube mr-1"></i>Models Associations
                 <span class="px-4 py-1 rounded-full text-sm font-bold text-green-700 dark:text-green-300 border-2 border-green-200 dark:border-green-700 bg-green-100 dark:bg-green-900/50">{{ models_assoc_len }}</span>
@@ -160,7 +160,7 @@
             </h3>
             <i class="fas fa-chevron-down text-gray-400 dark:text-gray-500 transition-transform duration-200 flex-shrink-0" :class="open && 'rotate-180'" aria-hidden="true"></i>
         </button>
-        <div id="models-associations" x-show="open" x-cloak x-transition class="absolute left-0 right-0 mt-2 rounded-xl bg-white dark:bg-gray-800 shadow-xl border-2 border-green-100 dark:border-gray-700 max-h-[70vh] overflow-y-auto z-20 p-4 flex flex-wrap gap-4 justify-evenly"
+        <div id="models-associations" x-show="open" x-cloak x-transition class="mt-2 rounded-xl bg-white dark:bg-gray-800 shadow-xl border-2 border-green-100 dark:border-gray-700 max-h-[70vh] overflow-y-auto p-4 flex flex-wrap gap-4 justify-evenly"
             style="display: none;">
             {% for assoc in models_associations %}
             {{ association_card_macros.association_card(assoc, models[assoc.model], "model") }}
@@ -169,14 +169,14 @@
     </div>
 
     <div class="relative" x-data="{ open: false }" @click.outside="open = false">
-        <button type="button" @click="open = !open" class="w-full bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border-2 border-green-100 dark:border-gray-700 flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors text-left">
+        <button type="button" @click="open = !open" class="w-full bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border-2 border-green-100 dark:border-gray-700 flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors text-left" data-testid="benchmark-results-btn">
             <h3 class="text-xl font-bold medperf-accent dark:text-green-400 flex items-center flex-wrap gap-2">
                 <i class="fas fa-chart-bar mr-1"></i>Results
                 <span class="px-4 py-1 rounded-full text-sm font-bold text-green-700 dark:text-green-300 border-2 border-green-200 dark:border-green-700 bg-green-100 dark:bg-green-900/50">{{ results_len }}</span>
             </h3>
             <i class="fas fa-chevron-down text-gray-400 dark:text-gray-500 transition-transform duration-200 flex-shrink-0" :class="open && 'rotate-180'" aria-hidden="true"></i>
         </button>
-        <div id="benchmark-results" x-show="open" x-cloak x-transition class="absolute left-0 right-0 mt-2 rounded-xl bg-white dark:bg-gray-800 shadow-xl border-2 border-green-100 dark:border-gray-700 max-h-[70vh] overflow-y-auto z-20 p-4 flex flex-wrap gap-4 justify-evenly"
+        <div id="benchmark-results" x-show="open" x-cloak x-transition class="mt-2 rounded-xl bg-white dark:bg-gray-800 shadow-xl border-2 border-green-100 dark:border-gray-700 max-h-[70vh] overflow-y-auto p-4 flex flex-wrap gap-4 justify-evenly"
             style="display: none;">
             {% for result in results %}
             {{ result_card_macros.result_card(result) }}

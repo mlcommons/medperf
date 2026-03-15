@@ -94,7 +94,7 @@
                             <input type="hidden" name="task_name" value="model_association">
                             <input type="hidden" name="model_id" value="{{ entity.id }}">
                             <input type="hidden" name="benchmark_id" value="{{ benchmark.id }}">
-                            <button type="submit" class="request-association-btn px-3 py-1.5 rounded-lg medperf-bg dark:bg-green-600 text-white text-sm font-semibold hover:opacity-90 whitespace-nowrap cursor-pointer" {% if task_running %}disabled{% endif %}>Request</button>
+                            <button type="submit" class="request-association-btn px-3 py-1.5 rounded-lg medperf-bg dark:bg-green-600 text-white text-sm font-semibold hover:opacity-90 whitespace-nowrap cursor-pointer" data-testid="request-bmk-association" {% if task_running %}disabled{% endif %}>Request</button>
                         </form>
                     </div>
                 </div>
@@ -114,7 +114,7 @@
 </div>
 
 {% if is_owner and ui_mode == request.app.state.EVALUATION_MODE %}
-<div class="my-8">
+<div class="my-8" data-testid="benchmark-associations">
     <h2 class="text-xl font-bold medperf-accent dark:text-green-400 my-4">Associated Benchmarks</h2>
     {% for assoc in benchmarks_associations.values() %}
         {{ association_card_macros.association_card(assoc, benchmarks[assoc.benchmark], "benchmark") }}

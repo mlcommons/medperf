@@ -107,7 +107,7 @@
                 </form>
             </div>
             {% else %}
-            <div class="rounded-xl border-2 border-green-200 dark:border-green-700/50 bg-green-50/50 dark:bg-green-900/10 p-5 flex flex-col min-h-[200px] justify-center">
+            <div class="rounded-xl border-2 border-green-200 dark:border-green-700/50 bg-green-50/50 dark:bg-green-900/10 p-5 flex flex-col min-h-[200px] justify-center" data-testid="prepared-section">
                 <div class="flex items-center gap-2 mb-2">
                     <span class="flex items-center justify-center w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400"><i class="fas fa-check-circle"></i></span>
                     <span class="font-semibold text-green-800 dark:text-green-300">Prepared</span>
@@ -126,7 +126,7 @@
                 <p class="text-sm text-gray-500 dark:text-gray-400">Complete preparation first.</p>
             </div>
             {% elif dataset_is_operational %}
-            <div class="rounded-xl border-2 border-green-200 dark:border-green-700/50 bg-green-50/50 dark:bg-green-900/10 p-5 flex flex-col min-h-[200px] justify-center">
+            <div class="rounded-xl border-2 border-green-200 dark:border-green-700/50 bg-green-50/50 dark:bg-green-900/10 p-5 flex flex-col min-h-[200px] justify-center" data-testid="operational-section">
                 <div class="flex items-center gap-2 mb-2">
                     <span class="flex items-center justify-center w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400"><i class="fas fa-check-circle"></i></span>
                     <span class="font-semibold text-green-800 dark:text-green-300">Operational</span>
@@ -177,7 +177,7 @@
                                     <input type="hidden" name="task_name" value="dataset_association">
                                     <input type="hidden" name="dataset_id" value="{{ dataset.id }}">
                                     <input type="hidden" name="benchmark_id" value="{{ benchmark.id }}">
-                                    <button type="submit" class="px-3 py-1.5 rounded-lg medperf-bg dark:bg-green-600 text-white text-sm font-semibold hover:opacity-90 whitespace-nowrap cursor-pointer disabled:cursor-not-allowed" {% if task_running %}disabled{% endif %}><i class="fas fa-paper-plane mr-1"></i>Request</button>
+                                    <button type="submit" class="px-3 py-1.5 rounded-lg medperf-bg dark:bg-green-600 text-white text-sm font-semibold hover:opacity-90 whitespace-nowrap cursor-pointer disabled:cursor-not-allowed" data-testid="request-bmk-association" {% if task_running %}disabled{% endif %}><i class="fas fa-paper-plane mr-1"></i>Request</button>
                                 </form>
                             </div>
                         </div>
@@ -243,7 +243,7 @@
 </div>
 
 {% if ui_mode == request.app.state.EVALUATION_MODE %}
-<div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border-2 border-green-100 dark:border-gray-700 mb-6 overflow-hidden">
+<div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border-2 border-green-100 dark:border-gray-700 mb-6 overflow-hidden" data-testid="benchmark-associations">
     <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50">
         <h3 class="mb-0 text-gray-900 dark:text-white font-bold">Associated benchmarks</h3>
     </div>
@@ -252,7 +252,7 @@
         <ul class="space-y-4">
             {% for assoc in benchmark_associations %}
             <li class="flex flex-wrap items-center justify-between gap-4 p-4 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/30">
-                <div>
+                <div data-testid="associated-benchmark-item">
                     <a href="/benchmarks/ui/display/{{ assoc }}" class="medperf-accent dark:text-green-400 hover:underline font-semibold">{{ benchmarks[assoc].name }}</a>
                     <span class="text-gray-500 dark:text-gray-400 text-sm ml-2">ID: {{ assoc }}</span>
                     <span class="px-3 py-1 rounded-full text-xs font-bold ml-2 {% if benchmark_associations[assoc].approval_status == 'APPROVED' %}bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300{% elif benchmark_associations[assoc].approval_status == 'REJECTED' %}bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300{% else %}bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-300{% endif %}">{{ benchmark_associations[assoc].approval_status }}</span>

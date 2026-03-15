@@ -3,7 +3,7 @@
 {% macro model_link(model) %}
 <span class="inline-flex items-center gap-2 p-2 rounded-lg {% if not model.is_valid %}invalid-card{% endif %}">
     <strong>
-        <a href="/models/ui/display/{{ model.id }}" class="medperf-accent dark:text-green-400 hover:underline">{{ model.name }}</a>
+        <a href="/models/ui/display/{{ model.id }}" class="medperf-accent dark:text-green-400 hover:underline" data-testid="cont-name">{{ model.name }}</a>
     </strong>
     <small class="text-gray-500 dark:text-gray-400" data-date="{{ model.modified_at }}"></small>
     {% if model.state == 'OPERATION' %}
@@ -21,7 +21,7 @@
             <div class="flex items-center mb-2">
                 <i class="fas fa-cube medperf-accent dark:text-green-400 mr-2 flex-shrink-0"></i>
                 <h3 class="text-xl font-bold text-gray-900 dark:text-white truncate">
-                    <a href="/models/ui/display/{{ model.id }}" class="hover:medperf-accent dark:hover:text-green-400 transition-colors" data-testid="model-name">{{ model.name }}</a>
+                    <a href="/models/ui/display/{{ model.id }}" class="hover:medperf-accent dark:hover:text-green-400 transition-colors" data-testid="cont-name">{{ model.name }}</a>
                 </h3>
             </div>
             <p class="text-sm text-gray-500 dark:text-gray-400" data-testid="model-id">ID: {{ model.id }}</p>
