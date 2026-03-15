@@ -8,6 +8,7 @@ import shlex
 import json
 import tarfile
 import logging
+from docker.auth import resolve_repository_name
 
 
 def get_docker_image_hash(docker_image, timeout: int = None):
@@ -177,3 +178,15 @@ def delete_images(images):
         run_command(delete_image_cmd)
     except ExecutionError:
         config.ui.print_warning("WARNING: Failed to delete docker images.")
+
+
+def full_docker_image_name(image_name: str) -> str:
+    """
+    Returns the full docker image name with registry.
+    If the image name does not contain a registry, it is assumed to be docker.io.
+    """
+    logging.debug(f"Resolving full docker image name for {image_name}")
+    registry, name = resolve_repository_name(image_name)
+    resolved_name = f"{registry}/{name}"
+    logging.debug(f"Resolved docker image name: {resolved_name}")
+    return resolved_name

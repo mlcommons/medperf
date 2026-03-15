@@ -14,6 +14,16 @@
 
     <form class="my-5" id="benchmark-register-form">
         <div class="form-group my-5">
+            <div class="form-group mt-3 d-flex flex-row justify-content-evenly">
+                <div>
+                    <input class="form-check-input border-black" type="radio" name="skip_compatibility_tests" id="skip-tests" value="true">
+                    <label class="form-check-label" for="skip-tests">Skip Compatibility Tests</label>
+                </div>
+                <div>
+                    <input class="form-check-input border-black" type="radio" name="skip_compatibility_tests" id="noskip-tests" value="false" checked>
+                    <label class="form-check-label" for="noskip-tests">Require Compatibility Tests</label>
+                </div>
+            </div>
             <label for="name" class="form-label h4">Benchmark Name</label>
             <div class="input-group">
                 <input
@@ -55,7 +65,7 @@
                 ></i>
             </div>
         </div>
-        <div class="form-group my-5">
+        <div class="form-group my-5" id="demo-dataset-input-container">
             <label for="reference-dataset-tarball-url" class="form-label h4">Reference Dataset Tarball URL</label>
             <div class="input-group">
                 <input

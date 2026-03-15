@@ -237,7 +237,7 @@ class BenchmarkExecution:
                         "cached": False,
                         "error": str(e),
                         "partial": "N/A",
-                        "confidential": model.is_cc_mode(),
+                        "confidential": model.requires_cc(),
                     }
                 )
                 continue
@@ -254,7 +254,7 @@ class BenchmarkExecution:
                     "cached": False,
                     "error": "",
                     "partial": execution_summary["partial"],
-                    "confidential": model.is_cc_mode(),
+                    "confidential": model.requires_cc(),
                 }
             )
         return [experiment["execution"] for experiment in self.experiments]

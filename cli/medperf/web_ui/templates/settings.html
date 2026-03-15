@@ -3,6 +3,7 @@
 {% extends "base.html" %}
 
 {% import "constants/tooltips.html" as tooltips %}
+{% import 'macros/cc_operator_macro.html' as cc_operator_macro %}
 
 {% block title %}Settings{% endblock %}
 
@@ -140,6 +141,12 @@
                 <strong>Status:</strong> 
                 <span class="badge bg-danger" data-testid="cert-status">invalid</span>
             </p>
+            {% else %}
+            <p class="fs-5">
+                <strong>Status:</strong> 
+                <span class="badge bg-success" data-testid="cert-status">valid</span>
+            </p>
+            {% endif %}
             <button
                 id="delete-cert-btn"
                 class="btn btn-danger mt-3"
@@ -147,14 +154,8 @@
                 data-bs-toggle="tooltip"
                 data-bs-placement="top"
                 data-bs-title="{{ tooltips.invalidate_certificate_btn }}"
-                >Invalidate Certificate
+                >Delete
             </button>
-            {% else %}
-            <p class="fs-5">
-                <strong>Status:</strong> 
-                <span class="badge bg-success" data-testid="cert-status">valid</span>
-            </p>
-            {% endif %}
             {% endif %}
             {% endif %}
         </div>
@@ -165,11 +166,22 @@
     </div>
     {% include "partials/prompt_container.html" %}
 </div>
-
+<div class="container">
+{% if logged_in %}
+    {{ cc_operator_macro.cc_operator(cc_config_defaults, cc_configured, task_running=task_running) }}
+{% endif %}
+</div>
 {% endblock content %}
 
 {% block extra_js %}
+<script>
+    window.ccPreferences = {
+        can_apply: {{ cc_configured|tojson }},
+        defaults: {{ cc_config_defaults|tojson }}
+    }
+</script>
 <script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
+<script src="/static/js/cc_operator.js"></script>
 <script>
     // Save some global variables to be accessible by js scripts
     window.currentSettings = {

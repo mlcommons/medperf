@@ -3,13 +3,14 @@ from medperf.commands.association.utils import get_user_associations
 import yaml
 from typing import List
 
-from medperf.utils import remove_path
+from medperf.utils import get_folders_hash, remove_path
 from medperf.entities.interface import Entity
 from medperf.entities.schemas import DatasetSchema
 import medperf.config as config
 from medperf.account_management import get_medperf_user_data
-from medperf.exceptions import MedperfException
 from medperf.entities.utils import handle_validation_error
+from medperf.exceptions import InvalidEntityError
+import logging
 
 
 class Dataset(Entity):
@@ -73,7 +74,7 @@ class Dataset(Entity):
 
     def get_cc_config(self):
         cc_values = self.user_metadata.get("cc", {})
-        return cc_values.get("config", None)
+        return cc_values.get("config", {})
 
     def set_cc_config(self, cc_config: dict):
         if "cc" not in self.user_metadata:
@@ -82,24 +83,18 @@ class Dataset(Entity):
 
     def get_cc_policy(self):
         cc_values = self.user_metadata.get("cc", {})
-        return cc_values.get("policy", None)
+        return cc_values.get("policy", {})
 
     def set_cc_policy(self, cc_policy: dict):
         if "cc" not in self.user_metadata:
             self.user_metadata["cc"] = {}
         self.user_metadata["cc"]["policy"] = cc_policy
 
-    def mark_cc_configured(self):
-        if "cc" not in self.user_metadata:
-            raise MedperfException(
-                "Dataset does not have a cc configuration to be marked as configured"
-            )
-        self.user_metadata["cc"]["configured"] = True
-
     def is_cc_configured(self):
-        if "cc" not in self.user_metadata:
-            return False
-        return self.user_metadata["cc"].get("configured", False)
+        return self.get_cc_config() != {}
+
+    def is_operational(self):
+        return self.state == "OPERATION"
 
     def set_raw_paths(self, raw_data_path: str, raw_labels_path: str):
         raw_paths_file = os.path.join(self.path, config.dataset_raw_paths_file)
@@ -125,6 +120,23 @@ class Dataset(Entity):
     def is_ready(self):
         flag_file = os.path.join(self.path, config.ready_flag_file)
         return os.path.exists(flag_file)
+
+    def calculate_raw_hash(self):
+        raw_data_path, raw_labels_path = self.get_raw_paths()
+        calculated_hash = get_folders_hash([raw_data_path, raw_labels_path])
+        logging.debug(f"Raw dataset calculated hash: {calculated_hash}")
+        return calculated_hash
+
+    def calculate_prepared_hash(self):
+        calculated_hash = get_folders_hash([self.data_path, self.labels_path])
+        logging.debug(f"Prepared dataset calculated hash: {calculated_hash}")
+        return calculated_hash
+
+    def check_hash(self):
+        if not self.is_operational():
+            raise InvalidEntityError("Dataset is not operational. Cannot check hash.")
+        calculated_hash = self.calculate_prepared_hash()
+        return calculated_hash == self.generated_uid
 
     @staticmethod
     def remote_prefilter(filters: dict) -> callable:

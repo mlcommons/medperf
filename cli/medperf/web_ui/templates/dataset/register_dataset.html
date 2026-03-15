@@ -151,6 +151,26 @@
                 ></i>
             </div>
         </div>
+        <div class="form-group my-5">
+            <label for="submit-as-prepared" class="form-label h5">Submit as Prepared</label>
+                <input
+                    type="checkbox"
+                    id="submit-as-prepared"
+                    name="submit_as_prepared"
+                    class="form-check-input ms-2 border-black"
+                    placeholder="{{ placeholders.register_dataset_labels_path }}"
+                    {% if task_running %} disabled {% endif %}
+                    {% if dataset_register_running and task_formData.get('submit_as_prepared') %}
+                    checked
+                    {% endif %}
+                >
+                <i
+                    class="ms-3 tooltip-info fa fa-info-circle fs-5"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    data-bs-title="{{ tooltips.register_dataset_submit_as_prepared }}"
+                ></i>
+        </div>
         <div class="text-center mt-5">
             <button
                 type="button"

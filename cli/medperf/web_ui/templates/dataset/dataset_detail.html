@@ -5,6 +5,7 @@
 {% import 'macros/container_macros.html' as container_macros %}
 {% import 'macros/model_macros.html' as model_macros %}
 {% import 'macros/benchmark_macros.html' as benchmark_macros %}
+{% import 'macros/cc_asset_macro.html' as cc_asset_macro %}
 
 {% block title %}Dataset Details{% endblock title %}
 
@@ -16,6 +17,12 @@
         <input class="btn btn-dark float-end my-4" type="submit" name="submit" value="Export Dataset">
     </form>
 </div>
+{% if dataset_hash_mismatch %}
+<p class="card-text">
+    <strong class="text-danger">Data hash mismatch</strong> 
+    <i class="fas fa-exclamation-triangle text-danger"></i>
+</p>
+{% endif %}
 
 <div class="{% if dataset.is_valid %}card{% else %}invalid-card{% endif %}">
     <div class="card-body">
@@ -199,6 +206,27 @@
                 <small class="step-label ms-2">Step 3: Make a request to the benchmark owner to associate your dataset with the benchmark</small>
             </div>
         </div>
+        <div class="card mb-3 mt-5">
+            <div class="card-title">
+                <h5 class="p-4">Confidential Computing Preferences</h5>
+            </div>
+            <div class="card-body">
+            {{cc_asset_macro.gcp_asset(cc_config_defaults, cc_configured, dataset.id, "dataset", task_running) }}
+            </div>
+            {% if cc_configured %}
+            <div class="card-body text-center">
+                <p class="text-muted">Confidential Computing is configured, you can sync the policy.</p>
+                <button
+                    type="button"
+                    class="btn btn-primary"
+                    data-entity-id="{{ dataset.id }}"
+                    data-entity-type="dataset"
+                    id="sync-cc-policy-btn"
+                    {% if task_running %} disabled {% endif %}
+                >Sync CC Policy</button>
+            </div>
+            {% endif %}
+        </div>
         {% endif %}
     </div>
 </div>
@@ -343,6 +371,21 @@
                             {% endif %}
                             </div>
                             {% endif %}
+                            {% if model._requires_cc %}
+                            <div>
+                            <small class="text-muted">&nbsp;Confidential Computing Model</small>
+                            {% if model.cc_run_status["can_run"] %}
+                            <small class="text-success fw-bold">&nbsp;Ready</small>
+                            {% else %}
+                            <small
+                                class="text-danger text-decoration-underline"
+                                data-bs-toggle="tooltip"
+                                data-bs-placement="top"
+                                data-bs-title="{{ model.cc_run_status['reason'] }}"
+                                >&nbsp;Not Ready</small>
+                            {% endif %}
+                            </div>
+                            {% endif %}
 							{{ model_macros.model_link(model) }}
 						</div>
 						<div class="d-flex align-items-center">
@@ -356,7 +399,7 @@
 									data-model-name="{{ model.name }}"
 									id="run-{{ assoc }}-{{ model.id }}"
                                     {% if results_exist %} rerun="true" {% endif %}
-                                    {% if task_running or (model._encrypted and not model.access_status["has_access"]) %} disabled {% endif %}
+                                    {% if task_running or (model._encrypted and not model.access_status["has_access"]) or (model._requires_cc and not model.cc_run_status["can_run"]) %} disabled {% endif %}
 								>
 									▶️ {% if results_exist %} Rerun {% else %} Run {% endif %}
 								</button>
@@ -418,9 +461,16 @@
 {% endblock detail_panel %}
 
 {% block extra_js %}
+<script>
+    window.ccPreferences = {
+        can_apply: {{ cc_configured|tojson }},
+        defaults: {{ cc_config_defaults|tojson }}
+    }
+</script>
 <script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
 <script src="{{ url_for('static', path='js/results/results_utils.js') }}"></script>
 <script src="{{ url_for('static', path='js/datasets/dataset_detail.js') }}"></script>
+<script src="{{ url_for('static', path='js/cc.js') }}"></script>
 
 {% if task_running and task_formData.get("dataset_id", "") == dataset.id|string %}
 {% if request.app.state.task.name == "dataset_preparation" %}
@@ -490,4 +540,17 @@
 </script>
 {% endif %}
 {% endif %}
+
+{% if task_running and request.app.state.task.name == "data_update_cc_config" and task_formData.get("dataset_id", "") == entity.id|string %}
+<script>
+    $(document).ready(() => {
+        resumeRunningTask(
+            "#apply-cc-asset-btn",
+            `Updating Dataset CC Configuration...`,
+            onCCEditRequestSuccess
+        );
+    });
+</script>
+{% endif %}
+
 {% endblock extra_js %}

@@ -6,8 +6,10 @@ from medperf.commands.certificate.client_certificate import GetUserCertificate
 from medperf.commands.certificate.delete_client_certificate import DeleteCertificate
 from medperf.commands.certificate.submit import SubmitCertificate
 from medperf.commands.certificate.utils import current_user_certificate_status
+from medperf.account_management.account_management import get_medperf_user_object
 from medperf.commands.utils import set_profile_args
 from medperf.config_management.config_management import read_config, write_config
+from medperf.commands.cc.setup_cc_operator import SetupCCOperator
 from medperf.entities.ca import CA
 from medperf.exceptions import InvalidArgumentError
 from medperf.utils import make_pretty_dict
@@ -33,10 +35,17 @@ def settings_ui(request: Request, current_user: bool = Depends(check_user_ui)):
     cas = None
     certificate_status = None
 
+    cc_config_defaults = {}
+    cc_configured = False
+
     if is_logged_in():
         cas = CA.all()
         cas = {c.id: c.name for c in cas}
         certificate_status = current_user_certificate_status()
+
+        user = get_medperf_user_object()
+        cc_config_defaults = user.get_cc_config()
+        cc_configured = user.is_cc_configured()
 
     return templates.TemplateResponse(
         "settings.html",
@@ -49,6 +58,8 @@ def settings_ui(request: Request, current_user: bool = Depends(check_user_ui)):
             "default_ca": config.certificate_authority_id,
             "default_fingerprint": config.certificate_authority_fingerprint,
             "certificate_status": certificate_status,
+            "cc_config_defaults": cc_config_defaults,
+            "cc_configured": cc_configured,
         },
     )
 
@@ -206,3 +217,31 @@ def submit_certificate(
         return_response=return_response,
     )
     return return_response
+
+
+@router.post("/edit_cc_operator", response_class=JSONResponse)
+def edit_cc_operator(
+    require_cc: bool = Form(...),
+    project_id: str = Form(""),
+    service_account_name: str = Form(""),
+    bucket: str = Form(""),
+    vm_zone: str = Form(""),
+    vm_name: str = Form(""),
+    current_user: bool = Depends(check_user_api),
+):
+    args = {
+        "project_id": project_id,
+        "service_account_name": service_account_name,
+        "bucket": bucket,
+        "vm_zone": vm_zone,
+        "vm_name": vm_name,
+    }
+    if not require_cc:
+        args = {}
+
+    try:
+        SetupCCOperator.run(args)
+        return {"status": "success", "error": ""}
+    except Exception as exp:
+        logger.exception(exp)
+        return {"status": "failed", "error": str(exp)}

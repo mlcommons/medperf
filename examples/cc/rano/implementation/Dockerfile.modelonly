@@ -1,0 +1,17 @@
+FROM mlcommons/medperf-confidential-benchmark-base:0.0.0
+
+ENV CUDA_VISIBLE_DEVICES="0"
+
+
+# install project dependencies
+RUN apt-get update && apt-get install --no-install-recommends -y git zlib1g-dev libffi-dev libgl1 libgtk2.0-dev gcc g++
+
+RUN pip install torch==2.2.2 torchvision==0.17.2 torchaudio==2.2.2 --index-url https://download.pytorch.org/whl/cu121
+
+COPY ./requirements.txt /project/requirements.txt
+
+RUN pip install --no-cache-dir -r /project/requirements.txt
+
+# Copy project folder
+COPY ./benchmark /project/benchmark
+RUN rm -rf /project/benchmark/metrics && mv /project/benchmark/entrypoint_modelonly.sh /project/benchmark/entrypoint.sh

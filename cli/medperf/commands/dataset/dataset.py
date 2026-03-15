@@ -13,7 +13,7 @@ from medperf.commands.dataset.associate import AssociateDataset
 from medperf.commands.dataset.train import TrainingExecution
 from medperf.commands.dataset.import_dataset import ImportDataset
 from medperf.commands.dataset.export_dataset import ExportDataset
-
+from medperf.commands.dataset.check import DataCheck
 
 app = typer.Typer()
 
@@ -33,8 +33,12 @@ def list(
     ),
     name: str = typer.Option(None, "--name", help="Filter by name"),
     owner: int = typer.Option(None, "--owner", help="Filter by owner"),
-    state: str = typer.Option(None, "--state", help="Filter by state (DEVELOPMENT/OPERATION)"),
-    is_valid: bool = typer.Option(None, "--valid/--invalid", help="Filter by valid status"),
+    state: str = typer.Option(
+        None, "--state", help="Filter by state (DEVELOPMENT/OPERATION)"
+    ),
+    is_valid: bool = typer.Option(
+        None, "--valid/--invalid", help="Filter by valid status"
+    ),
 ):
     """List datasets"""
     EntityList.run(
@@ -122,6 +126,17 @@ def prepare(
     """Runs the Data preparation step for a raw dataset"""
     ui = config.ui
     DataPreparation.run(data_uid, approve_sending_reports=approval)
+    ui.print("✅ Done!")
+
+
+@app.command("check")
+@clean_except
+def check(
+    data_uid: str = typer.Option(..., "--data_uid", "-d", help="Dataset UID"),
+):
+    """Checks if the hash of the dataset matches the one registered the server"""
+    ui = config.ui
+    DataCheck.run(data_uid)
     ui.print("✅ Done!")
 
 

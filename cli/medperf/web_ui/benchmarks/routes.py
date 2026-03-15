@@ -177,11 +177,12 @@ def register_benchmark(
     request: Request,
     name: str = Form(...),
     description: str = Form(...),
-    reference_dataset_tarball_url: str = Form(...),
+    reference_dataset_tarball_url: str = Form(""),
     data_preparation_container: str = Form(...),
     reference_model: str = Form(...),
     evaluator_container: str = Form(...),
     skip_data_preparation_step: bool = Form(...),
+    skip_compatibility_tests: bool = Form(...),
     current_user: bool = Depends(check_user_api),
 ):
 
@@ -201,7 +202,9 @@ def register_benchmark(
     benchmark_id = None
     try:
         benchmark_id = SubmitBenchmark.run(
-            benchmark_info, skip_data_preparation_step=skip_data_preparation_step
+            benchmark_info,
+            skip_data_preparation_step=skip_data_preparation_step,
+            skip_compatibility_tests=skip_compatibility_tests,
         )
         return_response["status"] = "success"
         return_response["benchmark_id"] = benchmark_id
