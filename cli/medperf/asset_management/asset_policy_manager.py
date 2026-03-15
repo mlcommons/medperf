@@ -59,9 +59,14 @@ class AssetPolicyManager:
             "attribute.workload_uid": workload_uid_attr,
         }
         attribute_condition = 'assertion.swname == "CONFIDENTIAL_SPACE"'
-        attribute_condition += (
-            " && 'STABLE' in assertion.submods.confidential_space.support_attributes"
+
+        gpu_mode = 'assertion.submods.nvidia_gpu.cc_mode == "ON"'
+        stable_image = (
+            "'STABLE' in assertion.submods.confidential_space.support_attributes"
         )
+        # NOTE: currently it seems that gpu mode is not stable
+        attribute_condition += f" && ({gpu_mode} || {stable_image})"
+
         if "location" in policy:
             location_condition = f'assertion.submods.gce.zone == "{policy["location"]}"'
             attribute_condition += f" && {location_condition}"
@@ -70,11 +75,6 @@ class AssetPolicyManager:
             hardware_condition = f'assertion.hwmodel == "{policy["hardware"]}"'
             attribute_condition += f" && {hardware_condition}"
 
-        if "gpu_cc_mode" in policy:
-            gpu_cc_mode_condition = (
-                f'assertion.submods.nvidia_gpu.cc_mode == "{policy["gpu_cc_mode"]}"'
-            )
-            attribute_condition += f" && {gpu_cc_mode_condition}"
         try:
             update_workload_identity_pool_oidc_provider(
                 self.config, attribute_mapping, attribute_condition
