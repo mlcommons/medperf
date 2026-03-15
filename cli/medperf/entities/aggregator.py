@@ -1,4 +1,7 @@
 import os
+from typing import List
+
+from medperf.entities.training_exp import TrainingExp
 
 from medperf.entities.interface import Entity
 from medperf.entities.schemas import AggregatorSchema
@@ -69,6 +72,18 @@ class Aggregator(Entity):
         agg = cls(**meta)
         agg.write()
         return agg
+
+    def get_training_experiments(self) -> List["TrainingExp"]:
+        """Training experiments that have this aggregator set (reverse relation).
+
+        Returns:
+            List[TrainingExp]: Training experiments with this aggregator set.
+        """
+
+        if self.id is None:
+            return []
+        data_list = config.comms.get_aggregator_training_experiments(self.id)
+        return [TrainingExp(**d) for d in data_list]
 
     @classmethod
     def remote_prefilter(cls, filters: dict) -> callable:

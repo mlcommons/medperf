@@ -183,6 +183,7 @@ class TrainingExpSchema(MedperfSchema):
     plan: dict = {}
     metadata: dict = {}
     user_metadata: dict = {}
+    aggregator: Optional[int]
 
 
 class UserSchema(BaseModel):

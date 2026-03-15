@@ -1,176 +1,78 @@
-{# ./cli/medperf/web_ui/templates/container/register_container.html #}
-
 {% extends "base.html" %}
-
 {% import "constants/forms_placeholders.html" as placeholders %}
 {% import "constants/tooltips.html" as tooltips %}
+
+{% set ui_mode = request.app.state.ui_mode %}
 
 {% block title %}Register Container{% endblock %}
 
 {% block content %}
-{% set container_register_running = (task_running and request.app.state.task.name == "container_registration") %}
-<div class="container mt-5">
-    <h1 class="text-center">Register a New Container</h1>
+{% set container_register_running = (task_running and "register_container" in request.app.state.active_tasks) %}
+{% if container_register_running %}
+{% set form_data = request.app.state.active_tasks["register_container"].formData %}
+{% endif %}
 
-    <form class="my-5" id="container-register-form">
-        <div class="form-group my-5">
-            <label for="name" class="form-label h4">Container name</label>
-            <div class="input-group">
-                <input
-                    name="name"
-                    class="form-control"
-                    type="text"
-                    id="name"
-                    placeholder="{{ placeholders.register_container_name }}"
-                    {% if container_register_running %}
-                    value="{{ task_formData.get('name', '') }}"
-                    disabled
-                    {% endif %}
-                    maxlength="128"
-                >
-                <i
-                    class="tooltip-info input-group-text fa fa-info-circle fs-4"
-                    data-bs-toggle="tooltip"
-                    data-bs-placement="top"
-                    data-bs-title="{{ tooltips.register_container_name }}"
-                ></i>
+<div class="container mx-auto px-4 py-8 max-w-3xl">
+    <h1 class="text-3xl font-bold medperf-accent dark:text-green-400 text-center mb-4">Register a New Container</h1>
+    <form id="register-container-form" class="space-y-6" action="/containers/register" method="post" data-panel-title="Registering container" data-confirm-message="register this container?">
+        <input type="hidden" name="task_name" value="register_container">
+        <div>
+            <label for="name" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Container name</label>
+            <div class="flex flex-wrap items-stretch gap-2">
+                <input name="name" type="text" id="name" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500" placeholder="{{ placeholders.register_container_name }}" {% if container_register_running %}value="{{ form_data.get('name', '') }}" disabled{% endif %} maxlength="128">
+                <span class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.register_container_name }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
-        <div class="form-group my-5">
-            <label for="container-file" class="form-label h4">Container Config File</label>
-            <div class="input-group">
-                <input
-                    name="container_file"
-                    class="form-control"
-                    type="text"
-                    id="container-file"
-                    placeholder="{{ placeholders.register_container_manifest_file }}"
-                    {% if task_running %} disabled {% endif %}
-                    {% if container_register_running %}
-                    value="{{ task_formData.get('container_file', '') }}"
-                    {% endif %}
-                >
-                <div class="input-group-append">
-                    <button
-                        type="button"
-                        class="btn btn-outline-secondary"
-                        id="browse-container-btn"
-                        {% if task_running %} disabled {% endif %}   
-                    >Browse</button>
-                </div>
-                <i
-                    class="tooltip-info input-group-text fa fa-info-circle fs-4"
-                    data-bs-toggle="tooltip"
-                    data-bs-placement="top"
-                    data-bs-title="{{ tooltips.register_container_manifest_file }}"
-                ></i>
+        <div>
+            <label for="container-file" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Container Config File</label>
+            <div class="flex flex-wrap items-stretch gap-2">
+                <input name="container_file" type="text" id="container-file" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500" placeholder="{{ placeholders.register_container_manifest_file }}" {% if task_running %}disabled{% endif %} {% if container_register_running %}value="{{ form_data.get('container_file', '') }}"{% endif %}>
+                <button type="button" class="px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer" id="browse-container-btn" {% if task_running %}disabled{% endif %}>Browse</button>
+                <span class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.register_container_manifest_file }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
-        <div class="form-group my-5">
-            <label for="parameters-file" class="form-label h4">Parameters File</label>
-            <div class="input-group">
-                <input
-                    name="parameters_file"
-                    class="form-control"
-                    type="text"
-                    id="parameters-file"
-                    placeholder="{{ placeholders.register_container_parameters_file }}"
-                    {% if task_running %} disabled {% endif %}
-                    {% if container_register_running %}
-                    value="{{ task_formData.get('parameters_file', '') }}"
-                    {% endif %}
-                >
-                <div class="input-group-append">
-                    <button
-                        type="button"
-                        class="btn btn-outline-secondary"
-                        id="browse-parameters-btn"
-                        {% if task_running %} disabled {% endif %}   
-                    >Browse</button>
-                </div>
-                <i
-                    class="tooltip-info input-group-text fa fa-info-circle fs-4"
-                    data-bs-toggle="tooltip"
-                    data-bs-placement="top"
-                    data-bs-title="{{ tooltips.register_container_parameters_file }}"
-                ></i>
+        <div>
+            <label for="parameters-file" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Parameters File</label>
+            <div class="flex flex-wrap items-stretch gap-2">
+                <input name="parameters_file" type="text" id="parameters-file" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500" placeholder="{{ placeholders.register_container_parameters_file }}" {% if task_running %}disabled{% endif %} {% if container_register_running %}value="{{ form_data.get('parameters_file', '') }}"{% endif %}>
+                <button type="button" class="px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer" id="browse-parameters-btn" {% if task_running %}disabled{% endif %}>Browse</button>
+                <span class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.register_container_parameters_file }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
-        <div class="form-group my-5">
-            <label for="additional-file" class="form-label h4">Additional Files URL</label>
-            <div class="input-group">
-                <input
-                    name="additional_file"
-                    class="form-control"
-                    type="text"
-                    id="additional-file"
-                    placeholder="{{ placeholders.register_container_additional_file }}"
-                    {% if task_running %} disabled {% endif %}
-                    {% if container_register_running %}
-                    value="{{ task_formData.get('additional_file', '') }}"
-                    {% endif %}
-                >
-                <i
-                    class="tooltip-info input-group-text fa fa-info-circle fs-4"
-                    data-bs-toggle="tooltip"
-                    data-bs-placement="top"
-                    data-bs-title="{{ tooltips.register_container_additional_file }}"
-                ></i>
+        <div>
+            <label for="additional-file" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Additional Files URL</label>
+            <div class="flex flex-wrap items-stretch gap-2">
+                <input name="additional_file" type="text" id="additional-file" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500" placeholder="{{ placeholders.register_container_additional_file }}" {% if task_running %}disabled{% endif %} {% if container_register_running %}value="{{ form_data.get('additional_file', '') }}"{% endif %}>
+                <span class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.register_container_additional_file }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
-        <div class="form-group mt-3 d-flex flex-row justify-content-evenly">
-            <div>
-                <input class="form-check-input border-black" type="radio" name="model_encrypted" id="without-encryption" value="false">
-                <label class="form-check-label" for="without-encryption">Not Encrypted Model</label>
-            </div>
-            <div>
-                <input class="form-check-input border-black" type="radio" name="model_encrypted" id="with-encryption" value="true">
-                <label class="form-check-label" for="with-encryption">Encrypted Model</label>
+        {% if ui_mode == request.app.state.EVALUATION_MODE %}
+        <div class="flex flex-wrap gap-4">
+            <label class="inline-flex items-center gap-2 cursor-pointer text-gray-900 dark:text-white"><input type="radio" name="model_encrypted" value="false" id="without-encryption" class="rounded-full border-gray-400 text-green-600 focus:ring-green-500 dark:border-gray-500 accent-green-600 dark:accent-green-400" {% if task_running %}disabled{% endif %} {% if container_register_running and form_data.get('model_encrypted') == 'false' %}checked{% endif %}> Not Encrypted Model</label>
+            <label class="inline-flex items-center gap-2 cursor-pointer text-gray-900 dark:text-white"><input type="radio" name="model_encrypted" value="true" id="with-encryption" class="rounded-full border-gray-400 text-green-600 focus:ring-green-500 dark:border-gray-500 accent-green-600 dark:accent-green-400" {% if task_running %}disabled{% endif %} {% if container_register_running and form_data.get('model_encrypted') == 'true' %}checked{% endif %}> Encrypted Model</label>
+        </div>
+        <div id="decryption-file-container" class="hidden">
+            <label for="decryption-file" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Decryption Key File Path</label>
+            <div class="flex flex-wrap items-stretch gap-2">
+                <input type="text" id="decryption-file" name="decryption_file" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500" placeholder="{{ placeholders.register_container_decryption_file }}" {% if task_running %}disabled{% endif %} {% if container_register_running %}value="{{ form_data.get('decryption_file', '') }}"{% endif %}>
+                <button type="button" class="px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer" id="browse-decryption-btn" {% if task_running %}disabled{% endif %}>Browse</button>
+                <span class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.register_container_decryption_file }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
-        <div id="decryption-file-container" class="form-group my-3 hidden-element">
-            <label for="decryption-file" class="form-label h4">Decryption Key File Path</label>
-            <div class="input-group mb-3">
-                <input
-                    type="text"
-                    id="decryption-file"
-                    name="decryption_file"
-                    class="form-control"
-                    placeholder="{{ placeholders.register_container_decryption_file }}"
-                    {% if task_running %} disabled {% endif %}
-                    {% if container_register_running %}
-                    value="{{ task_formData.get('decryption_file', '') }}"
-                    {% endif %}
-                >
-                <div class="input-group-append">
-                    <button
-                        type="button"
-                        class="btn btn-outline-secondary"
-                        id="browse-decryption-btn"
-                        {% if task_running %} disabled {% endif %}
-                    >Browse</button>
-                </div>
-                <i
-                    class="tooltip-info input-group-text fa fa-info-circle fs-4"
-                    data-bs-toggle="tooltip"
-                    data-bs-placement="top"
-                    data-bs-title="{{ tooltips.register_container_decryption_file }}"
-                ></i>
-            </div>
-        </div>
-        <div class="text-center mt-4">
-            <button id="register-container-btn" type="button" class="btn btn-success mx-3" disabled>
-                Register
-            </button>
+        {% else %}
+        <input type="hidden" name="model_encrypted" value="false">
+        {% endif %}
+        <div class="text-center pt-4">
+            <button id="register-container-btn" type="submit" class="px-6 py-3 medperf-bg dark:bg-green-600 text-white rounded-xl font-bold hover:opacity-90 disabled:opacity-50 cursor-pointer" disabled>Register container</button>
         </div>
     </form>
 
     {{ modal_macros.add_modal(
         modal_id="folder-picker-modal",
-        modal_body='<ul id="folder-list" class="list-group"></ul>',
+        modal_body='<ul id="folder-list" class="divide-y divide-gray-200 dark:divide-gray-600 max-h-96 overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-600"></ul>',
         modal_footer=True,
-        close_button='<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>',
-        success_button='<button type="button" class="btn btn-primary" id="select-folder-btn">Select</button>'
+        close_button='<button type="button" class="px-4 py-2 rounded-xl bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-900 dark:text-white font-semibold" data-dismiss-modal="folder-picker-modal">Cancel</button>',
+        success_button='<button type="button" class="px-4 py-2 rounded-xl medperf-bg dark:bg-green-600 text-white font-semibold" id="select-folder-btn">Select</button>'
     ) }}
 
     {% include "partials/panel_container.html" %}
@@ -178,22 +80,17 @@
     {% include "partials/yaml_container.html" %}
     {% include "partials/prompt_container.html" %}
 </div>
-{% endblock content %}
+{% endblock %}
 
 {% block extra_js %}
 <script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
 <script src="{{ url_for('static', path='js/containers/container_register.js') }}"></script>
 <script src="{{ url_for('static', path='js/folder_browsing.js') }}"></script>
-
-{% if task_running and request.app.state.task.name == "container_registration" %}
+{% if task_running and "register_container" in request.app.state.active_tasks %}
 <script>
-    $(document).ready(() => {
-        resumeRunningTask(
-            "#register-container-btn",
-            `Registering Container...`,
-            onContainerRegisterSuccess
-        )
+    document.addEventListener("DOMContentLoaded", function() {
+        resumeRunningTask("#register-container-form");
     });
 </script>
 {% endif %}
-{% endblock extra_js %}
+{% endblock %}

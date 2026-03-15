@@ -21,10 +21,6 @@ PATCH_APPROVE = "medperf.commands.association.approval.{}"
             {"training_exp_uid": 1, "dataset_uid": 1},
             "update_training_dataset_association",
         ),
-        (
-            {"training_exp_uid": 1, "aggregator_uid": 1},
-            "update_training_aggregator_association",
-        ),
     ],
 )
 def test_run_calls_correct_comms_method(mocker, comms, ui, kwargs, comms_method):

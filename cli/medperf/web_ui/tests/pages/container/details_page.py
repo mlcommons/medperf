@@ -4,8 +4,11 @@ from ..base_page import BasePage
 
 class ContainerDetailsPage(BasePage):
     DROPDOWN_BTN = (By.ID, "associate-dropdown-btn")
-    ASSOCIATION_CARDS = (By.CSS_SELECTOR, "div.card.association-card .card-title > a")
-    MANAGE_ACCESS = (By.CSS_SELECTOR, "a[data-test-id='manage-access']")
+    ASSOCIATION_CARDS = (
+        By.CSS_SELECTOR,
+        "div[data-testid='benchmark-associations'] div[data-testid='associated-benchmark-item'] a",
+    )
+    MANAGE_ACCESS = (By.CSS_SELECTOR, "a[data-testid='manage-access']")
 
     BENCHMARK = (By.ID, "benchmark")
     EMAILS = (By.ID, "email-input")
@@ -16,11 +19,11 @@ class ContainerDetailsPage(BasePage):
         super().__init__(driver)
         self.CONTAINER_BTN = (
             By.XPATH,
-            f'//h5//a[@data-testid="cont-name" and contains(text(), "{container}")]',
+            f'//h3//a[@data-testid="cont-name" and contains(text(), "{container}")]',
         )
         self.ASSOCIATE_BTN = (
             By.XPATH,
-            f'//li[.//strong[contains(text(), "{benchmark}")]]//button[contains(@class, "request-association-btn")]',
+            f'//div[div[contains(text(), "{benchmark}")]]//button[@data-testid="request-bmk-association"]',
         )
 
     def request_association(self):

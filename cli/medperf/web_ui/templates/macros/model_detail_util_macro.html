@@ -1,62 +1,28 @@
 {# ./cli/medperf/web_ui/templates/macros/model_detail_util_macro.html #}
 
 {% macro container_detail_util(container) %}
-<p class="card-text">
-    <strong>Container Manifest:</strong> 
-    <button
-        data-field="Container Config"
-        data-yaml-data='{{ container.container_config | tojson }}'
-        class="btn btn-link text-primary yaml-link text-decoration-underline m-0 p-0"
-        >Click to display Container Configuration
-    </button>
-</p>
-<p class="card-text">
-    <strong>Parameters:</strong>
-    {% if container.parameters_config is none %} 
-    <span>Not Available</span>
-    {% else %}
-    <button
-        data-field="Parameters"
-        data-yaml-data='{{ container.parameters_config | tojson }}'
-        class="btn btn-link text-primary yaml-link text-decoration-underline m-0 p-0"
-        >Click to display Parameters
-    </button>
-    {% endif %}
-</p>
-{% if container.additional_files_tarball_url %}
-<p class="card-text">
-    <strong>Additional Files:</strong> 
-    <a
-        href="{{ container.additional_files_tarball_url }}"
-        class="text-primary"
-        target="_blank">Click to Download the File
-    </a>
-</p>
-{% else %}
-<p class="card-text">
-    <strong>Additional Files:</strong> 
-    Not Available
-</p>
-{% endif %}
+<div class="mb-6">
+    <p class="text-sm text-gray-600 dark:text-gray-400 mb-2 font-semibold">Container Manifest</p>
+    <button type="button" data-field="Container Config" data-yaml-data='{{ container.container_config | tojson }}' class="yaml-link medperf-accent dark:text-green-400 hover:underline font-medium">Click to display Container Configuration</button>
+</div>
+<div class="mb-6">
+    <p class="text-sm text-gray-600 dark:text-gray-400 mb-2 font-semibold">Parameters</p>
+    {% if container.parameters_config is none %}<span class="text-gray-800 dark:text-gray-200">Not Available</span>{% else %}<button type="button" data-field="Parameters" data-yaml-data='{{ container.parameters_config | tojson }}' class="yaml-link medperf-accent dark:text-green-400 hover:underline font-medium">Click to display Parameters</button>{% endif %}
+</div>
+<div class="mb-6">
+    <p class="text-sm text-gray-600 dark:text-gray-400 mb-2 font-semibold">Additional Files</p>
+    {% if container.additional_files_tarball_url %}<a href="{{ container.additional_files_tarball_url }}" class="medperf-accent dark:text-green-400 hover:underline" target="_blank">Click to Download the File</a>{% else %}<span class="text-gray-800 dark:text-gray-200">Not Available</span>{% endif %}
+</div>
 {% endmacro %}
 
 
 {% macro asset_detail_util(asset) %}
-
-<p class="card-text">
-    {% if asset._is_local %}
-    <strong>This asset is local</strong>
-    {% else %}
-    <strong>Asset URL:</strong> 
-    <a
-        href="{{ asset.asset_url }}"
-        class="text-primary"
-        target="_blank">Click to Download the File
-    </a>
-    {% endif %}
-</p>
-<p class="card-text">
-    <strong>Asset Hash:</strong> 
-    {{ asset.asset_hash }}
-</p>
+<div class="mb-6">
+    <p class="text-sm text-gray-600 dark:text-gray-400 mb-2 font-semibold">Asset</p>
+    {% if asset._is_local %}<span class="text-gray-800 dark:text-gray-200">This asset is local</span>{% else %}<a href="{{ asset.asset_url }}" class="medperf-accent dark:text-green-400 hover:underline" target="_blank">Click to Download the File</a>{% endif %}
+</div>
+<div class="mb-6">
+    <p class="text-sm text-gray-600 dark:text-gray-400 mb-2 font-semibold">Asset Hash</p>
+    <span class="text-gray-800 dark:text-white font-medium">{{ asset.asset_hash }}</span>
+</div>
 {% endmacro %}

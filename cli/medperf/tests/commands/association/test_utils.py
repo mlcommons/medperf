@@ -6,7 +6,6 @@ from medperf.commands.association import utils
 
 @pytest.mark.parametrize("dset_uid", [None, 1])
 @pytest.mark.parametrize("mlcube_uid", [None, 1])
-@pytest.mark.parametrize("aggregartor_uid", [None, 1])
 @pytest.mark.parametrize("bmk_uid", [None, 1])
 @pytest.mark.parametrize("training_exp_uid", [None, 1])
 def test_validate_args_fails_if_invalid_arguments(
@@ -15,29 +14,22 @@ def test_validate_args_fails_if_invalid_arguments(
     ui,
     dset_uid,
     mlcube_uid,
-    aggregartor_uid,
     bmk_uid,
     training_exp_uid,
 ):
     # Arrange
-    number_of_components_provided = (
-        int(dset_uid is not None)
-        + int(mlcube_uid is not None)
-        + int(aggregartor_uid is not None)
+    number_of_components_provided = int(dset_uid is not None) + int(
+        mlcube_uid is not None
     )
     number_of_experiments_provided = int(bmk_uid is not None) + int(
         training_exp_uid is not None
     )
-    is_training_component = dset_uid or aggregartor_uid
     is_evaluation_component = dset_uid or mlcube_uid
 
     should_succeed = (
         number_of_components_provided == 1
         and number_of_experiments_provided == 1
-        and (
-            (training_exp_uid and is_training_component)
-            or (bmk_uid and is_evaluation_component)
-        )
+        and ((is_evaluation_component and bmk_uid) or (training_exp_uid and dset_uid))
     )
 
     # Act & Assert
@@ -48,7 +40,6 @@ def test_validate_args_fails_if_invalid_arguments(
                 training_exp_uid,
                 dset_uid,
                 mlcube_uid,
-                aggregartor_uid,
                 Status.APPROVED.value,
             )
     else:
@@ -57,7 +48,6 @@ def test_validate_args_fails_if_invalid_arguments(
             training_exp_uid,
             dset_uid,
             mlcube_uid,
-            aggregartor_uid,
             Status.APPROVED.value,
         )
 
@@ -77,7 +67,6 @@ def test_validate_args_fails_if_invalid_approval_status(
                 None,
                 1,
                 None,
-                None,
                 approval_status,
             )
     else:
@@ -85,7 +74,6 @@ def test_validate_args_fails_if_invalid_approval_status(
             1,
             None,
             1,
-            None,
             None,
             approval_status,
         )
@@ -139,45 +127,6 @@ def test_3_latest_associations():
 
     # Act
     result = utils.filter_latest_associations(associations, "experiment", "component")
-
-    # Assert
-    # sort them in some way
-    assert sorted(result, key=lambda x: (x["component"], x["experiment"])) == sorted(
-        expected, key=lambda x: (x["component"], x["experiment"])
-    )
-
-
-def test_1_last_component():
-    # Arrange
-    associations = [
-        {"created_at": "2025-04-16 17:38:33", "component": 1, "experiment": 2},
-        {"created_at": "2025-04-16 17:34:33", "component": 1, "experiment": 2},
-        {"created_at": "2025-04-16 17:32:33", "component": 2, "experiment": 2},
-    ]
-    expected = [associations[0]]
-
-    # Act
-    result = utils.get_last_component(associations, "experiment")
-
-    # Assert
-    # sort them in some way
-    assert sorted(result, key=lambda x: (x["component"], x["experiment"])) == sorted(
-        expected, key=lambda x: (x["component"], x["experiment"])
-    )
-
-
-def test_2_last_component():
-    # Arrange
-    associations = [
-        {"created_at": "2025-04-16 17:38:33", "component": 1, "experiment": 2},
-        {"created_at": "2025-04-16 17:34:33", "component": 1, "experiment": 2},
-        {"created_at": "2025-04-17 17:32:33", "component": 2, "experiment": 2},
-        {"created_at": "2025-04-16 17:32:33", "component": 2, "experiment": 3},
-    ]
-    expected = [associations[2], associations[3]]
-
-    # Act
-    result = utils.get_last_component(associations, "experiment")
 
     # Assert
     # sort them in some way

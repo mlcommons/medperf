@@ -1,7 +1,8 @@
+
 function formatDate(dateString) {
-    const date = new Date(dateString);
-    const now = new Date();
-    const options = {
+    var date = new Date(dateString);
+    var now = new Date();
+    var options = {
         weekday: "short",
         month: "short",
         day: "numeric",
@@ -9,402 +10,397 @@ function formatDate(dateString) {
         minute: "2-digit",
         timeZoneName: "short"
     };
-    if (date.getFullYear() !== now.getFullYear()) {
-        options.year = "numeric";
-    }
+    if (date.getFullYear() !== now.getFullYear()) options.year = "numeric";
     return date.toLocaleDateString(undefined, options);
 }
 
+function timeAgo(secondsSinceEpoch) {
+    var ts = typeof secondsSinceEpoch === "number" ? secondsSinceEpoch * 1000 : new Date(secondsSinceEpoch).getTime();
+    var seconds = Math.floor((Date.now() - ts) / 1000);
+    if (seconds < 5) return "Just now";
+    if (seconds < 60) return seconds + " sec ago";
+    var minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return minutes + " min ago";
+    var hours = Math.floor(minutes / 60);
+    if (hours < 24) return hours + " hr" + (hours > 1 ? "s" : "") + " ago";
+    var days = Math.floor(hours / 24);
+    return days + " day" + (days > 1 ? "s" : "") + " ago";
+}
+
 function applyDateFormatting() {
-    const dateElements =  $("[data-date]");
-    dateElements.each((_, element) => {
-        const date = element.getAttribute("data-date");
-        element.textContent = formatDate(date);
-    });
-}
-
-// Floating alert notifications
-function displayAlert(type, message) {
-    const alertContainer = document.createElement("div");
-    alertContainer.className = `alert alert-${type} alert-dismissible fade show floating-alert`;
-    alertContainer.setAttribute("role", "alert");
-    alertContainer.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    `;
-
-    document.body.appendChild(alertContainer);
-}
-
-// Clear all alerts
-function clearAlerts() {
-    document.querySelectorAll(".floating-alert").forEach(alert => alert.remove());
-}
-
-function onRequestFailure(xhr, status, error, errorMessage){
-    console.log(errorMessage, error);
-    console.error("Error:", xhr.responseText);
-}
-
-function ajaxRequest(requestUrl, requestType, requestBody, successFunctionCallback, errorMessage){
-    $.ajax({
-        url: requestUrl,
-        type: requestType,
-        data: requestBody,
-        processData: false,
-        contentType: false,
-        async: true,
-        success: function(response) {
-            successFunctionCallback(response);
-            
-        },
-        error: function(xhr, status, error) {
-            onRequestFailure(xhr, status, error, errorMessage);
+    document.querySelectorAll("[data-date]").forEach(function (el) {
+        var date = el.getAttribute("data-date");
+        if (!date) return;
+        if (el.getAttribute("data-date-format") === "timeago") {
+            el.textContent = timeAgo(date);
+        } else {
+            el.textContent = formatDate(date);
         }
     });
 }
 
-function disableElements(selector){
-    $(selector).prop("disabled", true);
-}
+var DISPLAY_ALERT_AUTO_DISMISS_MS = 5000;
 
-function enableElements(selector){
-    $(selector).prop("disabled", false);
-}
+function displayAlert(type, message, durationMs) {
+    var duration = durationMs != null ? durationMs : DISPLAY_ALERT_AUTO_DISMISS_MS;
+    var classMap = {
+        success: "display-alert-success",
+        danger: "display-alert-danger",
+        warning: "display-alert-warning",
+        info: "display-alert-info"
+    };
+    var iconMap = {
+        success: "&#10003;",
+        danger: "&#9888;",
+        warning: "&#9888;",
+        info: "&#8505;"
+    };
+    var alertEl = document.createElement("div");
+    alertEl.className = "display-alert pointer-events-auto " + (classMap[type] || classMap.info);
+    alertEl.setAttribute("role", "alert");
+    alertEl.innerHTML =
+        "<span class=\"display-alert-icon\" aria-hidden=\"true\">" + (iconMap[type] || iconMap.info) + "</span>" +
+        "<span class=\"display-alert-message\">" + escapeHtml(message) + "</span>" +
+        "<button type=\"button\" class=\"display-alert-close\" aria-label=\"Close\">&times;</button>" +
+        "<span class=\"display-alert-progress\"></span>";
+    var container = document.getElementById("toast-container");
+    if (!container) {
+        container = document.body;
+        alertEl.classList.add("display-alert-fixed");
+    }
+    container.appendChild(alertEl);
 
-function showReloadModal({ title, seconds, url=null }){
-    const extra_fn = () => {
-        timer({
-            seconds: seconds,
-            url: url
-        });
+    var closeBtn = alertEl.querySelector(".display-alert-close");
+    closeBtn.addEventListener("click", function () { removeAlert(alertEl); });
+
+    var progressEl = alertEl.querySelector(".display-alert-progress");
+    if (progressEl) {
+        if (duration > 0) {
+            progressEl.style.animationDuration = (duration / 1000) + "s";
+        } else {
+            progressEl.style.display = "none";
+        }
     }
 
+    var timeoutId = setTimeout(function () { removeAlert(alertEl); }, duration);
+    alertEl._alertTimeoutId = timeoutId;
+}
+
+function escapeHtml(text) {
+    var div = document.createElement("div");
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function removeAlert(alertEl) {
+    if (alertEl._alertTimeoutId) clearTimeout(alertEl._alertTimeoutId);
+    alertEl.classList.add("display-alert-out");
+    setTimeout(function () { alertEl.remove(); }, 280);
+}
+
+function clearAlerts() {
+    document.querySelectorAll(".floating-alert, .display-alert").forEach(function (a) { a.remove(); });
+}
+
+function onRequestFailure(xhr, status, error, errorMessage) {
+    console.log(errorMessage, error);
+    console.error("Error:", xhr && xhr.responseText);
+}
+
+function ajaxRequest(requestUrl, requestType, requestBody, successFunctionCallback, errorMessage) {
+    var opts = { method: requestType, headers: {} };
+    if (requestBody instanceof FormData) {
+        opts.body = requestBody;
+    } else if (requestBody != null) {
+        opts.body = typeof requestBody === "string" ? requestBody : JSON.stringify(requestBody);
+        opts.headers["Content-Type"] = "application/json";
+    }
+    fetch(requestUrl, opts)
+        .then(function (res) {
+            var ct = res.headers.get("content-type");
+            if (res.status === 204 || !ct || ct.indexOf("json") === -1) return {};
+            return res.json();
+        })
+        .then(successFunctionCallback)
+        .catch(function (err) {
+            onRequestFailure(null, "error", err, errorMessage);
+        });
+}
+
+function disableElements(selector) {
+    document.querySelectorAll(selector).forEach(function (el) { el.disabled = true; });
+}
+
+function enableElements(selector) {
+    document.querySelectorAll(selector).forEach(function (el) { el.disabled = false; });
+}
+
+function showReloadModal(opts) {
+    var title = opts.title, seconds = opts.seconds, url = opts.url || null;
     showModal({
         title: title,
-        body: '<p id="popup-text"></p>',
-        extra_func: extra_fn
+        body: "<p id=\"popup-text\"></p>",
+        extra_func: function () {
+            timer({ seconds: seconds, url: url });
+        }
     });
 }
 
-function timer({seconds, url=null}){
-    $("#popup-text").html(`The window will reload in <span id='timer'>${seconds}</span> ...`);
-    const timerInterval = setInterval(function() {
+function timer(opts) {
+    var seconds = opts.seconds, url = opts.url || null;
+    var popup = document.getElementById("popup-text");
+    if (popup) popup.innerHTML = "The window will reload in <span id=\"timer\">" + seconds + "</span> ...";
+    var timerInterval = setInterval(function () {
         seconds--;
-        $("#timer").text(seconds);
-
-        if (seconds === 0) {
+        var t = document.getElementById("timer");
+        if (t) t.textContent = seconds;
+        if (seconds <= 0) {
             clearInterval(timerInterval);
-            if(url)
-                window.location.href = url;
-            else
-                reloadPage();
+            if (url) window.location.href = url;
+            else reloadPage();
         }
     }, 1000);
 }
 
-function markAllStagesAsComplete(){
-    $("#stages-list > li").each((_, element) => {
-        markStageAsComplete(element);
-    });
+function markAllStagesAsComplete() {
+    var list = document.getElementById("stages-list");
+    if (list) list.querySelectorAll(":scope > li").forEach(function (el) { markStageAsComplete(el); });
 }
 
-function addSpinner(element){
-    element.innerHTML += `
-        <span class="spinner-border spinner-border-sm ms-2" role="status" aria-hidden="true"></span>
-    `;
-}
+var STAGE_SPINNER_CLASS = "inline-block w-5 h-5 flex-shrink-0 border-2 border-green-600 dark:border-green-400 border-t-transparent dark:border-t-transparent rounded-full animate-spin";
 
-function showPanel(title){
-    $("#panel-title").text(title);
-    $("#panel").show();
-}
-
-function showErrorModal(errorTitle, response){
-    const responseError = response.error;
-    const responseStatus = response.status;
-    let errorText = "";
-    if (responseError){
-        errorText += responseError.replace("\n", "<br>") + "<br>";
+function addSpinner(element) {
+    if (!element) return;
+    var span = document.createElement("span");
+    span.className = STAGE_SPINNER_CLASS;
+    span.setAttribute("role", "status");
+    span.setAttribute("aria-hidden", "true");
+    if (element.tagName === "BUTTON" || element.tagName === "A") {
+        element.disabled = true;
+        element.setAttribute("aria-busy", "true");
+        if (!element.classList.contains("inline-flex")) element.classList.add("inline-flex", "items-center", "gap-2");
+        element.insertBefore(span, element.firstChild);
+    } else {
+        span.classList.add("ml-2");
+        element.appendChild(span);
     }
-    if (responseStatus){
-        errorText += responseStatus.replace("\n", "<br>");
-    }
-
-    const modalBody = `
-        <p id="error-text" class="fs-5 text-danger fw-bold">
-            ${errorText}
-        </p>
-
-        <p class="text-end mt-3">
-            <button type="button" class="btn" onclick="reloadPage();">
-                Click here to reload
-            </button>
-        </p>
-    `;
-    const modalFooter = '<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Hide</button>';
-
-    showModal({
-        title: errorTitle,
-        body: modalBody,
-        footer: modalFooter
-    });
 }
 
-function showConfirmModal(clickedBtn, callback, message){
-    const modalTitle = "Confirmation Prompt";
-    const modalBody = `<p id="confirm-text" class="fs-5">Are you sure you want to ${message}</p>`;
-    const modalFooter = `
-    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">
-        Cancel
-    </button>
+function showPanel(title) {
+    var panelTitle = document.getElementById("panel-title");
+    var panel = document.getElementById("panel");
+    if (panelTitle) panelTitle.textContent = title;
+    if (panel) { panel.style.display = ""; panel.classList.remove("hidden"); }
+}
 
-    <button id="confirmation-btn"
-            type="button"
-            class="btn btn-success"
-            data-bs-dismiss="modal">
-        Confirm
-    </button>
-    `;
-    
-    const extra_fn = () => {
-        $("#confirmation-btn").off("click").on("click", () => {
+function showErrorModal(errorTitle, response) {
+    var responseError = (response && response.error) || "";
+    var responseStatus = (response && response.status) || "";
+    var errorText = (responseError + (responseError ? "<br>" : "") + responseStatus).replace(/\n/g, "<br>");
+    var modalBody = "<p id=\"error-text\" class=\"text-lg font-bold text-red-600 dark:text-red-400\">" + errorText + "</p><p class=\"text-end mt-3\"><button type=\"button\" class=\"px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 cursor-pointer\" onclick=\"reloadPage();\">Click here to reload</button></p>";
+    var modalFooter = "<button type=\"button\" class=\"px-4 py-2 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 close-modal-btn\">Hide</button>";
+    showModal({ title: errorTitle, body: modalBody, footer: modalFooter });
+}
+
+function showConfirmModal(clickedBtn, callback, message) {
+    var modalTitle = "Confirmation Prompt";
+    var modalBody = "<p id=\"confirm-text\" class=\"text-lg\">Are you sure you want to " + message + "</p>";
+    var modalFooter = "<button type=\"button\" class=\"px-4 py-2 rounded-xl bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-900 dark:text-white font-semibold close-modal-btn\">Cancel</button><button id=\"confirmation-btn\" type=\"button\" class=\"px-4 py-2 rounded-xl medperf-bg dark:bg-green-600 text-white font-semibold hover:opacity-90 close-modal-btn\">Confirm</button>";
+    var extra = function () {
+        var confirmBtn = document.getElementById("confirmation-btn");
+        if (confirmBtn) confirmBtn.addEventListener("click", function () {
             callback(clickedBtn);
+            window.hidePageModal();
+            window.onModalHidden();
+        });
+        document.querySelectorAll(".close-modal-btn").forEach(function (btn) {
+            if (btn.id !== "confirmation-btn") btn.addEventListener("click", function () { window.hidePageModal(); window.onModalHidden(); });
         });
     };
-
-    showModal({
-        title: modalTitle,
-        body: modalBody,
-        footer: modalFooter,
-        extra_func: extra_fn
-    });
+    showModal({ title: modalTitle, body: modalBody, footer: modalFooter, extra_func: extra });
 }
 
-function getTaskId(){
-    return new Promise((resolve, reject) => {
-        $.ajax({
-            url: "/current_task",
-            method: "get",
-            success: function (response) {
-                resolve(response.task_id);
-            },
-            error: function (xhr, status, error) {
-                console.error("Failed to get task id:", error);
-                reject(error);
-            }
-        });
-    });
-}
-
-function respondToPrompt(value){
-    $.ajax({
-        url: "/events",
-        type: "POST",
-        data: { is_approved: value },
-    });
+function respondToPrompt(value) {
+    var formData = new FormData();
+    formData.append("task_name", window.taskName || "");
+    formData.append("is_approved", value ? "true" : "false");
+    fetch("/events", { method: "POST", body: formData });
     window.isPromptReceived = false;
-    document.getElementById("prompt-text").innerHTML = "";
-    document.getElementById("prompt-container").removeAttribute("style");
+    var promptText = document.getElementById("prompt-text");
+    var promptContainer = document.getElementById("prompt-container");
+    if (promptText) promptText.innerHTML = "";
+    if (promptContainer) promptContainer.classList.add("hidden");
     streamEvents(logPanel, stagesList, currentStageElement);
 }
 
-function resumeRunningTask(buttonSelector, panelTitle, callback){
-    if(buttonSelector){
-        if (typeof buttonSelector === "object"){
-            buttonSelector.forEach(selector => {
-                addSpinner($(selector)[0]);
-            });
-        }
-        else{
-            addSpinner($(buttonSelector)[0]);
-        }
-    }
+function resumeRunningTask(formSelector) {
+    const form = document.querySelector(formSelector);
+    const submitBtn = document.querySelector(formSelector + ' button[type="submit"]');
+    const panelTitle = document.querySelector(formSelector)?.getAttribute("data-panel-title");
+    const taskName = form.querySelector('input[name="task_name"]')?.value;
     
-    if (panelTitle) {
-        showPanel(panelTitle);
-    }
-
-    window.onPromptComplete = callback;
+    window.taskName = taskName || "";
+    addSpinner(submitBtn);
+    showPanel(panelTitle + "...");
+    window.onPromptComplete = onActionSuccess(panelTitle, null);
     streamEvents(logPanel, stagesList, currentStageElement, true);
 }
 
-function reloadPage(){
-    window.location.reload(true);
+function reloadPage() {
+    window.location.reload();
 }
 
-function getEntities(switchElement){
-    const entity_name = switchElement.getAttribute("data-entity-name");
-    const mine_only = switchElement.checked;
-    window.location.href = `/${entity_name}/ui?mine_only=${mine_only}`;
+function getEntities(switchElement) {
+    var entity_name = switchElement.getAttribute("data-entity-name");
+    var mine_only = switchElement.checked;
+    window.location.href = "/" + entity_name + "/ui?mine_only=" + (mine_only ? "true" : "false");
 }
 
-function onLogoutSuccess(response){
-    if(response.status === "success"){
-        showReloadModal({
-            title: "Successfully Logged Out",
-            seconds: 1,
-            url:"/medperf_login"
-        });
-    }
-    else{
+function onLogoutSuccess(response) {
+    if (response && response.status === "success") {
+        showReloadModal({ title: "Successfully Logged Out", seconds: 1, url: "/medperf_login" });
+    } else {
         showErrorModal("Logout Failed", response);
     }
 }
 
-async function logout(){
-    ajaxRequest(
-        "/logout",
-        "POST",
-        null,
-        onLogoutSuccess,
-        "Error logging out:"
-    )
-    window.runningTaskId = await getTaskId();
+function logout() {
+    ajaxRequest("/logout", "POST", null, onLogoutSuccess, "Error logging out:");
 }
 
-function showCriticalPopup(data){
-    const modalTitle = "Critical Warning";
-    const modalTitleClasses = "fw-bold text-danger";
-    const modalBody = `<p id="warning-text" class="fs-5 fw-bold text-danger">${data.message}</p>`;
-    const modalFooter = `
-    <button 
-        id="acknowledge-btn" 
-        type="button" 
-        class="btn btn-success" 
-        data-bs-dismiss="modal" 
-        onclick="acknowledgeWarning(this);" 
-        data-event-id="${data.id}"
-    >
-        Acknowledge
-    </button>`;
-
-    showModal({
-        title: modalTitle,
-        body: modalBody,
-        footer: modalFooter,
-        titleClasses: modalTitleClasses,
-    });
+function showCriticalPopup(data) {
+    var modalTitle = "Critical Warning";
+    var modalTitleClasses = "font-bold text-red-600 dark:text-red-400";
+    var modalBody = "<p id=\"warning-text\" class=\"text-lg font-bold text-red-600 dark:text-red-400\">" + (data && data.message ? data.message : "") + "</p>";
+    var modalFooter = "<button id=\"acknowledge-btn\" type=\"button\" class=\"px-4 py-2 rounded-xl medperf-bg dark:bg-green-600 text-white font-semibold close-modal-btn\" onclick=\"acknowledgeWarning(this);\" data-event-id=\"" + (data && data.id ? data.id : "") + "\">Acknowledge</button>";
+    var extra = function () {
+        document.getElementById("acknowledge-btn");
+    };
+    showModal({ title: modalTitle, body: modalBody, footer: modalFooter, titleClasses: modalTitleClasses, extra_func: extra });
 }
 
-function acknowledgeWarning(ackBtn){
-    const eventId = ackBtn.getAttribute("data-event-id");
-    const formData = new FormData();
+function acknowledgeWarning(ackBtn) {
+    var eventId = ackBtn.getAttribute("data-event-id");
+    var formData = new FormData();
     formData.append("event_id", eventId);
-    
-    ajaxRequest(
-        "/events/acknowledge_event",
-        "POST",
-        formData,
-        () => {},
-        "Cannot acknowledge event:"
-    )
+    fetch("/events/acknowledge_event", { method: "POST", body: formData }).catch(function () {});
 }
 
-function showModal({ title, body, footer="", titleClasses="", modalClasses="", extra_func=null }) {
-    requestModal(() => { 
-        resetModal();
-        $("#page-modal-dialog").addClass(modalClasses);
-        $("#page-modal-title")
-            .attr("class", "")
-            .addClass(titleClasses)
-            .html(title);
-
-        $("#page-modal-body").html(body);
-        $("#page-modal-footer").html(footer);
-
-        if (typeof extra_func === "function") {
-            extra_func();
-        }
-
-        const modal = new bootstrap.Modal("#page-modal", {
-            keyboard: false,
-            backdrop: "static",
-        });
-        modal.show();
-    });
-}
-
-function requestModal(showFn) {
-    if (!window.modalOpen) {
-        window.modalOpen = true;
-        showFn();
-    } else {
-        window.modalQueue.push(showFn);
-    }
-}
-
-function resetModal(){
-    $("#page-modal-dialog").attr("class", "modal-dialog");
-    $("#page-modal-title").attr("class", "modal-title fs-5").html("");
-    $("#page-modal-body").html("");
-    $("#page-modal-footer").html("");
-}
-
-let currentStageElement = null, logPanel, stagesList;
+var currentStageElement = null, logPanel, stagesList;
 window.isPromptReceived = false;
 window.onPromptComplete = null;
-const logNodes = [];
-window.modalQueue = [];
-window.modalOpen = false;
 
-$(document).ready(() => {
-    applyDateFormatting();
-
-    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
-    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
-    
-    window.notifications.forEach(notification => {
-        addNotification(notification);
+function bindModalCloseButtons() {
+    var footer = document.getElementById("page-modal-footer");
+    if (footer) footer.addEventListener("click", function (e) {
+        var btn = e.target.closest(".close-modal-btn");
+        if (btn) { window.hidePageModal(); window.onModalHidden(); }
     });
+}
 
-    logPanel = document.getElementById('log-panel');
-    stagesList = document.getElementById('stages-list');
-    
-    $("#respond-no-btn").on("click", () => respondToPrompt(false));
-    $("#respond-yes-btn").on("click", () => respondToPrompt(true));
-
-    $("#hide-yaml").on("click", (e) => {
-        e.preventDefault();
-        $("#yaml-panel").hide();
-        $("#hide-yaml").hide();
-    });
-
-    $(".yaml-link").on("click", (e) => {
-        const fieldName = e.currentTarget.getAttribute("data-field");
-        const yamlData = JSON.parse(e.currentTarget.getAttribute("data-yaml-data"));
-        const yamlDataPrettified = JSON.stringify(yamlData, null, 2);
-
-        const modalTitle = fieldName;
-        const modalBody = `<pre id="modal-yaml-content" class="language-yaml">${yamlDataPrettified}</pre>`
-        const modalFooter = '<button type="button" class="btn btn-primary" data-bs-dismiss="modal" aria-label="Close">Close</button>';
-        const extra_fn = () => { Prism.highlightElement($("#modal-yaml-content")[0]); }
-
-        showModal({
-            title: modalTitle,
-            body: modalBody,
-            footer: modalFooter,
-            modalClasses: "modal-lg",
-            extra_func: extra_fn
-        });
-
-    });
-
-    $("#logout-btn").on("click", (e) => {
-        showConfirmModal(e.currentTarget, logout, "logout?");
-    });
-
-    $("form").on("submit", (e) => {
-        e.preventDefault();
-    });
-
-    document.addEventListener("hidden.bs.modal", function () {
-        window.modalOpen = false;
-
-        if (window.modalQueue.length > 0) {
-            const nextModal = window.modalQueue.shift();
-            window.modalOpen = true;
-            nextModal();
-        }
-    });
+document.body.addEventListener("click", function (e) {
+    var t = e.target.closest("[data-dismiss-modal]");
+    if (t) {
+        var id = t.getAttribute("data-dismiss-modal");
+        var m = document.getElementById(id);
+        if (m) { m.classList.add("hidden"); document.body.classList.remove("overflow-hidden"); }
+    }
 });
+
+function onActionSuccess(panelTitle) {
+    return function (response) {
+        markAllStagesAsComplete();
+        var id = response.entity_id;
+        var url = id && typeof REDIRECT_BASE !== "undefined" ? REDIRECT_BASE + id : null;
+        if (response.status === "success") {
+            showReloadModal({
+                title: panelTitle + " completed successfully",
+                seconds: 3,
+                url: url
+            });
+        } else {
+            showErrorModal("Something when wrong while " + panelTitle.toLowerCase(), response);
+        }
+    };
+}
+
+function submitActionFormWithForm(form) {
+    const formData = new FormData(form);
+    const panelTitle = form.getAttribute("data-panel-title") || "Running task";
+    const taskName = form.querySelector('input[name="task_name"]').value;
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const handlerName = form.getAttribute("data-success-handler");
+
+    disableElements(".detail-container form button, .detail-container form input, .detail-container form select, .detail-container form textarea, .card button");
+    addSpinner(submitBtn);
+    window.taskName = taskName;
+    window.onPromptComplete = (handlerName && typeof window[handlerName] === "function") ? window[handlerName] : onActionSuccess(panelTitle);
+    showPanel(panelTitle + "...");
+    // Open EventSource before POST so we receive the task-end event for fast (sync) tasks like submit_result
+    streamEvents(logPanel, stagesList, currentStageElement);
+    ajaxRequest(
+        form.action,
+        "POST",
+        formData,
+        function (response) {
+            // For synchronous tasks the server returns the final result in the HTTP body; show modal from that so it always appears
+            if (response && (response.status === "success" || response.status === "failed")) {
+                if (typeof window.onPromptComplete === "function") {
+                    window.onPromptComplete(response);
+                    window.onPromptComplete = null;
+                }
+            }
+        },
+        "Error: " + panelTitle
+    );
+}
+
+function submitActionForm(e) {
+    e.preventDefault();
+    var form = e.target;
+    var msg = form.getAttribute("data-confirm-message") || "continue?";
+    showConfirmModal(form, submitActionFormWithForm, msg);
+}
+
+function onDomReady() {
+    applyDateFormatting();
+    bindModalCloseButtons();
+    if (Array.isArray(window.notifications)) window.notifications.forEach(function (n) { addNotification(n); });
+    logPanel = document.getElementById("log-panel");
+    stagesList = document.getElementById("stages-list");
+
+    var respondNo = document.getElementById("respond-no-btn");
+    var respondYes = document.getElementById("respond-yes-btn");
+    if (respondNo) respondNo.addEventListener("click", function () { respondToPrompt(false); });
+    if (respondYes) respondYes.addEventListener("click", function () { respondToPrompt(true); });
+
+    document.querySelectorAll(".yaml-link").forEach(function (link) {
+        link.addEventListener("click", function (e) {
+            var fieldName = e.currentTarget.getAttribute("data-field");
+            var yamlDataStr = e.currentTarget.getAttribute("data-yaml-data");
+            var yamlData = [];
+            try { yamlData = JSON.parse(yamlDataStr || "[]"); } catch (_) {}
+            var yamlDataPrettified = JSON.stringify(yamlData, null, 2);
+            var modalBody = "<pre id=\"modal-yaml-content\" class=\"language-yaml overflow-x-auto p-4 rounded-lg bg-gray-100 dark:bg-gray-700\">" + yamlDataPrettified.replace(/</g, "&lt;") + "</pre>";
+            var modalFooter = "<button type=\"button\" class=\"px-4 py-2 rounded-xl medperf-bg dark:bg-green-600 text-white font-semibold close-modal-btn\">Close</button>";
+            var extra = function () {
+                var pre = document.getElementById("modal-yaml-content");
+                if (window.Prism && pre) Prism.highlightElement(pre);
+            };
+            showModal({ title: fieldName, body: modalBody, footer: modalFooter, modalClasses: "max-w-4xl w-full", extra_func: extra });
+        });
+    });
+
+    var logoutBtn = document.getElementById("logout-btn");
+    if (logoutBtn) logoutBtn.addEventListener("click", function (e) { showConfirmModal(e.currentTarget, logout, "logout?"); });
+
+    document.querySelectorAll("form").forEach(function (form) {
+        form.addEventListener("submit", function (e) { e.preventDefault(); });
+    });
+}
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", onDomReady);
+} else {
+    onDomReady();
+}

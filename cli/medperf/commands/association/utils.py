@@ -3,12 +3,11 @@ from medperf import config
 from pydantic.datetime_parse import parse_datetime
 
 
-def validate_args(benchmark, training_exp, dataset, model, aggregator, approval_status):
+def validate_args(benchmark, training_exp, dataset, model, approval_status):
     training_exp = bool(training_exp)
     benchmark = bool(benchmark)
     dataset = bool(dataset)
     model = bool(model)
-    aggregator = bool(aggregator)
 
     if approval_status is not None:
         if approval_status.lower() not in ["pending", "approved", "rejected"]:
@@ -19,19 +18,12 @@ def validate_args(benchmark, training_exp, dataset, model, aggregator, approval_
         raise InvalidArgumentError(
             "One training experiment or a benchmark flag must be provided"
         )
-    if sum([dataset, model, aggregator]) != 1:
-        raise InvalidArgumentError(
-            "One dataset, model, or aggregator flag must be provided"
-        )
+    if sum([dataset, model]) != 1:
+        raise InvalidArgumentError("One dataset or model flag must be provided")
     if training_exp and model:
         raise InvalidArgumentError(
             "Invalid combination of arguments. There are no associations"
             " between training experiments and models"
-        )
-    if benchmark and aggregator:
-        raise InvalidArgumentError(
-            "Invalid combination of arguments. There are no associations"
-            " between benchmarks and aggregators"
         )
 
 
@@ -59,17 +51,6 @@ def filter_latest_associations(associations, experiment_key, component_key):
 
     latest_associations = list(latest_associations.values())
     return latest_associations
-
-
-def get_last_component(associations, experiment_key):
-    associations.sort(key=lambda assoc: parse_datetime(assoc["created_at"]))
-    experiments_component = {}
-    for assoc in associations:
-        experiment_id = assoc[experiment_key]
-        experiments_component[experiment_id] = assoc
-
-    experiments_component = list(experiments_component.values())
-    return experiments_component
 
 
 def get_experiment_associations(
@@ -112,7 +93,6 @@ def get_user_associations(
     comms_functions = {
         "training_exp": {
             "dataset": config.comms.get_user_training_datasets_associations,
-            "aggregator": config.comms.get_user_training_aggregators_associations,
         },
         "benchmark": {
             "dataset": config.comms.get_user_benchmarks_datasets_associations,
@@ -140,10 +120,6 @@ def _post_process_associtations(
 ):
 
     assocs = filter_latest_associations(associations, experiment_type, component_type)
-    if component_type == "aggregator":
-        # an experiment should only have one aggregator
-        assocs = get_last_component(assocs, experiment_type)
-
     if approval_status:
         approval_status = approval_status.upper()
         assocs = [

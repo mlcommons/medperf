@@ -3,7 +3,12 @@ from medperf.entities.aggregator import Aggregator
 from medperf.entities.training_exp import TrainingExp
 from medperf.entities.cube import Cube
 from medperf.exceptions import CleanExit, InvalidArgumentError
-from medperf.utils import approval_prompt, dict_pretty_print, generate_tmp_path
+from medperf.utils import (
+    approval_prompt,
+    dict_pretty_print,
+    generate_tmp_path,
+    sanitize_path,
+)
 import os
 
 import yaml
@@ -22,12 +27,14 @@ class SetPlan:
         """
         planset = cls(training_exp_id, training_config_path, approval)
         planset.validate()
-        planset.prepare()
-        planset.create_plan()
+        with config.ui.interactive():
+            planset.prepare()
+            planset.create_plan()
         planset.update()
         planset.write()
 
     def __init__(self, training_exp_id: int, training_config_path: str, approval: bool):
+        training_config_path = sanitize_path(training_config_path)
         self.ui = config.ui
         self.training_exp_id = training_exp_id
         self.training_config_path = os.path.abspath(training_config_path)

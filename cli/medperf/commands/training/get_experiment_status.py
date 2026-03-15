@@ -23,10 +23,10 @@ class GetExperimentStatus:
             training_exp_id (int): Training experiment UID.
         """
         execution = cls(training_exp_id)
-        execution.prepare()
-        execution.prepare_plan()
-        execution.prepare_pki_assets()
         with config.ui.interactive():
+            execution.prepare()
+            execution.prepare_plan()
+            execution.prepare_pki_assets()
             execution.prepare_admin_cube()
             execution.get_experiment_status()
         if not silent:
