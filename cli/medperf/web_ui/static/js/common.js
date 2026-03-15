@@ -334,16 +334,25 @@ function submitActionFormWithForm(form) {
     disableElements(".detail-container form button, .detail-container form input, .detail-container form select, .detail-container form textarea, .card button");
     addSpinner(submitBtn);
     window.taskName = taskName;
+    window.onPromptComplete = (handlerName && typeof window[handlerName] === "function") ? window[handlerName] : onActionSuccess(panelTitle);
+    showPanel(panelTitle + "...");
+    // Open EventSource before POST so we receive the task-end event for fast (sync) tasks like submit_result
+    streamEvents(logPanel, stagesList, currentStageElement);
     ajaxRequest(
         form.action,
         "POST",
         formData,
-        function () { /* HTTP success; task completion handled by onPromptComplete */ },
+        function (response) {
+            // For synchronous tasks the server returns the final result in the HTTP body; show modal from that so it always appears
+            if (response && (response.status === "success" || response.status === "failed")) {
+                if (typeof window.onPromptComplete === "function") {
+                    window.onPromptComplete(response);
+                    window.onPromptComplete = null;
+                }
+            }
+        },
         "Error: " + panelTitle
     );
-    showPanel(panelTitle + "...");
-    window.onPromptComplete = (handlerName && typeof window[handlerName] === "function") ? window[handlerName] : onActionSuccess(panelTitle);
-    streamEvents(logPanel, stagesList, currentStageElement);
 }
 
 function submitActionForm(e) {

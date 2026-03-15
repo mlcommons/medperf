@@ -23,7 +23,10 @@ function streamEvents(logPanel, stagesList, currentStageElement, streamOld) {
         if (data.end) {
             eventSource.close();
             window.evSource = null;
-            if (typeof window.onPromptComplete === "function") window.onPromptComplete(data.response);
+            if (typeof window.onPromptComplete === "function") {
+                window.onPromptComplete(data.response);
+                window.onPromptComplete = null;
+            }
             return;
         }
         currentStageElement = handleEvents(data, logPanel, stagesList, currentStageElement);
