@@ -1,3 +1,5 @@
+set -eo pipefail
+
 KEYRING_NAME="medperf-keyring"
 KEY_NAME="medperf-key"
 KEY_LOCATION="global"

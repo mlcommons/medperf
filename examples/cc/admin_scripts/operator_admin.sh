@@ -1,3 +1,5 @@
+set -eo pipefail
+
 export SERVICE_ACCOUNT_NAME="medperf-cc-sa"
 export BUCKET_NAME="medperf-bucket"
 export BUCKET_LOCATION="us-central1"
