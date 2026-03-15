@@ -141,6 +141,12 @@
                 <strong>Status:</strong> 
                 <span class="badge bg-danger" data-testid="cert-status">invalid</span>
             </p>
+            {% else %}
+            <p class="fs-5">
+                <strong>Status:</strong> 
+                <span class="badge bg-success" data-testid="cert-status">valid</span>
+            </p>
+            {% endif %}
             <button
                 id="delete-cert-btn"
                 class="btn btn-danger mt-3"
@@ -148,14 +154,8 @@
                 data-bs-toggle="tooltip"
                 data-bs-placement="top"
                 data-bs-title="{{ tooltips.invalidate_certificate_btn }}"
-                >Invalidate Certificate
+                >Delete
             </button>
-            {% else %}
-            <p class="fs-5">
-                <strong>Status:</strong> 
-                <span class="badge bg-success" data-testid="cert-status">valid</span>
-            </p>
-            {% endif %}
             {% endif %}
             {% endif %}
         </div>
