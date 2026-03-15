@@ -2,11 +2,27 @@
 
 ## For GCP Project Admin
 
+### Quotas
+
+You will be creating:
+
+- bucket
+- a KMS HSM key
+- a workload identity pool
+- a service account
+- a GPU-based confidential VM (machine type: a3-highgpu-1g). To view zones where this machine type is available, visit <https://docs.cloud.google.com/compute/docs/regions-zones/gpu-regions-zones> and look for availability of "A3 High".
+
+You will need to make sure you have enough quota for nvidia h100 GPUs:
+
+- visit <https://docs.cloud.google.com/confidential-computing/confidential-vm/docs/create-a-confidential-vm-instance-with-gpu#request-preemptible-quota> and read sections "Request preemptible quota" and "Request global quota"; make sure you have these quotas. only 1 GPU is needed.
+
+### Creating resources
+
 Note: a script `admin.sh` can be found in this folder. You can configure the constants (e.g., project id, names of the resources to be created, etc...), run the script in cloud shell, and you are done. It will print at the end the information needed to be passed to the user.
 
 If you want to create resources manually, follow the instructions below.
 
-### Resources for Hosting the dataset and managing access
+#### Resources for Hosting the dataset and managing access
 
 - Create a bucket
   - Uniform Bucket Level Access must be enabled. (In bucket configuration tab, edit permissions.access_control: change from fine grained to uniform)
@@ -28,11 +44,10 @@ If you want to create resources manually, follow the instructions below.
   - add the following as the google.subject attribute:
     - "gcpcs::"+assertion.submods.container.image_digest+"::"+assertion.submods.gce.project_number+"::"+assertion.submods.gce.instance_id
   - click create/save
+  - grant user update permissions for the wip
+    - You should use the commnad provided in the `admin.sh` file in this folder. Run it in the cloud shell.
 
-- grant user update permissions for the wip
-  - You should use the commnad provided in the `admin.sh` file in this folder. Run it in the cloud shell.
-
-### Resources for operating a CVM
+#### Resources for operating a CVM
 
 <!-- This is commented currently because the data owner and the operator are the same user -->
 <!-- - Create a bucket
