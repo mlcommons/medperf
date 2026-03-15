@@ -5,47 +5,43 @@ from ..base_page import BasePage
 class DatasetDetailsPage(BasePage):
 
     PREPARE_BTN = (By.ID, "prepare-dataset")
-    PREPARED_TEXT = (
-        By.XPATH,
-        '//div[contains(@class, "bottom-buttons-panel")]'
-        + '//span[contains(@class, "text-success") and contains(text(), "Prepared")]',
-    )
+    PREPARED_TEXT = (By.CSS_SELECTOR, 'div[data-testid="prepared-section"]')
 
     SET_OPERATIONAL_BTN = (By.ID, "set-operational")
-    SET_OPERATIONAL_TEXT = (
-        By.XPATH,
-        '//div[contains(@class, "bottom-buttons-panel")]'
-        + '//span[contains(@class, "text-success") and contains(text(), "Operational")]',
-    )
+    SET_OPERATIONAL_TEXT = (By.CSS_SELECTOR, 'div[data-testid="operational-section"]')
 
     DROPDOWN_BTN = (By.ID, "associate-dropdown-btn")
-    ASSOCIATION_CARDS = (By.CSS_SELECTOR, "div.benchmark-section li a")
+    ASSOCIATION_CARDS = (
+        By.CSS_SELECTOR,
+        "div[data-testid='benchmark-associations'] div[data-testid='associated-benchmark-item'] a",
+    )
 
-    CLOSE_BTN = (By.CSS_SELECTOR, 'button[data-bs-dismiss="modal"][aria-label="Close"]')
+    # New design: result modal uses page-modal, footer has button.close-modal-btn
+    CLOSE_BTN = (By.CSS_SELECTOR, "#page-modal-footer button.close-modal-btn")
 
     def __init__(self, driver, dataset, benchmark=""):
         super().__init__(driver)
         self.DATASET_NAME_BTN = (
             By.XPATH,
-            f'//h5//a[@data-testid="dset-name" and contains(text(), "{dataset}")]',
+            f'//h3//a[@data-testid="dset-name" and contains(text(), "{dataset}")]',
         )
+        # New design: benchmark section has h4 > a > strong (benchmark name), run-all-btn, view-result-btn, submit in form
         self.RUN_BTN = (
             By.XPATH,
-            f'//div[contains(@class,"card")][.//h4//a/strong[text()="{benchmark}"]]'
-            + '//button[contains(@class,"run-all-btn")]',
+            f'//div[.//h4//a/strong[contains(normalize-space(.), "{benchmark}")]]//button[contains(@class,"run-all-btn")]',
         )
         self.VIEW_BTNS = (
             By.XPATH,
-            f'//div[contains(@class,"card")][.//h4//a/strong[text()="{benchmark}"]]//button[contains(text(),"View Result")]',
+            f'//div[.//h4//a/strong[contains(normalize-space(.), "{benchmark}")]]//button[contains(@class,"view-result-btn")]',
         )
         self.SUBMIT_BTNS = (
             By.XPATH,
-            f'//div[contains(@class,"card")][.//h4//a/strong[text()="{benchmark}"]]//button[contains(text(),"Submit")]',
+            f'//div[.//h4//a/strong[contains(normalize-space(.), "{benchmark}")]]//form[contains(@action,"submit_result")]//button',
         )
 
         self.ASSOCIATE_BTN = (
             By.XPATH,
-            f'//li[.//strong[contains(text(), "{benchmark}")]]//button[contains(@class, "request-association-btn")]',
+            f'//div[.//div[contains(normalize-space(.), "{benchmark}")]]//button[@data-testid="request-bmk-association"]',
         )
 
     def prepare_dataset(self):
