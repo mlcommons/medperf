@@ -110,6 +110,8 @@ class OperatorManager:
             self.config, workload.results_encryption_key_path
         )
 
+        medperf_config.ui.text = "Decrypting predictions"
+
         decryption_key = AsymmetricEncryption().decrypt(
             private_key_bytes, encrypted_key
         )
@@ -124,4 +126,5 @@ class OperatorManager:
         del decryption_key
 
         # Extract results
+        medperf_config.ui.text = "Uncompressing predictions"
         untar(results_archive_path, remove=True, extract_to=results_path)

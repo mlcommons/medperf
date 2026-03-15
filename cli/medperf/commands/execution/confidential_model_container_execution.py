@@ -14,6 +14,7 @@ from medperf.asset_management.asset_management import (
     run_workload,
     download_results,
     workload_results_exists,
+    wait_for_workload,
 )
 from medperf.utils import get_string_hash
 from medperf.commands.certificate.utils import (
@@ -60,6 +61,7 @@ class ConfidentialModelContainerExecution:
             execution_flow.setup_workload()
             if not execution_flow.results_exist():
                 execution_flow.run_workload()
+                execution_flow.wait_for_workload_completion()
             execution_flow.download_predictions()
             execution_flow.run_evaluation()
         execution_summary = execution_flow.todict()
@@ -171,7 +173,7 @@ class ConfidentialModelContainerExecution:
         return workload_results_exists(self.operator_cc_config, self.workload)
 
     def run_workload(self):
-        config.ui.text = "Running CC workload..."
+        config.ui.text = "Starting Confidential VM"
         docker_image = self.script.parser.get_setup_args()
         docker_image = full_docker_image_name(docker_image)
         run_workload(
@@ -182,11 +184,15 @@ class ConfidentialModelContainerExecution:
             self.operator_cc_config,
             self.result_collector_public_key.decode("utf-8"),
         )
+
+    def wait_for_workload_completion(self):
+        config.ui.text = "Waiting for workload completion"
+        wait_for_workload(self.workload, self.operator_cc_config)
         if not self.results_exist():
             raise ExecutionError("Workload did not complete successfully.")
 
     def download_predictions(self):
-        config.ui.text = "Downloading results..."
+        config.ui.text = "Downloading inference predictions"
         results_path = self.local_execution_flow.preds_path
         private_key_bytes = load_user_private_key()
         if private_key_bytes is None:

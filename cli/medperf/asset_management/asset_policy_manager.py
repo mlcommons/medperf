@@ -8,6 +8,7 @@ from medperf.asset_management.gcp_utils import (
     set_gcs_iam_policy,
     update_workload_identity_pool_oidc_provider,
 )
+from medperf import config as medperf_config
 
 
 def get_workload_id_scheme(for_model: bool = False):
@@ -123,8 +124,11 @@ class AssetPolicyManager:
         pass
 
     def setup_policy(self, policy: dict[str, str], encryption_key: bytes):
+        medperf_config.ui.text = "Encrypting Key using GCP KMS"
         encrypted_key = self.__encrypt_key(encryption_key)
+        medperf_config.ui.text = "Uploading Encrypted Key to GCP bucket"
         self.__upload_encrypted_key(encrypted_key)
+        medperf_config.ui.text = "Setting up Workload Identity Pool"
         self.__update_wip_oidc_provider(policy, for_model=self.for_model)
 
     def configure_policy(self, permitted_workloads: list[CCWorkloadID]):

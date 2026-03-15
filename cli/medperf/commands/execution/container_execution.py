@@ -138,7 +138,7 @@ class ContainerExecution:
         self.send_model_report("finished")
 
     def run_evaluation(self):
-        self.ui.text = f"Calculating metrics for model '{self.model.name}' predictions"
+        self.ui.text = "Calculating metrics"
         evaluate_timeout = config.evaluate_timeout
         evaluator_mounts = {
             "predictions": self.preds_path,

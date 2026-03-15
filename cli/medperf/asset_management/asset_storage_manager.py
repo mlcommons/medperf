@@ -9,6 +9,7 @@ from medperf.encryption import SymmetricEncryption
 from medperf.asset_management.gcp_utils import GCPAssetConfig, upload_file_to_gcs
 from medperf.asset_management.asset_check import verify_asset_owner_setup
 from medperf.exceptions import MedperfException
+from medperf import config as medperf_config
 
 
 class AssetStorageManager:
@@ -37,6 +38,7 @@ class AssetStorageManager:
         )
 
     def setup(self):
+        medperf_config.ui.text = "Verifying Cloud Environment"
         success, message = verify_asset_owner_setup(
             self.config.bucket, self.config.full_key_name, self.config.full_wip_name
         )
@@ -44,6 +46,8 @@ class AssetStorageManager:
             raise MedperfException(f"Asset owner setup verification failed: {message}")
 
     def store_asset(self):
+        medperf_config.ui.text = "Encrypting data locally"
         tmp_encrypted_asset_path, asset_hash = self.__encrypt_asset()
+        medperf_config.ui.text = "Uploading Encrypted data to GCP bucket"
         self.__upload_encrypted_asset(tmp_encrypted_asset_path)
         return asset_hash

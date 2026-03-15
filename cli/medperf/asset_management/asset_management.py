@@ -12,6 +12,7 @@ from medperf.asset_management.cc_operator import OperatorManager
 from medperf.utils import tar, generate_tmp_path
 import secrets
 from medperf.exceptions import MedperfException
+from medperf import config as medperf_config
 
 
 def generate_encryption_key():
@@ -39,8 +40,10 @@ def setup_dataset_for_cc(dataset: Dataset):
         return
     cc_config = dataset.get_cc_config()
     cc_policy = dataset.get_cc_policy()
+    __verify_cloud_environment(cc_config)
 
     # create dataset asset
+    medperf_config.ui.text = "Compressing dataset"
     asset_path = generate_tmp_path()
     tar(asset_path, [dataset.data_path, dataset.labels_path])
 
@@ -56,12 +59,16 @@ def setup_model_for_cc(model: Model):
         raise MedperfException(
             f"Model {model.id} is not a file-based asset and cannot be set up for confidential computing."
         )
-
     asset = model.asset_obj
     # create model asset
     asset_path = asset.get_archive_path()
 
+    __verify_cloud_environment(cc_config)
     __setup_asset_for_cc(cc_config, cc_policy, asset_path, for_model=True)
+
+
+def __verify_cloud_environment(cc_config: dict):
+    AssetStorageManager(cc_config, None, None).setup()
 
 
 def __setup_asset_for_cc(
@@ -75,8 +82,6 @@ def __setup_asset_for_cc(
 
     asset_storage_manager = AssetStorageManager(cc_config, asset_path, encryption_key)
     asset_policy_manager = AssetPolicyManager(cc_config, for_model=for_model)
-    asset_storage_manager.setup()
-    asset_policy_manager.setup()
 
     # storage
     asset_storage_manager.store_asset()
@@ -138,6 +143,10 @@ def run_workload(
         model_cc_config,
         result_collector_public_key,
     )
+
+
+def wait_for_workload(workload: CCWorkloadID, operator_cc_config: dict):
+    operator_manager = OperatorManager(operator_cc_config)
     operator_manager.wait_for_workload_completion(workload)
 
 
