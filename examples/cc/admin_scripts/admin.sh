@@ -7,26 +7,26 @@ set -eo pipefail
 export PROJECT_ID="medperf-330914"
 
 # User email
-export USER="hasan.gcptest@gmail.com"
+export USER_EMAIL="hasan.gcptest@gmail.com"
 
 # New service account name to create
-export SERVICE_ACCOUNT_NAME="medperf-cc-sa"
+export SERVICE_ACCOUNT_NAME="cc-test"
 
 # New KMS info to create
-export KEYRING_NAME="medperf-keyring"
-export KEY_NAME="medperf-key"
+export KEYRING_NAME="data-owner-keyring"
+export KEY_NAME="data-owner-cc-key"
 export KEY_LOCATION="global"
 
 # New Workload identity pool and OIDC provider info to create
-export WIP_ID="medperf-wip"
-export WIP_PROVIDER_ID="medperf-wippro"
+export WIP_ID="test1"
+export WIP_PROVIDER_ID="attestation-verifier"
 
 # New bucket info to create
 export BUCKET_NAME="medperf-bucket"
 export BUCKET_LOCATION="us-central1"
 
 # New virtual machine info to create
-export VM_NAME="gputest"
+export VM_NAME="gputestdebug"
 export BOOT_DISK_SIZE="500GB"
 export VM_ZONE="us-central1-a"
 export VM_NETWORK="medperf-brats-network"  # default is usually "default"
@@ -49,6 +49,9 @@ gcloud services enable \
     confidentialcomputing.googleapis.com \
     iamcredentials.googleapis.com
 
+echo "********************************************************************************************"
+echo "************************************* Services enabled *************************************"
+echo "********************************************************************************************"
 ####################################################
 #################### KMS ###########################
 ####################################################
@@ -58,6 +61,10 @@ gcloud services enable \
 gcloud kms keyrings create "$KEYRING_NAME" \
     --location="$KEY_LOCATION"
 
+echo "********************************************************************************************"
+echo "************************************* KMS Keyring created **********************************"
+echo "********************************************************************************************"
+
 # Create Key
 gcloud kms keys create "$KEY_NAME" \
     --location="$KEY_LOCATION" \
@@ -65,15 +72,23 @@ gcloud kms keys create "$KEY_NAME" \
     --purpose=encryption \
     --protection-level=hsm
 
+echo "********************************************************************************************"
+echo "************************************* KMS Key created **************************************"
+echo "********************************************************************************************"
+
 # allow user to encrypt with the key
 gcloud kms keys add-iam-policy-binding "$FULL_KEY_NAME" \
-    --member=user:"$USER" \
+    --member=user:"$USER_EMAIL" \
     --role="roles/cloudkms.cryptoKeyEncrypter"
 
 # allow user to manage iam policy of the key
 gcloud kms keys add-iam-policy-binding "$FULL_KEY_NAME" \
-    --member=user:"$USER" \
+    --member=user:"$USER_EMAIL" \
     --role="roles/cloudkms.admin"
+
+echo "********************************************************************************************"
+echo "************************************* KMS permissions granted ******************************"
+echo "********************************************************************************************"
 
 ####################################################
 #################### WIP ###########################
@@ -81,6 +96,10 @@ gcloud kms keys add-iam-policy-binding "$FULL_KEY_NAME" \
 
 # Create Workload Identity Pool
 gcloud iam workload-identity-pools create "$WIP_ID" --location=global
+
+echo "********************************************************************************************"
+echo "************************************* WIP created ******************************************"
+echo "********************************************************************************************"
 
 # Create OIDC provider for WIP
 gcloud iam workload-identity-pools providers create-oidc "$WIP_PROVIDER_ID" \
@@ -94,12 +113,22 @@ gcloud iam workload-identity-pools providers create-oidc "$WIP_PROVIDER_ID" \
 ::\"+assertion.submods.gce.instance_id" \
     --attribute-condition="assertion.swname == 'CONFIDENTIAL_SPACE'"
 
+
+echo "********************************************************************************************"
+echo "************************************* WIP provider created *********************************"
+echo "********************************************************************************************"
+
 # Allow user to manage WIP
 gcloud iam workload-identity-pools add-iam-policy-binding "$WIP_ID" \
   --location=global \
   --project="$PROJECT_ID" \
-  --member=user:"$USER" \
+  --member=user:"$USER_EMAIL" \
   --role="roles/iam.workloadIdentityPoolAdmin"
+
+
+echo "********************************************************************************************"
+echo "************************************* WIP permissions granted ******************************"
+echo "********************************************************************************************"
 
 
 ####################################################
@@ -111,10 +140,19 @@ gcloud storage buckets create "gs://$BUCKET_NAME" \
     --location="$BUCKET_LOCATION" \
     --uniform-bucket-level-access
 
+
+echo "********************************************************************************************"
+echo "************************************* Bucket created ***************************************"
+echo "********************************************************************************************"
+
 # Allow user to manage the bucket
 gcloud storage buckets add-iam-policy-binding "gs://$BUCKET_NAME" \
-    --member=user:"$USER" \
+    --member=user:"$USER_EMAIL" \
     --role="roles/storage.admin"
+
+echo "********************************************************************************************"
+echo "************************************* Bucket permissions granted ***************************"
+echo "********************************************************************************************"
 
 ####################################################
 #################### Service Account ###############
@@ -123,10 +161,14 @@ gcloud storage buckets add-iam-policy-binding "gs://$BUCKET_NAME" \
 # create service account
 gcloud iam service-accounts create "$SERVICE_ACCOUNT_NAME"
 
+echo "********************************************************************************************"
+echo "************************************* Service Account created ******************************"
+echo "********************************************************************************************"
+
 # allow user to use the service account
 gcloud iam service-accounts add-iam-policy-binding \
     "$SERVICE_ACCOUNT_EMAIL" \
-    --member=user:"$USER" \
+    --member=user:"$USER_EMAIL" \
     --role="roles/iam.serviceAccountUser"
 
 # give the service account cc workload user role
@@ -143,6 +185,10 @@ gcloud projects add-iam-policy-binding "$PROJECT_ID" \
 gcloud storage buckets add-iam-policy-binding "gs://$BUCKET_NAME" \
     --member=serviceAccount:"$SERVICE_ACCOUNT_EMAIL" \
     --role="roles/storage.objectAdmin"
+
+echo "********************************************************************************************"
+echo "********************** Service account permissions granted *********************************"
+echo "********************************************************************************************"
 
 ####################################################
 #################### Virtual Machine ###############
@@ -184,14 +230,26 @@ gcloud compute instances create "$VM_NAME" \
     --instance-termination-action=STOP \
     --discard-local-ssds-at-termination-timestamp=true
 
+echo "********************************************************************************************"
+echo "************************************* VM created *******************************************"
+echo "********************************************************************************************"
+
 # Stop the VM
-gcloud compute instances stop "$VM_NAME" --zone="$VM_ZONE" --project="$PROJECT_ID"
+gcloud compute instances stop "$VM_NAME" --zone="$VM_ZONE" --project="$PROJECT_ID" --discard-local-ssd=false
+
+echo "********************************************************************************************"
+echo "************************************* VM stopped *******************************************"
+echo "********************************************************************************************"
 
 # allow user to edit the VM metadata and to start it
 gcloud compute instances add-iam-policy-binding "$VM_NAME" \
     --zone="$VM_ZONE" \
-    --member=user:"$USER" \
+    --member=user:"$USER_EMAIL" \
     --role="roles/compute.instanceAdmin.v1"
+
+echo "********************************************************************************************"
+echo "************************************* VM permissions granted *******************************"
+echo "********************************************************************************************"
 
 # Give the user the following information
 
