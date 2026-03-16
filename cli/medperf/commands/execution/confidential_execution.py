@@ -18,6 +18,7 @@ from medperf.account_management import get_medperf_user_object
 from medperf.asset_management.asset_management import run_workload, download_results
 from medperf.utils import get_string_hash
 from medperf.commands.certificate.utils import load_user_private_key
+from medperf.containers.runners.docker_utils import full_docker_image_name
 
 
 class ConfidentialExecution:
@@ -132,8 +133,7 @@ class ConfidentialExecution:
     def run_workload(self):
         config.ui.text = "Running CC workload..."
         docker_image = self.script.parser.get_setup_args()
-        # TODO: docker.io/
-        docker_image = "docker.io/" + docker_image
+        docker_image = full_docker_image_name(docker_image)
         run_workload(
             docker_image,
             self.workload,

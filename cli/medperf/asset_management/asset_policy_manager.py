@@ -1,65 +1,73 @@
-from medperf.utils import generate_tmp_path
-from medperf.asset_management import gcp_utils
+from medperf.exceptions import MedperfException
+from medperf.asset_management.gcp_utils import (
+    GCPAssetConfig,
+    CCWorkloadID,
+    upload_string_to_gcs,
+    encrypt_with_kms_key,
+    set_kms_iam_policy,
+    set_gcs_iam_policy,
+    update_workload_identity_pool_oidc_provider,
+)
+from medperf import config as medperf_config
 
 
-class AssetPolicyManager:
-    def __init__(self, config: dict, encryption_key_file: str):
-        self.config = gcp_utils.GCPAssetConfig(**config)
-        self.encryption_key_file = encryption_key_file
-
-    def __create_keyring(self):
-        gcp_utils.create_keyring(self.config)
-
-    def __create_key(self):
-        gcp_utils.create_kms_key(self.config)
-
-    def __add_key_iam_binding(self):
-        gcp_utils.add_kms_key_iam_policy_binding(
-            self.config,
-            f"user:{self.config.account}",
-            "roles/cloudkms.cryptoKeyEncrypter",
+def get_workload_id_scheme(for_model: bool = False):
+    if for_model:
+        return (
+            'assertion.submods.container.image_digest+"::"+'
+            "assertion.submods.container.env_override.EXPECTED_MODEL_HASH"
         )
 
-    def __create_workload_identity_pool(self):
-        gcp_utils.create_workload_identity_pool(self.config)
-
-    def __encrypt_key(self):
-        tmp_encrypted_key_path = generate_tmp_path()
-
-        gcp_utils.encrypt_with_kms_key(
-            self.config, self.encryption_key_file, tmp_encrypted_key_path
-        )
-        return tmp_encrypted_key_path
-
-    def __upload_encrypted_key(self, tmp_encrypted_key_path):
-        gcp_utils.upload_file_to_gcs(
-            self.config,
-            tmp_encrypted_key_path,
-            f"gs://{self.config.bucket}/{self.config.encrypted_key_bucket_file}",
-        )
-
-    def __create_wip_oidc_provider(self, policy: dict[str, str]):
-        # IMPORTANT: https://docs.cloud.google.com/confidential-computing/
-        # confidential-space/docs/create-grant-access-confidential-resources#attestation-assertions
-        google_subject_attr = (
-            'google.subject="gcpcs::"'
-            '+assertion.submods.container.image_digest+"::"'
-            '+assertion.submods.gce.project_number+"::"'
-            "+assertion.submods.gce.instance_id"
-        )
-        workload_uid_attr = (
-            "attribute.workload_uid="
+    else:
+        return (
             'assertion.submods.container.image_digest+"::"+'
             'assertion.submods.container.env_override.EXPECTED_DATA_HASH+"::"+'
             'assertion.submods.container.env_override.EXPECTED_MODEL_HASH+"::"+'
             "assertion.submods.container.env_override.EXPECTED_RESULT_COLLECTOR_HASH"
         )
 
-        attribute_mapping = google_subject_attr + "," + workload_uid_attr
-        attribute_condition = 'assertion.swname == "CONFIDENTIAL_SPACE"'
-        attribute_condition += (
-            " && 'STABLE' in assertion.submods.confidential_space.support_attributes"
+
+class AssetPolicyManager:
+    def __init__(self, config: dict, for_model: bool = False):
+        self.config = GCPAssetConfig(**config)
+        self.for_model = for_model
+
+    def __encrypt_key(self, encryption_key: bytes):
+        encrypted_key = encrypt_with_kms_key(self.config, encryption_key)
+        return encrypted_key
+
+    def __upload_encrypted_key(self, encrypted_key):
+        upload_string_to_gcs(
+            self.config,
+            encrypted_key,
+            self.config.encrypted_key_bucket_file,
         )
+
+    def __update_wip_oidc_provider(
+        self, policy: dict[str, str], for_model: bool = False
+    ):
+        # IMPORTANT: https://docs.cloud.google.com/confidential-computing/
+        # confidential-space/docs/create-grant-access-confidential-resources#attestation-assertions
+        google_subject_attr = (
+            '"gcpcs::"'
+            '+assertion.submods.container.image_digest+"::"'
+            '+assertion.submods.gce.project_number+"::"'
+            "+assertion.submods.gce.instance_id"
+        )
+        workload_uid_attr = get_workload_id_scheme(for_model=for_model)
+        attribute_mapping = {
+            "google.subject": google_subject_attr,
+            "attribute.workload_uid": workload_uid_attr,
+        }
+        attribute_condition = 'assertion.swname == "CONFIDENTIAL_SPACE"'
+
+        gpu_mode = 'assertion.submods.nvidia_gpu.cc_mode == "ON"'
+        stable_image = (
+            "'STABLE' in assertion.submods.confidential_space.support_attributes"
+        )
+        # NOTE: currently it seems that gpu mode is not stable
+        attribute_condition += f" && ({gpu_mode} || {stable_image})"
+
         if "location" in policy:
             location_condition = f'assertion.submods.gce.zone == "{policy["location"]}"'
             attribute_condition += f" && {location_condition}"
@@ -68,18 +76,17 @@ class AssetPolicyManager:
             hardware_condition = f'assertion.hwmodel == "{policy["hardware"]}"'
             attribute_condition += f" && {hardware_condition}"
 
-        if "gpu_cc_mode" in policy:
-            gpu_cc_mode_condition = (
-                f'assertion.submods.nvidia_gpu.cc_mode == "{policy["gpu_cc_mode"]}"'
+        try:
+            update_workload_identity_pool_oidc_provider(
+                self.config, attribute_mapping, attribute_condition
             )
-            attribute_condition += f" && {gpu_cc_mode_condition}"
+        except Exception as e:
+            raise MedperfException(
+                f"Failed to update workload identity pool OIDC provider: {e}"
+            )
 
-        gcp_utils.create_workload_identity_pool_oidc_provider(
-            self.config, attribute_mapping, attribute_condition
-        )
-
-    def __bind_kms_decrypter_role(
-        self, permitted_workloads: list[gcp_utils.CCWorkloadID]
+    def __get_principal_set(
+        self, permitted_workloads: list[CCWorkloadID], for_model: bool = False
     ):
         principal_set = (
             f"principalSet://iam.googleapis.com/projects/{self.config.project_number}/"
@@ -88,24 +95,44 @@ class AssetPolicyManager:
         principal_set_list = []
 
         for workload in permitted_workloads:
-            principal_set_list.append(principal_set + workload.id)
+            workload_id = workload.id_for_model if for_model else workload.id
+            principal_set_list.append(principal_set + workload_id)
 
-        gcp_utils.set_kms_iam_policy(
+        return principal_set_list
+
+    def __bind_kms_decrypter_role(
+        self, permitted_workloads: list[CCWorkloadID], for_model: bool = False
+    ):
+        principal_set_list = self.__get_principal_set(permitted_workloads, for_model)
+        set_kms_iam_policy(
             self.config,
             principal_set_list,
             "roles/cloudkms.cryptoKeyDecrypter",
         )
 
+    def __bind_gcs_object_viewer_role(
+        self, permitted_workloads: list[CCWorkloadID], for_model: bool = False
+    ):
+        principal_set_list = self.__get_principal_set(permitted_workloads, for_model)
+        set_gcs_iam_policy(
+            self.config,
+            principal_set_list,
+            "roles/storage.objectViewer",
+        )
+
     def setup(self):
-        self.__create_keyring()
-        self.__create_key()
-        self.__add_key_iam_binding()
-        self.__create_workload_identity_pool()
+        pass
 
-    def setup_policy(self, policy: dict[str, str]):
-        tmp_encrypted_key_path = self.__encrypt_key()
-        self.__upload_encrypted_key(tmp_encrypted_key_path)
-        self.__create_wip_oidc_provider(policy)
+    def setup_policy(self, policy: dict[str, str], encryption_key: bytes):
+        medperf_config.ui.text = "Encrypting Key using GCP KMS"
+        encrypted_key = self.__encrypt_key(encryption_key)
+        medperf_config.ui.text = "Uploading Encrypted Key to GCP bucket"
+        self.__upload_encrypted_key(encrypted_key)
+        medperf_config.ui.text = "Setting up Workload Identity Pool"
+        self.__update_wip_oidc_provider(policy, for_model=self.for_model)
 
-    def configure_policy(self, permitted_workloads: list[gcp_utils.CCWorkloadID]):
-        self.__bind_kms_decrypter_role(permitted_workloads)
+    def configure_policy(self, permitted_workloads: list[CCWorkloadID]):
+        self.__bind_kms_decrypter_role(permitted_workloads, for_model=self.for_model)
+        self.__bind_gcs_object_viewer_role(
+            permitted_workloads, for_model=self.for_model
+        )

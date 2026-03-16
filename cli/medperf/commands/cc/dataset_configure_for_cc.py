@@ -1,24 +1,28 @@
 from medperf.entities.dataset import Dataset
-from medperf.asset_management.asset_management import setup_dataset_for_cc
+from medperf.asset_management.asset_management import (
+    setup_dataset_for_cc,
+    validate_cc_config,
+)
 import json
 from medperf import config
 
 
 class DatasetConfigureForCC:
     @classmethod
-    def run(cls, data_uid: int, cc_config_file: str, cc_policy_file: str):
-        dataset = Dataset.get(data_uid)
+    def run_from_files(cls, data_uid: int, cc_config_file: str, cc_policy_file: str):
         with open(cc_config_file) as f:
             cc_config = json.load(f)
         with open(cc_policy_file) as f:
             cc_policy = json.load(f)
-        dataset.set_cc_config(cc_config)
-        dataset.set_cc_policy(cc_policy)
-        body = {"user_metadata": dataset.user_metadata}
-        config.comms.update_dataset(dataset.id, body)
-        setup_dataset_for_cc(dataset)
+        cls.run(data_uid, cc_config, cc_policy)
 
-        # mark as set
-        dataset.mark_cc_configured()
-        body = {"user_metadata": dataset.user_metadata}
-        config.comms.update_dataset(dataset.id, body)
+    @classmethod
+    def run(cls, data_uid: int, cc_config: dict, cc_policy: dict):
+        validate_cc_config(cc_config, "dataset" + str(data_uid))
+        with config.ui.interactive():
+            dataset = Dataset.get(data_uid)
+            dataset.set_cc_config(cc_config)
+            dataset.set_cc_policy(cc_policy)
+            setup_dataset_for_cc(dataset)
+            body = {"user_metadata": dataset.user_metadata}
+            config.comms.update_dataset(dataset.id, body)

@@ -118,3 +118,6 @@ class SimpleContainerParser(Parser):
 
     def is_model_container(self):
         return "infer" in self.container_config["tasks"]
+
+    def is_script_container(self):
+        return "run_script" in self.container_config["tasks"]

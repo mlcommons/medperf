@@ -24,21 +24,22 @@ def get_credentials(wippro: str) -> Credentials:
 class GCPAssetConfig:
     project_id: str
     project_number: str
-    account: str
     bucket: str
     encrypted_asset_bucket_file: str
     encrypted_key_bucket_file: str
     keyring_name: str
     key_name: str
+    key_location: str
     wip: str
+    wip_provider: str
 
     @property
     def full_key_name(self) -> str:
-        return f"projects/{self.project_id}/locations/global/keyRings/{self.keyring_name}/cryptoKeys/{self.key_name}"
+        return f"projects/{self.project_id}/locations/{self.key_location}/keyRings/{self.keyring_name}/cryptoKeys/{self.key_name}"
 
     @property
     def full_wip_name(self) -> str:
-        return f"projects/{self.project_number}/locations/global/workloadIdentityPools/{self.wip}/providers/attestation-verifier"
+        return f"projects/{self.project_number}/locations/global/workloadIdentityPools/{self.wip}/providers/{self.wip_provider}"
 
 
 @dataclass

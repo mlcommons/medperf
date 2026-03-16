@@ -6,7 +6,7 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi import Request, APIRouter, Depends, Form
 
 from medperf import config
-from medperf.account_management import get_medperf_user_data
+from medperf.account_management import get_medperf_user_data, get_medperf_user_object
 from medperf.commands.mlcube.utils import check_access_to_container
 from medperf.commands.dataset.associate import AssociateDataset
 from medperf.commands.dataset.export_dataset import ExportDataset
@@ -17,6 +17,8 @@ from medperf.commands.dataset.submit import DataCreation
 from medperf.commands.execution.create import BenchmarkExecution
 from medperf.commands.execution.submit import ResultSubmission
 from medperf.commands.execution.utils import filter_latest_executions
+from medperf.commands.cc.dataset_configure_for_cc import DatasetConfigureForCC
+from medperf.commands.cc.dataset_update_cc_policy import DatasetUpdateCCPolicy
 from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
@@ -87,22 +89,24 @@ def dataset_detail_ui(  # noqa
         ref_model_id = valid_benchmarks[benchmark].reference_model
         valid_benchmarks[benchmark].reference_model = Model.get(ref_model_id)
 
-    dataset_is_operational = dataset.state == "OPERATION"
-    dataset_is_prepared = (
-        dataset.submitted_as_prepared or dataset.is_ready() or dataset_is_operational
-    )
+    dataset_is_operational = dataset.is_operational()
+    dataset_is_prepared = dataset.is_ready() or dataset_is_operational
     approved_benchmarks = [
         i
         for i in benchmark_associations
         if benchmark_associations[i]["approval_status"] == "APPROVED"
     ]
-    my_user_id = get_medperf_user_data()["id"]
+    user_obj = get_medperf_user_object()
+    my_user_id = user_obj.id
     is_owner = my_user_id == dataset.owner
+    dataset_hash_mismatch = None
+    if dataset_is_operational and is_owner:
+        dataset_hash_mismatch = not dataset.check_hash()
 
     # Get all results
     results = []
     if benchmark_assocs:
-        user_id = get_medperf_user_data()["id"]
+        user_id = user_obj.id
         results = Execution.all(filters={"owner": user_id})
         results = filter_latest_executions(results)
 
@@ -116,8 +120,25 @@ def dataset_detail_ui(  # noqa
         benchmark_models[assoc["benchmark"]] = models
         for model in models + [valid_benchmarks[assoc["benchmark"]].reference_model]:
             model._encrypted = model.is_encrypted()
+            model._requires_cc = model.requires_cc()
             if model._encrypted:
                 model.access_status = check_access_to_container(model.container.id)
+            if model._requires_cc:
+                if not dataset.is_cc_configured():
+                    reason = "Your dataset is not configured for CC yet"
+                    can_run = False
+                elif not model.is_cc_configured():
+                    reason = "Wait for model owner to configure their CC settings"
+                    can_run = False
+                elif not user_obj.is_cc_configured():
+                    reason = (
+                        "You haven't configured your workload run settings for CC yet"
+                    )
+                    can_run = False
+                else:
+                    reason = ""
+                    can_run = True
+                model.cc_run_status = {"can_run": can_run, "reason": reason}
             model.result = None
             for result in results:
                 if (
@@ -133,6 +154,10 @@ def dataset_detail_ui(  # noqa
                         model.result["results"] = result.read_results()
 
     report_exists = os.path.exists(dataset.report_path)
+
+    cc_config_defaults = dataset.get_cc_config()
+    cc_configured = dataset.is_cc_configured()
+
     return templates.TemplateResponse(
         "dataset/dataset_detail.html",
         {
@@ -141,12 +166,15 @@ def dataset_detail_ui(  # noqa
             "prep_cube": prep_cube,
             "dataset_is_prepared": dataset_is_prepared,
             "dataset_is_operational": dataset_is_operational,
+            "dataset_hash_mismatch": dataset_hash_mismatch,
             "benchmark_associations": benchmark_associations,  #
             "benchmarks": valid_benchmarks,  # Benchmarks that can be associated
             "benchmark_models": benchmark_models,  # Pass associated models without status
             "approved_benchmarks": approved_benchmarks,
             "is_owner": is_owner,
             "report_exists": report_exists,
+            "cc_config_defaults": cc_config_defaults,
+            "cc_configured": cc_configured,
         },
     )
 
@@ -167,6 +195,7 @@ def create_dataset_ui(
 @router.post("/register/", response_class=JSONResponse)
 def register_dataset(
     request: Request,
+    submit_as_prepared: bool = Form(False),
     benchmark: int = Form(...),
     name: str = Form(...),
     description: str = Form(...),
@@ -189,7 +218,7 @@ def register_dataset(
             description=description,
             location=location,
             approved=False,
-            submit_as_prepared=False,
+            submit_as_prepared=bool(submit_as_prepared),
         )
         return_response["status"] = "success"
         return_response["dataset_id"] = dataset_id
@@ -382,7 +411,7 @@ def export_dataset_ui(
     dataset.read_statistics()
     prep_cube = Cube.get(cube_uid=dataset.data_preparation_mlcube)
     dataset_is_operational = dataset.state == "OPERATION"
-    dataset_is_prepared = (
+    dataset_is_prepared = (  # TODO: should we use submitted_as_prepared here?
         dataset.submitted_as_prepared or dataset.is_ready() or dataset_is_operational
     )
     report_exists = os.path.exists(dataset.report_path)
@@ -475,3 +504,65 @@ def import_dataset(
     )
 
     return return_response
+
+
+@router.post("/edit_cc_config", response_class=JSONResponse)
+def edit_cc_config(
+    request: Request,
+    entity_id: int = Form(...),
+    require_cc: bool = Form(False),
+    project_id: str = Form(""),
+    project_number: str = Form(""),
+    bucket: str = Form(""),
+    keyring_name: str = Form(""),
+    key_name: str = Form(""),
+    key_location: str = Form(""),
+    wip: str = Form(""),
+    wip_provider: str = Form(""),
+    current_user: bool = Depends(check_user_api),
+):
+    args = {
+        "project_id": project_id,
+        "project_number": project_number,
+        "bucket": bucket,
+        "keyring_name": keyring_name,
+        "key_name": key_name,
+        "key_location": key_location,
+        "wip": wip,
+        "wip_provider": wip_provider,
+    }
+    if not require_cc:
+        args = {}
+    initialize_state_task(request, task_name="data_update_cc_config")
+    return_response = {"status": "", "error": ""}
+    try:
+        DatasetConfigureForCC.run(entity_id, args, {})
+        return_response["status"] = "success"
+        notification_message = "Successfully updated dataset CC config!"
+    except Exception as exp:
+        return_response["status"] = "failed"
+        return_response["error"] = str(exp)
+        notification_message = "Failed to update dataset CC config"
+        logger.exception(exp)
+
+    config.ui.end_task(return_response)
+    reset_state_task(request)
+    config.ui.add_notification(
+        message=notification_message,
+        return_response=return_response,
+        url=f"/datasets/ui/display/{entity_id}",
+    )
+    return return_response
+
+
+@router.post("/sync_cc_policy", response_class=JSONResponse)
+def sync_cc_policy(
+    entity_id: int = Form(...),
+    current_user: bool = Depends(check_user_api),
+):
+    try:
+        DatasetUpdateCCPolicy.run(entity_id)
+        return {"status": "success", "error": ""}
+    except Exception as exp:
+        logger.exception(exp)
+        return {"status": "failed", "error": str(exp)}

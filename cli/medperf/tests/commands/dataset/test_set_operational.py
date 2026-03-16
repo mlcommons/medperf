@@ -41,19 +41,19 @@ def test_validate_fails_if_dataset_is_not_marked_as_ready(mocker, set_operationa
 
 def test_generate_uids_assigns_uids_to_obj_properties(mocker, set_operational):
     # Arrange
-    in_path = ["/usr/data/path", "usr/labels/path"]
-    out_path = ["~/.medperf/data/123/data", "~/.medperf/data/123/labels"]
-    mocker.patch(PATCH_OPERATIONAL.format("get_folders_hash"), side_effect=lambda x: x)
-    mocker.patch.object(set_operational.dataset, "get_raw_paths", return_value=in_path)
-    set_operational.dataset.data_path = out_path[0]
-    set_operational.dataset.labels_path = out_path[1]
+    mocker.patch.object(
+        set_operational.dataset, "calculate_raw_hash", return_value="in_hash"
+    )
+    mocker.patch.object(
+        set_operational.dataset, "calculate_prepared_hash", return_value="out_hash"
+    )
 
     # Act
     set_operational.generate_uids()
 
     # Assert
-    assert set_operational.dataset.input_data_hash == in_path
-    assert set_operational.dataset.generated_uid == out_path
+    assert set_operational.dataset.input_data_hash == "in_hash"
+    assert set_operational.dataset.generated_uid == "out_hash"
 
 
 def test_statistics_are_updated(mocker, set_operational, fs):
