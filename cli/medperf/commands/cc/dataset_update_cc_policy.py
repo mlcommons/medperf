@@ -44,6 +44,8 @@ def get_permitted_workloads(dataset: Dataset):
         model_assocs = config.comms.get_benchmark_models_associations(benchmark_id)
         for model_assoc in model_assocs:
             model = Model.get(model_assoc["model"])
+            if not model.requires_cc():
+                continue
             asset = model.asset_obj
             workload_info = CCWorkloadID(
                 data_hash=dataset.generated_uid,
