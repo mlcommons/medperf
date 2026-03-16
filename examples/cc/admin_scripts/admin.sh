@@ -4,32 +4,32 @@ set -eo pipefail
 ####################################################
 
 # Project ID
-export PROJECT_ID="medperf-330914"
+export PROJECT_ID="project_id"
 
 # User email
-export USER_EMAIL="hasan.gcptest@gmail.com"
+export USER_EMAIL="user@example.com"
 
 # New service account name to create
-export SERVICE_ACCOUNT_NAME="cc-test"
+export SERVICE_ACCOUNT_NAME="sa_name"
 
 # New KMS info to create
-export KEYRING_NAME="data-owner-keyring"
-export KEY_NAME="data-owner-cc-key"
-export KEY_LOCATION="global"
+export KEYRING_NAME="keyring_name"
+export KEY_NAME="key_name"
+export KEY_LOCATION="key_location"  # e.g., us-central1, europe-west3, ...
 
 # New Workload identity pool and OIDC provider info to create
-export WIP_ID="test1"
+export WIP_ID="wip_name"
 export WIP_PROVIDER_ID="attestation-verifier"
 
 # New bucket info to create
-export BUCKET_NAME="medperf-bucket"
-export BUCKET_LOCATION="us-central1"
+export BUCKET_NAME="bucket_name"  # bucket names are globally unique, please use a unique name
+export BUCKET_LOCATION="bucket_location"  # e.g., us-central1, europe-west3, ...
 
 # New virtual machine info to create
-export VM_NAME="gputestdebug"
-export BOOT_DISK_SIZE="500GB"
-export VM_ZONE="us-central1-a"
-export VM_NETWORK="medperf-brats-network"  # default is usually "default"
+export VM_NAME="vm_name"
+export BOOT_DISK_SIZE="500GB"  # adjust as needed, depends on the data size
+export VM_ZONE="vm_zone" # e.g., us-central1-a, europe-west4-c, ...
+export VM_NETWORK="default"  # Usually the default network name is "default", but adjust if you have a custom network setup
 
 ####################################################
 #################### End Config ####################

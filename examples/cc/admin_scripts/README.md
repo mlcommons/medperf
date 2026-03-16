@@ -2,7 +2,7 @@
 
 ## For GCP Project Admin
 
-Context: You will be creating required resources for the data user in order to allow them to use MedPerf to run inference on their dataset in a confidential virtual machine on google cloud. Here is what will happen behind the scenes when the user uses MedPerf to run a confidential computing workload; this will help understand the reason behind the resources and user roles being asked for.
+Context: The user will use the MedPerf client on the local machine where the data resides. You (IT/cloud admin) will be creating required resources for the data user in order to allow them to use MedPerf to run inference on their dataset in a confidential virtual machine on google cloud. Here is what will happen behind the scenes when the user uses MedPerf to run a confidential computing workload; this will help understand the reason behind the resources and user roles being asked for.
 
 Medperf will:
 
