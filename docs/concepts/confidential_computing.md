@@ -1,29 +1,29 @@
 # Configuring confidential Computing
 
-This guide assumes that you already have a registered dataset, you prepared it, you set it operational, and you are associated with the benchmark that contains a model that requires confidential computing.
-Note: associate your dataset with the new benchmark TODO.
+## Overview
 
-## Configure you google cloud environment locally
-
-You need to:
-
-- Install the gcloud CLI (<https://docs.cloud.google.com/sdk/docs/install-sdk>)
-- authenticate: `gcloud auth login`
-- set project ID: `gcloud config set project PROJECT_ID`
-- run `gcloud auth application-default login`
+You are a data owner. You already have a registered, prepared, operational dataset. You already associated your dataset with the benchmark that contains a model that requires confidential computing.
+This guide helps you configure the MedPerf client to run a confidential computing model on your dataset in the google cloud environment.
 
 ## Start the web UI and login
 
-run `medperf_webui`
-click on the `login` button.
+Make sure you have MedPerf installed.
+
+Run the command `medperf_webui` on your terminal to start the local web user interface.
+
+In the web UI, login by clicking on the `login` button and follow the required steps.
 
 ## Get a certificate
 
-Navigate to the `settings page` in the web UI and scroll down to the `Certificate Settings` section. If you already have a certificate, skip this step. Otherwise, click the button to get a certificate and follow the steps.
+1. Navigate to the `settings` page
+2. Scroll down to the `Certificate Settings` section.
+3. If you already have a certificate, skip this step. Otherwise, click the button and follow the required steps to get a certificate.
+
+Note: you may see a status `to be uploaded`. No need to upload your certificate for this usecase.
 
 ## Configure your cloud environment information in MedPerf
 
-You should have recieved the following information from your google cloud administrator:
+Ask your cloud administrator for the following information:
 
 - Project ID
 - Project Number
@@ -39,15 +39,32 @@ You should have recieved the following information from your google cloud admini
 
 You will use this information to configure your Medperf client.
 
-### Configure your confidential VM settings
+### Set up google cloud CLI
 
-Navigate to the `settings` page in the web UI, scroll down to the `Confidential Computing Operator Settings`, check the box to `Configure confidential Computing` and fill in the required information. After that, click `Apply Changes`.
+Note: This step should be done in a terminal.
 
-### Configure your Dataset cloud resources settings
+1. Install the gcloud CLI (<https://docs.cloud.google.com/sdk/docs/install-sdk#latest-version>). Follow only the two sections about installing the CLI and initializing google cloud.
+2. Run `gcloud auth list` and make sure your account is active (an asterisk should be next to your account email)
+3. Set the project ID by running the command `gcloud config set project PROJECT_ID` where `PROJECT_ID` is the project ID you got from your cloud admin.
+4. Run the following command `gcloud auth application-default login` and follow the required steps.
 
-Navigate to your dataset page (Datasets tab, then your dataset name. You can click `mine_only` to view only yours).
+### Configure Medperf with your confidential VM settings
 
-Then, scroll down to the section `Confidential Computing Preferences`. Check the box to `Configure dataset for Confidential Computing` and fill in the required information. After that, click `Apply Changes`.
+1. Navigate to the `settings` page in the web UI
+2. Scroll down to the `Confidential Computing Operator Settings`
+3. Check the box `Configure confidential Computing`
+4. Fill in the required information.
+5. Click `Apply Changes`.
 
-After the changes are updated, there will be a new button `Sync CC policy`. Click on that button and wait for it to finish. After this, you are ready to click the `Run` button on the confidential model.
-Make sure you only click on the confidential model's button, don't clikc `Run all`. Inference and metrics calcualtion will take time, so only run the relevant model.
+### Configure Medperf with your Dataset cloud resources settings
+
+1. Navigate to your dataset dashboard (Click on the `Datasets` tab, then find your dataset. You can click `mine_only` to view only your datasets.)
+2. Scroll down to the section `Confidential Computing Preferences`.
+3. Check the box `Configure dataset for Confidential Computing`
+4. Fill in the required information.
+5. Click `Apply Changes`.
+6. After step 5, a new button will appear. Click on the new button `Sync CC policy`.
+
+## What's next?
+
+You can now run the model that required confidential computing, by clicking the button `Run` near the model of interest. After execution finishes, submit the results by clicking the `Submit` button that will later appear.
