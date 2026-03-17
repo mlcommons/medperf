@@ -93,16 +93,17 @@
         </div>
     </section>
 
+    {% if logged_in %}
+    <section class="mb-12">
+        {{ cc_operator_macro.cc_operator(cc_config_defaults, cc_configured, task_running=task_running) }}
+    </section>
+    {% endif %}
+
     {% include "partials/panel_container.html" %}
     <div class="text-center my-8">
         {% include "partials/text_content_container.html" %}
     </div>
     {% include "partials/prompt_container.html" %}
-</div>
-<div class="container">
-{% if logged_in %}
-    {{ cc_operator_macro.cc_operator(cc_config_defaults, cc_configured, task_running=task_running) }}
-{% endif %}
 </div>
 {% endblock content %}
 
@@ -114,7 +115,7 @@
     }
 </script>
 <script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
-<script src="/static/js/cc_operator.js"></script>
+<script src="{{ url_for('static', path='js/cc_operator.js') }}"></script>
 <script>
     window.currentSettings = {
         activeProfile: "{{ profiles.active_profile_name }}",

@@ -95,6 +95,8 @@ def dataset_detail_ui(  # noqa
     if dataset_is_operational and is_owner:
         dataset_hash_mismatch = not dataset.check_hash()
 
+    cc_config_defaults = dataset.get_cc_config()
+    cc_configured = dataset.is_cc_configured()
     context = {
         "request": request,
         "dataset": dataset,
@@ -104,6 +106,8 @@ def dataset_detail_ui(  # noqa
         "is_owner": is_owner,
         "report_exists": report_exists,
         "dataset_hash_mismatch": dataset_hash_mismatch,
+        "cc_config_defaults": cc_config_defaults,
+        "cc_configured": cc_configured,
     }
 
     if ui_mode == request.app.state.EVALUATION_MODE:
@@ -179,8 +183,6 @@ def dataset_detail_ui(  # noqa
                         if model.result["results_exist"]:
                             model.result["results"] = result.read_results()
 
-        cc_config_defaults = dataset.get_cc_config()
-        cc_configured = dataset.is_cc_configured()
         context.update(
             {
                 "benchmark_associations": benchmark_associations,
@@ -221,8 +223,6 @@ def dataset_detail_ui(  # noqa
                 "training_associations": training_associations,
                 "available_training_experiments": available_training_experiments,
                 "experiments_by_id": experiments_by_id,
-                "cc_config_defaults": cc_config_defaults,
-                "cc_configured": cc_configured,
             }
         )
 

@@ -110,26 +110,9 @@
         {% endif %}
         <p class="step-label mt-2 text-sm text-gray-600 dark:text-gray-400">Make a request to the benchmark owner to associate your model with the benchmark</p>
     </div>
-    <div class="card mb-3 mt-5">
-        <div class="card-title">
-            <h5 class="p-4">Confidential Computing Preferences</h5>
-        </div>
-        <div class="card-body">
-        {{cc_asset_macro.gcp_asset(cc_config_defaults, cc_configured, entity.id, "model", task_running) }}
-        </div>
-        {% if cc_configured %}
-        <div class="card-body text-center">
-            <p class="text-muted">Confidential Computing is configured, you can sync the policy.</p>
-            <button
-                type="button"
-                class="btn btn-primary"
-                data-entity-id="{{ entity.id }}"
-                data-entity-type="model"
-                id="sync-cc-policy-btn"
-                {% if task_running %} disabled {% endif %}
-            >Sync CC Policy</button>
-        </div>
-        {% endif %}
+    <div class="mt-6 bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border-2 border-green-100 dark:border-gray-700">
+        <h3 class="text-xl font-bold medperf-accent dark:text-green-400 mb-4">Confidential Computing Preferences</h3>
+        {{ cc_asset_macro.gcp_asset(cc_config_defaults, cc_configured, entity.id, "model", task_running) }}
     </div>
     {% endif %}
     {% endif %}
@@ -168,28 +151,12 @@
         resumeRunningTask("#model-association-form-{{ form_data.get('benchmark_id', '') }}");
     });
 </script>
-
-{% "model_update_cc_config" in request.app.state.active_tasks and request.app.state.active_tasks["model_update_cc_config"].formData.get("model_id", "") == entity.id|string %}
+{% elif "model_update_cc_config" in request.app.state.active_tasks and request.app.state.active_tasks["model_update_cc_config"].formData.get("model_id", "") == entity.id|string %}
 <script>
-    $(document).ready(() => {
-        resumeRunningTask(
-            "#apply-cc-asset-btn",
-            `Updating Model CC Configuration...`,
-            onCCEditRequestSuccess
-        );
+    document.addEventListener("DOMContentLoaded", function() {
+        resumeRunningTask("#edit-cc-asset-form");
     });
 </script>
 {% endif %}
-
-{% if task_running and request.app.state.task.name == "model_update_cc_config" and task_formData.get("model_id", "") == entity.id|string %}
-<script>
-    $(document).ready(() => {
-        resumeRunningTask(
-            "#apply-cc-asset-btn",
-            `Updating Model CC Configuration...`,
-            onCCEditRequestSuccess
-        );
-    });
-</script>
 {% endif %}
 {% endblock %}

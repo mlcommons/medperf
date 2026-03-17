@@ -21,10 +21,10 @@
         </form>
     </div>
 </div>
-{% if dataset_hash_mismatch %}
-<p class="card-text">
-    <strong class="text-danger">Data hash mismatch</strong> 
-    <i class="fas fa-exclamation-triangle text-danger"></i>
+{% if not dataset_hash_mismatch %}
+<p class="rounded-xl p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 font-semibold">
+    <strong>Data hash mismatch</strong>
+    <i class="fas fa-exclamation-triangle ml-1" aria-hidden="true"></i>
 </p>
 {% endif %}
 
@@ -246,32 +246,15 @@
             </div>
             {% endif %}
         </div>
-        <div class="card mb-3 mt-5">
-            <div class="card-title">
-                <h5 class="p-4">Confidential Computing Preferences</h5>
-            </div>
-            <div class="card-body">
-            {{cc_asset_macro.gcp_asset(cc_config_defaults, cc_configured, dataset.id, "dataset", task_running) }}
-            </div>
-            {% if cc_configured %}
-            <div class="card-body text-center">
-                <p class="text-muted">Confidential Computing is configured, you can sync the policy.</p>
-                <button
-                    type="button"
-                    class="btn btn-primary"
-                    data-entity-id="{{ dataset.id }}"
-                    data-entity-type="dataset"
-                    id="sync-cc-policy-btn"
-                    {% if task_running %} disabled {% endif %}
-                >Sync CC Policy</button>
-            </div>
-            {% endif %}
+        <div class="my-8 bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg border-2 border-green-100 dark:border-gray-700">
+            <h3 class="text-xl font-bold medperf-accent dark:text-green-400 mb-4">Confidential Computing Preferences</h3>
+            {{ cc_asset_macro.gcp_asset(cc_config_defaults, cc_configured, dataset.id, "dataset", task_running) }}
         </div>
         {% endif %}
     </div>
 </div>
 
-{% if ui_mode == request.app.state.EVALUATION_MODE %}
+{% if is_owner and ui_mode == request.app.state.EVALUATION_MODE %}
 <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border-2 border-green-100 dark:border-gray-700 mb-6 overflow-hidden" data-testid="benchmark-associations">
     <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50">
         <h3 class="mb-0 text-gray-900 dark:text-white font-bold">Associated benchmarks</h3>
@@ -386,16 +369,11 @@
                             {% endif %}
                             {% if model._requires_cc %}
                             <div>
-                            <small class="text-muted">&nbsp;Confidential Computing Model</small>
+                            <small class="text-gray-500 dark:text-gray-400">&nbsp;Confidential Computing Model</small>
                             {% if model.cc_run_status["can_run"] %}
-                            <small class="text-success fw-bold">&nbsp;Ready</small>
+                            <small class="text-green-600 dark:text-green-400 font-bold">&nbsp;Ready</small>
                             {% else %}
-                            <small
-                                class="text-danger text-decoration-underline"
-                                data-bs-toggle="tooltip"
-                                data-bs-placement="top"
-                                data-bs-title="{{ model.cc_run_status['reason'] }}"
-                                >&nbsp;Not Ready</small>
+                            <small class="text-red-600 dark:text-red-400 underline cursor-help" title="{{ model.cc_run_status['reason'] }}">&nbsp;Not Ready</small>
                             {% endif %}
                             </div>
                             {% endif %}
@@ -495,7 +473,6 @@
     </div>
 </div>
 {% endif %}
-{% endif %}
 
 {% include "partials/panel_container.html" %}
 {% include "partials/text_content_container.html" %}
@@ -570,19 +547,13 @@
         resumeRunningTask("#start-training-form-" + exp_id);
     });
 </script>
-{% endif %}
-{% endif %}
-
-{% if task_running and request.app.state.task.name == "data_update_cc_config" and task_formData.get("dataset_id", "") == entity.id|string %}
+{% elif "data_update_cc_config" in request.app.state.active_tasks and request.app.state.active_tasks["data_update_cc_config"].formData.get("entity_id") == dataset.id|string %}
 <script>
-    $(document).ready(() => {
-        resumeRunningTask(
-            "#apply-cc-asset-btn",
-            `Updating Dataset CC Configuration...`,
-            onCCEditRequestSuccess
-        );
+    document.addEventListener("DOMContentLoaded", function() {
+        resumeRunningTask("#edit-cc-asset-form");
     });
 </script>
+{% endif %}
 {% endif %}
 
 {% endblock extra_js %}

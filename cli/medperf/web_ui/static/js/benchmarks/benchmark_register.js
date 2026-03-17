@@ -32,14 +32,18 @@ function init() {
         });
     }
     checkBenchmarkFormValidity();
-    document.querySelectorAll("input[name='skip_compatibility_tests']").forEach(el => {
-        el.addEventListener("change", () => {
-            if($("#skip-tests").is(":checked")){
-                document.getElementById("demo-dataset-input-container").style.display = "none";
-                document.getElementById("reference-dataset-tarball-url").value = "";
+    document.querySelectorAll("input[name='skip_compatibility_tests']").forEach(function (el) {
+        el.addEventListener("change", function () {
+            var skipTestsEl = document.getElementById("skip-tests");
+            var demoContainer = document.getElementById("demo-dataset-input-container");
+            var urlInput = document.getElementById("reference-dataset-tarball-url");
+            if (skipTestsEl && skipTestsEl.checked) {
+                if (demoContainer) demoContainer.style.display = "none";
+                if (urlInput) urlInput.value = "";
+            } else {
+                if (demoContainer) demoContainer.style.display = "block";
             }
-            else
-                document.getElementById("demo-dataset-input-container").style.display = "block";
+        });
     });
 }
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);

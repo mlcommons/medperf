@@ -221,7 +221,7 @@ def submit_certificate(
 
 @router.post("/edit_cc_operator", response_class=JSONResponse)
 def edit_cc_operator(
-    require_cc: bool = Form(...),
+    require_cc: bool = Form(False),
     project_id: str = Form(""),
     service_account_name: str = Form(""),
     bucket: str = Form(""),

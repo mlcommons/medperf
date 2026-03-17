@@ -14,15 +14,9 @@
     <h1 class="text-3xl font-bold medperf-accent dark:text-green-400 text-center mb-4">Register a New Benchmark</h1>
     <form id="benchmark-register-form" class="space-y-6" action="/benchmarks/register" method="post" data-panel-title="Registering benchmark" data-confirm-message="register this benchmark?">
         <input type="hidden" name="task_name" value="register_benchmark">
-        <div class="form-group mt-3 d-flex flex-row justify-content-evenly">
-            <div>
-                <input class="form-check-input border-black" type="radio" name="skip_compatibility_tests" id="skip-tests" value="true">
-                <label class="form-check-label" for="skip-tests">Skip Compatibility Tests</label>
-            </div>
-            <div>
-                <input class="form-check-input border-black" type="radio" name="skip_compatibility_tests" id="noskip-tests" value="false" checked>
-                <label class="form-check-label" for="noskip-tests">Require Compatibility Tests</label>
-            </div>
+        <div class="flex flex-wrap gap-4">
+            <label class="inline-flex items-center gap-2 cursor-pointer text-gray-900 dark:text-white"><input type="radio" name="skip_compatibility_tests" id="skip-tests" value="true" class="rounded-full border-gray-400 text-green-600 focus:ring-green-500 dark:border-gray-500 accent-green-600 dark:accent-green-400" {% if task_running %}disabled{% endif %}> Skip Compatibility Tests</label>
+            <label class="inline-flex items-center gap-2 cursor-pointer text-gray-900 dark:text-white"><input type="radio" name="skip_compatibility_tests" id="noskip-tests" value="false" checked class="rounded-full border-gray-400 text-green-600 focus:ring-green-500 dark:border-gray-500 accent-green-600 dark:accent-green-400" {% if task_running %}disabled{% endif %}> Require Compatibility Tests</label>
         </div>
         <div>
             <label for="name" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Benchmark Name</label>

@@ -1,6 +1,6 @@
-{# ./cli/medperf/web_ui/templates/macros/gcp_asset_macro.html #}
-
+{# CC asset form: used on model_detail and dataset_detail. Uses our form design: action, task_name, data-panel-title, data-confirm-message, data-success-handler. #}
 {% macro gcp_asset(defaults, configured, entity_id, entity_type, task_running=false) %}
+{% set task_name = "model_update_cc_config" if entity_type == "model" else "data_update_cc_config" %}
 {% set fields = [
 ("project_id", "GCP Project ID"),
 ("project_number", "GCP Project Number"),
@@ -11,32 +11,42 @@
 ("wip", "GCP Workload Identity Pool Name"),
 ("wip_provider", "GCP Workload Identity Pool Provider"),
 ] %}
-<div id="edit-cc-asset-container">
-    <form id="edit-cc-asset-form" class="mt-5">
-        <div class="row mb-4">
-            <div class="col-12 d-inline-flex justify-content-center">
-                <div class="form-check">
-                    <input type="checkbox" id="require-cc" name="require_cc" class="form-check-input border-black" {% if configured
-                        %}checked{% endif %} {% if task_running %}disabled{% endif %}>
-                    <label class="form-check-label h5" for="require-cc">Configure {{entity_type}} for Confidential Computing</label>
-                </div>
-            </div>
+<div id="edit-cc-asset-container" class="mt-6">
+    <form id="edit-cc-asset-form" action="/{{ entity_type }}s/edit_cc_config" method="post" class="cc-asset-form space-y-4"
+          data-panel-title="Updating {{ entity_type|capitalize }} CC configuration"
+          data-confirm-message="edit CC configuration?"
+          data-success-handler="onCCEditRequestSuccess">
+        <input type="hidden" name="task_name" value="{{ task_name }}">
+        <input type="hidden" name="entity_id" value="{{ entity_id }}">
+        <div class="flex items-center gap-4">
+            <label class="relative inline-flex items-center cursor-pointer" for="require-cc">
+                <input type="checkbox" id="require-cc" name="require_cc" value="true" class="sr-only peer" {% if configured %}checked{% endif %} {% if task_running %}disabled{% endif %}>
+                <div class="relative w-14 h-7 bg-gray-200 dark:bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-green-600"></div>
+                <span class="ml-4 text-gray-700 dark:text-gray-300 font-semibold">Configure {{ entity_type }} for Confidential Computing</span>
+            </label>
         </div>
-        <div id="edit-cc-asset-fields">
+        <div id="edit-cc-asset-fields" class="space-y-4">
             {% for field_name, field_label in fields %}
-            <div class="row mb-4">
-                <label for="cc-{{ field_name }}" class="col-sm-3 col-form-label h5 text-end">{{ field_label }}</label>
-                <div class="col-sm-6">
-                    <input type="text" id="cc-{{ field_name }}" name="{{ field_name }}" class="form-control"
-                        value="{{ defaults.get(field_name, '') }}" {% if task_running %}disabled{% endif %}>
-                </div>
+            <div>
+                <label for="cc-{{ field_name }}" class="block text-gray-700 dark:text-gray-300 font-semibold mb-1">{{ field_label }}</label>
+                <input type="text" id="cc-{{ field_name }}" name="{{ field_name }}" class="w-full px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500"
+                       value="{{ defaults.get(field_name, '') }}" {% if task_running %}disabled{% endif %}>
             </div>
             {% endfor %}
         </div>
-        <div class="text-center mt-4">
-            <button type="button" id="apply-cc-asset-btn" data-entity-id="{{ entity_id }}"
-                data-entity-type="{{ entity_type }}" class="btn btn-primary mb-3" disabled>Apply Changes</button>
+        <div class="flex flex-wrap gap-3 pt-2">
+            <button type="submit" id="apply-cc-asset-btn" class="px-6 py-3 medperf-bg dark:bg-green-600 text-white rounded-xl font-bold hover:opacity-90 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed" disabled>Apply CC configuration</button>
         </div>
     </form>
+    {% if configured %}
+    <form id="sync-cc-policy-form" action="/{{ entity_type }}s/sync_cc_policy" method="post" class="mt-4 inline"
+          data-panel-title="Syncing CC policy"
+          data-confirm-message="sync CC policy?"
+          data-success-handler="onCCPolicyRequestSuccess">
+        <input type="hidden" name="task_name" value="{{ entity_type }}_sync_cc_policy">
+        <input type="hidden" name="entity_id" value="{{ entity_id }}">
+        <button type="submit" id="sync-cc-policy-btn" class="px-4 py-2 rounded-xl bg-blue-600 dark:bg-blue-500 text-white font-semibold hover:opacity-90 disabled:opacity-50 cursor-pointer" {% if task_running %}disabled{% endif %}>Sync CC policy</button>
+    </form>
+    {% endif %}
 </div>
 {% endmacro %}
