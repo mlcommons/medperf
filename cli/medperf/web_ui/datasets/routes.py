@@ -7,7 +7,7 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi import Request, APIRouter, Depends, Form
 
 from medperf import config
-from medperf.account_management import get_medperf_user_data
+from medperf.account_management import get_medperf_user_data, get_medperf_user_object
 from medperf.commands.mlcube.utils import check_access_to_container
 from medperf.commands.dataset.associate import AssociateDataset
 from medperf.commands.dataset.export_dataset import ExportDataset
@@ -18,6 +18,8 @@ from medperf.commands.dataset.submit import DataCreation
 from medperf.commands.execution.create import BenchmarkExecution
 from medperf.commands.execution.submit import ResultSubmission
 from medperf.commands.execution.utils import filter_latest_executions
+from medperf.commands.cc.dataset_configure_for_cc import DatasetConfigureForCC
+from medperf.commands.cc.dataset_update_cc_policy import DatasetUpdateCCPolicy
 from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
@@ -74,20 +76,24 @@ def dataset_detail_ui(  # noqa
     dataset_id: int,
     current_user: bool = Depends(check_user_ui),
 ):
-    my_user_id = get_medperf_user_data()["id"]
+    user_obj = get_medperf_user_object()
 
     dataset = Dataset.get(dataset_id)
     dataset.read_report()
     dataset.read_statistics()
     prep_cube = Cube.get(cube_uid=dataset.data_preparation_mlcube)
 
+    my_user_id = user_obj.id
     is_owner = my_user_id == dataset.owner
-    dataset_is_operational = dataset.state == "OPERATION"
+    dataset_is_operational = dataset.is_operational()
     dataset_is_prepared = (
         dataset.submitted_as_prepared or dataset.is_ready() or dataset_is_operational
     )
     report_exists = os.path.exists(dataset.report_path)
     ui_mode = request.app.state.ui_mode
+    dataset_hash_mismatch = None
+    if dataset_is_operational and is_owner:
+        dataset_hash_mismatch = not dataset.check_hash()
 
     context = {
         "request": request,
@@ -97,6 +103,7 @@ def dataset_detail_ui(  # noqa
         "dataset_is_operational": dataset_is_operational,
         "is_owner": is_owner,
         "report_exists": report_exists,
+        "dataset_hash_mismatch": dataset_hash_mismatch,
     }
 
     if ui_mode == request.app.state.EVALUATION_MODE:
@@ -122,11 +129,10 @@ def dataset_detail_ui(  # noqa
             for i in benchmark_associations
             if benchmark_associations[i]["approval_status"] == "APPROVED"
         ]
-
         # Get all results
         results = []
         if benchmark_assocs:
-            user_id = get_medperf_user_data()["id"]
+            user_id = user_obj.id
             results = Execution.all(filters={"owner": user_id})
             results = filter_latest_executions(results)
 
@@ -142,8 +148,23 @@ def dataset_detail_ui(  # noqa
                 valid_benchmarks[assoc["benchmark"]].reference_model
             ]:
                 model._encrypted = model.is_encrypted()
+                model._requires_cc = model.requires_cc()
                 if model._encrypted:
                     model.access_status = check_access_to_container(model.container.id)
+                if model._requires_cc:
+                    if not dataset.is_cc_configured():
+                        reason = "Your dataset is not configured for CC yet"
+                        can_run = False
+                    elif not model.is_cc_configured():
+                        reason = "Wait for model owner to configure their CC settings"
+                        can_run = False
+                    elif not user_obj.is_cc_configured():
+                        reason = "You haven't configured your workload run settings for CC yet"
+                        can_run = False
+                    else:
+                        reason = ""
+                        can_run = True
+                    model.cc_run_status = {"can_run": can_run, "reason": reason}
                 model.result = None
                 for result in results:
                     if (
@@ -157,6 +178,9 @@ def dataset_detail_ui(  # noqa
                         )
                         if model.result["results_exist"]:
                             model.result["results"] = result.read_results()
+
+        cc_config_defaults = dataset.get_cc_config()
+        cc_configured = dataset.is_cc_configured()
         context.update(
             {
                 "benchmark_associations": benchmark_associations,
@@ -165,6 +189,7 @@ def dataset_detail_ui(  # noqa
                 "approved_benchmarks": approved_benchmarks,
             }
         )
+
     else:
         training_associations = {}
         available_training_experiments = []
@@ -196,6 +221,8 @@ def dataset_detail_ui(  # noqa
                 "training_associations": training_associations,
                 "available_training_experiments": available_training_experiments,
                 "experiments_by_id": experiments_by_id,
+                "cc_config_defaults": cc_config_defaults,
+                "cc_configured": cc_configured,
             }
         )
 
@@ -234,6 +261,7 @@ def create_dataset_ui(
 @router.post("/register/", response_class=JSONResponse)
 def register_dataset(
     request: Request,
+    submit_as_prepared: bool = Form(False),
     benchmark: Optional[int] = Form(None),
     prep_cube_uid: Optional[int] = Form(None),
     name: str = Form(...),
@@ -257,7 +285,7 @@ def register_dataset(
             description=description,
             location=location,
             approved=False,
-            submit_as_prepared=False,
+            submit_as_prepared=bool(submit_as_prepared),
         )
         return_response["status"] = "success"
         return_response["entity_id"] = dataset_id
@@ -528,7 +556,7 @@ def export_dataset_ui(
     dataset.read_statistics()
     prep_cube = Cube.get(cube_uid=dataset.data_preparation_mlcube)
     dataset_is_operational = dataset.state == "OPERATION"
-    dataset_is_prepared = (
+    dataset_is_prepared = (  # TODO: should we use submitted_as_prepared here?
         dataset.submitted_as_prepared or dataset.is_ready() or dataset_is_operational
     )
     report_exists = os.path.exists(dataset.report_path)
@@ -621,3 +649,65 @@ def import_dataset(
     )
 
     return return_response
+
+
+@router.post("/edit_cc_config", response_class=JSONResponse)
+def edit_cc_config(
+    request: Request,
+    entity_id: int = Form(...),
+    require_cc: bool = Form(False),
+    project_id: str = Form(""),
+    project_number: str = Form(""),
+    bucket: str = Form(""),
+    keyring_name: str = Form(""),
+    key_name: str = Form(""),
+    key_location: str = Form(""),
+    wip: str = Form(""),
+    wip_provider: str = Form(""),
+    current_user: bool = Depends(check_user_api),
+):
+    args = {
+        "project_id": project_id,
+        "project_number": project_number,
+        "bucket": bucket,
+        "keyring_name": keyring_name,
+        "key_name": key_name,
+        "key_location": key_location,
+        "wip": wip,
+        "wip_provider": wip_provider,
+    }
+    if not require_cc:
+        args = {}
+    initialize_state_task(request, task_name="data_update_cc_config")
+    return_response = {"status": "", "error": ""}
+    try:
+        DatasetConfigureForCC.run(entity_id, args, {})
+        return_response["status"] = "success"
+        notification_message = "Successfully updated dataset CC config!"
+    except Exception as exp:
+        return_response["status"] = "failed"
+        return_response["error"] = str(exp)
+        notification_message = "Failed to update dataset CC config"
+        logger.exception(exp)
+
+    config.ui.end_task(return_response)
+    reset_state_task(request)
+    config.ui.add_notification(
+        message=notification_message,
+        return_response=return_response,
+        url=f"/datasets/ui/display/{entity_id}",
+    )
+    return return_response
+
+
+@router.post("/sync_cc_policy", response_class=JSONResponse)
+def sync_cc_policy(
+    entity_id: int = Form(...),
+    current_user: bool = Depends(check_user_api),
+):
+    try:
+        DatasetUpdateCCPolicy.run(entity_id)
+        return {"status": "success", "error": ""}
+    except Exception as exp:
+        logger.exception(exp)
+        return {"status": "failed", "error": str(exp)}

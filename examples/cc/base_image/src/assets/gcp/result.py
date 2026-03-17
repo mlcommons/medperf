@@ -1,5 +1,6 @@
 from google.cloud import storage
 from .utils import GCPResultConfig
+from uuid import uuid4
 
 
 class GCPResult:
@@ -22,3 +23,9 @@ class GCPResult:
         bucket = self.storage_client.bucket(self.bucket_name)
         blob = bucket.blob(self.output_key_path)
         blob.upload_from_string(key_bytes)
+
+    def do_test(self, test_data: bytes) -> None:
+        bucket = self.storage_client.bucket(self.bucket_name)
+        path = f"test_{uuid4().hex}"
+        blob = bucket.blob(path)
+        blob.upload_from_string(test_data)

@@ -681,6 +681,11 @@ def tmp_path_for_key_decryption():
     return _tmp_path_for_decryption(base_path=config.container_keys_dir)
 
 
+def tmp_path_for_cc_asset_key():
+    """Generates a temporary file path to write key for decryption"""
+    return _tmp_path_for_decryption(base_path=config.cc_artifacts_dir)
+
+
 def secure_write_to_file(file_path, content: bytes, exec_permission=False):
     permission_mode = 0o700 if exec_permission else 0o600
     with open(file_path, "wb") as f:

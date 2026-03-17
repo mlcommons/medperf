@@ -33,7 +33,7 @@ class GCPKey:
     def initialize(self) -> None:
         creds = get_credentials(self.wippro)
         self.kms_client = kms.KeyManagementServiceClient(credentials=creds)
-        self.storage_client = storage.Client()
+        self.storage_client = storage.Client(credentials=creds)
 
     def get_key(self, output_path: str) -> None:
         encrypted_key = self.__get_encrypted_key()

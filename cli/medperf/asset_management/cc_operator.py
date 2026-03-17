@@ -1,95 +1,44 @@
 import json
-from medperf.asset_management import gcp_utils
-from medperf.utils import generate_tmp_path, untar
+from medperf.asset_management.gcp_utils import (
+    GCPOperatorConfig,
+    CCWorkloadID,
+    download_file_from_gcs,
+    download_string_from_gcs,
+    check_gcs_file_exists,
+    run_workload,
+    wait_for_workload_completion,
+)
+from medperf.asset_management.operator_check import verify_operator_setup
+from medperf.exceptions import MedperfException, ExecutionError
+from medperf.utils import (
+    generate_tmp_path,
+    untar,
+    tmp_path_for_cc_asset_key,
+    secure_write_to_file,
+    remove_path,
+)
 from medperf.encryption import SymmetricEncryption, AsymmetricEncryption
-
-
-def create_service_account(config: gcp_utils.GCPOperatorConfig):
-    gcp_utils.create_service_account(config)
-
-
-def allow_operator_to_use_service_account(config: gcp_utils.GCPOperatorConfig):
-    gcp_utils.add_service_account_iam_policy_binding(
-        config,
-        f"user:{config.account}",
-        "roles/iam.serviceAccountUser",
-    )
-
-
-def grant_confidential_computing_workload_user(config: gcp_utils.GCPOperatorConfig):
-    gcp_utils.add_project_iam_policy_binding(
-        config,
-        f"serviceAccount:{config.service_account_email}",
-        "roles/confidentialcomputing.workloadUser",
-    )
-
-
-def grant_logging_log_writer(config: gcp_utils.GCPOperatorConfig):
-    gcp_utils.add_project_iam_policy_binding(
-        config,
-        f"serviceAccount:{config.service_account_email}",
-        "roles/logging.logWriter",
-    )
-
-
-def run_workload(
-    config: gcp_utils.GCPOperatorConfig,
-    docker_image: str,
-    env_vars: dict,
-    workload: gcp_utils.CCWorkloadID,
-):
-    # Build metadata string
-    metadata_parts = [
-        f"tee-image-reference={docker_image}",
-        "tee-container-log-redirect=true",
-    ]
-
-    # Add environment variables
-    for key, value in env_vars.items():
-        metadata_parts.append(f"tee-env-{key}={value}")
-
-    if config.gpu:
-        metadata_parts.append("tee-install-gpu-driver=true")
-
-    metadata = "^~^" + "~".join(metadata_parts)
-
-    if config.gpu:
-        gcp_utils.run_gpu_workload(config, workload, metadata)
-    else:
-        gcp_utils.run_workload(config, workload, metadata)
-
-
-def grant_bucket_read_access(config: gcp_utils.GCPOperatorConfig):
-    gcp_utils.add_bucket_iam_policy_binding(
-        config, f"user:{config.account}", "roles/storage.objectViewer"
-    )
-
-
-def grant_bucket_write_access(config: gcp_utils.GCPOperatorConfig):
-    gcp_utils.add_bucket_iam_policy_binding(
-        config,
-        f"serviceAccount:{config.service_account_email}",
-        "roles/storage.objectAdmin",
-    )
+from colorama import Fore, Style
+import medperf.config as medperf_config
 
 
 class OperatorManager:
     def __init__(self, config: dict):
-        self.config = gcp_utils.GCPOperatorConfig(**config)
+        self.config = GCPOperatorConfig(**config)
 
     def setup(self):
         """Set up complete operator infrastructure"""
-        create_service_account(self.config)
-        allow_operator_to_use_service_account(self.config)
-        grant_confidential_computing_workload_user(self.config)
-        grant_logging_log_writer(self.config)
-        grant_bucket_read_access(self.config)
-        grant_bucket_write_access(self.config)
+        success, message = verify_operator_setup(
+            self.config.service_account_email, self.config.bucket
+        )
+
+        if not success:
+            raise MedperfException(f"Operator setup verification failed: {message}")
 
     def run_workload(
         self,
         docker_image: str,
-        workload: gcp_utils.CCWorkloadID,
+        workload: CCWorkloadID,
         dataset_cc_config: dict,
         model_cc_config: dict,
         result_collector_public_key: str,
@@ -115,47 +64,67 @@ class OperatorManager:
             "RESULT_COLLECTOR": result_collector_public_key,
             "EXPECTED_RESULT_COLLECTOR_HASH": workload.result_collector_hash,
         }
-        run_workload(self.config, docker_image, env_vars, workload)
+        metadata = {}
+        metadata["tee-image-reference"] = docker_image
+        metadata["tee-container-log-redirect"] = "true"
 
-    def wait_for_workload_completion(self, workload: gcp_utils.CCWorkloadID):
-        gcp_utils.wait_for_workload_completion(self.config, workload)
+        # Add environment variables
+        for key, value in env_vars.items():
+            metadata[f"tee-env-{key}"] = value
+
+        try:
+            run_workload(self.config, metadata)
+        except Exception:
+            raise ExecutionError(
+                "Failed to run workload: User lacks permissions or VM does not exist"
+            )
+
+    def wait_for_workload_completion(self, workload: CCWorkloadID):
+        for output in wait_for_workload_completion(self.config, workload):
+            medperf_config.ui.print_subprocess_logs(
+                f"{Fore.WHITE}{Style.DIM}{output}{Style.RESET_ALL}"
+            )
+
+    def results_exist(self, workload: CCWorkloadID):
+        results_exist = check_gcs_file_exists(self.config, workload.results_path)
+        if not results_exist:
+            return False
+        decryption_key_exists = check_gcs_file_exists(
+            self.config, workload.results_encryption_key_path
+        )
+        return decryption_key_exists
 
     def download_results(
         self,
-        workload: gcp_utils.CCWorkloadID,
+        workload: CCWorkloadID,
         private_key_bytes: bytes,
         results_path: str,
     ):
 
         encrypted_results_path = generate_tmp_path()
-        key_path = generate_tmp_path()
 
-        gcp_utils.download_file_from_gcs(
-            self.config,
-            f"gs://{self.config.bucket}/{workload.results_path}",
-            encrypted_results_path,
+        download_file_from_gcs(
+            self.config, workload.results_path, encrypted_results_path
         )
-        gcp_utils.download_file_from_gcs(
-            self.config,
-            f"gs://{self.config.bucket}/{workload.results_encryption_key_path}",
-            key_path,
+        encrypted_key = download_string_from_gcs(
+            self.config, workload.results_encryption_key_path
         )
 
-        with open(key_path, "rb") as key_file:
-            encrypted_key = key_file.read()
+        medperf_config.ui.text = "Decrypting predictions"
 
         decryption_key = AsymmetricEncryption().decrypt(
             private_key_bytes, encrypted_key
         )
 
-        tmp_key_path = generate_tmp_path()
-        with open(tmp_key_path, "wb") as tmp_key_file:
-            tmp_key_file.write(decryption_key)
-
         results_archive_path = generate_tmp_path()
+        tmp_key_path = tmp_path_for_cc_asset_key()
+        secure_write_to_file(tmp_key_path, decryption_key)
         SymmetricEncryption().decrypt_file(
             encrypted_results_path, tmp_key_path, results_archive_path
         )
+        remove_path(tmp_key_path, sensitive=True)
+        del decryption_key
 
         # Extract results
+        medperf_config.ui.text = "Uncompressing predictions"
         untar(results_archive_path, remove=True, extract_to=results_path)

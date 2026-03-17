@@ -101,6 +101,9 @@ class Cube(Entity):
     def is_model(self) -> bool:
         return self.parser.is_model_container()
 
+    def is_script(self) -> bool:
+        return self.parser.is_script_container()
+
     @staticmethod
     def remote_prefilter(filters: dict):
         """Applies filtering logic that must be done before retrieving remote entities

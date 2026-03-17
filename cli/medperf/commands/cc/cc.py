@@ -24,7 +24,7 @@ def configure_dataset_for_cc(
 ):
     """Configure dataset for confidential computing execution"""
     ui = config.ui
-    DatasetConfigureForCC.run(data_uid, cc_config_file, cc_policy_file)
+    DatasetConfigureForCC.run_from_files(data_uid, cc_config_file, cc_policy_file)
     ui.print("✅ Done!")
 
 
@@ -41,7 +41,7 @@ def configure_model_for_cc(
 ):
     """Configure model for confidential computing execution"""
     ui = config.ui
-    ModelConfigureForCC.run(model_uid, cc_config_file, cc_policy_file)
+    ModelConfigureForCC.run_from_files(model_uid, cc_config_file, cc_policy_file)
     ui.print("✅ Done!")
 
 
@@ -76,5 +76,5 @@ def setup_cc_operator(
 ):
     """Setup confidential computing operator"""
     ui = config.ui
-    SetupCCOperator.run(cc_config_file)
+    SetupCCOperator.run_from_files(cc_config_file)
     ui.print("✅ Done!")

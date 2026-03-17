@@ -4,6 +4,7 @@
 
 {% import 'macros/association_card_macros.html' as association_card_macros %}
 {% import 'macros/model_detail_util_macro.html' as model_detail_util_macro %}
+{% import 'macros/cc_asset_macro.html' as cc_asset_macro %}
 
 {% block title %}Model Details{% endblock %}
 
@@ -109,6 +110,27 @@
         {% endif %}
         <p class="step-label mt-2 text-sm text-gray-600 dark:text-gray-400">Make a request to the benchmark owner to associate your model with the benchmark</p>
     </div>
+    <div class="card mb-3 mt-5">
+        <div class="card-title">
+            <h5 class="p-4">Confidential Computing Preferences</h5>
+        </div>
+        <div class="card-body">
+        {{cc_asset_macro.gcp_asset(cc_config_defaults, cc_configured, entity.id, "model", task_running) }}
+        </div>
+        {% if cc_configured %}
+        <div class="card-body text-center">
+            <p class="text-muted">Confidential Computing is configured, you can sync the policy.</p>
+            <button
+                type="button"
+                class="btn btn-primary"
+                data-entity-id="{{ entity.id }}"
+                data-entity-type="model"
+                id="sync-cc-policy-btn"
+                {% if task_running %} disabled {% endif %}
+            >Sync CC Policy</button>
+        </div>
+        {% endif %}
+    </div>
     {% endif %}
     {% endif %}
 </div>
@@ -129,13 +151,44 @@
 {% endblock detail_panel %}
 
 {% block extra_js %}
+<script>
+    window.ccPreferences = {
+        can_apply: {{ cc_configured|tojson }},
+        defaults: {{ cc_config_defaults|tojson }}
+    }
+</script>
 <script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
 <script src="{{ url_for('static', path='js/models/model_detail.js') }}"></script>
-{% if task_running and "model_association" in request.app.state.active_tasks and request.app.state.active_tasks["model_association"].formData.get("model_id", "") == entity.id|string %}
+<script src="{{ url_for('static', path='js/cc.js') }}"></script>
+{% if task_running %}
+{% if "model_association" in request.app.state.active_tasks and request.app.state.active_tasks["model_association"].formData.get("model_id", "") == entity.id|string %}
 {% set form_data = request.app.state.active_tasks["model_association"].formData %}
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         resumeRunningTask("#model-association-form-{{ form_data.get('benchmark_id', '') }}");
+    });
+</script>
+
+{% "model_update_cc_config" in request.app.state.active_tasks and request.app.state.active_tasks["model_update_cc_config"].formData.get("model_id", "") == entity.id|string %}
+<script>
+    $(document).ready(() => {
+        resumeRunningTask(
+            "#apply-cc-asset-btn",
+            `Updating Model CC Configuration...`,
+            onCCEditRequestSuccess
+        );
+    });
+</script>
+{% endif %}
+
+{% if task_running and request.app.state.task.name == "model_update_cc_config" and task_formData.get("model_id", "") == entity.id|string %}
+<script>
+    $(document).ready(() => {
+        resumeRunningTask(
+            "#apply-cc-asset-btn",
+            `Updating Model CC Configuration...`,
+            onCCEditRequestSuccess
+        );
     });
 </script>
 {% endif %}

@@ -24,6 +24,11 @@ def get_permitted_workloads(model: Model):
         benchmark_id = assoc["benchmark"]
         benchmark = Benchmark.get(benchmark_id)
         evaluator = Cube.get(benchmark.data_evaluator_mlcube)
+        if evaluator.is_script():
+            script_hash = evaluator.image_hash
+        else:
+            ref_model = Model.get(benchmark.reference_model)
+            script_hash = ref_model.container_obj.image_hash
         datasets_certs = config.comms.get_benchmark_datasets_certificates(benchmark_id)
         mappings = {}
         for cert in datasets_certs:
@@ -44,13 +49,44 @@ def get_permitted_workloads(model: Model):
             workload_info = CCWorkloadID(
                 data_hash=dataset.generated_uid,
                 model_hash=asset.asset_hash,
-                script_hash=evaluator.image_hash,
+                script_hash=script_hash,
                 result_collector_hash=public_key_hash,
                 data_id=dataset.id,
                 model_id=model.id,
                 script_id=evaluator.id,
             )
             permitted_workloads.append(workload_info)
+
+    return permitted_workloads
+
+
+def get_permitted_workloads_without_datasets(model: Model):
+    user_obj = get_medperf_user_object()
+    if model.owner != user_obj.id:
+        raise MedperfException("User must be model owner")
+    asset = model.asset_obj
+
+    permitted_workloads = []
+    assocs = config.comms.get_model_benchmarks_associations(model.id)
+    for assoc in assocs:
+        benchmark_id = assoc["benchmark"]
+        benchmark = Benchmark.get(benchmark_id)
+        evaluator = Cube.get(benchmark.data_evaluator_mlcube)
+        if evaluator.is_script():
+            script_hash = evaluator.image_hash
+        else:
+            ref_model = Model.get(benchmark.reference_model)
+            script_hash = ref_model.container_obj.image_hash
+        workload_info = CCWorkloadID(
+            data_hash="",
+            model_hash=asset.asset_hash,
+            script_hash=script_hash,
+            result_collector_hash="",
+            data_id=1,
+            model_id=model.id,
+            script_id=evaluator.id,
+        )
+        permitted_workloads.append(workload_info)
 
     return permitted_workloads
 
@@ -63,5 +99,5 @@ class ModelUpdateCCPolicy:
             raise MedperfException(
                 f"Model {model.id} is not configured for confidential computing."
             )
-        permitted_workloads = get_permitted_workloads(model)
+        permitted_workloads = get_permitted_workloads_without_datasets(model)
         update_model_cc_policy(model, permitted_workloads)

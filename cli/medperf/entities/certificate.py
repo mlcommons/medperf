@@ -5,7 +5,7 @@ from medperf.entities.schemas import CertificateSchema
 from medperf.account_management import get_medperf_user_data
 from medperf import config
 from medperf.exceptions import MedperfException
-from medperf.utils import generate_tmp_path
+from medperf.utils import generate_tmp_path, get_pki_assets_path
 import base64
 from typing import List, Tuple
 import logging
@@ -94,6 +94,26 @@ class Certificate(Entity):
                 "Internal Error: Multiple certificates has been found"
             )
         return user_certificates[0]
+
+    @classmethod
+    def get_local_user_certificate(cls):
+        email = get_medperf_user_data()["email"]
+        local_cert_folder = get_pki_assets_path(email, config.certificate_authority_id)
+        local_certificate_file = os.path.join(
+            local_cert_folder, config.certificate_file
+        )
+        if not os.path.exists(local_certificate_file):
+            logging.debug(f"No local certificate found: {local_certificate_file}")
+            return
+        with open(local_certificate_file, "rb") as f:
+            local_certificate_content = f.read()
+
+        cert_b64encoded = base64.b64encode(local_certificate_content).decode("utf-8")
+        return cls(
+            name="tmp_local_cert",
+            certificate_content_base64=cert_b64encoded,
+            ca=config.certificate_authority_id,
+        )
 
     @classmethod
     def remote_prefilter(cls, filters: dict) -> callable:
