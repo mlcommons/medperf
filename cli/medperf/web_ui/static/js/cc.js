@@ -119,6 +119,15 @@ function initCCAsset() {
     }
     var syncForm = document.getElementById("sync-cc-policy-form");
     if (syncForm) syncForm.addEventListener("submit", submitActionForm);
+
+    var configureEl = document.getElementById("configure-cc");
+    if (configureEl) configureEl.addEventListener("change", function() {
+        var syncBtn = document.getElementById("sync-cc-policy-btn");
+        if (syncBtn) {
+            syncBtn.style.display = configureEl.checked ? "" : "none";
+        }
+    });
+
 }
 
 if (typeof window !== "undefined") {
