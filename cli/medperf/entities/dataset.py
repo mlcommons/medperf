@@ -80,6 +80,12 @@ class Dataset(Entity):
         if "cc" not in self.user_metadata:
             self.user_metadata["cc"] = {}
         self.user_metadata["cc"]["config"] = cc_config
+        self.user_metadata["cc"]["initialized"] = False
+
+    def set_cc_initialized(self):
+        if not self.is_cc_configured():
+            return
+        self.user_metadata["cc"]["initialized"] = True
 
     def get_cc_policy(self):
         cc_values = self.user_metadata.get("cc", {})
@@ -92,6 +98,10 @@ class Dataset(Entity):
 
     def is_cc_configured(self):
         return self.get_cc_config() != {}
+
+    def is_cc_initialized(self):
+        cc_values = self.user_metadata.get("cc", {})
+        return cc_values.get("initialized", False)
 
     def is_operational(self):
         return self.state == "OPERATION"

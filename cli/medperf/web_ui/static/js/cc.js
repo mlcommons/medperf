@@ -37,46 +37,85 @@ function onCCPolicyRequestSuccess(response) {
 
 function checkForCCAssetChanges() {
     var preferences = window.ccPreferences || {};
-    var configured = preferences.can_apply;
+    var defaultConfigureChecked = preferences.configured;
     var defaults = preferences.defaults || {};
-    var requireEl = document.getElementById("require-cc");
-    var requireChecked = requireEl ? requireEl.checked : false;
-    var requireCCChanged = (requireChecked !== configured);
-    var hasChanges = requireCCChanged;
+    var configureEl = document.getElementById("configure-cc");
+    var configureChecked = configureEl ? configureEl.checked : false;
+    if (configureChecked !== defaultConfigureChecked) {
+        return true;
+    }
+    if (!configureChecked) {
+        // If checkbox was turned on, some input were written, then turned off, no changes.
+        return false;
+    }
     for (var i = 0; i < CC_ASSET_FIELD_IDS.length; i++) {
         var el = document.getElementById(CC_ASSET_FIELD_IDS[i]);
         if (el) {
             var currentValue = el.value || "";
             var defaultKey = CC_ASSET_FIELD_IDS[i].replace(/^cc-/, "");
             var defaultValue = (defaults[defaultKey] !== undefined) ? defaults[defaultKey] : "";
-            if (currentValue !== defaultValue) hasChanges = true;
+            if (currentValue !== defaultValue) return true;
         }
     }
+    return false;
+}
+
+function checkFormValidity() {
+    var configureEl = document.getElementById("configure-cc");
+    var configureChecked = configureEl ? configureEl.checked : false;
+    if (!configureChecked) {
+        return true; // If CC is not configured, no need to validate fields
+    }
+    for (var i = 0; i < CC_ASSET_FIELD_IDS.length; i++) {
+        var el = document.getElementById(CC_ASSET_FIELD_IDS[i]);
+        if (el) {
+            var currentValue = el.value.trim() || "";
+            if (currentValue.length === 0) {
+                return false; // If any configured field is empty, form is not valid
+            }
+        }
+    }
+    return true;
+}
+
+function checkCanApplyChanges() {
+    var preferences = window.ccPreferences || {};
+
+    var canApplyWithoutChanges = !preferences.initialized && preferences.configured;
+    var hasChanges = checkForCCAssetChanges();
+
     var applyBtn = document.getElementById("apply-cc-asset-btn");
-    if (applyBtn) applyBtn.disabled = !hasChanges;
+    if (applyBtn) {
+        if (!hasChanges) {
+            applyBtn.disabled = !canApplyWithoutChanges;
+        }
+        else {
+            applyBtn.disabled = !checkFormValidity();
+        }
+    }
 }
 
 function initCCAsset() {
     var form = document.getElementById("edit-cc-asset-form");
     if (form) {
         form.addEventListener("submit", submitActionForm);
-        var requireEl = document.getElementById("require-cc");
+        var configureEl = document.getElementById("configure-cc");
         var fieldsContainer = document.getElementById("edit-cc-asset-fields");
-        if (requireEl && fieldsContainer) {
+        if (configureEl && fieldsContainer) {
             function toggleFields() {
-                fieldsContainer.style.display = requireEl.checked ? "" : "none";
-                if (!requireEl.checked) fieldsContainer.classList.add("hidden");
+                fieldsContainer.style.display = configureEl.checked ? "" : "none";
+                if (!configureEl.checked) fieldsContainer.classList.add("hidden");
                 else fieldsContainer.classList.remove("hidden");
             }
-            requireEl.addEventListener("change", toggleFields);
+            configureEl.addEventListener("change", toggleFields);
             toggleFields();
         }
-        var inputs = form.querySelectorAll("input[type='text'], input[id='require-cc']");
+        var inputs = form.querySelectorAll("input[type='text'], input[id='configure-cc']");
         for (var i = 0; i < inputs.length; i++) {
-            inputs[i].addEventListener("keyup", checkForCCAssetChanges);
-            inputs[i].addEventListener("change", checkForCCAssetChanges);
+            inputs[i].addEventListener("keyup", checkCanApplyChanges);
+            inputs[i].addEventListener("change", checkCanApplyChanges);
         }
-        checkForCCAssetChanges();
+        checkCanApplyChanges();
     }
     var syncForm = document.getElementById("sync-cc-policy-form");
     if (syncForm) syncForm.addEventListener("submit", submitActionForm);

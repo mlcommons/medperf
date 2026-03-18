@@ -1,5 +1,6 @@
 {# CC operator form: used on settings page. Uses our form design: action, task_name, data-panel-title, data-confirm-message, data-success-handler. #}
-{% macro cc_operator(defaults, configured, task_running=false) %}
+{% import "constants/tooltips.html" as tooltips %}
+{% macro cc_operator(defaults, configured, initialized, task_running=false) %}
 {% set fields = [
 ("project_id", "GCP Project ID"),
 ("service_account_name", "GCP Service Account Name"),
@@ -9,14 +10,20 @@
 ] %}
 <div id="edit-cc-operator-container" class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border-2 border-green-100 dark:border-gray-700 mt-6">
     <h3 class="text-xl font-bold medperf-accent dark:text-green-400 mb-4">Confidential Computing Operator Settings</h3>
+    {% if not initialized and configured %}
+    <p class="rounded-xl p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 font-semibold tooltip-icon mb-4" title="{{ tooltips.cc_misconfigured }}">
+        <strong>Misconfigured</strong>
+        <i class="fas fa-exclamation-triangle ml-1" aria-hidden="true"></i>
+    </p>
+    {% endif %}
     <form id="edit-cc-operator-form" action="/settings/edit_cc_operator" method="post" class="cc-operator-form space-y-4"
           data-panel-title="Updating CC operator configuration"
           data-confirm-message="edit CC operator configuration?"
           data-success-handler="onCCOperatorEditRequestSuccess">
         <input type="hidden" name="task_name" value="edit_cc_operator">
         <div class="flex items-center gap-4">
-            <label class="relative inline-flex items-center cursor-pointer" for="require-cc-operator">
-                <input type="checkbox" id="require-cc-operator" name="require_cc" value="true" class="sr-only peer" {% if configured %}checked{% endif %} {% if task_running %}disabled{% endif %}>
+            <label class="relative inline-flex items-center cursor-pointer" for="configure-cc-operator">
+                <input type="checkbox" id="configure-cc-operator" name="configure_cc" value="true" class="sr-only peer" {% if configured %}checked{% endif %} {% if task_running %}disabled{% endif %}>
                 <div class="relative w-14 h-7 bg-gray-200 dark:bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-green-600"></div>
                 <span class="ml-4 text-gray-700 dark:text-gray-300 font-semibold">Configure Confidential Computing</span>
             </label>
@@ -31,7 +38,7 @@
             {% endfor %}
         </div>
         <div class="pt-2">
-            <button type="submit" id="apply-cc-operator-btn" class="px-6 py-3 medperf-bg dark:bg-green-600 text-white rounded-xl font-bold hover:opacity-90 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed" disabled>Apply CC operator configuration</button>
+            <button type="submit" id="apply-cc-operator-btn" class="px-6 py-3 medperf-bg dark:bg-green-600 text-white rounded-xl font-bold hover:opacity-90 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed" disabled>Configure</button>
         </div>
     </form>
 </div>

@@ -36,6 +36,16 @@ class User:
         if "cc" not in self.metadata:
             self.metadata["cc"] = {}
         self.metadata["cc"]["config"] = cc_config
+        self.metadata["cc"]["initialized"] = False
+
+    def set_cc_initialized(self):
+        if not self.is_cc_configured():
+            return
+        self.metadata["cc"]["initialized"] = True
 
     def is_cc_configured(self):
         return self.get_cc_config() != {}
+
+    def is_cc_initialized(self):
+        cc_values = self.metadata.get("cc", {})
+        return cc_values.get("initialized", False)

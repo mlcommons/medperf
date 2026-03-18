@@ -78,6 +78,7 @@ def model_detail_ui(
 
     cc_config_defaults = model.get_cc_config()
     cc_configured = model.is_cc_configured()
+    cc_initialized = model.is_cc_initialized()
     return templates.TemplateResponse(
         "model/model_detail.html",
         {
@@ -92,6 +93,7 @@ def model_detail_ui(
             "benchmarks": benchmarks,
             "cc_config_defaults": cc_config_defaults,
             "cc_configured": cc_configured,
+            "cc_initialized": cc_initialized,
         },
     )
 
@@ -129,7 +131,7 @@ def associate(
 def edit_cc_config(
     request: Request,
     entity_id: int = Form(...),
-    require_cc: bool = Form(False),
+    configure_cc: bool = Form(False),
     project_id: str = Form(""),
     project_number: str = Form(""),
     bucket: str = Form(""),
@@ -150,7 +152,7 @@ def edit_cc_config(
         "wip": wip,
         "wip_provider": wip_provider,
     }
-    if not require_cc:
+    if not configure_cc:
         args = {}
 
     initialize_state_task(request, task_name="model_update_cc_config")

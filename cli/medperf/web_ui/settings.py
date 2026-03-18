@@ -37,6 +37,7 @@ def settings_ui(request: Request, current_user: bool = Depends(check_user_ui)):
 
     cc_config_defaults = {}
     cc_configured = False
+    cc_initialized = False
 
     if is_logged_in():
         cas = CA.all()
@@ -46,6 +47,7 @@ def settings_ui(request: Request, current_user: bool = Depends(check_user_ui)):
         user = get_medperf_user_object()
         cc_config_defaults = user.get_cc_config()
         cc_configured = user.is_cc_configured()
+        cc_initialized = user.is_cc_initialized()
 
     return templates.TemplateResponse(
         "settings.html",
@@ -60,6 +62,7 @@ def settings_ui(request: Request, current_user: bool = Depends(check_user_ui)):
             "certificate_status": certificate_status,
             "cc_config_defaults": cc_config_defaults,
             "cc_configured": cc_configured,
+            "cc_initialized": cc_initialized,
         },
     )
 
@@ -221,7 +224,7 @@ def submit_certificate(
 
 @router.post("/edit_cc_operator", response_class=JSONResponse)
 def edit_cc_operator(
-    require_cc: bool = Form(False),
+    configure_cc: bool = Form(False),
     project_id: str = Form(""),
     service_account_name: str = Form(""),
     bucket: str = Form(""),
@@ -236,7 +239,7 @@ def edit_cc_operator(
         "vm_zone": vm_zone,
         "vm_name": vm_name,
     }
-    if not require_cc:
+    if not configure_cc:
         args = {}
 
     try:

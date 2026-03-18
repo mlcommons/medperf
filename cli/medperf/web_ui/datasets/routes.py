@@ -97,6 +97,7 @@ def dataset_detail_ui(  # noqa
 
     cc_config_defaults = dataset.get_cc_config()
     cc_configured = dataset.is_cc_configured()
+    cc_initialized = dataset.is_cc_initialized()
     context = {
         "request": request,
         "dataset": dataset,
@@ -108,6 +109,7 @@ def dataset_detail_ui(  # noqa
         "dataset_hash_mismatch": dataset_hash_mismatch,
         "cc_config_defaults": cc_config_defaults,
         "cc_configured": cc_configured,
+        "cc_initialized": cc_initialized,
     }
 
     if ui_mode == request.app.state.EVALUATION_MODE:
@@ -156,13 +158,13 @@ def dataset_detail_ui(  # noqa
                 if model._encrypted:
                     model.access_status = check_access_to_container(model.container.id)
                 if model._requires_cc:
-                    if not dataset.is_cc_configured():
+                    if not dataset.is_cc_initialized():
                         reason = "Your dataset is not configured for CC yet"
                         can_run = False
-                    elif not model.is_cc_configured():
+                    elif not model.is_cc_initialized():
                         reason = "Wait for model owner to configure their CC settings"
                         can_run = False
-                    elif not user_obj.is_cc_configured():
+                    elif not user_obj.is_cc_initialized():
                         reason = "You haven't configured your workload run settings for CC yet"
                         can_run = False
                     else:
@@ -655,7 +657,7 @@ def import_dataset(
 def edit_cc_config(
     request: Request,
     entity_id: int = Form(...),
-    require_cc: bool = Form(False),
+    configure_cc: bool = Form(False),
     project_id: str = Form(""),
     project_number: str = Form(""),
     bucket: str = Form(""),
@@ -676,7 +678,7 @@ def edit_cc_config(
         "wip": wip,
         "wip_provider": wip_provider,
     }
-    if not require_cc:
+    if not configure_cc:
         args = {}
     initialize_state_task(request, task_name="data_update_cc_config")
     return_response = {"status": "", "error": ""}

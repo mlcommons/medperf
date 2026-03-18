@@ -112,7 +112,7 @@
     </div>
     <div class="mt-6 bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border-2 border-green-100 dark:border-gray-700">
         <h3 class="text-xl font-bold medperf-accent dark:text-green-400 mb-4">Confidential Computing Preferences</h3>
-        {{ cc_asset_macro.gcp_asset(cc_config_defaults, cc_configured, entity.id, "model", task_running) }}
+        {{ cc_asset_macro.gcp_asset(cc_config_defaults, cc_configured, cc_initialized, entity.id, "model", task_running) }}
     </div>
     {% endif %}
     {% endif %}
@@ -136,7 +136,8 @@
 {% block extra_js %}
 <script>
     window.ccPreferences = {
-        can_apply: {{ cc_configured|tojson }},
+        configured: {{ cc_configured|tojson }},
+        initialized: {{ cc_initialized|tojson }},
         defaults: {{ cc_config_defaults|tojson }}
     }
 </script>
