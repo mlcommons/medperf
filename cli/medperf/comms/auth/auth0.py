@@ -47,7 +47,7 @@ class Auth0(Auth):
         )
         config.ui.print_code(user_code)
         config.ui.print("\n\n")
-        config.ui.print_warning(
+        config.ui.print_cli_warning(
             "Keep this terminal open until you complete your login request. "
             "The command will exit on its own once you complete the request. "
             "If you wish to stop the login request anyway, press Ctrl+C."

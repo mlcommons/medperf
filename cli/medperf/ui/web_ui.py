@@ -38,6 +38,10 @@ class WebUI(CLI):
         msg = typer.style(msg, fg=typer.colors.RED, bold=True)
         self._print(msg, "error")
 
+    def print_cli_warning(self, msg: str):
+        # do nothing
+        pass
+
     def print_warning(self, msg: str):
         """Display a warning message on the command line
 
