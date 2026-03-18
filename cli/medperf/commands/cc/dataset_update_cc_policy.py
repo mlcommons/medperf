@@ -72,3 +72,6 @@ class DatasetUpdateCCPolicy:
         permitted_workloads = get_permitted_workloads(dataset)
 
         update_dataset_cc_policy(dataset, permitted_workloads)
+        dataset.set_last_synced()
+        body = {"user_metadata": dataset.user_metadata}
+        config.comms.update_dataset(dataset.id, body)

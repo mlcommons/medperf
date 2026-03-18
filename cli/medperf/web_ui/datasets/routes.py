@@ -98,6 +98,7 @@ def dataset_detail_ui(  # noqa
     cc_config_defaults = dataset.get_cc_config()
     cc_configured = dataset.is_cc_configured()
     cc_initialized = dataset.is_cc_initialized()
+    cc_last_synced = dataset.get_last_synced()
     context = {
         "request": request,
         "dataset": dataset,
@@ -110,6 +111,7 @@ def dataset_detail_ui(  # noqa
         "cc_config_defaults": cc_config_defaults,
         "cc_configured": cc_configured,
         "cc_initialized": cc_initialized,
+        "cc_last_synced": cc_last_synced,
     }
 
     if ui_mode == request.app.state.EVALUATION_MODE:

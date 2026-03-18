@@ -79,6 +79,7 @@ def model_detail_ui(
     cc_config_defaults = model.get_cc_config()
     cc_configured = model.is_cc_configured()
     cc_initialized = model.is_cc_initialized()
+    cc_last_synced = model.get_last_synced()
     return templates.TemplateResponse(
         "model/model_detail.html",
         {
@@ -94,6 +95,7 @@ def model_detail_ui(
             "cc_config_defaults": cc_config_defaults,
             "cc_configured": cc_configured,
             "cc_initialized": cc_initialized,
+            "cc_last_synced": cc_last_synced,
         },
     )
 

@@ -9,6 +9,7 @@ from medperf.entities.asset import Asset
 from medperf.account_management import get_medperf_user_data
 from medperf.commands.association.utils import get_user_associations
 from medperf.entities.utils import handle_validation_error
+from datetime import datetime, timezone
 
 
 class Model(Entity):
@@ -110,6 +111,16 @@ class Model(Entity):
     def is_cc_initialized(self):
         cc_values = self.user_metadata.get("cc", {})
         return cc_values.get("initialized", False)
+
+    def set_last_synced(self):
+        if "cc" not in self.user_metadata:
+            self.user_metadata["cc"] = {}
+        self.user_metadata["cc"]["last_synced"] = str(datetime.now(timezone.utc))
+
+    def get_last_synced(self):
+        if "cc" not in self.user_metadata:
+            return
+        return self.user_metadata["cc"].get("last_synced", None)
 
     @staticmethod
     def remote_prefilter(filters: dict) -> callable:
