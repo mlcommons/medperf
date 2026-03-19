@@ -143,6 +143,11 @@ def dataset_detail_ui(  # noqa
             reference_model_id = valid_benchmarks[assoc["benchmark"]].reference_model
             models_uids.insert(0, reference_model_id)
             models = [Model.get(model_uid) for model_uid in models_uids]
+            # check if any model requires cc. if yes, remove the reference model
+            for model in models:
+                if model.requires_cc():
+                    models.pop(0)
+                    break
             benchmark_models[assoc["benchmark"]] = models
             for model in benchmark_models[assoc["benchmark"]]:
                 model._encrypted = model.is_encrypted()
