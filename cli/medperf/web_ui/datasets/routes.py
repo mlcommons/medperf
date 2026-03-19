@@ -89,9 +89,6 @@ def dataset_detail_ui(  # noqa
     dataset_is_prepared = dataset.is_ready() or dataset_is_operational
     report_exists = os.path.exists(dataset.report_path)
     ui_mode = request.app.state.ui_mode
-    dataset_hash_mismatch = None
-    if dataset_is_operational and is_owner:
-        dataset_hash_mismatch = not dataset.check_hash()
 
     cc_config_defaults = dataset.get_cc_config()
     cc_configured = dataset.is_cc_configured()
@@ -105,7 +102,6 @@ def dataset_detail_ui(  # noqa
         "dataset_is_operational": dataset_is_operational,
         "is_owner": is_owner,
         "report_exists": report_exists,
-        "dataset_hash_mismatch": dataset_hash_mismatch,
         "cc_config_defaults": cc_config_defaults,
         "cc_configured": cc_configured,
         "cc_initialized": cc_initialized,

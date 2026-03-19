@@ -21,12 +21,6 @@
         </form>
     </div>
 </div>
-{% if dataset_hash_mismatch %}
-<p class="rounded-xl p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 font-semibold">
-    <strong>Data hash mismatch</strong>
-    <i class="fas fa-exclamation-triangle ml-1" aria-hidden="true"></i>
-</p>
-{% endif %}
 
 <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg border-2 border-green-100 dark:border-gray-700 mb-6 {% if ui_mode == request.app.state.EVALUATION_MODE and not dataset.is_valid %}invalid-card{% endif %} overflow-hidden">
     <div class="flex flex-wrap justify-between items-center gap-4 mb-6">
