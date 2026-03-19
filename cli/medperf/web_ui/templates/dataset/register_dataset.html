@@ -80,25 +80,12 @@
                 <span class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.register_dataset_labels_path }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
-        <div class="form-group my-5">
-            <label for="submit-as-prepared" class="form-label h5">Submit as Prepared</label>
-                <input
-                    type="checkbox"
-                    id="submit-as-prepared"
-                    name="submit_as_prepared"
-                    class="form-check-input ms-2 border-black"
-                    placeholder="{{ placeholders.register_dataset_labels_path }}"
-                    {% if task_running %} disabled {% endif %}
-                    {% if dataset_register_running and task_formData.get('submit_as_prepared') %}
-                    checked
-                    {% endif %}
-                >
-                <i
-                    class="ms-3 tooltip-info fa fa-info-circle fs-5"
-                    data-bs-toggle="tooltip"
-                    data-bs-placement="top"
-                    data-bs-title="{{ tooltips.register_dataset_submit_as_prepared }}"
-                ></i>
+        <div class="flex items-center gap-4">
+            <label class="relative inline-flex items-center cursor-pointer" for="submit-as-prepared">
+                <input type="checkbox" id="submit-as-prepared" name="submit_as_prepared" class="sr-only peer" {% if dataset_register_running and form_data.get("submit_as_prepared") %}checked{% endif %} {% if task_running %}disabled{% endif %}>
+                <div class="relative w-14 h-7 bg-gray-200 dark:bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-green-600"></div>
+                <span class="ml-4 text-gray-700 dark:text-gray-300 font-semibold" title="{{ tooltips.register_dataset_submit_as_prepared }}">Submit as Prepared</span>
+            </label>
         </div>
         <div class="text-center pt-4">
             <button id="register-dataset-btn" type="submit" class="px-6 py-3 medperf-bg dark:bg-green-600 text-white rounded-xl font-bold hover:opacity-90 disabled:opacity-50 cursor-pointer" disabled>Register Dataset</button>
