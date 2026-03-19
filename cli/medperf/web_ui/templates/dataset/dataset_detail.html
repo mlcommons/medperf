@@ -275,7 +275,7 @@
 
 {% for assoc in benchmark_associations %}
 	{% if assoc in approved_benchmarks %}
-	{% set reference_model = benchmarks[assoc].reference_model %}
+	{% set reference_model_id = benchmarks[assoc].reference_model %}
 	<div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border-2 border-green-100 dark:border-gray-700 mt-6 mb-4 overflow-hidden">
 		<div class="px-4 py-3 medperf-bg dark:bg-green-700 flex justify-between items-center text-white">
 			<h4 class="mb-0">
@@ -289,7 +289,6 @@
 				<input type="hidden" name="dataset_id" value="{{ dataset.id }}">
 				<input type="hidden" name="benchmark_id" value="{{ assoc }}">
 				<input type="hidden" name="run_all" value="true">
-				<input type="hidden" name="model_ids" value="{{ reference_model.id }}">
 				{% if benchmark_models[assoc] %}{% for model in benchmark_models[assoc] %}<input type="hidden" name="model_ids" value="{{ model.id }}">{% endfor %}{% endif %}
 				<button type="submit" id="run-all-{{ assoc }}" class="px-4 py-2 rounded-xl bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-white font-semibold run-all-btn cursor-pointer disabled:cursor-not-allowed" {% if task_running %}disabled{% endif %}><i class="fas fa-play mr-2"></i>Run All</button>
 			</form>
@@ -297,60 +296,14 @@
     	<div class="p-4">
       		<div class="benchmark-section mb-4">
         		<div class="space-y-2">
-					<div class="flex flex-wrap justify-between items-center gap-4 p-4 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/30">
-                        {% set results_exist = reference_model.result and reference_model.result.results_exist %}
-						<div class="model-info flex flex-col">
-                            <small class="text-gray-500 dark:text-gray-400">&nbsp;Reference Model</small>
-							{{ model_macros.model_link(reference_model) }}
-						</div>
-						<div class="flex items-center flex-wrap gap-2">
-							<div class="mx-2">
-								<form id="run-{{ assoc }}-{{ reference_model.id }}-form" action="/datasets/run" method="post" class="inline dataset-action-form" data-panel-title="Running benchmark execution" data-confirm-message="{% if results_exist %}rerun the benchmark execution for the selected model? This will clear previous results.{% else %}run the benchmark execution for the selected model?{% endif %}">
-									<input type="hidden" name="task_name" value="run_benchmark">
-									<input type="hidden" name="dataset_id" value="{{ dataset.id }}">
-									<input type="hidden" name="benchmark_id" value="{{ assoc }}">
-									<input type="hidden" name="run_all" value="false">
-									<input type="hidden" name="model_ids" value="{{ reference_model.id }}">
-									<button type="submit" id="run-{{ assoc }}-{{ reference_model.id }}" class="px-6 py-3 medperf-bg dark:bg-green-600 text-white rounded-xl font-bold hover:opacity-90 mx-2 cursor-pointer disabled:cursor-not-allowed" {% if task_running %}disabled{% endif %}><i class="fas fa-play mr-2"></i>{% if results_exist %} Rerun {% else %} Run {% endif %}</button>
-								</form>
-							</div>
-							{% if results_exist %}
-								<div class="mx-2">
-									<button
-										class="px-6 py-3 medperf-bg dark:bg-green-600 text-white rounded-xl font-bold hover:opacity-90 view-result-btn cursor-pointer"
-										data-benchmark-name="{{ benchmarks[assoc].name }}"
-										data-model-name="{{ reference_model.name }}"
-										data-dataset-name="{{ dataset.name }}"
-										id="show-{{ assoc }}-{{ reference_model.id }}"
-										data-result='{{ reference_model.result.results|tojson }}'
-									>
-                                        <i class="fas fa-chart-line mr-2"></i>View Result
-									</button>
-								</div>
-								<!-- any cleaner way? -->
-								{% if reference_model.result.finalized %}
-								<div class="mx-2">
-                                    <span class="inline-block px-3 py-1 rounded-lg bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 font-semibold"><i class="fas fa-check mr-1"></i>Submitted</span>
-								</div>
-								{% else %}
-								<div class="mx-2">
-                                    <form id="submit-{{ assoc }}-{{ reference_model.result.id }}-form" action="/datasets/submit_result" method="post" class="inline dataset-action-form" data-panel-title="Submitting result" data-confirm-message="submit the result?">
-										<input type="hidden" name="task_name" value="submit_result">
-										<input type="hidden" name="result_id" value="{{ reference_model.result.id }}">
-										<input type="hidden" name="benchmark_id" value="{{ assoc }}">
-										<input type="hidden" name="dataset_id" value="{{ dataset.id }}">
-										<button type="submit" id="submit-{{ assoc }}-{{ reference_model.result.id }}" class="px-6 py-3 medperf-bg dark:bg-green-600 text-white rounded-xl font-bold hover:opacity-90 cursor-pointer disabled:cursor-not-allowed" {% if task_running %}disabled{% endif %}><i class="fas fa-upload mr-2"></i>Submit</button>
-									</form>
-								</div>
-								{% endif %}
-							{% endif %}
-						</div>
-					</div>
 					{% if benchmark_models[assoc] %}
                     {% for model in benchmark_models[assoc] %}
                     {% set results_exist = model.result and model.result.results_exist %}
 					<div class="flex flex-wrap justify-between items-center gap-4 p-4 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/30">
 						<div class="model-info flex flex-col">
+                            {% if model.id == reference_model_id %}
+                            <small class="text-gray-500 dark:text-gray-400">&nbsp;Reference Model</small>
+                            {% endif %}
                             {% if model._encrypted %}
                             <div>
                             <small class="text-gray-500 dark:text-gray-400">&nbsp;Encrypted Model</small>
@@ -387,7 +340,7 @@
 							{% if results_exist %}
 								<div class="mx-2">
 									<button
-										class="px-6 py-3 medperf-bg dark:bg-green-600 text-white rounded-xl font-bold hover:opacity-90 show-result-btn cursor-pointer"
+										class="px-6 py-3 medperf-bg dark:bg-green-600 text-white rounded-xl font-bold hover:opacity-90 view-result-btn cursor-pointer"
 										data-benchmark-name="{{ benchmarks[assoc].name }}"
 										data-model-name="{{ model.name }}"
 										data-dataset-name="{{ dataset.name }}"

@@ -122,10 +122,6 @@ def dataset_detail_ui(  # noqa
             for b in benchmarks
             if b.data_preparation_mlcube == dataset.data_preparation_mlcube
         }
-        for benchmark in valid_benchmarks:
-            ref_model_id = valid_benchmarks[benchmark].reference_model
-            valid_benchmarks[benchmark].reference_model = Model.get(ref_model_id)
-
         approved_benchmarks = [
             i
             for i in benchmark_associations
@@ -144,11 +140,11 @@ def dataset_detail_ui(  # noqa
             if assoc["approval_status"] != "APPROVED":
                 continue  # if association is not approved we cannot list its models
             models_uids = Benchmark.get_models_uids(benchmark_uid=assoc["benchmark"])
+            reference_model_id = valid_benchmarks[assoc["benchmark"]].reference_model
+            models_uids.insert(0, reference_model_id)
             models = [Model.get(model_uid) for model_uid in models_uids]
             benchmark_models[assoc["benchmark"]] = models
-            for model in models + [
-                valid_benchmarks[assoc["benchmark"]].reference_model
-            ]:
+            for model in benchmark_models[assoc["benchmark"]]:
                 model._encrypted = model.is_encrypted()
                 model._requires_cc = model.requires_cc()
                 if model._encrypted:
