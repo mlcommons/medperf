@@ -236,7 +236,6 @@ button:disabled,
 }
 .step-btn,
 .view-result-btn,
-.show-result-btn,
 .run-all-btn,
 .yaml-link {
     cursor: pointer;
