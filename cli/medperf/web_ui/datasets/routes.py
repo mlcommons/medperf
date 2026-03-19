@@ -86,9 +86,7 @@ def dataset_detail_ui(  # noqa
     my_user_id = user_obj.id
     is_owner = my_user_id == dataset.owner
     dataset_is_operational = dataset.is_operational()
-    dataset_is_prepared = (
-        dataset.submitted_as_prepared or dataset.is_ready() or dataset_is_operational
-    )
+    dataset_is_prepared = dataset.is_ready() or dataset_is_operational
     report_exists = os.path.exists(dataset.report_path)
     ui_mode = request.app.state.ui_mode
     dataset_hash_mismatch = None
@@ -560,9 +558,7 @@ def export_dataset_ui(
     dataset.read_statistics()
     prep_cube = Cube.get(cube_uid=dataset.data_preparation_mlcube)
     dataset_is_operational = dataset.state == "OPERATION"
-    dataset_is_prepared = (  # TODO: should we use submitted_as_prepared here?
-        dataset.submitted_as_prepared or dataset.is_ready() or dataset_is_operational
-    )
+    dataset_is_prepared = dataset.is_ready() or dataset_is_operational
     report_exists = os.path.exists(dataset.report_path)
 
     return templates.TemplateResponse(
