@@ -122,6 +122,16 @@ class Model(Entity):
             return
         return self.user_metadata["cc"].get("last_synced", None)
 
+    def check_hash(self) -> bool:
+        if self.is_container():
+            return self.container_obj.check_hash()
+        elif self.is_asset():
+            return self.asset_obj.check_hash()
+        else:
+            raise MedperfException(
+                "Internal error: Model is neither a container nor an asset"
+            )
+
     @staticmethod
     def remote_prefilter(filters: dict) -> callable:
         comms_fn = config.comms.get_models

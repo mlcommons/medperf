@@ -5,6 +5,7 @@ from medperf.asset_management.asset_management import (
 )
 import json
 from medperf import config
+from medperf.exceptions import InvalidEntityError
 
 
 class ModelConfigureForCC:
@@ -25,6 +26,11 @@ class ModelConfigureForCC:
         body = {"user_metadata": model.user_metadata}
         config.comms.update_model(model.id, body)
         with config.ui.interactive():
+            config.ui.text = "Checking model hash"
+            if not model.check_hash():
+                raise InvalidEntityError(
+                    "Model hash does not match the one stored in the system."
+                )
             setup_model_for_cc(model)
             model.set_cc_initialized()
             body = {"user_metadata": model.user_metadata}

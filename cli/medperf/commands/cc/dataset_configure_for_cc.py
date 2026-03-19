@@ -5,6 +5,7 @@ from medperf.asset_management.asset_management import (
 )
 import json
 from medperf import config
+from medperf.exceptions import InvalidEntityError
 
 
 class DatasetConfigureForCC:
@@ -25,6 +26,11 @@ class DatasetConfigureForCC:
         body = {"user_metadata": dataset.user_metadata}
         config.comms.update_dataset(dataset.id, body)
         with config.ui.interactive():
+            config.ui.text = "Checking dataset hash"
+            if not dataset.check_hash():
+                raise InvalidEntityError(
+                    "Dataset hash does not match the one stored in the system."
+                )
             setup_dataset_for_cc(dataset)
             dataset.set_cc_initialized()
             body = {"user_metadata": dataset.user_metadata}

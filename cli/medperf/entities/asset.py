@@ -64,6 +64,13 @@ class Asset(Entity):
     def is_model(self) -> bool:
         return True
 
+    def check_hash(self) -> bool:
+        try:
+            self.get_archive_path()
+        except InvalidEntityError:
+            return False
+        return True
+
     @staticmethod
     def remote_prefilter(filters: dict) -> callable:
         comms_fn = config.comms.get_assets
