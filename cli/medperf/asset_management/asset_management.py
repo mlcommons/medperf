@@ -80,14 +80,15 @@ def __setup_asset_for_cc(
     # create encryption key
     encryption_key = generate_encryption_key()
 
-    asset_storage_manager = AssetStorageManager(cc_config, asset_path, encryption_key)
     asset_policy_manager = AssetPolicyManager(cc_config, for_model=for_model)
+    asset_storage_manager = AssetStorageManager(cc_config, asset_path, encryption_key)
+
+    # policy setup
+    asset_policy_manager.setup_policy(cc_policy, encryption_key)
 
     # storage
     asset_storage_manager.store_asset()
 
-    # policy setup
-    asset_policy_manager.setup_policy(cc_policy, encryption_key)
     del encryption_key
 
 
