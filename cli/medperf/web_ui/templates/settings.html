@@ -81,13 +81,13 @@
             </form>
             {% elif certificate_status["should_be_invalidated"] %}
             <p class="mb-4 text-gray-700 dark:text-gray-300"><strong>Status:</strong> <span class="px-4 py-1 rounded-full text-xs font-bold border-2 bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-200 border-red-200 dark:border-red-800" data-testid="cert-status">invalid</span></p>
+            {% else %}
+            <p class="mb-4 text-gray-700 dark:text-gray-300"><strong>Status:</strong> <span class="px-4 py-1 rounded-full text-xs font-bold border-2 bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200 border-green-200 dark:border-green-700" data-testid="cert-status">valid</span></p>
+            {% endif %}
             <form id="delete-cert-form" action="/settings/delete_certificate" method="post" class="inline settings-action-form" data-panel-title="Deleting Client Certificate" data-confirm-message="delete the certificate?">
                 <input type="hidden" name="task_name" value="delete_client_certificate">
                 <button id="delete-cert-btn" type="submit" class="px-6 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed" {% if task_running %}disabled{% endif %} title="{{ tooltips.invalidate_certificate_btn }}">Delete</button>
             </form>
-            {% else %}
-            <p class="mb-4 text-gray-700 dark:text-gray-300"><strong>Status:</strong> <span class="px-4 py-1 rounded-full text-xs font-bold border-2 bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200 border-green-200 dark:border-green-700" data-testid="cert-status">valid</span></p>
-            {% endif %}
             {% endif %}
             {% endif %}
         </div>
