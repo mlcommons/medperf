@@ -191,6 +191,7 @@ function showPanel(title) {
     var panel = document.getElementById("panel");
     if (panelTitle) panelTitle.textContent = title;
     if (panel) { panel.style.display = ""; panel.classList.remove("hidden"); }
+    window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
 }
 
 function showErrorModal(errorTitle, response) {
