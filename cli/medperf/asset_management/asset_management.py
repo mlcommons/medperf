@@ -9,7 +9,7 @@ from medperf.entities.user import User
 from medperf.asset_management.asset_storage_manager import AssetStorageManager
 from medperf.asset_management.asset_policy_manager import AssetPolicyManager
 from medperf.asset_management.cc_operator import OperatorManager
-from medperf.utils import tar, generate_tmp_path
+from medperf.utils import tar, generate_tmp_path, remove_path
 import secrets
 from medperf.exceptions import MedperfException
 from medperf import config as medperf_config
@@ -42,12 +42,20 @@ def setup_dataset_for_cc(dataset: Dataset):
     cc_policy = dataset.get_cc_policy()
     __verify_cloud_environment(cc_config)
 
-    # create dataset asset
+    # policy setup
+    medperf_config.ui.text = "Generating encryption key"
+    encryption_key = generate_encryption_key()
+    asset_policy_manager = AssetPolicyManager(cc_config)
+    asset_policy_manager.setup_policy(cc_policy, encryption_key)
+
+    # storage
     medperf_config.ui.text = "Compressing dataset"
     asset_path = generate_tmp_path()
     tar(asset_path, [dataset.data_path, dataset.labels_path])
-
-    __setup_asset_for_cc(cc_config, cc_policy, asset_path)
+    asset_storage_manager = AssetStorageManager(cc_config, asset_path, encryption_key)
+    asset_storage_manager.store_asset()
+    del encryption_key
+    remove_path(asset_path)
 
 
 def setup_model_for_cc(model: Model):
@@ -55,41 +63,29 @@ def setup_model_for_cc(model: Model):
         return
     cc_config = model.get_cc_config()
     cc_policy = model.get_cc_policy()
-    if model.type != "ASSET":
+    if not model.is_asset():
         raise MedperfException(
             f"Model {model.id} is not a file-based asset and cannot be set up for confidential computing."
         )
     asset = model.asset_obj
-    # create model asset
     asset_path = asset.get_archive_path()
 
     __verify_cloud_environment(cc_config)
-    __setup_asset_for_cc(cc_config, cc_policy, asset_path, for_model=True)
+
+    # policy setup
+    medperf_config.ui.text = "Generating encryption key"
+    encryption_key = generate_encryption_key()
+    asset_policy_manager = AssetPolicyManager(cc_config, for_model=True)
+    asset_policy_manager.setup_policy(cc_policy, encryption_key)
+
+    # storage
+    asset_storage_manager = AssetStorageManager(cc_config, asset_path, encryption_key)
+    asset_storage_manager.store_asset()
+    del encryption_key
 
 
 def __verify_cloud_environment(cc_config: dict):
     AssetStorageManager(cc_config, None, None).setup()
-
-
-def __setup_asset_for_cc(
-    cc_config: dict,
-    cc_policy: dict,
-    asset_path: str,
-    for_model: bool = False,
-):
-    # create encryption key
-    encryption_key = generate_encryption_key()
-
-    asset_policy_manager = AssetPolicyManager(cc_config, for_model=for_model)
-    asset_storage_manager = AssetStorageManager(cc_config, asset_path, encryption_key)
-
-    # policy setup
-    asset_policy_manager.setup_policy(cc_policy, encryption_key)
-
-    # storage
-    asset_storage_manager.store_asset()
-
-    del encryption_key
 
 
 def update_dataset_cc_policy(dataset: Dataset, permitted_workloads: list[CCWorkloadID]):
@@ -109,7 +105,7 @@ def update_model_cc_policy(model: Model, permitted_workloads: list[CCWorkloadID]
             f"Model {model.id} does not have a configuration for confidential computing."
         )
     cc_config = model.get_cc_config()
-    if model.type != "ASSET":
+    if not model.is_asset():
         raise MedperfException(
             f"Model {model.id} is not a file-based asset and cannot be set up for confidential computing."
         )

@@ -36,6 +36,7 @@ class AssetStorageManager:
             tmp_encrypted_asset_path,
             self.config.encrypted_asset_bucket_file,
         )
+        remove_path(tmp_encrypted_asset_path)
 
     def setup(self):
         medperf_config.ui.text = "Verifying Cloud Environment"
