@@ -501,6 +501,12 @@
         resumeRunningTask("#edit-cc-asset-form");
     });
 </script>
+{% elif "data_update_cc_policy" in request.app.state.active_tasks and request.app.state.active_tasks["data_update_cc_policy"].formData.get("entity_id") == dataset.id|string %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        resumeRunningTask("#sync-cc-policy-form");
+    });
+</script>
 {% endif %}
 {% endif %}
 

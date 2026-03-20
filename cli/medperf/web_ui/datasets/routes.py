@@ -699,12 +699,27 @@ def edit_cc_config(
 
 @router.post("/sync_cc_policy", response_class=JSONResponse)
 def sync_cc_policy(
+    request: Request,
     entity_id: int = Form(...),
     current_user: bool = Depends(check_user_api),
 ):
+    initialize_state_task(request, task_name="data_update_cc_policy")
+    return_response = {"status": "", "error": ""}
     try:
         DatasetUpdateCCPolicy.run(entity_id)
-        return {"status": "success", "error": ""}
+        return_response["status"] = "success"
+        notification_message = "Successfully updated dataset CC policy!"
     except Exception as exp:
+        return_response["status"] = "failed"
+        return_response["error"] = str(exp)
+        notification_message = "Failed to update dataset CC policy"
         logger.exception(exp)
-        return {"status": "failed", "error": str(exp)}
+
+    config.ui.end_task(return_response)
+    reset_state_task(request)
+    config.ui.add_notification(
+        message=notification_message,
+        return_response=return_response,
+        url=f"/datasets/ui/display/{entity_id}",
+    )
+    return return_response

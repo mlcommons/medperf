@@ -1,6 +1,7 @@
 {# CC asset form: used on model_detail and dataset_detail. Uses our form design: action, task_name, data-panel-title, data-confirm-message, data-success-handler. #}
 {% macro gcp_asset(defaults, configured, initialized, last_synced, entity_id, entity_type, task_running=false) %}
 {% set task_name = "model_update_cc_config" if entity_type == "model" else "data_update_cc_config" %}
+{% set policy_task_name = "model_update_cc_policy" if entity_type == "model" else "data_update_cc_policy" %}
 {% set fields = [
 ("project_id", "GCP Project ID"),
 ("project_number", "GCP Project Number"),
@@ -50,7 +51,7 @@
             data-panel-title="Syncing CC policy"
             data-confirm-message="sync CC policy?"
             data-success-handler="onCCPolicyRequestSuccess">
-            <input type="hidden" name="task_name" value="{{ entity_type }}_sync_cc_policy">
+            <input type="hidden" name="task_name" value="{{ policy_task_name }}">
             <input type="hidden" name="entity_id" value="{{ entity_id }}">
             <button type="submit" id="sync-cc-policy-btn" class="px-4 py-2 rounded-xl bg-blue-600 dark:bg-blue-500 text-white font-semibold hover:opacity-90 disabled:opacity-50 cursor-pointer" {% if task_running %}disabled{% endif %}>Sync CC policy</button>
         </form>
