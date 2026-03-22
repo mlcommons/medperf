@@ -6,10 +6,15 @@ from medperf.utils import (
     remove_path,
 )
 from medperf.encryption import SymmetricEncryption
-from medperf.asset_management.gcp_utils import GCPAssetConfig, upload_file_to_gcs
+from medperf.asset_management.gcp_utils import (
+    GCPAssetConfig,
+    upload_from_file_object_to_gcs,
+)
 from medperf.asset_management.asset_check import verify_asset_owner_setup
+from medperf.asset_management.utils import CustomWriter, get_file_size
 from medperf.exceptions import MedperfException
 from medperf import config as medperf_config
+from tqdm import tqdm
 
 
 class AssetStorageManager:
@@ -30,12 +35,24 @@ class AssetStorageManager:
         asset_hash = get_file_hash(tmp_encrypted_asset_path)
         return tmp_encrypted_asset_path, asset_hash
 
-    def __upload_encrypted_asset(self, tmp_encrypted_asset_path):
-        upload_file_to_gcs(
-            self.config,
-            tmp_encrypted_asset_path,
-            self.config.encrypted_asset_bucket_file,
-        )
+    def __upload_encrypted_asset(self, tmp_encrypted_asset_path: str):
+        with open(tmp_encrypted_asset_path, "rb") as in_file:
+            with tqdm.wrapattr(
+                in_file,
+                "read",
+                total=get_file_size(in_file),
+                miniters=1,
+                desc="Uploading encrypted dataset to the bucket",
+                unit="B",
+                unit_scale=True,
+                unit_divisor=1024,
+                file=CustomWriter(),
+            ) as file_obj:
+                upload_from_file_object_to_gcs(
+                    self.config,
+                    file_obj,
+                    self.config.encrypted_asset_bucket_file,
+                )
         remove_path(tmp_encrypted_asset_path)
 
     def setup(self):

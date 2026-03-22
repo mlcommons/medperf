@@ -2,6 +2,7 @@ from .compute import run_workload, wait_for_workload_completion
 from .kms import set_kms_iam_policy, encrypt_with_kms_key
 from .storage import (
     upload_file_to_gcs,
+    upload_from_file_object_to_gcs,
     upload_string_to_gcs,
     download_file_from_gcs,
     download_string_from_gcs,
@@ -19,6 +20,7 @@ __all__ = [
     "set_kms_iam_policy",
     "encrypt_with_kms_key",
     "upload_file_to_gcs",
+    "upload_from_file_object_to_gcs",
     "upload_string_to_gcs",
     "download_file_from_gcs",
     "download_string_from_gcs",
