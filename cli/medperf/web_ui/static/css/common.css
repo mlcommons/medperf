@@ -378,6 +378,12 @@ button:disabled {
     background-color: unset!important;
 }
 
+.language-json {
+    padding: 15px;
+    border-radius: 4px;
+    background-color: unset!important;
+}
+
 .modal-body {
     word-wrap: break-word; 
     overflow-wrap: break-word; 

@@ -382,7 +382,7 @@ function onDomReady() {
             var yamlData = [];
             try { yamlData = JSON.parse(yamlDataStr || "[]"); } catch (_) {}
             var yamlDataPrettified = JSON.stringify(yamlData, null, 2);
-            var modalBody = "<pre id=\"modal-yaml-content\" class=\"language-yaml overflow-x-auto p-4 rounded-lg bg-gray-100 dark:bg-gray-700\">" + yamlDataPrettified.replace(/</g, "&lt;") + "</pre>";
+            var modalBody = "<pre id=\"modal-yaml-content\" class=\"language-json overflow-x-auto p-4 rounded-lg bg-gray-100 dark:bg-gray-700\">" + yamlDataPrettified.replace(/</g, "&lt;") + "</pre>";
             var modalFooter = "<button type=\"button\" class=\"px-4 py-2 rounded-xl medperf-bg dark:bg-green-600 text-white font-semibold close-modal-btn\">Close</button>";
             var extra = function () {
                 var pre = document.getElementById("modal-yaml-content");

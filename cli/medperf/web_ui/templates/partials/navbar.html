@@ -72,7 +72,7 @@
                 </a>
                 {% endif %}
 
-                <button type="button" @click="document.documentElement.classList.toggle('dark'); localStorage.setItem('medperf-dark', document.documentElement.classList.contains('dark') ? '1' : '0')" class="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors inline-flex items-center justify-center w-10 h-10 cursor-pointer" aria-label="Toggle dark mode">
+                <button type="button" @click="document.documentElement.classList.toggle('dark'); const isDark = document.documentElement.classList.contains('dark'); localStorage.setItem('medperf-dark', isDark ? '1' : '0'); document.getElementById('prism-light-theme').disabled = isDark; document.getElementById('prism-dark-theme').disabled = !isDark;" class="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors inline-flex items-center justify-center w-10 h-10 cursor-pointer" aria-label="Toggle dark mode">
                     <span class="dark:hidden inline-block" aria-hidden="true"><i class="fas fa-moon"></i></span>
                     <span class="hidden dark:inline-block" aria-hidden="true"><i class="fas fa-sun"></i></span>
                 </button>

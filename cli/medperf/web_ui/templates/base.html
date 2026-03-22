@@ -10,17 +10,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}MedPerf{% endblock %}</title>
-    <script>
-        (function(){
-            window.taskRunning = true ? "{{ task_running }}" === "True" : false;
-            var d = document.documentElement;
-            var v = localStorage.getItem('medperf-dark');
-            if (v === '1' || (v === null && typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches))
-                d.classList.add('dark');
-            else
-                d.classList.remove('dark');
-        })();
-    </script>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style type="text/tailwindcss">
         @theme {
@@ -32,7 +21,8 @@
     </style>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
     <link rel="stylesheet" href="{{ url_for('static', path='css/font-awesome-5.15.4-all.min.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', path='css/prism-1.23.0.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/prism-1.23.0.min.css') }}" id="prism-light-theme">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/prism-dark.css') }}" id="prism-dark-theme" disabled>
     <link rel="stylesheet" href="{{ url_for('static', path='css/common.css') }}">
     <link rel="icon" href="{{ url_for('static', path='images/favicon.png') }}">
     <style>
@@ -49,6 +39,23 @@
         #page-modal.modal-visible { opacity: 1; pointer-events: auto; }
         #page-modal.modal-visible #page-modal-dialog { transform: scale(1); }
     </style>
+    <script>
+        (function(){
+            window.taskRunning = true ? "{{ task_running }}" === "True" : false;
+            var d = document.documentElement;
+            var v = localStorage.getItem('medperf-dark');
+            if (v === '1' || (v === null && typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)){
+                d.classList.add('dark');
+                document.getElementById('prism-light-theme').disabled = true;
+                document.getElementById('prism-dark-theme').disabled = false;
+            }
+            else {
+                d.classList.remove('dark');
+                document.getElementById('prism-light-theme').disabled = false;
+                document.getElementById('prism-dark-theme').disabled = true;
+            }
+        })();
+    </script>
     <script>
         window.ui_mode = "{{ request.app.state.ui_mode }}";
         window.evaluation_mode = "{{ request.app.state.EVALUATION_MODE }}";
@@ -87,6 +94,7 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.3/dist/cdn.min.js"></script>
     <script src="{{ url_for('static', path='js/prism-1.23.0.min.js') }}"></script>
     <script src="{{ url_for('static', path='js/prism-yaml-1.23.0.min.js') }}"></script>
+    <script src="{{ url_for('static', path='js/prism-json-1.29.0.min.js') }}"></script>
     <script src="{{ url_for('static', path='js/modal-queue.js') }}"></script>
     <script src="{{ url_for('static', path='js/notifications.js') }}"></script>
     <script src="{{ url_for('static', path='js/common.js') }}"></script>
