@@ -40,7 +40,7 @@
             <div>
                 <p class="text-sm text-gray-600 dark:text-gray-400 mb-1 font-semibold">Owner</p>
                 <p class="text-xl font-bold text-gray-900 dark:text-white">
-                    <i class="fas fa-user medperf-accent dark:text-green-400 mr-2"></i>{{ entity.owner }}
+                    <i class="fas fa-user medperf-accent dark:text-green-400 mr-2"></i>{% if is_owner %} You {% else %}{{ entity.owner }}{% endif %}
                 </p>
             </div>
         </div>
