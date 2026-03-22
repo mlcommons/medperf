@@ -1,3 +1,4 @@
+from medperf import config
 from medperf.entities.cube import Cube
 from medperf.entities.model import Model
 from medperf.entities.dataset import Dataset
@@ -67,7 +68,8 @@ class ExecutionFlow:
             )
         else:
             container = model.container_obj
-            container.download_run_files()
+            with config.ui.interactive():
+                container.download_run_files()
             return ContainerExecution.run(
                 dataset, container, evaluator, execution, ignore_model_errors
             )

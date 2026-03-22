@@ -69,6 +69,10 @@ class DatasetUpdateCCPolicy:
             raise MedperfException(
                 f"Dataset {dataset.id} is not configured for confidential computing."
             )
-        permitted_workloads = get_permitted_workloads(dataset)
-
-        update_dataset_cc_policy(dataset, permitted_workloads)
+        with config.ui.interactive():
+            config.ui.text = "Updating dataset confidential computing policy"
+            permitted_workloads = get_permitted_workloads(dataset)
+            update_dataset_cc_policy(dataset, permitted_workloads)
+            dataset.set_last_synced()
+            body = {"user_metadata": dataset.user_metadata}
+            config.comms.update_dataset(dataset.id, body)

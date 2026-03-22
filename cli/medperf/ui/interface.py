@@ -13,6 +13,9 @@ class UI(ABC):
     def print_error(self, msg: str):
         """Display an error message to the interface"""
 
+    def print_cli_warning(self, msg: str):
+        """Display a warning message only for the CLI interface."""
+
     def print_warning(self, msg: str):
         """Display a warning message on the command line"""
 

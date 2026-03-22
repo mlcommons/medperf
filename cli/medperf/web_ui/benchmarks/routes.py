@@ -197,8 +197,8 @@ def register_benchmark(
         "data_evaluator_mlcube": evaluator_container,
         "state": "OPERATION",
     }
-    initialize_state_task(request, task_name="benchmark_registration")
-    return_response = {"status": "", "error": "", "benchmark_id": None}
+    initialize_state_task(request, task_name="register_benchmark")
+    return_response = {"status": "", "error": "", "entity_id": None}
     benchmark_id = None
     try:
         benchmark_id = SubmitBenchmark.run(
@@ -207,7 +207,7 @@ def register_benchmark(
             skip_compatibility_tests=skip_compatibility_tests,
         )
         return_response["status"] = "success"
-        return_response["benchmark_id"] = benchmark_id
+        return_response["entity_id"] = benchmark_id
         notification_message = "Benchmark successfully registered!"
     except Exception as exp:
         return_response["status"] = "failed"

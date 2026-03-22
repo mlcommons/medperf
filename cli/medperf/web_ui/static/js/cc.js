@@ -1,4 +1,6 @@
-const fields = [
+/* CC asset (model/dataset) configuration: uses our form design with submitActionForm and data-success-handler. */
+
+var CC_ASSET_FIELD_IDS = [
     "cc-project_id",
     "cc-project_number",
     "cc-bucket",
@@ -9,102 +11,129 @@ const fields = [
     "cc-wip_provider",
 ];
 
-function onCCEditRequestSuccess(response){
+function onCCEditRequestSuccess(response) {
     markAllStagesAsComplete();
-    if (response.status === "success"){
+    if (response && response.status === "success") {
         showReloadModal({
             title: "CC Configuration Edited Successfully",
-            seconds: 3
+            seconds: 3,
         });
-    }
-    else {
+    } else {
         showErrorModal("Failed to Edit CC Configuration", response);
     }
 }
 
-function onCCPolicyRequestSuccess(response){
-    if (response.status === "success"){
+function onCCPolicyRequestSuccess(response) {
+    markAllStagesAsComplete();
+    if (response && response.status === "success") {
         showReloadModal({
             title: "CC Policy Synced Successfully",
-            seconds: 3
+            seconds: 3,
         });
-    }
-    else {
+    } else {
         showErrorModal("Failed to Sync CC Policy", response);
     }
 }
 
-
-function checkForCCEditChanges() {
-    const preferences = window.ccPreferences || {};
-    const configured = preferences.can_apply;
-    const defaults = preferences.defaults || {};
-    const requireCCChanged = ($("#require-cc").is(":checked") !== configured)
-    var hasChanges = fields.some(field => {
-        let currentValue = $(`#${field}`).val();
-        let defaultValue = defaults[field] || "";
-        return currentValue !== defaultValue;
-    });
-    hasChanges = hasChanges || requireCCChanged;
-    $('#apply-cc-asset-btn').prop('disabled', !hasChanges);
+function checkForCCAssetChanges() {
+    var preferences = window.ccPreferences || {};
+    var defaultConfigureChecked = preferences.configured;
+    var defaults = preferences.defaults || {};
+    var configureEl = document.getElementById("configure-cc");
+    var configureChecked = configureEl ? configureEl.checked : false;
+    if (configureChecked !== defaultConfigureChecked) {
+        return true;
+    }
+    if (!configureChecked) {
+        // If checkbox was turned on, some input were written, then turned off, no changes.
+        return false;
+    }
+    for (var i = 0; i < CC_ASSET_FIELD_IDS.length; i++) {
+        var el = document.getElementById(CC_ASSET_FIELD_IDS[i]);
+        if (el) {
+            var currentValue = el.value || "";
+            var defaultKey = CC_ASSET_FIELD_IDS[i].replace(/^cc-/, "");
+            var defaultValue = (defaults[defaultKey] !== undefined) ? defaults[defaultKey] : "";
+            if (currentValue !== defaultValue) return true;
+        }
+    }
+    return false;
 }
 
-function SyncCCPolicy(syncCCPolicyBtn) {
-    const entityId = syncCCPolicyBtn.getAttribute("data-entity-id");
-    const entityType = syncCCPolicyBtn.getAttribute("data-entity-type");
-    const url = `/${entityType}s/sync_cc_policy`;
-    const formData = new FormData();
-    formData.append("entity_id", entityId);
-
-    disableElements(syncCCPolicyBtn);
-    disableElements(".card button");
-    ajaxRequest(
-        url,
-        "POST",
-        formData,
-        onCCPolicyRequestSuccess,
-        "Error syncing CC policy:"
-    );
+function checkFormValidity() {
+    var configureEl = document.getElementById("configure-cc");
+    var configureChecked = configureEl ? configureEl.checked : false;
+    if (!configureChecked) {
+        return true; // If CC is not configured, no need to validate fields
+    }
+    for (var i = 0; i < CC_ASSET_FIELD_IDS.length; i++) {
+        var el = document.getElementById(CC_ASSET_FIELD_IDS[i]);
+        if (el) {
+            var currentValue = el.value.trim() || "";
+            if (currentValue.length === 0) {
+                return false; // If any configured field is empty, form is not valid
+            }
+        }
+    }
+    return true;
 }
 
-async function editCCConfig(editCCConfigBtn) {
-    const formData = new FormData($("#edit-cc-asset-form")[0]);
-    const entityId = editCCConfigBtn.getAttribute("data-entity-id");
-    const entityType = editCCConfigBtn.getAttribute("data-entity-type");
-    formData.append("entity_id", entityId);
-    const url = `/${entityType}s/edit_cc_config`;
+function checkCanApplyChanges() {
+    var preferences = window.ccPreferences || {};
 
-    disableElements("#edit-cc-asset-form input, #edit-cc-asset-form button");
-    disableElements(".card button");
+    var canApplyWithoutChanges = !preferences.initialized && preferences.configured;
+    var hasChanges = checkForCCAssetChanges();
 
-    ajaxRequest(
-        url,
-        "POST",
-        formData,
-        onCCEditRequestSuccess,
-        "Error editing CC Configuration:"
-    );
-    showPanel(`Updating Model CC Configuration...`);
-    window.runningTaskId = await getTaskId();
-    streamEvents(logPanel, stagesList, currentStageElement);
+    var applyBtn = document.getElementById("apply-cc-asset-btn");
+    if (applyBtn) {
+        if (!hasChanges) {
+            applyBtn.disabled = !canApplyWithoutChanges;
+        }
+        else {
+            applyBtn.disabled = !checkFormValidity();
+        }
+    }
 }
 
+function initCCAsset() {
+    var form = document.getElementById("edit-cc-asset-form");
+    if (form) {
+        form.addEventListener("submit", submitActionForm);
+        var configureEl = document.getElementById("configure-cc");
+        var fieldsContainer = document.getElementById("edit-cc-asset-fields");
+        if (configureEl && fieldsContainer) {
+            function toggleFields() {
+                fieldsContainer.style.display = configureEl.checked ? "" : "none";
+                if (!configureEl.checked) fieldsContainer.classList.add("hidden");
+                else fieldsContainer.classList.remove("hidden");
+            }
+            configureEl.addEventListener("change", toggleFields);
+            toggleFields();
+        }
+        var inputs = form.querySelectorAll("input[type='text'], input[id='configure-cc']");
+        for (var i = 0; i < inputs.length; i++) {
+            inputs[i].addEventListener("keyup", checkCanApplyChanges);
+            inputs[i].addEventListener("change", checkCanApplyChanges);
+        }
+        checkCanApplyChanges();
+    }
+    var syncForm = document.getElementById("sync-cc-policy-form");
+    if (syncForm) syncForm.addEventListener("submit", submitActionForm);
 
-$(document).ready(() => {    
-    const checkbox = $("#require-cc");
-    checkbox.on("change", () => {
-        $("#edit-cc-asset-fields").toggle(checkbox.is(":checked"));
-    });
-    $("#edit-cc-asset-fields").toggle(checkbox.is(":checked"));
-
-    fields + ["require-cc"].forEach(field => $(`#${field}`).on('keyup, change', checkForCCEditChanges));
-    checkForCCEditChanges();
-    
-    $("#apply-cc-asset-btn").on("click", (e) => {
-        showConfirmModal(e.currentTarget, editCCConfig, "edit CC configuration?");
+    var configureEl = document.getElementById("configure-cc");
+    if (configureEl) configureEl.addEventListener("change", function() {
+        var syncBtn = document.getElementById("sync-cc-policy-btn");
+        if (syncBtn) {
+            syncBtn.style.display = configureEl.checked ? "" : "none";
+        }
     });
 
-    $("#sync-cc-policy-btn").on("click", (e) => {
-        showConfirmModal(e.currentTarget, SyncCCPolicy, "sync CC policy?");
-    });
-});
+}
+
+if (typeof window !== "undefined") {
+    window.onCCEditRequestSuccess = onCCEditRequestSuccess;
+    window.onCCPolicyRequestSuccess = onCCPolicyRequestSuccess;
+}
+
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initCCAsset);
+else initCCAsset();

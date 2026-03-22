@@ -26,9 +26,21 @@ def login_form(
     redirected: str = "false",
     current_user: bool = Depends(check_user_ui),
 ):
+    account_info = read_user_account()
+    msg = ""
+    if account_info is not None:
+        msg = (
+            f"You are already logged in as {account_info['email']}."
+            " Logout before logging in again"
+        )
     redirected = redirected.lower() == "true"
     return templates.TemplateResponse(
-        "medperf_login.html", {"request": request, "redirected": redirected}
+        "medperf_login.html",
+        {
+            "request": request,
+            "redirected": redirected,
+            "already_logged_in_msg": msg if account_info else None,
+        },
     )
 
 

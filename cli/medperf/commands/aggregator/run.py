@@ -24,14 +24,14 @@ class StartAggregator:
             training_exp_id (int): Training experiment UID.
         """
         execution = cls(training_exp_id, publish_on, overwrite)
-        execution.prepare()
-        execution.validate()
-        execution.check_existing_outputs()
-        execution.prepare_aggregator()
-        execution.prepare_participants_list()
-        execution.prepare_plan()
-        execution.prepare_pki_assets()
         with config.ui.interactive():
+            execution.prepare()
+            execution.validate()
+            execution.check_existing_outputs()
+            execution.prepare_aggregator()
+            execution.prepare_participants_list()
+            execution.prepare_plan()
+            execution.prepare_pki_assets()
             execution.run_experiment()
 
     def __init__(self, training_exp_id, publish_on, overwrite) -> None:

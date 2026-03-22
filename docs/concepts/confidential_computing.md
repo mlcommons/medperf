@@ -15,7 +15,7 @@ In the web UI, login by clicking on the `login` button and follow the required s
 
 ## Get a certificate
 
-1. Navigate to the `settings` page
+1. Navigate to the `settings` page by clicking on the user icon on the top right.
 2. Scroll down to the `Certificate Settings` section.
 3. If you already have a certificate, skip this step. Otherwise, click the button and follow the required steps to get a certificate.
 
@@ -54,7 +54,7 @@ Note: This step should be done in a terminal.
 2. Scroll down to the `Confidential Computing Operator Settings`
 3. Check the box `Configure confidential Computing`
 4. Fill in the required information.
-5. Click `Apply Changes`.
+5. Click `Configure`.
 
 ### Configure Medperf with your Dataset cloud resources settings
 
@@ -62,7 +62,7 @@ Note: This step should be done in a terminal.
 2. Scroll down to the section `Confidential Computing Preferences`.
 3. Check the box `Configure dataset for Confidential Computing`
 4. Fill in the required information.
-5. Click `Apply Changes`.
+5. Click `Configure`.
 6. After step 5, a new button will appear. Click on the new button `Sync CC policy`.
 
 ## What's next?

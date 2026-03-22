@@ -64,6 +64,7 @@ class TrainingExp(Entity):
         self.plan = self._model.plan
         self.metadata = self._model.metadata
         self.user_metadata = self._model.user_metadata
+        self.aggregator = self._model.aggregator
 
         self._set_helper_attributes()
 
@@ -138,6 +139,7 @@ class TrainingExp(Entity):
             "Documentation": self.docs_url,
             "Created At": self.created_at,
             "FL Container": int(self.fl_mlcube),
+            "Aggregator": int(self.aggregator) if self.aggregator else None,
             "Plan": self.plan,
             "State": self.state,
             "Registered": self.is_registered,

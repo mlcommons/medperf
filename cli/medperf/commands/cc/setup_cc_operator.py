@@ -17,9 +17,13 @@ class SetupCCOperator:
     @classmethod
     def run(cls, cc_config: dict):
         validate_cc_operator_config(cc_config)
+        user = get_medperf_user_object()
+        user.set_cc_config(cc_config)
+        body = {"metadata": user.metadata}
+        config.comms.update_user(user.id, body)
+
         with config.ui.interactive():
-            user = get_medperf_user_object()
-            user.set_cc_config(cc_config)
             setup_operator(user)
+            user.set_cc_initialized()
             body = {"metadata": user.metadata}
             config.comms.update_user(user.id, body)

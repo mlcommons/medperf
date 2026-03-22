@@ -23,6 +23,7 @@ from git import Repo, GitCommandError
 import medperf.config as config
 from medperf.exceptions import CleanExit, ExecutionError, InvalidArgumentError
 import shlex
+import time
 from email_validator import validate_email, EmailNotValidError
 
 
@@ -505,9 +506,10 @@ def check_for_updates() -> None:
 
 
 class spawn_and_kill:
-    def __init__(self, cmd, timeout=None, *args, **kwargs):
+    def __init__(self, cmd, timeout=None, task=None, *args, **kwargs):
         self.cmd = cmd
         self.timeout = timeout
+        self.task = task
         self._args = args
         self._kwargs = kwargs
         self.proc: spawn
@@ -518,16 +520,37 @@ class spawn_and_kill:
         return spawn(*args, **kwargs)
 
     def killpg(self):
-        os.killpg(self.pid, signal.SIGINT)
+        """Stop the process group: SIGTERM first, then SIGKILL after a short wait."""
+        try:
+            pgid = os.getpgid(self.pid)
+        except OSError:
+            pgid = self.pid
+        try:
+            os.killpg(pgid, signal.SIGTERM)
+        except OSError:
+            pass
+        time.sleep(1)
+        try:
+            if self.proc.isalive():
+                os.killpg(pgid, signal.SIGKILL)
+        except OSError:
+            pass
 
     def __enter__(self):
         self.proc = self.spawn(
             self.cmd, timeout=self.timeout, *self._args, **self._kwargs
         )
         self.pid = self.proc.pid
+
+        if self.task:
+            config.running_containers[self.task] = self
+
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.task:
+            config.running_containers.pop(self.task, None)
+
         if exc_type:
             self.exception_occurred = True
             # Forcefully kill the process group if any exception occurred, in particular,
@@ -543,11 +566,11 @@ class spawn_and_kill:
         return False
 
 
-def run_command(cmd, timeout=None, output_logs=None):
+def run_command(cmd, timeout=None, output_logs=None, task=None):
     logging.debug(f"Command as list, to be run: {cmd}")
     command_as_str = shlex.join(cmd)
     logging.debug(f"Running command: {command_as_str}")
-    with spawn_and_kill(command_as_str, timeout=timeout) as proc_wrapper:
+    with spawn_and_kill(command_as_str, timeout=timeout, task=task) as proc_wrapper:
         proc = proc_wrapper.proc
         proc_out = combine_proc_sp_text(proc)
 

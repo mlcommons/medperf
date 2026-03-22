@@ -78,6 +78,8 @@ def model_detail_ui(
 
     cc_config_defaults = model.get_cc_config()
     cc_configured = model.is_cc_configured()
+    cc_initialized = model.is_cc_initialized()
+    cc_last_synced = model.get_last_synced()
     return templates.TemplateResponse(
         "model/model_detail.html",
         {
@@ -92,6 +94,8 @@ def model_detail_ui(
             "benchmarks": benchmarks,
             "cc_config_defaults": cc_config_defaults,
             "cc_configured": cc_configured,
+            "cc_initialized": cc_initialized,
+            "cc_last_synced": cc_last_synced,
         },
     )
 
@@ -104,7 +108,7 @@ def associate(
     current_user: bool = Depends(check_user_api),
 ):
     initialize_state_task(request, task_name="model_association")
-    return_response = {"status": "", "error": ""}
+    return_response = {"status": "", "error": "", "entity_id": model_id}
     try:
         AssociateModel.run(model_uid=model_id, benchmark_uid=benchmark_id)
         return_response["status"] = "success"
@@ -129,7 +133,7 @@ def associate(
 def edit_cc_config(
     request: Request,
     entity_id: int = Form(...),
-    require_cc: bool = Form(False),
+    configure_cc: bool = Form(False),
     project_id: str = Form(""),
     project_number: str = Form(""),
     bucket: str = Form(""),
@@ -150,7 +154,7 @@ def edit_cc_config(
         "wip": wip,
         "wip_provider": wip_provider,
     }
-    if not require_cc:
+    if not configure_cc:
         args = {}
 
     initialize_state_task(request, task_name="model_update_cc_config")
@@ -177,12 +181,27 @@ def edit_cc_config(
 
 @router.post("/sync_cc_policy", response_class=JSONResponse)
 def sync_cc_policy(
+    request: Request,
     entity_id: int = Form(...),
     current_user: bool = Depends(check_user_api),
 ):
+    initialize_state_task(request, task_name="model_update_cc_policy")
+    return_response = {"status": "", "error": ""}
     try:
         ModelUpdateCCPolicy.run(entity_id)
-        return {"status": "success", "error": ""}
+        return_response["status"] = "success"
+        notification_message = "Successfully updated model CC policy!"
     except Exception as exp:
+        return_response["status"] = "failed"
+        return_response["error"] = str(exp)
+        notification_message = "Failed to update model CC policy"
         logger.exception(exp)
-        return {"status": "failed", "error": str(exp)}
+
+    config.ui.end_task(return_response)
+    reset_state_task(request)
+    config.ui.add_notification(
+        message=notification_message,
+        return_response=return_response,
+        url=f"/models/ui/display/{entity_id}",
+    )
+    return return_response

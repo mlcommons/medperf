@@ -1,70 +1,49 @@
-function onAssetRegisterSuccess(response){
-    markAllStagesAsComplete();
-    if(response.status === "success"){
-        showReloadModal({
-            title: "Asset Registered Successfully",
-            seconds: 3,
-            url: "/assets/ui/display/"+response.asset_id
-        });
-    }
-    else{
-        showErrorModal("Failed to Register Asset", response);
-    }
-}
-
-async function registerAsset(registerButton){
-    addSpinner(registerButton);
-
-    const formData = new FormData($("#asset-register-form")[0]);
-
-    disableElements("#asset-register-form input, #asset-register-form button");
-
-    ajaxRequest(
-        "/assets/register",
-        "POST",
-        formData,
-        onAssetRegisterSuccess,
-        "Error registering asset:"
-    )
-
-    showPanel(`Registering Asset...`);
-    window.runningTaskId = await getTaskId();
-    streamEvents(logPanel, stagesList, currentStageElement);
-}
+var REDIRECT_BASE = "/assets/ui/display/";
 
 function checkAssetFormValidity() {
-    const assetURL = $("#asset-url").val().trim();
-    const isRemote = $("input[name='asset_is_remote']:checked").val();
-    const assetPath = $("#asset-path").val().trim();
-
-    const isValid = Boolean(
-        $("#name").val().trim() &&
-        (isRemote === "true" ? assetURL.length > 0 : isRemote === "false" && assetPath.length > 0)
-    );
-    $("#register-asset-btn").prop("disabled", !isValid);
+    var nameVal = document.getElementById("name") ? document.getElementById("name").value.trim() : "";
+    var isRemote = document.querySelector("input[name='asset_is_remote']:checked");
+    var remoteVal = isRemote ? isRemote.value : "false";
+    var assetURL = document.getElementById("asset-url") ? document.getElementById("asset-url").value.trim() : "";
+    var assetPath = document.getElementById("asset-path") ? document.getElementById("asset-path").value.trim() : "";
+    var isValid = !!nameVal && (remoteVal === "true" ? assetURL.length > 0 : remoteVal === "false" && assetPath.length > 0);
+    var btn = document.getElementById("register-asset-btn");
+    if (btn) btn.disabled = !isValid;
 }
 
-$(document).ready(() => {
-    $("#register-asset-btn").on("click", (e) => {
-        showConfirmModal(e.currentTarget, registerAsset, "register this asset?");
+function initAssetRegister() {
+    var form = document.getElementById("asset-register-form");
+    if (form) {
+        form.addEventListener("submit", submitActionForm);
+        form.querySelectorAll("input").forEach(function (el) {
+            el.addEventListener("keyup", checkAssetFormValidity);
+            el.addEventListener("change", checkAssetFormValidity);
+        });
+    }
+    var browseBtn = document.getElementById("browse-asset-btn");
+    if (browseBtn) browseBtn.addEventListener("click", function () { browseWithFiles = true; browseFolderHandler("asset-path"); });
+    document.querySelectorAll("input[name='asset_is_remote']").forEach(function (radio) {
+        radio.addEventListener("change", function () {
+            var urlContainer = document.getElementById("asset-url-container");
+            var pathContainer = document.getElementById("asset-path-container");
+            var assetUrlInput = document.getElementById("asset-url");
+            var assetPathInput = document.getElementById("asset-path");
+            if (this.value === "false") {
+                if (urlContainer) urlContainer.classList.add("hidden");
+                if (pathContainer) pathContainer.classList.remove("hidden");
+                if (assetUrlInput) assetUrlInput.value = "";
+            } else {
+                if (pathContainer) pathContainer.classList.add("hidden");
+                if (urlContainer) urlContainer.classList.remove("hidden");
+                if (assetPathInput) assetPathInput.value = "";
+            }
+        });
     });
+    checkAssetFormValidity();
+}
 
-    $("#asset-register-form input").on("keyup change", checkAssetFormValidity);
-    
-    $("#browse-asset-btn").on("click", () => {
-        browseWithFiles = true;
-        browseFolderHandler("asset-path");
-    });
-    $("input[name='asset_is_remote']").on("change", () => {
-        if($("#local").is(":checked")){
-            $("#asset-path-container").show();
-            $("#asset-url-container").hide();
-            $("#asset-url").val("");
-        }
-        else{
-            $("#asset-url-container").show();
-            $("#asset-path-container").hide();
-            $("#asset-path").val("");
-        }
-    });
-});
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initAssetRegister);
+} else {
+    initAssetRegister();
+}

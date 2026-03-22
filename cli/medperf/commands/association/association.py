@@ -17,7 +17,6 @@ def list(
     training_exp: bool = typer.Option(False, "-t", help="list training associations"),
     dataset: bool = typer.Option(False, "-d", help="list dataset associations"),
     model: bool = typer.Option(False, "-m", help="list models associations"),
-    aggregator: bool = typer.Option(False, "-a", help="list aggregator associations"),
     approval_status: str = typer.Option(
         None, "--approval-status", help="Approval status"
     ),
@@ -28,9 +27,7 @@ def list(
         filter (str, optional): Filter associations by approval status.
             Defaults to displaying all user associations.
     """
-    ListAssociations.run(
-        approval_status, benchmark, training_exp, dataset, model, aggregator
-    )
+    ListAssociations.run(approval_status, benchmark, training_exp, dataset, model)
 
 
 @app.command("approve")
@@ -42,9 +39,6 @@ def approve(
     ),
     dataset_uid: int = typer.Option(None, "--dataset", "-d", help="Dataset UID"),
     model_uid: int = typer.Option(None, "--model", "-m", help="Model container UID"),
-    aggregator_uid: int = typer.Option(
-        None, "--aggregator", "-a", help="Aggregator UID"
-    ),
 ):
     """Approves an association between a benchmark and a dataset or model container
 
@@ -59,7 +53,6 @@ def approve(
         training_exp_uid,
         dataset_uid,
         model_uid,
-        aggregator_uid,
     )
     config.ui.print("✅ Done!")
 
@@ -73,9 +66,6 @@ def reject(
     ),
     dataset_uid: int = typer.Option(None, "--dataset", "-d", help="Dataset UID"),
     model_uid: int = typer.Option(None, "--model", "-m", help="Model container UID"),
-    aggregator_uid: int = typer.Option(
-        None, "--aggregator", "-a", help="Aggregator UID"
-    ),
 ):
     """Rejects an association between a benchmark and a dataset or model container
 
@@ -90,7 +80,6 @@ def reject(
         training_exp_uid,
         dataset_uid,
         model_uid,
-        aggregator_uid,
     )
     config.ui.print("✅ Done!")
 

@@ -75,6 +75,9 @@ class CLI(UI):
     def print_critical(self, msg: str):
         self.print_warning(msg)
 
+    def print_cli_warning(self, msg: str):
+        self.print_warning(msg)
+
     def print_warning(self, msg: str):
         """Display a warning message on the command line
 

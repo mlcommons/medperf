@@ -22,4 +22,6 @@ class GetServerCertificate:
                     "Cert and key already present. Rerun the command with --overwrite"
                 )
             remove_path(output_path, sensitive=True)
-        get_server_cert(ca, address, output_path)
+
+        with config.ui.interactive():
+            get_server_cert(ca, address, output_path)

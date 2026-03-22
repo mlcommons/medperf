@@ -13,6 +13,16 @@ def upload_file_to_gcs(
     blob.upload_from_filename(local_file)
 
 
+def upload_from_file_object_to_gcs(
+    config: Union[GCPAssetConfig, GCPOperatorConfig], file: object, gcs_path: str
+):
+    """Upload file to Google Cloud Storage."""
+    client = storage.Client()
+    bucket = client.bucket(config.bucket)
+    blob = bucket.blob(gcs_path)
+    blob.upload_from_file(file)
+
+
 def upload_string_to_gcs(
     config: Union[GCPAssetConfig, GCPOperatorConfig], content: bytes, gcs_path: str
 ):

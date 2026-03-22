@@ -11,6 +11,7 @@ from medperf.account_management import get_medperf_user_data
 from medperf.entities.utils import handle_validation_error
 from medperf.exceptions import InvalidEntityError
 import logging
+from datetime import datetime, timezone
 
 
 class Dataset(Entity):
@@ -80,6 +81,12 @@ class Dataset(Entity):
         if "cc" not in self.user_metadata:
             self.user_metadata["cc"] = {}
         self.user_metadata["cc"]["config"] = cc_config
+        self.user_metadata["cc"]["initialized"] = False
+
+    def set_cc_initialized(self):
+        if not self.is_cc_configured():
+            return
+        self.user_metadata["cc"]["initialized"] = True
 
     def get_cc_policy(self):
         cc_values = self.user_metadata.get("cc", {})
@@ -92,6 +99,20 @@ class Dataset(Entity):
 
     def is_cc_configured(self):
         return self.get_cc_config() != {}
+
+    def is_cc_initialized(self):
+        cc_values = self.user_metadata.get("cc", {})
+        return cc_values.get("initialized", False)
+
+    def set_last_synced(self):
+        if "cc" not in self.user_metadata:
+            self.user_metadata["cc"] = {}
+        self.user_metadata["cc"]["last_synced"] = str(datetime.now(timezone.utc))
+
+    def get_last_synced(self):
+        if "cc" not in self.user_metadata:
+            return
+        return self.user_metadata["cc"].get("last_synced", None)
 
     def is_operational(self):
         return self.state == "OPERATION"

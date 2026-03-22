@@ -48,6 +48,21 @@
 {% set register_container_additional_file = "URL of the additional files tarball for the container you are registering (Optional)" %}
 {% set register_container_decryption_file = "Path to decryption key for the container you are registering" %}
 
+{# Tooltips for training experiment registration #}
+{% set register_training_name = "Name of the training experiment you are registering" %}
+{% set register_training_description = "Short description of the training experiment" %}
+{% set register_training_docs_url = "Optional URL to documentation (e.g. README or paper)" %}
+{% set register_training_data_preparation_container = "Data preparation container used to preprocess datasets for this experiment. Must match the one used by datasets you associate." %}
+{% set register_training_fl_container = "Federated learning container that runs the training workflow (e.g. FL rounds, aggregation)." %}
+{% set register_training_fl_admin_container = "Optional container that provides FL admin/coordinator functionality (e.g. round control, participant selection)." %}
+{% set register_training_operational = "If checked, the experiment is submitted as OPERATIONAL and can accept dataset associations and start training without further approval." %}
+
+{# Tooltips for aggregator registration #}
+{% set register_aggregator_name = "Name of the aggregator you are registering" %}
+{% set register_aggregator_address = "Hostname or IP address where the aggregator service is reachable" %}
+{% set register_aggregator_port = "Port number the aggregator listens on (1-65535)" %}
+{% set register_aggregator_aggregation_mlcube = "Container that implements the aggregation logic (e.g. FedAvg) used by this aggregator" %}
+
 {# Tooltips for settings page #}
 {% set get_client_certificate_btn = "Get client certificate" %}
 {% set submit_certificate_btn = "Submit certificate to medperf server" %}
@@ -57,3 +72,6 @@
 {% set register_asset_name = "Name of the asset you are registering" %}
 {% set register_asset_url = "Full URL of the asset you are registering" %}
 {% set register_asset_path = "Path to the asset file you are registering" %}
+
+{# Tooltips for CC configuration #}
+{% set cc_misconfigured = "There is a problem with your CC configurtion. Click the button again once you resolve the problem." %}

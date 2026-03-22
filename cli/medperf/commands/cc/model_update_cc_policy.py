@@ -99,5 +99,10 @@ class ModelUpdateCCPolicy:
             raise MedperfException(
                 f"Model {model.id} is not configured for confidential computing."
             )
-        permitted_workloads = get_permitted_workloads_without_datasets(model)
-        update_model_cc_policy(model, permitted_workloads)
+        with config.ui.interactive():
+            config.ui.text = "Updating model confidential computing policy"
+            permitted_workloads = get_permitted_workloads_without_datasets(model)
+            update_model_cc_policy(model, permitted_workloads)
+            model.set_last_synced()
+            body = {"user_metadata": model.user_metadata}
+            config.comms.update_model(model.id, body)
