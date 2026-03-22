@@ -29,6 +29,8 @@ from medperf.web_ui.medperf_login import router as medperf_login
 from medperf.web_ui.settings import router as settings_router
 from medperf.web_ui.auth import wrap_openapi, NotAuthenticatedException, security_token
 
+JS_VERSION = "1.0.0"
+
 UI_MODE_COOKIE = "medperf-mode"
 UI_MODE_TRAINING = "training"
 UI_MODE_EVALUATION = "evaluation"
@@ -66,7 +68,9 @@ web_app.include_router(settings_router, prefix="/settings")
 
 static_folder_path = Path(resources.files("medperf.web_ui")) / "static"
 
-web_app.mount("/static", StaticFiles(directory=static_folder_path), name="static")
+web_app.mount(
+    f"/static/v{JS_VERSION}", StaticFiles(directory=static_folder_path), name="static"
+)
 
 web_app.add_exception_handler(Exception, custom_exception_handler)
 
