@@ -16,7 +16,6 @@
             <div class="flex items-center gap-6">
                 <a href="/" class="text-white text-2xl font-bold flex items-center gap-3">
                     <img alt="MedPerf Logo" src="{{ url_for('static', path='images/medperf_logo.svg') }}" class="h-10 w-auto brightness-0 invert">
-                    <span class="hidden sm:inline">MedPerf</span>
                 </a>
                 <div class="hidden md:flex rounded-lg bg-white/10 p-1 gap-0.5" role="tablist">
                     <a href="/set_mode?mode={{evaluation_mode}}" class="px-3 py-1.5 rounded-md text-sm font-semibold transition-colors {% if not is_training_mode %}bg-white/25 text-white{% else %}text-white/80 hover:text-white{% endif %}" role="tab">Evaluation</a>
