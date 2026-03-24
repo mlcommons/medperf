@@ -1,0 +1,19 @@
+[project]
+name = "quickstart-pytorch"
+version = "1.0.0"
+description = "Federated Learning with PyTorch and Flower (Quickstart Example)"
+license = "Apache-2.0"
+
+[tool.flwr.app]
+publisher = "flwrlabs"
+
+[tool.flwr.app.components]
+serverapp = "server_app:app"
+clientapp = "client_app:app"
+
+[tool.flwr.federations]
+default = "medperf-deployment"
+
+[tool.flwr.federations.medperf-deployment]
+address = "127.0.0.1:9093"
+insecure = true

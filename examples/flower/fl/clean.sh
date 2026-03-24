@@ -1,0 +1,10 @@
+rm -rf workspace_agg/final_weights
+rm -rf workspace_agg/report.yaml
+rm -rf workspace_agg/logs
+rm -rf workspace_col1/logs
+rm -rf workspace_col2/logs
+rm -rf workspace_col3/logs
+rm -rf workspace_agg/plan.yaml
+rm -rf workspace_col1/plan.yaml
+rm -rf workspace_col2/plan.yaml
+rm -rf workspace_col3/plan.yaml
