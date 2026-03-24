@@ -27,10 +27,10 @@ def setup_job(src_folder, plan_path):
     with open(plan_path) as f:
         plan = yaml.safe_load(f)
     toml_config["tool"]["flwr"]["app"]["config"] = plan["config"]
-    address, _, admin_port = get_server_connection(plan_path)
-    toml_config["tool"]["flwr"]["federations"]["medperf-deployment"][
-        "address"
-    ] = f"{address}:{admin_port}"
+    _, _, admin_port = get_server_connection(plan_path)
+    toml_config["tool"]["flwr"]["federations"]["medperf-deployment"]["address"] = (
+        f"127.0.0.1:{admin_port}"
+    )
     toml_file = os.path.join(workspace_folder, "pyproject.toml")
 
     with open(toml_file, "w") as f:

@@ -16,7 +16,7 @@ def start_aggregator(
             "--fleet-api-address",
             f"0.0.0.0:{port}",
             "--control-api-address",
-            f"0.0.0.0:{admin_port}",
+            f"127.0.0.1:{admin_port}",
             "--insecure",
         ],
         env=env,
