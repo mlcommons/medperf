@@ -1,7 +1,7 @@
 import os
 from medperf.commands.association.utils import get_experiment_associations
 import yaml
-from typing import List
+from typing import List, Tuple
 import medperf.config as config
 from medperf.entities.interface import Entity
 from medperf.entities.schemas import TrainingExpSchema
@@ -90,6 +90,11 @@ class TrainingExp(Entity):
         if "owner" in filters and filters["owner"] == get_medperf_user_data()["id"]:
             comms_fn = config.comms.get_user_training_exps
         return comms_fn
+
+    @staticmethod
+    def remote_prefilter_counter(filters: dict) -> Tuple[callable, bool]:
+        owner = "owner" in filters and filters["owner"] == get_medperf_user_data()["id"]
+        return config.comms.get_experiments_count, owner
 
     @classmethod
     def get_datasets_uids(cls, training_exp_uid: int) -> List[int]:

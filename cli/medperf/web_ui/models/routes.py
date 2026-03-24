@@ -27,22 +27,64 @@ logger = logging.getLogger(__name__)
 def models_ui(
     request: Request,
     mine_only: bool = False,
+    page: int = 1,
+    page_size: int = 9,
+    ordering: str = "created_at_desc",
     current_user: bool = Depends(check_user_ui),
 ):
+    if ordering == "created_at_asc":
+        order = "created_at"
+    elif ordering == "name_asc":
+        order = "name"
+    elif ordering == "name_desc":
+        order = "-name"
+    else:
+        order = "-created_at"
+
     filters = {}
     my_user_id = get_medperf_user_data()["id"]
+
     if mine_only:
         filters["owner"] = my_user_id
 
+    total_count = Model.get_count(filters=filters)
+
+    # Pagination
+    offset = (page - 1) * page_size
+    filters["limit"] = page_size
+    filters["offset"] = offset
+
+    # Ordering
+    filters["ordering"] = order
+
     models = Model.all(filters=filters)
-    models = sorted(models, key=lambda x: x.created_at, reverse=True)
-    # sort by (mine recent) (mine oldish), (other recent), (other oldish)
-    my_models = [c for c in models if c.owner == my_user_id]
-    other_models = [c for c in models if c.owner != my_user_id]
+
+    my_models = [m for m in models if m.owner == my_user_id]
+    other_models = [m for m in models if m.owner != my_user_id]
     models = my_models + other_models
+
+    total_pages = (total_count + page_size - 1) // page_size
+
+    start_index = 0
+    end_index = 0
+    if total_count != 0:
+        start_index = offset + 1
+        end_index = min(offset + len(models), total_count)
+
     return templates.TemplateResponse(
         "model/models.html",
-        {"request": request, "models": models, "mine_only": mine_only},
+        {
+            "request": request,
+            "models": models,
+            "mine_only": mine_only,
+            "page": page,
+            "page_size": page_size,
+            "total_pages": total_pages,
+            "ordering": ordering,
+            "total_count": total_count,
+            "start_index": start_index,
+            "end_index": end_index,
+        },
     )
 
 

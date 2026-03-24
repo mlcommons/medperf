@@ -1198,3 +1198,42 @@ class REST(Comms):
             url = f"{self.server_url}/datasets/"
         error_msg = "Could not retrieve datasets count"
         return self.__get_count(url, filters=filters, error_msg=error_msg)
+
+    def get_models_count(self, filters=dict(), is_owner=False) -> int:
+        """Retrieves the count of models in the platform.
+
+        Returns:
+            int: count of all models.
+        """
+        if is_owner:
+            url = f"{self.server_url}/me/models/"
+        else:
+            url = f"{self.server_url}/models/"
+        error_msg = "Could not retrieve models count"
+        return self.__get_count(url, filters=filters, error_msg=error_msg)
+
+    def get_aggregators_count(self, filters=dict(), is_owner=False) -> int:
+        """Retrieves the count of aggregators in the platform.
+
+        Returns:
+            int: count of all aggregators.
+        """
+        if is_owner:
+            url = f"{self.server_url}/me/aggregators/"
+        else:
+            url = f"{self.server_url}/aggregators/"
+        error_msg = "Could not retrieve aggregators count"
+        return self.__get_count(url, filters=filters, error_msg=error_msg)
+
+    def get_experiments_count(self, filters=dict(), is_owner=False) -> int:
+        """Retrieves the count of training experiments in the platform.
+
+        Returns:
+            int: count of all training experiments.
+        """
+        if is_owner:
+            url = f"{self.server_url}/me/training/"
+        else:
+            url = f"{self.server_url}/training/"
+        error_msg = "Could not retrieve training experiments count"
+        return self.__get_count(url, filters=filters, error_msg=error_msg)

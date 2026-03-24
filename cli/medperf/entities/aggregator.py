@@ -1,5 +1,5 @@
 import os
-from typing import List
+from typing import List, Tuple
 
 from medperf.entities.training_exp import TrainingExp
 
@@ -99,6 +99,11 @@ class Aggregator(Entity):
         if "owner" in filters and filters["owner"] == get_medperf_user_data()["id"]:
             comms_fn = config.comms.get_user_aggregators
         return comms_fn
+
+    @staticmethod
+    def remote_prefilter_counter(filters: dict) -> Tuple[callable, bool]:
+        owner = "owner" in filters and filters["owner"] == get_medperf_user_data()["id"]
+        return config.comms.get_aggregators_count, owner
 
     def prepare_config(self):
         with open(self.config_path, "w") as f:

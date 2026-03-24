@@ -1,8 +1,7 @@
 import os
 from medperf.commands.association.utils import get_user_associations
 import yaml
-from pydantic import Field, validator
-from typing import Optional, Tuple, Union, List
+from typing import Tuple, List
 
 from medperf.utils import get_folders_hash, remove_path
 from medperf.entities.interface import Entity
