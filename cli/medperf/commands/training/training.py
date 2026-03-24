@@ -13,6 +13,7 @@ from medperf.commands.list import EntityList
 from medperf.commands.view import EntityView
 from medperf.commands.training.get_experiment_status import GetExperimentStatus
 from medperf.commands.training.update_plan import UpdatePlan
+from medperf.commands.training.set_aggregator import SetAggregator
 
 app = typer.Typer()
 
@@ -37,6 +38,9 @@ def submit(
         "--operational",
         help="Submit the experiment as OPERATIONAL",
     ),
+    aggregator: int = typer.Option(
+        None, "--aggregator", "-g", help="UID of the registered aggregator to set"
+    ),
 ):
     """Submits a new benchmark to the platform"""
     training_exp_info = {
@@ -45,6 +49,7 @@ def submit(
         "docs_url": docs_url,
         "fl_mlcube": fl_mlcube,
         "fl_admin_mlcube": fl_admin_mlcube,
+        "aggregator": aggregator,
         "demo_dataset_tarball_url": "link",
         "demo_dataset_tarball_hash": "hash",
         "demo_dataset_generated_uid": "uid",
@@ -116,6 +121,22 @@ def update_plan(
 ):
     """Runtime-update of a scalar field of the training plan"""
     UpdatePlan.run(training_exp_id, field_name, value)
+    config.ui.print("✅ Done!")
+
+
+@app.command("set_aggregator")
+@clean_except
+def set_aggregator(
+    training_exp_id: int = typer.Option(
+        ..., "--training_exp_id", "-t", help="UID of the training experiment"
+    ),
+    aggregator_id: int = typer.Option(
+        ..., "--aggregator_id", "-a", help="UID of the aggregator to set"
+    ),
+    approval: bool = typer.Option(False, "-y", help="Skip approval step"),
+):
+    """Set the aggregator for a training experiment."""
+    SetAggregator.run(training_exp_id, aggregator_id, approved=approval)
     config.ui.print("✅ Done!")
 
 

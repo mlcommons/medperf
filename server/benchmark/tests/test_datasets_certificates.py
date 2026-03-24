@@ -10,7 +10,7 @@ class BenchmarkCertificatesTest(MedPerfTest):
         # setup users
         bmk_owner = "bmk_owner"
         prep_mlcube_owner = "prep_mlcube_owner"
-        ref_mlcube_owner = "ref_mlcube_owner"
+        ref_model_owner = "ref_model_owner"
         eval_mlcube_owner = "eval_mlcube_owner"
         model_owner = "model_owner"
         data_owner1 = "data_owner1"
@@ -21,7 +21,7 @@ class BenchmarkCertificatesTest(MedPerfTest):
 
         self.create_user(bmk_owner)
         self.create_user(prep_mlcube_owner)
-        self.create_user(ref_mlcube_owner)
+        self.create_user(ref_model_owner)
         self.create_user(eval_mlcube_owner)
         self.create_user(model_owner)
         self.create_user(data_owner1)
@@ -32,7 +32,7 @@ class BenchmarkCertificatesTest(MedPerfTest):
 
         # create benchmark
         prep, _, _, benchmark = self.shortcut_create_benchmark(
-            prep_mlcube_owner, ref_mlcube_owner, eval_mlcube_owner, bmk_owner
+            prep_mlcube_owner, ref_model_owner, eval_mlcube_owner, bmk_owner
         )
 
         # create CA
@@ -93,17 +93,17 @@ class BenchmarkCertificatesTest(MedPerfTest):
 
         # create model and association for testing IsAssociatedModelOwner permission
         self.set_credentials(model_owner)
-        model = self.mock_mlcube(state="OPERATION")
-        model = self.create_mlcube(model).data
-        assoc_model = self.mock_mlcube_association(
+        model = self.mock_model(state="OPERATION")
+        model = self.create_model(model).data
+        assoc_model = self.mock_model_association(
             benchmark["id"], model["id"], approval_status="APPROVED"
         )
-        self.create_mlcube_association(assoc_model, model_owner, bmk_owner)
+        self.create_model_association(assoc_model, model_owner, bmk_owner)
 
         # setup globals
         self.bmk_owner = bmk_owner
         self.prep_mlcube_owner = prep_mlcube_owner
-        self.ref_mlcube_owner = ref_mlcube_owner
+        self.ref_model_owner = ref_model_owner
         self.eval_mlcube_owner = eval_mlcube_owner
         self.model_owner = model_owner
         self.data_owner1 = data_owner1
@@ -122,6 +122,7 @@ class BenchmarkCertificatesTest(MedPerfTest):
 @parameterized_class(
     [
         {"actor": "model_owner"},
+        {"actor": "bmk_owner"},
     ]
 )
 class BenchmarkCertificatesGetTest(BenchmarkCertificatesTest):
@@ -216,9 +217,8 @@ class PermissionTest(BenchmarkCertificatesTest):
 
     @parameterized.expand(
         [
-            ("bmk_owner", status.HTTP_403_FORBIDDEN),
             ("prep_mlcube_owner", status.HTTP_403_FORBIDDEN),
-            ("ref_mlcube_owner", status.HTTP_403_FORBIDDEN),
+            ("ref_model_owner", status.HTTP_403_FORBIDDEN),
             ("eval_mlcube_owner", status.HTTP_403_FORBIDDEN),
             ("data_owner1", status.HTTP_403_FORBIDDEN),
             ("data_owner2", status.HTTP_403_FORBIDDEN),

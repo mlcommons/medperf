@@ -7,13 +7,9 @@ from medperf.web_ui.tests.pages.security_page import SecurityPage
 from medperf.web_ui.tests.pages.settings_page import SettingsPage
 from medperf.web_ui.tests.pages.login_page import LoginPage
 
-from medperf.web_ui.tests.pages.benchmark.workflow_test_page import WorkflowTestPage
 from medperf.web_ui.tests.pages.benchmark.register_page import RegBenchmarkPage
 from medperf.web_ui.tests.pages.benchmark.details_page import BenchmarkDetailsPage
 
-from medperf.web_ui.tests.pages.container.compatibility_test_page import (
-    CompatibilityTestPage,
-)
 from medperf.web_ui.tests.pages.container.register_page import RegContainerPage
 from medperf.web_ui.tests.pages.container.details_page import ContainerDetailsPage
 
@@ -100,64 +96,7 @@ def test_benchmark_login(driver):
     login(page=page, url=url, email=tests_config.BMK_OWNER_EMAIL)
 
 
-@pytest.mark.dependency(name="workflow_test", depends=["benchmark_login"])
-def test_benchmark_workflow_test(driver):
-    page = WorkflowTestPage(driver)
-    page.open(BASE_URL.format("/benchmarks/ui"))
-
-    old_url = page.current_url
-    page.click(page.BMK_REG_BTN)
-    page.wait_for_url_change(old_url)
-    page.wait_for_presence_selector(page.NAVBAR)
-
-    assert "/benchmarks/register/ui" in page.current_url
-
-    old_url = page.current_url
-    page.click(page.WF_BTN)
-    page.wait_for_url_change(old_url)
-    page.wait_for_presence_selector(page.NAVBAR)
-
-    assert "/benchmarks/register/workflow_test" in page.current_url
-    assert page.find(page.RUN_TEST_BTN).is_enabled() is False
-
-    page_modal = page.find(page.PAGE_MODAL)
-    panel = page.find(page.PANEL)
-
-    assert page_modal.is_displayed() is False
-    assert panel.is_displayed() is False
-
-    page.run_test(
-        data_prep=tests_config.BMK_DATA_PREP,
-        ref_model=tests_config.BMK_REF_MODEL,
-        evaluator=tests_config.BMK_EVALUATOR,
-        data_path=tests_config.BMK_DATA_PATH,
-        labels_path=tests_config.BMK_LABELS_PATH,
-    )
-
-    old_url = page.current_url
-    page.wait_for_visibility_element(page_modal)
-
-    assert page.is_confirmation_modal() is True
-    assert "run the workflow test?" in page.get_text(page.CONFIRM_TEXT)
-
-    page.confirm_run_task()
-    page.wait_for_visibility_element(panel)
-
-    while not page_modal.is_displayed():
-        time.sleep(0.2)
-
-    assert page.get_text(page.PAGE_MODAL_TITLE) == "Benchmark Workflow Test Successful"
-
-    continue_btn = page_modal.find_element(*page.CONTINUE_BTN)
-    page.ensure_element_ready(continue_btn)
-    continue_btn.click()
-    page.wait_for_staleness_element(page_modal)
-    page.wait_for_url_change(old_url)
-
-    assert "/benchmarks/register/ui" in page.current_url
-
-
-@pytest.mark.dependency(name="register_data_prep", depends=["workflow_test"])
+@pytest.mark.dependency(name="register_data_prep", depends=["benchmark_login"])
 def test_benchmark_register_data_prep_container(driver):
     page = RegContainerPage(driver)
     page.open(BASE_URL.format("/containers/ui"))
@@ -190,7 +129,10 @@ def test_benchmark_register_data_prep_container(driver):
     while not page_modal.is_displayed():
         time.sleep(0.2)
 
-    assert page.get_text(page.PAGE_MODAL_TITLE) == "Model Registered Successfully"
+    assert (
+        page.get_text(page.PAGE_MODAL_TITLE)
+        == "Registering container completed successfully"
+    )
 
     page.wait_for_staleness_element(page_modal)
     page.wait_for_url_change(old_url)
@@ -199,7 +141,7 @@ def test_benchmark_register_data_prep_container(driver):
 
 
 @pytest.mark.dependency(name="register_ref_model", depends=["register_data_prep"])
-def test_benchmark_register_reference_model_container(driver):
+def test_benchmark_register_reference_model(driver):
     page = RegContainerPage(driver)
     page.open(BASE_URL.format("/containers/ui"))
 
@@ -231,12 +173,15 @@ def test_benchmark_register_reference_model_container(driver):
     while not page_modal.is_displayed():
         time.sleep(0.2)
 
-    assert page.get_text(page.PAGE_MODAL_TITLE) == "Model Registered Successfully"
+    assert (
+        page.get_text(page.PAGE_MODAL_TITLE)
+        == "Registering container completed successfully"
+    )
 
     page.wait_for_staleness_element(page_modal)
     page.wait_for_url_change(old_url)
 
-    assert "/containers/ui/display/" in page.current_url
+    assert "/models/ui/display/" in page.current_url
 
 
 @pytest.mark.dependency(name="register_metrics", depends=["register_ref_model"])
@@ -272,7 +217,10 @@ def test_benchmark_register_metrics_container(driver):
     while not page_modal.is_displayed():
         time.sleep(0.2)
 
-    assert page.get_text(page.PAGE_MODAL_TITLE) == "Model Registered Successfully"
+    assert (
+        page.get_text(page.PAGE_MODAL_TITLE)
+        == "Registering container completed successfully"
+    )
 
     page.wait_for_staleness_element(page_modal)
     page.wait_for_url_change(old_url)
@@ -320,7 +268,10 @@ def test_benchmark_registration(driver):
     while not page_modal.is_displayed():
         time.sleep(0.2)
 
-    assert page.get_text(page.PAGE_MODAL_TITLE) == "Benchmark Successfully Registered"
+    assert (
+        page.get_text(page.PAGE_MODAL_TITLE)
+        == "Registering benchmark completed successfully"
+    )
 
     page.wait_for_staleness_element(page_modal)
     page.wait_for_url_change(old_url)
@@ -393,7 +344,10 @@ def test_dataset_registration(driver):
     while not page_modal.is_displayed():
         time.sleep(0.2)
 
-    assert page.get_text(page.PAGE_MODAL_TITLE) == "Dataset Registered Successfully"
+    assert (
+        page.get_text(page.PAGE_MODAL_TITLE)
+        == "Registering dataset completed successfully"
+    )
 
     page.wait_for_staleness_element(page_modal)
     page.wait_for_url_change(old_url)
@@ -424,7 +378,10 @@ def test_dataset_preparation(driver):
     while not page_modal.is_displayed():
         time.sleep(0.2)
 
-    assert page.get_text(page.PAGE_MODAL_TITLE) == "Dataset Prepared Successfully"
+    assert (
+        page.get_text(page.PAGE_MODAL_TITLE)
+        == "Preparing dataset completed successfully"
+    )
 
     page.wait_for_staleness_element(page_modal)
 
@@ -466,7 +423,8 @@ def test_dataset_set_operational(driver):
         time.sleep(0.2)
 
     assert (
-        page.get_text(page.PAGE_MODAL_TITLE) == "Dataset Set to Operation Successfully"
+        page.get_text(page.PAGE_MODAL_TITLE)
+        == "Setting dataset to operational completed successfully"
     )
 
     page.wait_for_staleness_element(page_modal)
@@ -481,6 +439,7 @@ def test_dataset_association(driver):
     page = DatasetDetailsPage(
         driver, dataset=tests_config.DATASET_NAME, benchmark=tests_config.BMK_NAME
     )
+    page.open(BASE_URL.format("/datasets/ui/display/1"))
 
     page_modal = page.find(page.PAGE_MODAL)
     panel = page.find(page.PANEL)
@@ -497,7 +456,9 @@ def test_dataset_association(driver):
     page.wait_for_visibility_element(page_modal)
 
     assert page.is_confirmation_modal() is True
-    assert "request dataset association?" in page.get_text(page.CONFIRM_TEXT)
+    assert "request association with this benchmark?" in page.get_text(
+        page.CONFIRM_TEXT
+    )
 
     page.confirm_run_task()
     page.wait_for_visibility_element(panel)
@@ -513,7 +474,10 @@ def test_dataset_association(driver):
     while not page_modal.is_displayed():
         time.sleep(0.2)
 
-    assert page.get_text(page.PAGE_MODAL_TITLE) == "Association Requested Successfully"
+    assert (
+        page.get_text(page.PAGE_MODAL_TITLE)
+        == "Requesting association completed successfully"
+    )
 
     page.wait_for_staleness_element(page_modal)
 
@@ -545,7 +509,10 @@ def test_dataset_get_certificate(driver):
     while not page_modal.is_displayed():
         time.sleep(0.2)
 
-    assert page.get_text(page.PAGE_MODAL_TITLE) == "Certificate Retrieved Successfully"
+    assert (
+        page.get_text(page.PAGE_MODAL_TITLE)
+        == "Getting Client Certificate completed successfully"
+    )
 
     page.wait_for_staleness_element(page_modal)
 
@@ -587,14 +554,17 @@ def test_dataset_submit_certificate(driver):
     while not page_modal.is_displayed():
         time.sleep(0.2)
 
-    assert page.get_text(page.PAGE_MODAL_TITLE) == "Certificate Submitted Successfully"
+    assert (
+        page.get_text(page.PAGE_MODAL_TITLE)
+        == "Submitting Client Certificate completed successfully"
+    )
 
     page.wait_for_staleness_element(page_modal)
 
     assert page.get_text(page.CERTIFICATE_STATUS) == "valid"
 
 
-@pytest.mark.dependency(name="dataset_logout", depends=["dataset_association"])
+@pytest.mark.dependency(name="dataset_logout", depends=["dataset_submit_certificate"])
 def test_dataset_logout(driver):
     page = BasePage(driver)
     page.open(BASE_URL.format("/benchmarks/ui"))
@@ -610,59 +580,8 @@ def test_model_login(driver):
     login(page=page, url=url, email=tests_config.MODEL_OWNER_EMAIL)
 
 
-@pytest.mark.dependency(name="comp_test", depends=["model_login"])
-def test_container_comp_test(driver):
-    page = CompatibilityTestPage(driver)
-    page.open(BASE_URL.format("/containers/ui"))
-
-    old_url = page.current_url
-    page.click(page.REG_CONT_BTN)
-    page.wait_for_url_change(old_url)
-    page.wait_for_presence_selector(page.NAVBAR)
-
-    assert "/containers/register/ui" in page.current_url
-
-    old_url = page.current_url
-    page.click(page.COMP_BTN)
-    page.wait_for_url_change(old_url)
-    page.wait_for_presence_selector(page.NAVBAR)
-
-    assert "/containers/register/compatibility_test" in page.current_url
-    assert page.find(page.RUN_TEST_BTN).is_enabled() is False
-
-    page_modal = page.find(page.PAGE_MODAL)
-    panel = page.find(page.PANEL)
-
-    assert page_modal.is_displayed() is False
-    assert panel.is_displayed() is False
-
-    page.run_test(benchmark=tests_config.BMK_NAME, model=tests_config.MODEL)
-
-    old_url = page.current_url
-    page.wait_for_visibility_element(page_modal)
-
-    assert page.is_confirmation_modal() is True
-    assert "run the compatibility test?" in page.get_text(page.CONFIRM_TEXT)
-
-    page.confirm_run_task()
-    page.wait_for_visibility_element(panel)
-
-    while not page_modal.is_displayed():
-        time.sleep(0.2)
-
-    assert page.get_text(page.PAGE_MODAL_TITLE) == "Model Compatibility Test Successful"
-
-    continue_btn = page_modal.find_element(*page.CONTINUE_BTN)
-    page.ensure_element_ready(continue_btn)
-    continue_btn.click()
-    page.wait_for_staleness_element(page_modal)
-    page.wait_for_url_change(old_url)
-
-    assert "/containers/register/ui" in page.current_url
-
-
-@pytest.mark.dependency(name="container_registration", depends=["comp_test"])
-def test_container_registration(driver):
+@pytest.mark.dependency(name="model_registration", depends=["model_login"])
+def test_model_registration(driver):
     page = RegContainerPage(driver)
     page.open(BASE_URL.format("/containers/ui"))
 
@@ -694,18 +613,19 @@ def test_container_registration(driver):
     while not page_modal.is_displayed():
         time.sleep(0.2)
 
-    assert page.get_text(page.PAGE_MODAL_TITLE) == "Model Registered Successfully"
+    assert (
+        page.get_text(page.PAGE_MODAL_TITLE)
+        == "Registering container completed successfully"
+    )
 
     page.wait_for_staleness_element(page_modal)
     page.wait_for_url_change(old_url)
 
-    assert "/containers/ui/display/" in page.current_url
+    assert "/models/ui/display/" in page.current_url
 
 
-@pytest.mark.dependency(
-    name="container_association", depends=["container_registration"]
-)
-def test_container_association(driver):
+@pytest.mark.dependency(name="model_association", depends=["model_registration"])
+def test_model_association(driver):
     page = ContainerDetailsPage(
         driver,
         container=tests_config.MODEL.name,
@@ -726,7 +646,9 @@ def test_container_association(driver):
     page.wait_for_visibility_element(page_modal)
 
     assert page.is_confirmation_modal() is True
-    assert "request container association?" in page.get_text(page.CONFIRM_TEXT)
+    assert "request model association with this benchmark?" in page.get_text(
+        page.CONFIRM_TEXT
+    )
 
     page.confirm_run_task()
     page.wait_for_visibility_element(panel)
@@ -742,18 +664,21 @@ def test_container_association(driver):
     while not page_modal.is_displayed():
         time.sleep(0.2)
 
-    assert page.get_text(page.PAGE_MODAL_TITLE) == "Association Requested Successfully"
+    assert (
+        page.get_text(page.PAGE_MODAL_TITLE)
+        == "Requesting model association completed successfully"
+    )
 
     page.wait_for_staleness_element(page_modal)
 
-    assert "/containers/ui/display/" in page.current_url
+    assert "/models/ui/display/" in page.current_url
     assert tests_config.BMK_NAME in page.get_association_cards_titles()
 
 
 @pytest.mark.dependency(
-    name="encrypted_container_registration", depends=["container_association"]
+    name="encrypted_model_registration", depends=["model_association"]
 )
-def test_encrypted_container_registration(driver):
+def test_encrypted_model_registration(driver):
     page = RegContainerPage(driver)
     page.open(BASE_URL.format("/containers/ui"))
 
@@ -788,18 +713,21 @@ def test_encrypted_container_registration(driver):
     while not page_modal.is_displayed():
         time.sleep(0.2)
 
-    assert page.get_text(page.PAGE_MODAL_TITLE) == "Model Registered Successfully"
+    assert (
+        page.get_text(page.PAGE_MODAL_TITLE)
+        == "Registering container completed successfully"
+    )
 
     page.wait_for_staleness_element(page_modal)
     page.wait_for_url_change(old_url)
 
-    assert "/containers/ui/display/" in page.current_url
+    assert "/models/ui/display/" in page.current_url
 
 
 @pytest.mark.dependency(
-    name="encrypted_container_association", depends=["encrypted_container_registration"]
+    name="encrypted_model_association", depends=["encrypted_model_registration"]
 )
-def test_encrypted_container_association(driver):
+def test_encrypted_model_association(driver):
     page = ContainerDetailsPage(
         driver,
         container=tests_config.ENCRYPTED_MODEL.name,
@@ -820,7 +748,9 @@ def test_encrypted_container_association(driver):
     page.wait_for_visibility_element(page_modal)
 
     assert page.is_confirmation_modal() is True
-    assert "request container association?" in page.get_text(page.CONFIRM_TEXT)
+    assert "request model association with this benchmark?" in page.get_text(
+        page.CONFIRM_TEXT
+    )
 
     page.confirm_run_task()
     page.wait_for_visibility_element(panel)
@@ -836,17 +766,18 @@ def test_encrypted_container_association(driver):
     while not page_modal.is_displayed():
         time.sleep(0.2)
 
-    assert page.get_text(page.PAGE_MODAL_TITLE) == "Association Requested Successfully"
+    assert (
+        page.get_text(page.PAGE_MODAL_TITLE)
+        == "Requesting model association completed successfully"
+    )
 
     page.wait_for_staleness_element(page_modal)
 
-    assert "/containers/ui/display/" in page.current_url
+    assert "/models/ui/display/" in page.current_url
     assert tests_config.BMK_NAME in page.get_association_cards_titles()
 
 
-@pytest.mark.dependency(
-    name="model_logout", depends=["encrypted_container_association"]
-)
+@pytest.mark.dependency(name="model_logout", depends=["encrypted_model_association"])
 def test_model_logout(driver):
     page = BasePage(driver)
     page.open(BASE_URL.format("/benchmarks/ui"))
@@ -892,7 +823,10 @@ def test_benchmark_approve_dataset(driver):
     while not page_modal.is_displayed():
         time.sleep(0.2)
 
-    assert page.get_text(page.PAGE_MODAL_TITLE) == "Association Approved Successfully"
+    assert (
+        page.get_text(page.PAGE_MODAL_TITLE)
+        == "Approving association completed successfully"
+    )
 
     page.wait_for_staleness_element(page_modal)
 
@@ -900,9 +834,9 @@ def test_benchmark_approve_dataset(driver):
 
 
 @pytest.mark.dependency(
-    name="benchmark_approve_container", depends=["benchmark_approve_dataset"]
+    name="benchmark_approve_model", depends=["benchmark_approve_dataset"]
 )
-def test_benchmark_approve_container(driver):
+def test_benchmark_approve_model(driver):
     page = BenchmarkDetailsPage(
         driver,
         benchmark=tests_config.BMK_NAME,
@@ -925,7 +859,10 @@ def test_benchmark_approve_container(driver):
     while not page_modal.is_displayed():
         time.sleep(0.2)
 
-    assert page.get_text(page.PAGE_MODAL_TITLE) == "Association Approved Successfully"
+    assert (
+        page.get_text(page.PAGE_MODAL_TITLE)
+        == "Approving association completed successfully"
+    )
 
     page.wait_for_staleness_element(page_modal)
 
@@ -933,10 +870,10 @@ def test_benchmark_approve_container(driver):
 
 
 @pytest.mark.dependency(
-    name="benchmark_approve_encrypted_container",
-    depends=["benchmark_approve_container"],
+    name="benchmark_approve_encrypted_model",
+    depends=["benchmark_approve_model"],
 )
-def test_benchmark_approve_encrypted_container(driver):
+def test_benchmark_approve_encrypted_model(driver):
     page = BenchmarkDetailsPage(
         driver,
         benchmark=tests_config.BMK_NAME,
@@ -959,7 +896,10 @@ def test_benchmark_approve_encrypted_container(driver):
     while not page_modal.is_displayed():
         time.sleep(0.2)
 
-    assert page.get_text(page.PAGE_MODAL_TITLE) == "Association Approved Successfully"
+    assert (
+        page.get_text(page.PAGE_MODAL_TITLE)
+        == "Approving association completed successfully"
+    )
 
     page.wait_for_staleness_element(page_modal)
 
@@ -967,7 +907,7 @@ def test_benchmark_approve_encrypted_container(driver):
 
 
 @pytest.mark.dependency(
-    name="benchmark_logout1", depends=["benchmark_approve_encrypted_container"]
+    name="benchmark_logout1", depends=["benchmark_approve_encrypted_model"]
 )
 def test_benchmark_logout1(driver):
     page = BasePage(driver)
@@ -1021,7 +961,7 @@ def test_container_grant_access(driver):
     page.wait_for_visibility_element(page_modal)
 
     assert page.is_confirmation_modal() is True
-    assert "grant access to the emails added?" in page.get_text(page.CONFIRM_TEXT)
+    assert "grant access to the email(s) added?" in page.get_text(page.CONFIRM_TEXT)
 
     page.confirm_run_task()
     page.wait_for_visibility_element(panel)
@@ -1037,8 +977,7 @@ def test_container_grant_access(driver):
         time.sleep(0.2)
 
     assert (
-        page.get_text(page.PAGE_MODAL_TITLE)
-        == "Successfully Granted Access to the Selected Users"
+        page.get_text(page.PAGE_MODAL_TITLE) == "Granting access completed successfully"
     )
 
     page.wait_for_staleness_element(page_modal)
@@ -1095,7 +1034,10 @@ def test_dataset_run_execution(driver):
     while not page_modal.is_displayed():
         time.sleep(0.2)
 
-    assert page.get_text(page.PAGE_MODAL_TITLE) == "Execution Ran Successfully"
+    assert (
+        page.get_text(page.PAGE_MODAL_TITLE)
+        == "Running benchmark execution completed successfully"
+    )
 
     page.wait_for_staleness_element(page_modal)
 
@@ -1148,7 +1090,10 @@ def test_dataset_submit_results(driver):
         while not page_modal.is_displayed():
             time.sleep(0.2)
 
-        assert page.get_text(page.PAGE_MODAL_TITLE) == "Results Successfully Submitted"
+        assert (
+            page.get_text(page.PAGE_MODAL_TITLE)
+            == "Submitting result completed successfully"
+        )
 
         page.wait_for_staleness_element(page_modal)
 
@@ -1249,7 +1194,9 @@ def test_container_delete_keys(driver):
     while not page_modal.is_displayed():
         time.sleep(0.2)
 
-    assert page.get_text(page.PAGE_MODAL_TITLE) == "Successfully Deleted Keys"
+    assert (
+        page.get_text(page.PAGE_MODAL_TITLE) == "Deleting keys completed successfully"
+    )
 
     page.wait_for_staleness_element(page_modal)
 

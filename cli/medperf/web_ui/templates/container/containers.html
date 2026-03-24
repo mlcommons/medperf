@@ -1,34 +1,26 @@
-{# ./cli/medperf/web_ui/templates/container/containers.html #}
-
 {% extends "base.html" %}
+{% import 'macros/container_macros.html' as container_macros %}
 
 {% block title %}Containers{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="row text-center">
-        <div class="col-12">
-            <a class="btn btn-primary my-4" href="/containers/register/ui" data-testid="reg-cont-btn">
-                Register a New Container
+<div class="container mx-auto px-4 py-12">
+    <div class="mb-12">
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <h1 class="text-5xl font-bold medperf-accent dark:text-green-400 mb-3" data-testid="page-header">Containers</h1>
+                <p class="text-gray-700 dark:text-gray-300 text-lg">Manage and explore containers</p>
+            </div>
+            <a class="px-8 py-4 medperf-bg dark:bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 dark:hover:bg-green-500 transition-all shadow-lg hover:shadow-xl inline-flex items-center" href="/containers/register/ui" data-testid="reg-cont-btn">
+                <i class="fas fa-plus mr-2"></i>Register a New Container
             </a>
         </div>
-    </div>
-    <div class="row text-center">
-        <div class="col-12">
-            <h1 class="mt-4" data-testid="page-header">Containers</h1>
-            <div class="form-check form-switch d-inline-flex flex-column align-items-center mt-3">
-                <input
-                    class="form-check-input fs-5"
-                    type="checkbox"
-                    role="switch"
-                    id="switch"
-                    data-entity-name="containers"
-                    {% if mine_only %}checked{% endif %}
-                >
-                <label class="form-check-label fs-6 mt-2" for="switch">
-                    Show only my containers
-                </label>
-            </div>
+        <div class="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-md border-2 border-green-100 dark:border-gray-700 inline-flex">
+            <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only peer" id="switch" data-entity-name="containers" {% if mine_only %}checked{% endif %}>
+                <div class="w-14 h-7 bg-gray-200 dark:bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-green-600"></div>
+                <span class="ml-4 text-gray-700 dark:text-gray-300 font-semibold">Show only my containers</span>
+            </label>
         </div>
     </div>
 </div>
@@ -75,44 +67,13 @@
 </div>
 {% endif %}
 <div class="container mt-5" data-testid="cards-container">
-    <div class="row mt-5">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" data-testid="cards-container">
         {% if containers %}
         {% for container in containers %}
-        <div class="col-md-4 mb-4">
-            <div class="card h-100 {% if not container.is_valid %}invalid-card{% endif %}">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        <a
-                            href="/containers/ui/display/{{ container.id }}"
-                            class="text-primary text-decoration-none"
-                            data-testid="cont-name">
-                            {{ container.name }}
-                        </a>
-                    </h5>
-                    <h6 class="card-subtitle mb-2 text-muted" data-testid="cont-id">
-                        ID: {{ container.id }}
-                    </h6>
-                    <h6 class="card-subtitle mb-2 text-muted" data-testid="cont-state">
-                        {% if container.state == 'OPERATION' %}
-                            OPERATIONAL
-                        {% else %}
-                            {{ container.state }}
-                        {% endif %}
-                    </h6>
-                    <h6 class="card-subtitle mb-2 text-muted" data-testid="cont-is-valid">
-                        Is valid: {{ container.is_valid }}
-                    </h6>
-                    <p class="card-text mt-3" data-testid="cont-created-at">
-                        <small class="text-muted" data-date="{{ container.created_at }}"></small>
-                    </p>
-                </div>
-            </div>
-        </div>
+        {{ container_macros.container_card(container) }}
         {% endfor %}
         {% else %}
-        <h3 class="col-12 text-center mt-5 text-muted" data-testid="no-conts-msg">
-            No containers found
-        </h3>
+        <h3 class="col-span-full text-center py-12 text-gray-600 dark:text-gray-400 text-xl" data-testid="no-conts-msg">No containers found</h3>
         {% endif %}
     </div>
 </div>
@@ -170,4 +131,4 @@ $(".page-link").on("click", function (e) {
     if (page) reloadUi(page);
 });
 </script>
-{% endblock extra_js %}
+{% endblock %}

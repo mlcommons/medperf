@@ -116,25 +116,25 @@ checkFailed "Prep submission failed"
 PREP_UID=$(medperf container ls | grep mock-prep | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 echo "PREP_UID=$PREP_UID" >> "$LAST_ENV_FILE"
 
-print_eval medperf container submit --name model1 -m $MODEL_MLCUBE -p $MODEL1_PARAMS -a $MODEL_ADD --operational
+print_eval medperf model submit --name model1 -m $MODEL_MLCUBE -p $MODEL1_PARAMS -a $MODEL_ADD --operational
 checkFailed "Model1 submission failed"
-MODEL1_UID=$(medperf container ls | grep model1 | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+MODEL1_UID=$(medperf model ls | grep model1 | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 echo "MODEL1_UID=$MODEL1_UID" >> "$LAST_ENV_FILE"
 
-print_eval medperf container submit --name model2 -m $MODEL_ARCHIVE_MLCUBE -p $MODEL2_PARAMS -a $MODEL_ADD --operational
+print_eval medperf model submit --name model2 -m $MODEL_ARCHIVE_MLCUBE -p $MODEL2_PARAMS -a $MODEL_ADD --operational
 checkFailed "Model2 submission failed"
-MODEL2_UID=$(medperf container ls | grep model2 | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+MODEL2_UID=$(medperf model ls | grep model2 | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 echo "MODEL2_UID=$MODEL2_UID" >> "$LAST_ENV_FILE"
 
 # Container with singularity section
-print_eval medperf --platform singularity container submit --name model3 -m $MODEL_WITH_SINGULARITY -p $MODEL3_PARAMS -a $MODEL_ADD --operational
+print_eval medperf --platform singularity model submit --name model3 -m $MODEL_WITH_SINGULARITY -p $MODEL3_PARAMS -a $MODEL_ADD --operational
 checkFailed "Model3 submission failed"
-MODEL3_UID=$(medperf container ls | grep model3 | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+MODEL3_UID=$(medperf model ls | grep model3 | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 echo "MODEL3_UID=$MODEL3_UID" >> "$LAST_ENV_FILE"
 
-print_eval medperf container submit --name model-fail -m $FAILING_MODEL_MLCUBE -p $MODEL4_PARAMS -a $MODEL_ADD --operational
+print_eval medperf model submit --name model-fail -m $FAILING_MODEL_MLCUBE -p $MODEL4_PARAMS -a $MODEL_ADD --operational
 checkFailed "failing model submission failed"
-FAILING_MODEL_UID=$(medperf container ls | grep model-fail | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+FAILING_MODEL_UID=$(medperf model ls | grep model-fail | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 echo "FAILING_MODEL_UID=$FAILING_MODEL_UID" >> "$LAST_ENV_FILE"
 
 print_eval medperf container submit --name mock-metrics -m $METRIC_MLCUBE -p $METRIC_PARAMS --operational
@@ -159,7 +159,7 @@ echo "\n"
 echo "====================================="
 echo "Submit benchmark"
 echo "====================================="
-print_eval medperf benchmark submit --name bmk --description bmk --demo-url $DEMO_URL --data-preparation-container $PREP_UID --reference-model-container $MODEL1_UID --evaluator-container $METRICS_UID --operational
+print_eval medperf benchmark submit --name bmk --description bmk --demo-url $DEMO_URL --data-preparation-container $PREP_UID --reference-model $MODEL1_UID --evaluator-container $METRICS_UID --operational
 checkFailed "Benchmark submission failed"
 BMK_UID=$(medperf benchmark ls | grep bmk | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 echo "BMK_UID=$BMK_UID" >> "$LAST_ENV_FILE"
@@ -363,7 +363,7 @@ echo "\n"
 echo "====================================="
 echo "Running model2 association"
 echo "====================================="
-print_eval medperf container associate -m $MODEL2_UID -b $BMK_UID -y
+print_eval medperf model associate -m $MODEL2_UID -b $BMK_UID -y
 checkFailed "Model2 association failed"
 ##########################################################
 
@@ -376,7 +376,7 @@ echo "====================================="
 # this will run two types of singularity containers:
 #   1) an already built singularity image (model 3)
 #   2) a docker image to be converted (metrics)
-print_eval medperf --platform singularity container associate -m $MODEL3_UID -b $BMK_UID -y
+print_eval medperf --platform singularity model associate -m $MODEL3_UID -b $BMK_UID -y
 checkFailed "Model3 association failed"
 ##########################################################
 
@@ -386,7 +386,7 @@ echo "\n"
 echo "======================================================"
 echo "Running failing model association (This will NOT fail)"
 echo "======================================================"
-print_eval medperf container associate -m $FAILING_MODEL_UID -b $BMK_UID -y
+print_eval medperf model associate -m $FAILING_MODEL_UID -b $BMK_UID -y
 checkFailed "Failing model association failed"
 ##########################################################
 

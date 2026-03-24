@@ -33,10 +33,10 @@ class Benchmark(models.Model):
         on_delete=models.PROTECT,
         related_name="data_preprocessor_mlcube",
     )
-    reference_model_mlcube = models.ForeignKey(
-        "mlcube.MlCube",
+    reference_model = models.ForeignKey(
+        "model.Model",
         on_delete=models.PROTECT,
-        related_name="reference_model_mlcube",
+        related_name="reference_model_benchmark",
     )
     data_evaluator_mlcube = models.ForeignKey(
         "mlcube.MlCube",

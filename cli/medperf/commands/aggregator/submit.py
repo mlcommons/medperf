@@ -23,6 +23,7 @@ class SubmitAggregator:
             updated_benchmark_body = submission.submit()
         ui.print("Uploaded")
         submission.write(updated_benchmark_body)
+        return submission.aggregator.id
 
     def __init__(self, name: str, address: str, port: int, aggregation_mlcube: int):
         self.ui = config.ui
@@ -41,5 +42,5 @@ class SubmitAggregator:
 
     def write(self, updated_body):
         remove_path(self.aggregator.path)
-        aggregator = Aggregator(**updated_body)
-        aggregator.write()
+        self.aggregator = Aggregator(**updated_body)
+        self.aggregator.write()

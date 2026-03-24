@@ -1,13 +1,13 @@
 import json
 import os
 from medperf.entities.interface import Entity
-from medperf.entities.schemas import MedperfSchema
-from pydantic import validator
+from medperf.entities.schemas import CASchema
 import medperf.config as config
 from medperf.account_management import get_medperf_user_data
+from medperf.entities.utils import handle_validation_error
 
 
-class CA(Entity, MedperfSchema):
+class CA(Entity):
     """
     Class representing a compatibility test report entry
 
@@ -21,12 +21,6 @@ class CA(Entity, MedperfSchema):
     - evaluator cube
     - results
     """
-
-    metadata: dict = {}
-    client_mlcube: int
-    server_mlcube: int
-    ca_mlcube: int
-    config: dict
 
     @staticmethod
     def get_type():
@@ -48,26 +42,20 @@ class CA(Entity, MedperfSchema):
     def get_comms_uploader():
         return config.comms.upload_ca
 
-    @validator("config", pre=True, always=True)
-    def check_config(cls, v, *, values, **kwargs):
-        keys = set(v.keys())
-        allowed_keys = {
-            "address",
-            "port",
-            "fingerprint",
-            "client_provisioner",
-            "server_provisioner",
-        }
-        if keys != allowed_keys:
-            raise ValueError(
-                "CA config must contain these exact 5 keys:\n"
-                "address, port, fingerprint, client_provisioner, server_provisioner"
-            )
-        return v
+    @handle_validation_error
+    def __init__(self, **kwargs):
+        self._model = CASchema(**kwargs)
+        super().__init__()
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        self.metadata = self._model.metadata
+        self.client_mlcube = self._model.client_mlcube
+        self.server_mlcube = self._model.server_mlcube
+        self.ca_mlcube = self._model.ca_mlcube
+        self.config = self._model.config
 
+        self._set_helper_attributes()
+
+    def _set_helper_attributes(self):
         self.address = self.config["address"]
         self.port = self.config["port"]
         self.fingerprint = self.config["fingerprint"]

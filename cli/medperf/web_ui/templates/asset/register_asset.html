@@ -1,0 +1,88 @@
+{# ./cli/medperf/web_ui/templates/asset/register_asset.html #}
+
+{% extends "base.html" %}
+{% import "constants/forms_placeholders.html" as placeholders %}
+{% import "constants/tooltips.html" as tooltips %}
+
+{% block title %}Register Asset{% endblock %}
+
+{% block content %}
+{% set asset_register_running = (task_running and "asset_registration" in request.app.state.active_tasks) %}
+{% if asset_register_running %}
+{% set form_data = request.app.state.active_tasks["asset_registration"].formData %}
+{% else %}
+{% set form_data = {} %}
+{% endif %}
+
+<div class="container mx-auto px-4 py-8 max-w-3xl">
+    <h1 class="text-3xl font-bold medperf-accent dark:text-green-400 text-center mb-8">Register a New Asset</h1>
+
+    <form id="asset-register-form" class="space-y-6" action="/assets/register" method="post" data-panel-title="Registering asset" data-confirm-message="register this asset?">
+        <input type="hidden" name="task_name" value="asset_registration">
+        <div>
+            <label for="name" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Asset name</label>
+            <div class="flex flex-wrap items-stretch gap-2">
+                <input name="name" type="text" id="name" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500" placeholder="{{ placeholders.register_asset_name }}" {% if asset_register_running %}value="{{ form_data.get('name', '') }}" disabled{% endif %} maxlength="128">
+                <span class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.register_asset_name }}"><i class="fas fa-info-circle text-lg"></i></span>
+            </div>
+        </div>
+        <div class="flex flex-wrap gap-4">
+            <label class="inline-flex items-center gap-2 cursor-pointer text-gray-900 dark:text-white">
+                <input type="radio" name="asset_is_remote" value="false" id="local" class="rounded-full border-gray-400 text-green-600 focus:ring-green-500 dark:border-gray-500 accent-green-600 dark:accent-green-400" {% if task_running %}disabled{% endif %} {% if not form_data.get('asset_is_remote') == 'true' %}checked{% endif %}>
+                Local Asset
+            </label>
+            <label class="inline-flex items-center gap-2 cursor-pointer text-gray-900 dark:text-white">
+                <input type="radio" name="asset_is_remote" value="true" id="remote" class="rounded-full border-gray-400 text-green-600 focus:ring-green-500 dark:border-gray-500 accent-green-600 dark:accent-green-400" {% if task_running %}disabled{% endif %} {% if form_data.get('asset_is_remote') == 'true' %}checked{% endif %}>
+                Remote Asset
+            </label>
+        </div>
+
+        <div id="asset-url-container" class="{% if not form_data.get('asset_is_remote') == 'true' %}hidden{% endif %}">
+            <label for="asset-url" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Asset URL</label>
+            <div class="flex flex-wrap items-stretch gap-2">
+                <input name="asset_url" type="text" id="asset-url" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500" placeholder="{{ placeholders.register_asset_url }}" {% if task_running %}disabled{% endif %} {% if asset_register_running %}value="{{ form_data.get('asset_url', '') }}"{% endif %}>
+                <span class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.register_asset_url }}"><i class="fas fa-info-circle text-lg"></i></span>
+            </div>
+        </div>
+
+        <div id="asset-path-container" class="{% if form_data.get('asset_is_remote') == 'true' %}hidden{% endif %}">
+            <label for="asset-path" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Asset Path</label>
+            <div class="flex flex-wrap items-stretch gap-2">
+                <input type="text" id="asset-path" name="asset_path" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500" placeholder="{{ placeholders.register_asset_path }}" {% if task_running %}disabled{% endif %} {% if asset_register_running %}value="{{ form_data.get('asset_path', '') }}"{% endif %}>
+                <button type="button" class="px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer" id="browse-asset-btn" {% if task_running %}disabled{% endif %}>Browse</button>
+                <span class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.register_asset_path }}"><i class="fas fa-info-circle text-lg"></i></span>
+            </div>
+        </div>
+
+        <div class="text-center pt-4">
+            <button id="register-asset-btn" type="submit" class="px-6 py-3 medperf-bg dark:bg-green-600 text-white rounded-xl font-bold hover:opacity-90 disabled:opacity-50 cursor-pointer" disabled>Register</button>
+        </div>
+    </form>
+
+    {{ modal_macros.add_modal(
+        modal_id="folder-picker-modal",
+        modal_body='<ul id="folder-list" class="divide-y divide-gray-200 dark:divide-gray-600 max-h-96 overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-600"></ul>',
+        modal_footer=True,
+        close_button='<button type="button" class="px-4 py-2 rounded-xl bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-900 dark:text-white font-semibold" data-dismiss-modal="folder-picker-modal">Cancel</button>',
+        success_button='<button type="button" class="px-4 py-2 rounded-xl medperf-bg dark:bg-green-600 text-white font-semibold" id="select-folder-btn">Select</button>'
+    ) }}
+
+    {% include "partials/panel_container.html" %}
+    {% include "partials/text_content_container.html" %}
+    {% include "partials/yaml_container.html" %}
+    {% include "partials/prompt_container.html" %}
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
+<script src="{{ url_for('static', path='js/assets/asset_register.js') }}"></script>
+<script src="{{ url_for('static', path='js/folder_browsing.js') }}"></script>
+{% if task_running and "asset_registration" in request.app.state.active_tasks %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        resumeRunningTask("#asset-register-form");
+    });
+</script>
+{% endif %}
+{% endblock extra_js %}

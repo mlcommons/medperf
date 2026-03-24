@@ -1,0 +1,19 @@
+{% macro aggregator_card(agg) %}
+<div class="bg-white dark:bg-gray-800 medperf-card dark:border-green-500/50 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all border border-transparent dark:border-gray-700 flex flex-col h-full">
+    <div class="flex items-start justify-between mb-4">
+        <div class="flex-1 min-w-0">
+            <div class="flex items-center mb-2">
+                <i class="fas fa-server medperf-accent dark:text-green-400 mr-2 flex-shrink-0"></i>
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white truncate">
+                    <a href="/aggregators/ui/display/{{ agg.id }}" class="hover:medperf-accent dark:hover:text-green-400 transition-colors" data-testid="agg-name">{{ agg.name }}</a>
+                </h3>
+            </div>
+            <p class="text-sm text-gray-500 dark:text-gray-400" data-testid="agg-id">ID: {{ agg.id }}</p>
+        </div>
+    </div>
+    <p class="text-gray-700 dark:text-gray-300 mb-2"><span class="font-semibold">Address:</span> {{ agg.address }}:{{ agg.port }}</p>
+    <div class="flex items-center justify-between pt-4 mt-auto border-t-2 border-gray-100 dark:border-gray-700">
+        <span class="text-xs text-gray-500 dark:text-gray-400" data-testid="agg-created-at" data-date="{{ agg.created_at }}" data-date-format="timeago"></span>
+    </div>
+</div>
+{% endmacro %}

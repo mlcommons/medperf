@@ -9,25 +9,25 @@ class ResultsTest(MedPerfTest):
     def generic_setup(self):
         # setup users
         data_owner = "data_owner"
-        mlcube_owner = "mlcube_owner"
+        model_owner = "model_owner"
         bmk_owner = "bmk_owner"
         bmk_prep_mlcube_owner = "bmk_prep_mlcube_owner"
-        ref_mlcube_owner = "ref_mlcube_owner"
+        ref_model_owner = "ref_model_owner"
         eval_mlcube_owner = "eval_mlcube_owner"
         other_user = "other_user"
 
         self.create_user(data_owner)
-        self.create_user(mlcube_owner)
+        self.create_user(model_owner)
         self.create_user(bmk_owner)
         self.create_user(bmk_prep_mlcube_owner)
-        self.create_user(ref_mlcube_owner)
+        self.create_user(ref_model_owner)
         self.create_user(eval_mlcube_owner)
         self.create_user(other_user)
 
         # create benchmark
         prep, _, _, benchmark = self.shortcut_create_benchmark(
             bmk_prep_mlcube_owner,
-            ref_mlcube_owner,
+            ref_model_owner,
             eval_mlcube_owner,
             bmk_owner,
         )
@@ -45,29 +45,29 @@ class ResultsTest(MedPerfTest):
         )
         self.create_dataset_association(assoc, data_owner, bmk_owner)
 
-        # create model mlcube
-        self.set_credentials(mlcube_owner)
-        mlcube = self.mock_mlcube(state="OPERATION")
-        mlcube = self.create_mlcube(mlcube).data
+        # create model model
+        self.set_credentials(model_owner)
+        model = self.mock_model(state="OPERATION")
+        model = self.create_model(model).data
 
-        # create mlcube assoc
-        assoc = self.mock_mlcube_association(
-            benchmark["id"], mlcube["id"], approval_status="APPROVED"
+        # create model assoc
+        assoc = self.mock_model_association(
+            benchmark["id"], model["id"], approval_status="APPROVED"
         )
-        self.create_mlcube_association(assoc, mlcube_owner, bmk_owner)
+        self.create_model_association(assoc, model_owner, bmk_owner)
 
         # setup globals
         self.data_owner = data_owner
-        self.mlcube_owner = mlcube_owner
+        self.model_owner = model_owner
         self.bmk_owner = bmk_owner
         self.bmk_prep_mlcube_owner = bmk_prep_mlcube_owner
-        self.ref_mlcube_owner = ref_mlcube_owner
+        self.ref_model_owner = ref_model_owner
         self.eval_mlcube_owner = eval_mlcube_owner
         self.other_user = other_user
 
         self.bmk_id = benchmark["id"]
         self.dataset_id = dataset["id"]
-        self.mlcube_id = mlcube["id"]
+        self.model_id = model["id"]
 
         self.url = self.api_prefix + "/results/{0}/"
         self.set_credentials(None)
@@ -90,7 +90,7 @@ class ResultGetTest(ResultsTest):
     def test_generic_get_result(self):
         # Arrange
         result = self.mock_result(
-            self.bmk_id, self.mlcube_id, self.dataset_id, results={"r": 1}
+            self.bmk_id, self.model_id, self.dataset_id, results={"r": 1}
         )
         self.set_credentials(self.data_owner)
         result = self.create_result(result).data
@@ -137,7 +137,7 @@ class ResultPutTest(ResultsTest):
     def test_put_does_not_modify_readonly_fields(self):
         # Arrange
         result = self.mock_result(
-            self.bmk_id, self.mlcube_id, self.dataset_id, results={"r": 1}
+            self.bmk_id, self.model_id, self.dataset_id, results={"r": 1}
         )
         self.set_credentials(self.data_owner)
         result = self.create_result(result).data
@@ -167,7 +167,7 @@ class ResultPutTest(ResultsTest):
     def test_adding_results_turns_result_object_finalized(self):
         # Arrange
         modelresult = self.mock_result(
-            self.bmk_id, self.mlcube_id, self.dataset_id, results={}
+            self.bmk_id, self.model_id, self.dataset_id, results={}
         )
         self.set_credentials(self.data_owner)
         result = self.create_result(modelresult).data
@@ -188,7 +188,7 @@ class ResultPutTest(ResultsTest):
     def test_put_is_not_allowed_with_finalized_result_objects(self):
         # Arrange
         modelresult = self.mock_result(
-            self.bmk_id, self.mlcube_id, self.dataset_id, results={"r": 1}
+            self.bmk_id, self.model_id, self.dataset_id, results={"r": 1}
         )
         self.set_credentials(self.data_owner)
         result = self.create_result(modelresult).data
@@ -232,7 +232,7 @@ class ResultDeleteTest(ResultsTest):
     def test_deletion_works_as_expected(self):
         # Arrange
         result = self.mock_result(
-            self.bmk_id, self.mlcube_id, self.dataset_id, results={"r": 1}
+            self.bmk_id, self.model_id, self.dataset_id, results={"r": 1}
         )
         self.set_credentials(self.data_owner)
         result = self.create_result(result).data
@@ -267,7 +267,7 @@ class PermissionTest(ResultsTest):
         super(PermissionTest, self).setUp()
         self.generic_setup()
         result = self.mock_result(
-            self.bmk_id, self.mlcube_id, self.dataset_id, results={"r": 1}
+            self.bmk_id, self.model_id, self.dataset_id, results={"r": 1}
         )
         self.set_credentials(self.data_owner)
         result = self.create_result(result).data
@@ -278,9 +278,9 @@ class PermissionTest(ResultsTest):
 
     @parameterized.expand(
         [
-            ("mlcube_owner", status.HTTP_403_FORBIDDEN),
+            ("model_owner", status.HTTP_403_FORBIDDEN),
             ("bmk_prep_mlcube_owner", status.HTTP_403_FORBIDDEN),
-            ("ref_mlcube_owner", status.HTTP_403_FORBIDDEN),
+            ("ref_model_owner", status.HTTP_403_FORBIDDEN),
             ("eval_mlcube_owner", status.HTTP_403_FORBIDDEN),
             ("other_user", status.HTTP_403_FORBIDDEN),
             (None, status.HTTP_401_UNAUTHORIZED),
@@ -299,9 +299,9 @@ class PermissionTest(ResultsTest):
     @parameterized.expand(
         [
             ("bmk_owner", status.HTTP_403_FORBIDDEN),
-            ("mlcube_owner", status.HTTP_403_FORBIDDEN),
+            ("model_owner", status.HTTP_403_FORBIDDEN),
             ("bmk_prep_mlcube_owner", status.HTTP_403_FORBIDDEN),
-            ("ref_mlcube_owner", status.HTTP_403_FORBIDDEN),
+            ("ref_model_owner", status.HTTP_403_FORBIDDEN),
             ("eval_mlcube_owner", status.HTTP_403_FORBIDDEN),
             ("other_user", status.HTTP_403_FORBIDDEN),
             (None, status.HTTP_401_UNAUTHORIZED),
@@ -313,12 +313,21 @@ class PermissionTest(ResultsTest):
         # create new assets to edit with
         prep, refmodel, _, newbenchmark = self.shortcut_create_benchmark(
             self.bmk_prep_mlcube_owner,
-            self.ref_mlcube_owner,
+            self.ref_model_owner,
             self.eval_mlcube_owner,
             self.bmk_owner,
-            prep_mlcube_kwargs={"name": "newprep", "container_config": {"newprephash": "newprephash"}},
-            ref_mlcube_kwargs={"name": "newref", "container_config": {"newrefhash": "newrefhash"}},
-            eval_mlcube_kwargs={"name": "neweval", "container_config": {"newevalhash": "newevalhash"}},
+            prep_mlcube_kwargs={
+                "name": "newprep",
+                "container_config": {"newprephash": "newprephash"},
+            },
+            ref_model_kwargs={
+                "name": "newref",
+                "container_config": {"newrefhash": "newrefhash"},
+            },
+            eval_mlcube_kwargs={
+                "name": "neweval",
+                "container_config": {"newevalhash": "newevalhash"},
+            },
             name="newbmk",
         )
         self.set_credentials(self.data_owner)
@@ -361,10 +370,10 @@ class PermissionTest(ResultsTest):
     @parameterized.expand(
         [
             ("bmk_owner", status.HTTP_403_FORBIDDEN),
-            ("mlcube_owner", status.HTTP_403_FORBIDDEN),
+            ("model_owner", status.HTTP_403_FORBIDDEN),
             ("data_owner", status.HTTP_403_FORBIDDEN),
             ("bmk_prep_mlcube_owner", status.HTTP_403_FORBIDDEN),
-            ("ref_mlcube_owner", status.HTTP_403_FORBIDDEN),
+            ("ref_model_owner", status.HTTP_403_FORBIDDEN),
             ("eval_mlcube_owner", status.HTTP_403_FORBIDDEN),
             ("other_user", status.HTTP_403_FORBIDDEN),
             (None, status.HTTP_401_UNAUTHORIZED),

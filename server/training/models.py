@@ -47,6 +47,13 @@ class TrainingExperiment(models.Model):
         choices=EXP_STATUS, max_length=100, default="PENDING"
     )
     plan = models.JSONField(blank=True, null=True)
+    aggregator = models.ForeignKey(
+        "aggregator.Aggregator",
+        on_delete=models.PROTECT,
+        related_name="training_experiments",
+        null=True,
+        blank=True,
+    )
 
     user_metadata = models.JSONField(default=dict, blank=True, null=True)
     approved_at = models.DateTimeField(null=True, blank=True)
@@ -59,14 +66,6 @@ class TrainingExperiment(models.Model):
     @property
     def event(self):
         return self.events.all().order_by("created_at").last()
-
-    @property
-    def aggregator(self):
-        aggregator_assoc = (
-            self.experimentaggregator_set.all().order_by("created_at").last()
-        )
-        if aggregator_assoc and aggregator_assoc.approval_status == "APPROVED":
-            return aggregator_assoc.aggregator
 
     class Meta:
         ordering = ["modified_at"]

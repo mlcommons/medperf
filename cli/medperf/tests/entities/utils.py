@@ -27,7 +27,7 @@ def setup_benchmark_fs(ents, fs):
         bmk_filepath = os.path.join(bmk_contents.path, config.benchmarks_filename)
         cubes_ids = []
         cubes_ids.append(bmk_contents.data_preparation_mlcube)
-        cubes_ids.append(bmk_contents.reference_model_mlcube)
+        cubes_ids.append(bmk_contents.reference_model)
         cubes_ids.append(bmk_contents.data_evaluator_mlcube)
         cubes_ids = list(set(cubes_ids))
         setup_cube_fs(cubes_ids, fs)
@@ -110,7 +110,7 @@ def setup_cube_comms_downloads(mocker, fs):
     get_img_fn = generate_cubefile_fn(fs, img_path, img_file)
 
     mocker.patch(PATCH_RESOURCES.format("get_cube_additional"), side_effect=get_add_fn)
-    mocker.patch(PATCH_RESOURCES.format("get_cube_image"), side_effect=get_img_fn)
+    mocker.patch(PATCH_RESOURCES.format("get_hashed_file"), side_effect=get_img_fn)
 
 
 # Setup Dataset

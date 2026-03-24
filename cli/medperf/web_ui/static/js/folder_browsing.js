@@ -1,73 +1,91 @@
-function loadFolder(path) {
-    $.ajax({
-        url: "/api/browse",
-        method: "POST",
-        data: { path: path, with_files: browseWithFiles},
-        success: function(response) {
-            currentPath = response.current_folder;
-            const folderList = $("#folder-list");
-            folderList.empty();
-
-            if (response.parent) {
-                if(response.have_parent)
-                    folderList.append(`<li class='list-group-item folder-item' data-path='${response.parent}'>.. (parent)</li>`);
-                else
-                    folderList.append(`<li class='list-group-item folder-item parent-disabled' data-path='${response.parent}'>.. (parent)</li>`);
-            }
-
-            response.folders.forEach(item => {
-                if (item.type === "dir")
-                    folderList.append(`<li class='list-group-item folder-item' data-path='${item.path}'>${item.name}</li>`);
-                else
-                    folderList.append(`<li class='list-group-item folder-item file-item' data-path='${item.path}'>${item.name}</li>`);
-            });
-            $("#folder-picker-modal-title").html(`Select Path: <code>${currentPath}</code>`);
-        }
-    });
+function showFolderPickerModal() {
+    const el = document.getElementById("folder-picker-modal");
+    if (el) { el.classList.remove("hidden"); document.body.classList.add("overflow-hidden"); }
+}
+function hideFolderPickerModal() {
+    const el = document.getElementById("folder-picker-modal");
+    if (el) { el.classList.add("hidden"); document.body.classList.remove("overflow-hidden"); }
 }
 
-function browseFolderHandler(elementId){
+function loadFolder(path) {
+    var formData = new FormData();
+    formData.append("path", path);
+    formData.append("with_files", browseWithFiles);
+    fetch("/api/browse", { method: "POST", body: formData })
+        .then(function (r) { return r.json(); })
+        .then(function (response) {
+            currentPath = response.current_folder || "";
+            var folderList = document.getElementById("folder-list");
+            if (!folderList) return;
+            folderList.innerHTML = "";
+            if (response.parent) {
+                var li = document.createElement("li");
+                li.className = response.have_parent ? "folder-item cursor-pointer px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 border-b border-gray-200 dark:border-gray-600" : "folder-item parent-disabled cursor-not-allowed px-4 py-2 text-gray-400";
+                li.setAttribute("data-path", response.parent);
+                li.textContent = ".. (parent)";
+                folderList.appendChild(li);
+            }
+            (response.folders || []).forEach(function (item) {
+                var li = document.createElement("li");
+                li.className = item.type === "dir" ? "folder-item cursor-pointer px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 border-b border-gray-200 dark:border-gray-600" : "folder-item file-item cursor-pointer px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 border-b border-gray-200 dark:border-gray-600 text-gray-500";
+                li.setAttribute("data-path", item.path);
+                li.textContent = item.name;
+                folderList.appendChild(li);
+            });
+            var titleEl = document.getElementById("folder-picker-modal-title");
+            if (titleEl) titleEl.innerHTML = "Select Path: <code class=\"text-sm bg-gray-100 dark:bg-gray-700 px-1 rounded\">" + currentPath + "</code>";
+        });
+}
+
+function browseFolderHandler(elementId) {
     activeInput = document.getElementById(elementId);
-    if (currentPathType === "file"){
+    if (currentPathType === "file") {
         currentPathType = "folder";
         currentPath += "/..";
     }
     loadFolder(currentPath);
-    $("#folder-picker-modal").modal("show");
+    showFolderPickerModal();
 }
 
-// AJAX folder browsing logic
 let currentPath = "";
 let currentPathType = "folder";
 let browseWithFiles = false;
 let activeInput = null;
 
-$(document).ready(() => {
-    $("#folder-list").on("click", (e) => {
-        const clickedElement = e.target;
-        if (clickedElement.classList.contains("file-item")){
-            currentPath = e.target.getAttribute("data-path");
-            $("#folder-picker-modal-title").html(`<b>Selected File:</b> <code>${currentPath}</code>`);
-            currentPathType = "file";
-        }
-        else if (
-            clickedElement.classList.contains("folder-item") &&
-            !clickedElement.classList.contains("parent-disabled")
-        ) {
-            currentPath = e.target.getAttribute("data-path");
-            if (currentPathType === "file"){
-                currentPathType = "folder";
-                currentPath += "/..";
+document.addEventListener("DOMContentLoaded", function () {
+    const folderList = document.getElementById("folder-list");
+    if (folderList) {
+        folderList.addEventListener("click", function (e) {
+            const clicked = e.target.closest(".folder-item");
+            if (!clicked) return;
+            if (clicked.classList.contains("file-item")) {
+                currentPath = clicked.getAttribute("data-path");
+                const titleEl = document.getElementById("folder-picker-modal-title");
+                if (titleEl) titleEl.innerHTML = "<b>Selected File:</b> <code class=\"text-sm bg-gray-100 dark:bg-gray-700 px-1 rounded\">" + currentPath + "</code>";
+                currentPathType = "file";
+            } else if (!clicked.classList.contains("parent-disabled")) {
+                currentPath = clicked.getAttribute("data-path");
+                if (currentPathType === "file") {
+                    currentPathType = "folder";
+                    currentPath += "/..";
+                }
+                loadFolder(currentPath);
             }
-            loadFolder(currentPath);
-        }
-    });
-    
-    $("#select-folder-btn").on("click", () => {
-        if (activeInput) {
-            activeInput.value = currentPath;
-            $(activeInput).trigger("keyup");
-        }
-        $("#folder-picker-modal").modal("hide");
+        });
+    }
+
+    const selectBtn = document.getElementById("select-folder-btn");
+    if (selectBtn) {
+        selectBtn.addEventListener("click", function () {
+            if (activeInput) {
+                activeInput.value = currentPath;
+                activeInput.dispatchEvent(new Event("keyup", { bubbles: true }));
+            }
+            hideFolderPickerModal();
+        });
+    }
+
+    document.querySelectorAll("[data-dismiss-modal='folder-picker-modal']").forEach(function (btn) {
+        btn.addEventListener("click", hideFolderPickerModal);
     });
 });

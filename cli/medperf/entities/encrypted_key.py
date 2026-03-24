@@ -1,7 +1,8 @@
 from __future__ import annotations
 import base64
 import logging
-from medperf.entities.schemas import MedperfSchema
+from medperf.entities.interface import Entity
+from medperf.entities.schemas import EncryptedKeySchema
 from medperf import config
 from medperf.exceptions import (
     MedperfException,
@@ -15,16 +16,21 @@ from medperf.commands.certificate.utils import (
 from medperf.encryption import AsymmetricEncryption
 from medperf.utils import tmp_path_for_key_decryption, secure_write_to_file
 from typing import List
+from medperf.entities.utils import handle_validation_error
 
 
-class EncryptedKey(MedperfSchema):
+class EncryptedKey(Entity):
     """
     Class representing an Encrypted Container Key
     """
 
-    encrypted_key_base64: str
-    container: int
-    certificate: int
+    @handle_validation_error
+    def __init__(self, **kwargs):
+        self._model = EncryptedKeySchema(**kwargs)
+        super().__init__()
+        self.encrypted_key_base64 = self._model.encrypted_key_base64
+        self.container = self._model.container
+        self.certificate = self._model.certificate
 
     @classmethod
     def get(cls, key_id: int) -> EncryptedKey:
@@ -55,9 +61,8 @@ class EncryptedKey(MedperfSchema):
             user_cert.id, filters=filters
         )
         if len(keys) == 0:
-            raise PrivateContainerAccessError(
-                f"You don't have access to the container {container_id}"
-            )
+            logging.debug(f"No keys found for container {container_id}")
+            raise PrivateContainerAccessError("You don't have access to the container")
 
         if len(keys) > 1:
             raise MedperfException("Internal error: expected only one key.")

@@ -14,16 +14,12 @@ PATCH_APPROVE = "medperf.commands.association.approval.{}"
             "update_benchmark_dataset_association",
         ),
         (
-            {"benchmark_uid": 1, "mlcube_uid": 1},
+            {"benchmark_uid": 1, "model_uid": 1},
             "update_benchmark_model_association",
         ),
         (
             {"training_exp_uid": 1, "dataset_uid": 1},
             "update_training_dataset_association",
-        ),
-        (
-            {"training_exp_uid": 1, "aggregator_uid": 1},
-            "update_training_aggregator_association",
         ),
     ],
 )

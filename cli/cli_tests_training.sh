@@ -165,16 +165,6 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Running aggregator association step"
-echo "====================================="
-print_eval medperf aggregator associate -a $AGG_UID -t $TRAINING_UID -y
-checkFailed "aggregator association step failed"
-##########################################################
-
-echo "\n"
-
-##########################################################
-echo "====================================="
 echo "Activate modelowner profile"
 echo "====================================="
 print_eval medperf profile activate testmodel
@@ -185,10 +175,10 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Approve aggregator association"
+echo "Running set aggregator step"
 echo "====================================="
-print_eval medperf association approve -t $TRAINING_UID -a $AGG_UID
-checkFailed "agg association approval failed"
+print_eval medperf training set_aggregator -t $TRAINING_UID -a $AGG_UID -y
+checkFailed "Setting aggregator failed"
 ##########################################################
 
 echo "\n"
@@ -454,15 +444,16 @@ checkFailed "Get experiment status failed"
 
 echo "\n"
 
-##########################################################
-echo "====================================="
-echo "Update plan parameter"
-echo "====================================="
-print_eval medperf training update_plan -t $TRAINING_UID -f "straggler_handling_policy.settings.straggler_cutoff_time" -v 1200
-checkFailed "Update plan failed"
-##########################################################
+# Commented for now since it's happenning after aggregator finishes, causing infinite wait. to be fixed.
+# ##########################################################
+# echo "====================================="
+# echo "Update plan parameter"
+# echo "====================================="
+# print_eval medperf training update_plan -t $TRAINING_UID -f "straggler_handling_policy.settings.straggler_cutoff_time" -v 1200
+# checkFailed "Update plan failed"
+# ##########################################################
 
-echo "\n"
+# echo "\n"
 
 ##########################################################
 echo "====================================="

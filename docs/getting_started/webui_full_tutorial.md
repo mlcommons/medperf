@@ -79,7 +79,7 @@ In this section you will learn how to register the benchmark containers. When re
 
 - A pointer to the container parameters file: This file is optional; it is only required if you build your container in a way such that it expects a mounted parameters file. This is usually helpful in cases where you don't want to hardcode application-specific parameters inside the container. Most of the tutorial containers will have a parameters file.
 
-- A pointer to the container "additional files" compressed file: Similar to the parameters file, this file is optional; it is only required if you build your container in a way such that it expects a mounted folder for some additional files such as model weights. This is usually helpful in cases where you don't want to hardcode application-specific assets, like model weights, inside the container. The model containers in this tutorial will expect an additional files folder.
+- A pointer to the container "additional files" compressed file: Similar to the parameters file, this file is optional; it is only required if you build your container in a way such that it expects a mounted folder for some additional files such as model weights. This is usually helpful in cases where you don't want to hardcode application-specific files, like model weights, inside the container. The model containers in this tutorial will expect an additional files folder.
 
 Now, let's register the benchmark containers.
 
@@ -210,7 +210,7 @@ To initiate an association request, you need to keep at hand the following infor
 - The target benchmark name.
 - Your container's name.
 
-Then, visit your container's detail page, and start the association request by clicking on the `Associate with a benchmark` button.
+Then, visit your model's detail page, and start the association request by clicking on the `Associate with a benchmark` button.
 
 ![Model Owner Requests Association](../images/webui/model_request_association.png)
 

@@ -25,11 +25,12 @@ nav:
     # - Creating Model containers from GaNDLF: containers/gandlf_container.md
   - Authentication: concepts/auth.md
   #  - Client Configuration: concepts/profiles.md
-  - Container Assets: concepts/container_assets.md
+  - Container Components: concepts/container_components.md
   - Hosting Files: concepts/hosting_files.md
   - Transferring to another Machine: concepts/import_export_data.md
   - Encrypted Models: concepts/encrypted_models.md
   - Certificates: concepts/certificates.md
+  - Confidential Computing: concepts/confidential_computing.md
   #  - Benchmark Associations: concepts/associations.md
   #  - Model Priority: concepts/priorities.md
   #  - Running Specific Models: concepts/single_run.md

@@ -3,6 +3,7 @@ from medperf.entities.cube import Cube
 
 
 def get_container_type(container: Cube):
+    # todo: use container parser.
     container_config = container.container_config
     container_tasks = container_config.get("tasks", []).keys()
 
@@ -10,7 +11,7 @@ def get_container_type(container: Cube):
         return "data-prep-container"
     elif "infer" in container_tasks:
         return "reference-container"
-    elif "evaluate" in container_tasks:
+    elif "evaluate" in container_tasks or "run_script" in container_tasks:
         return "metrics-container"
     else:
         return "unknown-container"

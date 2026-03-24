@@ -16,45 +16,28 @@ hide:
 
 ## Overview
 
-In this guide, you will learn how a Model Owner can use MedPerf to take part in a benchmark. Usuall as a model owner you may be also interested in how to build a [MedPerf-compatible model container](../containers/containers.md#model-container). But this guide provides an already implemented container if you want to directly proceed to learn how to interact with MedPerf.
+In this guide, you will learn how a Model Owner can use MedPerf to take part in a benchmark. Usually as a model owner you may be also interested in how to build a [MedPerf-compatible model container](../containers/containers.md#model-container). But this guide provides an already implemented container if you want to directly proceed to learn how to interact with MedPerf.
 
 The main tasks of this guide are:
 
-1. Testing container compatibility with the benchmark.
-2. Submitting the container.
+1. A few notes about your model compatibility
+2. Submitting the model.
 3. Requesting participation in a benchmark.
 
 It's assumed that you have already set up the general testing environment as explained in the [setup guide](setup.md).
 
 {% include "getting_started/shared/before_we_start.md" %}
 
-## 1. Test your Container Compatibility
+## 1. Check your Implementation
 
-![Model Owner implements & tests Container](../tutorial_images/mo-1-mo-implements-cube.png){class="tutorial-sticky-image-content"}
-Before submitting your container, it is highly recommended that you test your container compatibility with the benchmarks of interest to avoid later edits and multiple submissions. Your container should be compatible with the benchmark workflow in two main ways:
+Make sure your model container is compatible with the benchmark workflow in two main ways:
 
 1. It should expect a specific data input structure
 2. Its outputs should follow a particular structure expected by the benchmark's metrics evaluator container
 
 These details should usually be acquired by contacting the Benchmark Committee and following their instructions.
 
-To test your container validity with the benchmark, first run `medperf benchmark ls` to identify the benchmark's server UID. In this tutorial, it is going to be `1`.
-
-Next, locate the container. Unless you implemented your own container, the container provided for this tutorial is located in your workspace: `{{ model_container }}`. It's parameters file and additional files are also provided.
-
-After that, run the compatibility test:
-
-```bash
-medperf test run \
-   --benchmark 1 \
-   --model "{{ model_container }}" \
-   --model_parameters "{{ model_params }}" \
-   --model_additional_files "medperf_tutorial/model_custom_cnn/workspace/additional_files" \
-```
-
-Assuming the test passes successfuly, you are ready to submit the container to the MedPerf server.
-
-## 2. Submit the Container
+## 2. Submit the Model
 
 ![Model Owner submits Model Container](../tutorial_images/mo-2-mo-submits-model.png){class="tutorial-sticky-image-content"}
 
@@ -64,9 +47,9 @@ Assuming the test passes successfuly, you are ready to submit the container to t
 
 {% include "getting_started/shared/redirect_to_hosting_files.md" %}
 
-### Submit the Container
+### Submit the Model
 
-The submission should include the URLs of the hosted assets and the paths to the configuration files. For the Container provided for the tutorial:
+The submission should include the URLs of the hosted files and the paths to the configuration files. For the model provided for the tutorial:
 
 - The path to the container configuration file is
 
@@ -89,7 +72,7 @@ The submission should include the URLs of the hosted assets and the paths to the
 Use the following command to submit:
 
 ```bash
-medperf container submit \
+medperf model submit \
    --name my-model \
    --container-config-file "{{ model_container }}" \
    --parameters-file "{{ model_params }}" \
@@ -97,10 +80,10 @@ medperf container submit \
    --operational
 ```
 
-The container will be assigned by a server UID. You can check it by running:
+The model will be assigned by a server UID. You can check it by running:
 
 ```bash
-medperf container ls --mine
+medperf model ls --mine
 ```
 
 ## 3. Request Participation
@@ -111,12 +94,12 @@ Benchmark workflows are run by Data Owners, who will get notified when a new mod
 To initiate an association request, you need to collect the following information:
 
 - The target benchmark ID, which is `1`
-- The server UID of your container, which is `4`.
+- The server UID of your model, which is `2`.
 
-Run the following command to request associating your container with the benchmark:
+Run the following command to request associating your model with the benchmark:
 
 ```bash
-medperf container associate --benchmark 1 --model_uid 4
+medperf model associate --benchmark 1 --model_uid 2
 ```
 
 This command will first run the benchmark's workflow on your model to ensure your model is compatible with the benchmark workflow. Then, the association request information is printed on the screen, which includes an executive summary of the test mentioned. You will be prompted to confirm sending this information and initiating this association request.
@@ -124,7 +107,7 @@ This command will first run the benchmark's workflow on your model to ensure you
 #### What Happens After Requesting the Association?
 
 ![Benchmark Committee accepts / rejects models](../tutorial_images/mo-4-bc-accepts-rejects-models.png){class="tutorial-sticky-image-content"}
-When participating with a real benchmark, you must wait for the Benchmark Committee to approve the association request. You can check the status of your association requests by running `medperf association ls -bm`. The association is identified by the server UIDs of your container and the benchmark with which you are requesting association.
+When participating with a real benchmark, you must wait for the Benchmark Committee to approve the association request. You can check the status of your association requests by running `medperf association ls -bm`. The association is identified by the server UIDs of your model and the benchmark with which you are requesting association.
 
 ![The end](../tutorial_images/the-end.png){class="tutorial-sticky-image-content"}
 {% include "getting_started/shared/cleanup.md" %}

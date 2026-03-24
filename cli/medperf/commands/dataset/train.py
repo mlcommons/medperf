@@ -46,13 +46,13 @@ class TrainingExecution:
             execution.confirm_restart_on_failure()
 
         while True:
-            execution.prepare()
-            execution.validate()
-            execution.check_existing_outputs()
-            execution.prepare_plan()
-            execution.prepare_pki_assets()
-            execution.confirm_run()
             with config.ui.interactive():
+                execution.prepare()
+                execution.validate()
+                execution.check_existing_outputs()
+                execution.prepare_plan()
+                execution.prepare_pki_assets()
+                execution.confirm_run()
                 execution.prepare_training_cube()
                 try:
                     execution.run_experiment()

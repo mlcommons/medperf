@@ -27,36 +27,51 @@ from medperf.account_management.account_management import (
 )
 from medperf.web_ui.schemas import WebUITask
 
-from medperf.web_ui.utils import generate_uuid
-
 templates_folder_path = Path(resources.files("medperf.web_ui")) / "templates"
 templates = Jinja2Templates(directory=templates_folder_path)
 
 logger = logging.getLogger(__name__)
 
-ALLOWED_PATHS = ["/events", "/notifications", "/current_task", "/fetch-yaml"]
+ALLOWED_PATHS = [
+    "/events",
+    "/notifications",
+    "/api/running_tasks",
+    "/api/stop_task",
+    "/aggregators/run",
+    "/datasets/start_training",
+    "/settings/activate_profile",
+]
 
 
 def initialize_state_task(request: Request, task_name: str) -> str:
     form_data = dict(anyio.from_thread.run(lambda: request.form()))
-    new_task_id = generate_uuid()
+    new_task_id = task_name
     config.ui.start_task(new_task_id)
-    request.app.state.task = WebUITask(
-        id=new_task_id, name=task_name, running=True, formData=form_data
-    )
+    task = WebUITask(id=new_task_id, name=task_name, running=True, formData=form_data)
+    request.app.state.active_tasks[task_name] = task
+    request.app.state.task = task
     request.app.state.task_running = True
 
     return new_task_id
 
 
-def reset_state_task(request: Request):
-    current_task = request.app.state.task
+def reset_state_task(request: Request, task_id: str = None):
+    if task_id is None:
+        task_id = getattr(request.app.state.task, "id", None)
+    if task_id is None:
+        return
+    active_tasks = request.app.state.active_tasks
+    current_task = active_tasks.pop(task_id, None)
+    if current_task is None:
+        return
     current_task.set_running(False)
+
+    if not active_tasks:
+        request.app.state.task_running = False
+
     if len(request.app.state.old_tasks) == 10:
         request.app.state.old_tasks.pop(0)
     request.app.state.old_tasks.append(current_task)
-    request.app.state.task = WebUITask()
-    request.app.state.task_running = False
 
 
 def custom_exception_handler(request: Request, exc: Exception):

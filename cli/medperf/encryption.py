@@ -1,3 +1,4 @@
+import os
 from medperf.exceptions import (
     DecryptionError,
     EncryptionError,
@@ -12,38 +13,73 @@ from cryptography import x509
 import logging
 
 
-def check_gpg():
-    logging.debug("Checking if GPG is available")
-    gpg_check_command = ["gpg", "--version"]
-    logging.debug("Running GPG check command")
-    try:
-        run_command(gpg_check_command)
-    except ExecutionError:
-        raise MedperfException("GPG is not installed.")
+# symmetric encryption/decryption
+class SymmetricEncryption:
+    def __init__(self):
+        self.gpg_exec = "gpg"
 
+    def check(self) -> None:
+        logging.debug("Checking if GPG is available")
+        gpg_check_command = [self.gpg_exec, "--version"]
+        logging.debug("Running GPG check command")
+        try:
+            run_command(gpg_check_command)
+        except ExecutionError:
+            raise MedperfException("GPG is not installed.")
 
-# GPG symmetric decryption
-def decrypt_gpg_file(encrypted_file_path, decryption_key_file, output_path):
-    logging.debug("Decrypting a GPG file")
-    logging.debug(f"Encrypted file path: {encrypted_file_path}")
-    logging.debug(f"Output path: {output_path}")
-    logging.debug(f"Decryption key file path: {decryption_key_file}")
+    def decrypt_file(
+        self, encrypted_file_path: str, decryption_key_file: str, output_path: str
+    ) -> None:
+        logging.debug("Decrypting a GPG file")
+        logging.debug(f"Encrypted file path: {encrypted_file_path}")
+        logging.debug(f"Output path: {output_path}")
+        logging.debug(f"Decryption key file path: {decryption_key_file}")
+        if os.path.exists(output_path):
+            raise MedperfException(
+                f"Output file for decryption {output_path} already exists"
+            )
+        gpg_decrypt_command = [
+            self.gpg_exec,
+            "--batch",
+            "--decrypt",
+            "--output",
+            output_path,
+            "--passphrase-file",
+            decryption_key_file,
+            encrypted_file_path,
+        ]
+        try:
+            logging.debug("Running GPG decrypt command")
+            run_command(gpg_decrypt_command)
+        except Exception as e:
+            raise DecryptionError(f"File decryption failed: {str(e)}")
 
-    gpg_decrypt_command = [
-        "gpg",
-        "--batch",
-        "--decrypt",
-        "--output",
-        output_path,
-        "--passphrase-file",
-        decryption_key_file,
-        encrypted_file_path,
-    ]
-    try:
-        logging.debug("Running GPG decrypt command")
-        run_command(gpg_decrypt_command)
-    except Exception as e:
-        raise DecryptionError(f"File decryption failed: {str(e)}")
+    def encrypt_file(
+        self, plaintext_file_path: str, decryption_key_file: str, output_path: str
+    ) -> None:
+        logging.debug("Encrypting a file with GPG")
+        logging.debug(f"Plaintext file path: {plaintext_file_path}")
+        logging.debug(f"Output path: {output_path}")
+        logging.debug(f"Decryption key file path: {decryption_key_file}")
+        if os.path.exists(output_path):
+            raise MedperfException(
+                f"Output file for encryption {output_path} already exists"
+            )
+        gpg_encrypt_command = [
+            self.gpg_exec,
+            "--batch",
+            "--symmetric",
+            "--output",
+            output_path,
+            "--passphrase-file",
+            decryption_key_file,
+            plaintext_file_path,
+        ]
+        try:
+            logging.debug("Running GPG encrypt command")
+            run_command(gpg_encrypt_command)
+        except Exception as e:
+            raise DecryptionError(f"File encryption failed: {str(e)}")
 
 
 # asymmetric encryption/decryption

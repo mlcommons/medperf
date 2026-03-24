@@ -1,16 +1,15 @@
 import os
 from medperf.commands.association.utils import get_experiment_associations
 import yaml
-from typing import List, Optional
-from pydantic import HttpUrl, Field
-
+from typing import List
 import medperf.config as config
 from medperf.entities.interface import Entity
-from medperf.entities.schemas import MedperfSchema, ApprovableSchema, DeployableSchema
+from medperf.entities.schemas import TrainingExpSchema
 from medperf.account_management import get_medperf_user_data
+from medperf.entities.utils import handle_validation_error
 
 
-class TrainingExp(Entity, MedperfSchema, ApprovableSchema, DeployableSchema):
+class TrainingExp(Entity):
     """
     Class representing a TrainingExp
 
@@ -20,18 +19,6 @@ class TrainingExp(Entity, MedperfSchema, ApprovableSchema, DeployableSchema):
     regarding how to prepare datasets for execution, as well as
     what models to run and how to evaluate them.
     """
-
-    description: Optional[str] = Field(None, max_length=256)
-    docs_url: Optional[HttpUrl]
-    demo_dataset_tarball_url: str
-    demo_dataset_tarball_hash: Optional[str]
-    demo_dataset_generated_uid: Optional[str]
-    data_preparation_mlcube: int
-    fl_mlcube: int
-    fl_admin_mlcube: Optional[int]
-    plan: dict = {}
-    metadata: dict = {}
-    user_metadata: dict = {}
 
     @staticmethod
     def get_type():
@@ -53,14 +40,35 @@ class TrainingExp(Entity, MedperfSchema, ApprovableSchema, DeployableSchema):
     def get_comms_uploader():
         return config.comms.upload_training_exp
 
-    def __init__(self, *args, **kwargs):
+    @handle_validation_error
+    def __init__(self, **kwargs):
         """Creates a new training_exp instance
 
         Args:
             training_exp_desc (Union[dict, TrainingExpModel]): TrainingExp instance description
         """
-        super().__init__(*args, **kwargs)
+        self._model = TrainingExpSchema(**kwargs)
+        super().__init__()
 
+        self.approved_at = self._model.approved_at
+        self.approval_status = self._model.approval_status
+        self.state = self._model.state
+        self.description = self._model.description
+        self.docs_url = self._model.docs_url
+        self.demo_dataset_tarball_url = self._model.demo_dataset_tarball_url
+        self.demo_dataset_tarball_hash = self._model.demo_dataset_tarball_hash
+        self.demo_dataset_generated_uid = self._model.demo_dataset_generated_uid
+        self.data_preparation_mlcube = self._model.data_preparation_mlcube
+        self.fl_mlcube = self._model.fl_mlcube
+        self.fl_admin_mlcube = self._model.fl_admin_mlcube
+        self.plan = self._model.plan
+        self.metadata = self._model.metadata
+        self.user_metadata = self._model.user_metadata
+        self.aggregator = self._model.aggregator
+
+        self._set_helper_attributes()
+
+    def _set_helper_attributes(self):
         self.plan_path = os.path.join(self.path, config.training_exp_plan_filename)
         self.status_path = os.path.join(self.path, config.training_exp_status_filename)
 
@@ -131,6 +139,7 @@ class TrainingExp(Entity, MedperfSchema, ApprovableSchema, DeployableSchema):
             "Documentation": self.docs_url,
             "Created At": self.created_at,
             "FL Container": int(self.fl_mlcube),
+            "Aggregator": int(self.aggregator) if self.aggregator else None,
             "Plan": self.plan,
             "State": self.state,
             "Registered": self.is_registered,
