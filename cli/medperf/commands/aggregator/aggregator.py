@@ -23,12 +23,17 @@ def submit(
     port: int = typer.Option(
         ..., "--port", "-p", help="The port which the aggregator will use"
     ),
+    admin_port: int = typer.Option(
+        ...,
+        "--admin-port",
+        help="The port which the aggregator will use to serve admin requests",
+    ),
     aggregation_mlcube: int = typer.Option(
         ..., "--aggregation-container", "-m", help="Aggregation container UID"
     ),
 ):
     """Submits an aggregator"""
-    SubmitAggregator.run(name, address, port, aggregation_mlcube)
+    SubmitAggregator.run(name, address, port, admin_port, aggregation_mlcube)
     config.ui.print("✅ Done!")
 
 

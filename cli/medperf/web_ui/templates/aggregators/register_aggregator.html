@@ -39,6 +39,13 @@
             </div>
         </div>
         <div>
+            <label for="admin_port" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Admin Port</label>
+            <div class="flex flex-wrap items-stretch gap-2">
+                <input name="admin_port" type="number" id="admin-port" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500" placeholder="Admin Port number" min="1" max="65535" {% if task_running %}disabled{% endif %} {% if agg_register_running %}value="{{ form_data.get('admin_port', '') }}"{% endif %}>
+                <span class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.register_aggregator_admin_port }}"><i class="fas fa-info-circle text-lg"></i></span>
+            </div>
+        </div>
+        <div>
             <label for="aggregation_mlcube" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Aggregation Container</label>
             <div class="flex flex-wrap items-stretch gap-2">
                 <select name="aggregation_mlcube" id="aggregation-mlcube" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500 cursor-pointer" {% if task_running %}disabled{% endif %}>

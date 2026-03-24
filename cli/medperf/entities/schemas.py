@@ -26,12 +26,11 @@ class AggregatorSchema(MedperfSchema):
     @validator("config", pre=True, always=True)
     def check_config(cls, v, *, values, **kwargs):
         keys = set(v.keys())
-        allowed_keys = {
-            "address",
-            "port",
-        }
+        allowed_keys = {"address", "port", "admin_port"}
         if keys != allowed_keys:
-            raise ValueError("config must contain two keys only: address and port")
+            raise ValueError(
+                "config must contain three keys only: address, port, and admin_port"
+            )
         return v
 
 

@@ -59,6 +59,7 @@ class Aggregator(Entity):
     def _set_helper_attributes(self):
         self.address = self.config["address"]
         self.port = self.config["port"]
+        self.admin_port = self.config["admin_port"]
 
         self.config_path = os.path.join(self.path, config.agg_config_file)
 
@@ -111,6 +112,7 @@ class Aggregator(Entity):
             "Address": self.address,
             "Container": int(self.aggregation_mlcube),
             "Port": self.port,
+            "Admin Port": self.admin_port,
             "Created At": self.created_at,
             "Registered": self.is_registered,
         }

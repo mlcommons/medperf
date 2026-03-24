@@ -105,9 +105,13 @@ class StartAggregator:
 
         self.ui.text = "Running Aggregator"
         port = self.aggregator.port
+        admin_port = self.aggregator.admin_port
+        ports = [f"{self.publish_on}:{port}:{port}"]
+        if admin_port != port:
+            ports.append(f"{self.publish_on}:{admin_port}:{admin_port}")
         self.cube.run(
             task="start_aggregator",
             mounts=mounts,
-            ports=[f"{self.publish_on}:{port}:{port}"],
+            ports=ports,
             disable_network=False,
         )
