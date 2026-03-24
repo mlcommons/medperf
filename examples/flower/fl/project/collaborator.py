@@ -2,7 +2,13 @@ from subprocess import check_call
 
 
 def start_collaborator(
-    address, port, train_data_path, train_labels_path, val_data_path, val_labels_path
+    address,
+    port,
+    ca_cert_path,
+    train_data_path,
+    train_labels_path,
+    val_data_path,
+    val_labels_path,
 ):
     node_config = (
         f'train_data_path="{train_data_path}" '
@@ -14,13 +20,14 @@ def start_collaborator(
     check_call(
         [
             "flower-supernode",
-            "--insecure",
             "--superlink",
             f"{address}:{port}",
             "--clientappio-api-address",
             "127.0.0.1:9094",
             "--node-config",
             node_config,
+            "--root-certificates",
+            ca_cert_path,
         ]
     )
 

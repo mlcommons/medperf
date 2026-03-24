@@ -28,9 +28,11 @@ def train(
         get_train_val_paths(data_path, labels_path)
     )
     address, port, _ = get_server_connection(plan_path)
+    ca_cert_path = os.path.join(ca_cert_folder, "root.crt")
     start_collaborator(
         address,
         port,
+        ca_cert_path,
         train_data_path,
         train_labels_path,
         val_data_path,
@@ -61,15 +63,22 @@ def start_aggregator_(
         "/mlcommons/volumes/report/report.yaml", "--report_path"
     ),
 ):
+    ca_cert_path = os.path.join(ca_cert_folder, "root.crt")
+    cert_path = os.path.join(node_cert_folder, "crt.crt")
+    key_path = os.path.join(node_cert_folder, "key.key")
     workspace_folder = setup_job(
         src_folder=os.environ["SRC_FOLDER"],
         plan_path=plan_path,
+        ca_cert_path=ca_cert_path,
     )
     _, port, admin_port = get_server_connection(plan_path)
     start_aggregator(
         workspace_folder=workspace_folder,
         port=port,
         admin_port=admin_port,
+        ca_cert_path=ca_cert_path,
+        cert_path=cert_path,
+        key_path=key_path,
         initial_weights=input_weights,
         output_weights=output_weights,
         report_path=report_path,

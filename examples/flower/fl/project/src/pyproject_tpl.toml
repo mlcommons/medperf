@@ -16,4 +16,3 @@ default = "medperf-deployment"
 
 [tool.flwr.federations.medperf-deployment]
 address = "127.0.0.1:9093"
-insecure = true

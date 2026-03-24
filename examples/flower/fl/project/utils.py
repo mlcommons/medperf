@@ -18,7 +18,7 @@ def get_server_connection(plan_path):
     return address, port, admin_port
 
 
-def setup_job(src_folder, plan_path):
+def setup_job(src_folder, plan_path, ca_cert_path):
     workspace_folder = "/tmp/flwr_ws"
     copy_tree(src_folder, workspace_folder)
     toml_template = os.path.join(workspace_folder, "pyproject_tpl.toml")
@@ -31,6 +31,10 @@ def setup_job(src_folder, plan_path):
     toml_config["tool"]["flwr"]["federations"]["medperf-deployment"]["address"] = (
         f"127.0.0.1:{admin_port}"
     )
+    toml_config["tool"]["flwr"]["federations"]["medperf-deployment"][
+        "root-certificates"
+    ] = ca_cert_path
+
     toml_file = os.path.join(workspace_folder, "pyproject.toml")
 
     with open(toml_file, "w") as f:

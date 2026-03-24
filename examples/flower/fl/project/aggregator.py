@@ -4,7 +4,15 @@ import time
 
 
 def start_aggregator(
-    workspace_folder, port, admin_port, initial_weights, output_weights, report_path
+    workspace_folder,
+    port,
+    admin_port,
+    ca_cert_path,
+    cert_path,
+    key_path,
+    initial_weights,
+    output_weights,
+    report_path,
 ):
     env = os.environ.copy()
     env["INITIAL_MODEL_PATH"] = initial_weights
@@ -17,7 +25,12 @@ def start_aggregator(
             f"0.0.0.0:{port}",
             "--control-api-address",
             f"127.0.0.1:{admin_port}",
-            "--insecure",
+            "--ssl-ca-certfile",
+            ca_cert_path,
+            "--ssl-certfile",
+            cert_path,
+            "--ssl-keyfile",
+            key_path,
         ],
         env=env,
     )
