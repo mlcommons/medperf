@@ -115,10 +115,6 @@ def aggregators_ui(
 
     aggregators = Aggregator.all(filters=filters)
 
-    my_aggregators = [a for a in aggregators if a.owner == my_user_id]
-    other_aggregators = [a for a in aggregators if a.owner != my_user_id]
-    aggregators = my_aggregators + other_aggregators
-
     total_pages = (total_count + page_size - 1) // page_size
 
     start_index = 0

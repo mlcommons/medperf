@@ -156,10 +156,6 @@ def training_ui(
 
     experiments = TrainingExp.all(filters=filters)
 
-    my_experiments = [e for e in experiments if e.owner == my_user_id]
-    other_experiments = [e for e in experiments if e.owner != my_user_id]
-    experiments = my_experiments + other_experiments
-
     total_pages = (total_count + page_size - 1) // page_size
 
     start_index = 0

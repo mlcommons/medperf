@@ -59,10 +59,6 @@ def models_ui(
 
     models = Model.all(filters=filters)
 
-    my_models = [m for m in models if m.owner == my_user_id]
-    other_models = [m for m in models if m.owner != my_user_id]
-    models = my_models + other_models
-
     total_pages = (total_count + page_size - 1) // page_size
 
     start_index = 0

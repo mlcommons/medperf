@@ -65,10 +65,6 @@ def containers_ui(
 
     containers = Cube.all(filters=filters)
 
-    my_containers = [c for c in containers if c.owner == my_user_id]
-    other_containers = [c for c in containers if c.owner != my_user_id]
-    containers = my_containers + other_containers
-
     total_pages = (total_count + page_size - 1) // page_size
 
     start_index = 0

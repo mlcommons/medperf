@@ -79,10 +79,6 @@ def datasets_ui(
 
     datasets = Dataset.all(filters=filters)
 
-    my_datasets = [d for d in datasets if d.owner == my_user_id]
-    other_datasets = [d for d in datasets if d.owner != my_user_id]
-    datasets = my_datasets + other_datasets
-
     total_pages = (total_count + page_size - 1) // page_size
 
     start_index = 0

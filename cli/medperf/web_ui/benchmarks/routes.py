@@ -71,10 +71,6 @@ def benchmarks_ui(
 
     benchmarks = Benchmark.all(filters=filters)
 
-    my_benchmarks = [b for b in benchmarks if b.owner == my_user_id]
-    other_benchmarks = [b for b in benchmarks if b.owner != my_user_id]
-    benchmarks = my_benchmarks + other_benchmarks
-
     total_pages = (total_count + page_size - 1) // page_size
 
     start_index = 0
