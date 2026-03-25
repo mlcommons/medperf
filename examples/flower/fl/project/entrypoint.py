@@ -6,7 +6,13 @@ import os
 from collaborator import start_collaborator
 from aggregator import start_aggregator
 from plan import generate_plan
-from utils import get_train_val_paths, get_server_connection, setup_job
+from utils import (
+    get_train_val_paths,
+    get_server_connection,
+    setup_job,
+    get_collaborators_public_keys,
+    get_openssh_format_private_key_path,
+)
 
 app = typer.Typer()
 
@@ -29,10 +35,13 @@ def train(
     )
     address, port, _ = get_server_connection(plan_path)
     ca_cert_path = os.path.join(ca_cert_folder, "root.crt")
+    key_path = get_openssh_format_private_key_path(node_cert_folder)
+
     start_collaborator(
         address,
         port,
         ca_cert_path,
+        key_path,
         train_data_path,
         train_labels_path,
         val_data_path,
@@ -72,6 +81,7 @@ def start_aggregator_(
         ca_cert_path=ca_cert_path,
     )
     _, port, admin_port = get_server_connection(plan_path)
+    collaborators_public_keys = get_collaborators_public_keys(collaborators)
     start_aggregator(
         workspace_folder=workspace_folder,
         port=port,
@@ -79,6 +89,7 @@ def start_aggregator_(
         ca_cert_path=ca_cert_path,
         cert_path=cert_path,
         key_path=key_path,
+        collaborators_public_keys=collaborators_public_keys,
         initial_weights=input_weights,
         output_weights=output_weights,
         report_path=report_path,

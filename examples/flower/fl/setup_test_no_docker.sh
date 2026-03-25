@@ -102,9 +102,12 @@ echo "port: $PORT_" >>workspace_agg/aggregator_config.yaml
 echo "admin_port: $ADMIN_PORT_" >>workspace_agg/aggregator_config.yaml
 
 # cols file
-echo "$COL1_LABEL: $COL1_CN" >>workspace_agg/cols.yaml
-echo "$COL2_LABEL: $COL2_CN" >>workspace_agg/cols.yaml
-echo "$COL3_LABEL: $COL3_CN" >>workspace_agg/cols.yaml
+COL1_PUBKEY_B64=$(openssl x509 -in workspace_col1/node_cert/crt.crt -noout -pubkey | base64 -w 0)
+COL2_PUBKEY_B64=$(openssl x509 -in workspace_col2/node_cert/crt.crt -noout -pubkey | base64 -w 0)
+COL3_PUBKEY_B64=$(openssl x509 -in workspace_col3/node_cert/crt.crt -noout -pubkey | base64 -w 0)
+echo "$COL1_CN: $COL1_PUBKEY_B64" >>workspace_agg/cols.yaml
+echo "$COL2_CN: $COL2_PUBKEY_B64" >>workspace_agg/cols.yaml
+echo "$COL3_CN: $COL3_PUBKEY_B64" >>workspace_agg/cols.yaml
 
 # data download
 cd workspace_col1/

@@ -65,7 +65,7 @@ COL3="medperf container run_test --container ./container_config.yaml --task trai
 # gnome-terminal -- bash -c "$COL3; bash"
 rm agg.log col1.log col2.log col3.log
 $AGG >>agg.log &
-sleep 6
+sleep 20
 $COL1 >>col1.log &
 sleep 6
 $COL2 >>col2.log &

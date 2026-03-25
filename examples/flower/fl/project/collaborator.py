@@ -5,6 +5,7 @@ def start_collaborator(
     address,
     port,
     ca_cert_path,
+    key_path,
     train_data_path,
     train_labels_path,
     val_data_path,
@@ -28,10 +29,7 @@ def start_collaborator(
             node_config,
             "--root-certificates",
             ca_cert_path,
+            "--auth-supernode-private-key",
+            key_path,
         ]
     )
-
-
-def check_connectivity(workspace_folder):
-    # not implemented for flower
-    pass
