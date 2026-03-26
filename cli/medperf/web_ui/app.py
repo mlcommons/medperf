@@ -29,7 +29,7 @@ from medperf.web_ui.medperf_login import router as medperf_login
 from medperf.web_ui.settings import router as settings_router
 from medperf.web_ui.auth import wrap_openapi, NotAuthenticatedException, security_token
 
-JS_VERSION = "1.0.0"
+JS_VERSION = "1.0.1"
 
 UI_MODE_COOKIE = "medperf-mode"
 UI_MODE_TRAINING = "training"
