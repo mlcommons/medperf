@@ -1,3 +1,5 @@
+REDIRECT_BASE = "/aggregators/ui/display/";
+
 function checkAggregatorFormValidity() {
     var nameEl = document.getElementById("name");
     var addressEl = document.getElementById("address");

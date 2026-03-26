@@ -1,3 +1,5 @@
+var REDIRECT_BASE = "/aggregators/ui/display/";
+
 const RUNNING_TASKS_POLL_MS = 2000;
 const AGGREGATOR_CONTAINER_TASK_NAME = "start_aggregator";
 var pollingIntervalId = null;
