@@ -7,10 +7,10 @@ import tomli_w
 import base64
 from cryptography.hazmat.primitives.serialization import (
     load_pem_private_key,
-    load_pem_public_key,
     Encoding,
     PublicFormat,
 )
+from cryptography import x509
 
 
 def get_train_val_paths(data_path, labels_path):
@@ -56,8 +56,11 @@ def get_collaborators_public_keys(collaborators_path) -> list[bytes]:
     with open(collaborators_path) as f:
         collaborators = yaml.safe_load(f)
     public_keys = []
-    for val in collaborators.values():
-        public_key = load_pem_public_key(base64.b64decode(val))
+    for col_info in collaborators.values():
+        cert_b64 = col_info["certificate"]
+        certificate_bytes = base64.b64decode(cert_b64)
+        certificate_obj = x509.load_pem_x509_certificate(data=certificate_bytes)
+        public_key = certificate_obj.public_key()
         ssh_bytes = public_key.public_bytes(Encoding.OpenSSH, PublicFormat.OpenSSH)
         public_keys.append(ssh_bytes)
     return public_keys

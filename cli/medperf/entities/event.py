@@ -6,6 +6,8 @@ import medperf.config as config
 from medperf.account_management import get_medperf_user_data
 import yaml
 from medperf.entities.utils import handle_validation_error
+from medperf.entities.certificate import Certificate
+from medperf.exceptions import MedperfException
 
 
 class TrainingEvent(Entity):
@@ -119,8 +121,30 @@ class TrainingEvent(Entity):
         return latest_report_path
 
     def prepare_participants_list(self):
+        certificates = config.comms.get_training_datasets_certificates(
+            self.training_exp
+        )
+        certificates_mapping = {}
+        for cert in certificates:
+            owner_info = cert.pop("owner")
+            cert["owner"] = owner_info["id"]
+            cert_obj = Certificate(**cert)
+            email = owner_info["email"]
+            certificates_mapping[email] = cert_obj.certificate_content_base64
+
+        final_dict = {}
+        for participant_label, participant_email in self.participants.items():
+            if participant_email not in certificates_mapping:
+                raise MedperfException(
+                    f"No signing certificate found for participant {participant_email}"
+                )
+            final_dict[participant_label] = {
+                "email": participant_email,
+                "certificate": certificates_mapping[participant_email],
+            }
+
         with open(self.participants_list_path, "w") as f:
-            yaml.dump(self.participants, f)
+            yaml.dump(final_dict, f)
 
     def display_dict(self):
         return {
