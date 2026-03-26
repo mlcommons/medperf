@@ -84,13 +84,6 @@
                 <span class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.register_training_fl_admin_container }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
-        <div class="flex flex-wrap items-center gap-2">
-            <label class="inline-flex items-center gap-2 cursor-pointer text-gray-900 dark:text-white">
-                <input type="checkbox" name="operational" value="true" class="rounded border-gray-400 text-green-600 focus:ring-green-500 dark:border-gray-500 accent-green-600 dark:accent-green-400" {% if task_running %}disabled{% endif %}>
-                Submit as OPERATIONAL
-            </label>
-            <span class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.register_training_operational }}"><i class="fas fa-info-circle text-lg"></i></span>
-        </div>
         <div class="text-center pt-4">
             <button id="register-training-btn" type="submit" class="px-6 py-3 medperf-bg dark:bg-green-600 text-white rounded-xl font-bold hover:opacity-90 disabled:opacity-50 cursor-pointer" disabled>Register Training Experiment</button>
         </div>
