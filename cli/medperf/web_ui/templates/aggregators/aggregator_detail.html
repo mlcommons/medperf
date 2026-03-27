@@ -104,7 +104,7 @@
                 {% endif %}
             </div>
 
-            <div id="aggregator-run-card" class="rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/30 p-5 flex flex-col min-h-[220px] {% if not experiments_using_aggregator %}opacity-60 pointer-events-none{% endif %}">
+            <div id="aggregator-run-card" class="rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/30 p-5 flex flex-col min-h-[220px] {% if not experiments_using_aggregator or not certificate_exists %}opacity-60 pointer-events-none{% endif %}">
                 <div id="aggregator-running-banner" class="hidden mb-3 px-3 py-2 rounded-lg bg-amber-100 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700 flex items-center justify-between gap-3">
                     <span class="text-amber-800 dark:text-amber-200 font-semibold"><i class="fas fa-sync-alt fa-spin mr-2"></i>Aggregator is running</span>
                     <button type="button" id="stop-aggregator-btn" class="px-3 py-1.5 rounded-lg bg-red-600 dark:bg-red-500 text-white text-sm font-semibold hover:opacity-90 cursor-pointer">Stop</button>
@@ -114,19 +114,22 @@
                     <span class="font-semibold text-gray-900 dark:text-white">Run aggregator</span>
                 </div>
                 <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Start the aggregator for a training experiment that uses this aggregator.</p>
+                {% if not certificate_exists %}
+                <p class="text-sm text-amber-600 dark:text-amber-400 mb-4">Get a server certificate first before running this aggregator.</p>
+                {% endif %}
                 {% if not experiments_using_aggregator %}
                 <p class="text-sm text-amber-600 dark:text-amber-400 mb-4">No training experiments use this aggregator. Set this aggregator on a training experiment first.</p>
                 {% endif %}
                 <form id="start-aggregator-form" action="/aggregators/run" method="post" class="space-y-3 mt-auto" data-panel-title="Running aggregator" data-confirm-message="run the aggregator for the selected training experiment?">
                     <input type="hidden" name="task_name" value="start_aggregator">
                     <input type="hidden" name="aggregator_id" value="{{ entity.id }}">
-                    <select name="training_exp_id" class="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 cursor-pointer" required {% if not experiments_using_aggregator or task_running %}disabled{% endif %}>
+                    <select name="training_exp_id" class="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 cursor-pointer" required {% if not experiments_using_aggregator or not certificate_exists or task_running %}disabled{% endif %}>
                         <option value="" disabled selected>Select experiment</option>
                         {% for exp in experiments_using_aggregator %}
                         <option value="{{ exp.id }}" {% if aggregator_running and form_data.get("training_exp_id") == exp.id | string %}selected{% endif %}>{{ exp.name }} (ID: {{ exp.id }})</option>
                         {% endfor %}
                     </select>
-                    <button id="run-aggregator-btn" type="submit" class="w-full px-4 py-2.5 rounded-xl medperf-bg dark:bg-green-600 text-white font-semibold hover:opacity-90 cursor-pointer" {% if not experiments_using_aggregator or task_running %}disabled{% endif %}>Run aggregator</button>
+                    <button id="run-aggregator-btn" type="submit" class="w-full px-4 py-2.5 rounded-xl medperf-bg dark:bg-green-600 text-white font-semibold hover:opacity-90 cursor-pointer" {% if not experiments_using_aggregator or not certificate_exists or task_running %}disabled{% endif %}>Run aggregator</button>
                 </form>
             </div>
         </div>
