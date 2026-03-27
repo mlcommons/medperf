@@ -1,4 +1,5 @@
 import logging
+import os
 import threading
 
 from fastapi import APIRouter, Depends, Form, Request
@@ -10,7 +11,9 @@ from medperf.commands.aggregator.submit import SubmitAggregator
 from medperf.commands.certificate.server_certificate import GetServerCertificate
 from medperf.commands.aggregator.run import StartAggregator
 from medperf.entities.aggregator import Aggregator
+from medperf.entities.ca import CA
 from medperf.entities.cube import Cube
+from medperf.utils import get_pki_assets_path
 from medperf.web_ui.common import (
     check_user_api,
     check_user_ui,
@@ -108,11 +111,26 @@ def aggregator_detail_ui(
     aggregator_id: int,
     current_user: bool = Depends(check_user_ui),
 ):
+    certificate_exists = False
+    experiments_using_aggregator = []
+
     my_user_id = get_medperf_user_data()["id"]
     entity = Aggregator.get(aggregator_id)
     owner = entity.owner == my_user_id
-    # Training experiments that have this aggregator set (reverse relation)
-    experiments_using_aggregator = entity.get_training_experiments()
+
+    if owner:
+        ca_id = config.certificate_authority_id
+        if ca_id:
+            try:
+                ca = CA.get(ca_id)
+                aggregator = Aggregator.get(aggregator_id)
+                address = aggregator.address
+                output_path = get_pki_assets_path(address, ca.id)
+                certificate_exists = os.path.exists(output_path)
+            except Exception as exp:
+                logger.warning(f"Failed to check server certificate for aggregator {aggregator_id}: {exp}")
+
+        experiments_using_aggregator = entity.get_training_experiments()
 
     return templates.TemplateResponse(
         "aggregators/aggregator_detail.html",
@@ -121,6 +139,7 @@ def aggregator_detail_ui(
             "entity": entity,
             "experiments_using_aggregator": experiments_using_aggregator,
             "owner": owner,
+            "certificate_exists": certificate_exists,
         },
     )
 
