@@ -7,6 +7,7 @@ from medperf.commands.certificate.server_certificate import GetServerCertificate
 from medperf.commands.certificate.submit import SubmitCertificate
 from medperf.commands.certificate.delete_client_certificate import DeleteCertificate
 from medperf.commands.certificate.check_client_certificate import CheckUserCertificate
+from medperf.enums import CryptoKeyType
 
 app = typer.Typer()
 
@@ -14,12 +15,15 @@ app = typer.Typer()
 @app.command("get_client_certificate")
 @clean_except
 def get_client_certificate(
+    key_type: CryptoKeyType = typer.Option(
+        ..., "--key_type", help="Type of certificate to get"
+    ),
     overwrite: bool = typer.Option(
         False, "--overwrite", help="Overwrite cert and key if present"
-    )
+    ),
 ):
 
-    GetUserCertificate.run(overwrite=overwrite)
+    GetUserCertificate.run(key_type=key_type, overwrite=overwrite)
     config.ui.print("✅ Done!")
 
 
@@ -44,6 +48,9 @@ def get_server_certificate(
 @app.command("submit_client_certificate")
 @clean_except
 def submit_client_certificate(
+    key_type: CryptoKeyType = typer.Option(
+        ..., "--key_type", help="Type of certificate to submit"
+    ),
     approval: bool = typer.Option(False, "-y", help="Skip approval step"),
 ):
     """
@@ -51,27 +58,34 @@ def submit_client_certificate(
     If you are a data owner associated with a benchmark, note that after uploading a certificate,
     your e-mail will be publicly available to model owners associated with the benchmark
     """
-    SubmitCertificate.run(approved=approval)
+    SubmitCertificate.run(key_type=key_type, approved=approval)
     config.ui.print("✅ Done!")
 
 
 @app.command("delete_client_certificate")
 @clean_except
 def delete_client_certificate(
+    key_type: CryptoKeyType = typer.Option(
+        ..., "--key_type", help="Type of certificate to delete"
+    ),
     approval: bool = typer.Option(False, "-y", help="Skip approval step"),
 ):
     """
     Invalidate a client certificate.
     """
-    DeleteCertificate.run(approved=approval)
+    DeleteCertificate.run(key_type=key_type, approved=approval)
     config.ui.print("✅ Done!")
 
 
 @app.command("check_client_certificate")
 @clean_except
-def check_client_certificate():
+def check_client_certificate(
+    key_type: CryptoKeyType = typer.Option(
+        ..., "--key_type", help="Type of certificate to check"
+    ),
+):
     """
     Check if the user already has a certificate (local or uploaded).
     """
-    CheckUserCertificate.run()
+    CheckUserCertificate.run(key_type=key_type)
     config.ui.print("✅ Done!")

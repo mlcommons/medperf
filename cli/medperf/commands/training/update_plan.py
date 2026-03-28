@@ -5,6 +5,7 @@ from medperf.entities.training_exp import TrainingExp
 from medperf.entities.cube import Cube
 from medperf.utils import get_pki_assets_path
 from medperf.certificates import verify_certificate_authority
+from medperf.enums import CryptoKeyType
 
 
 class UpdatePlan:
@@ -42,7 +43,9 @@ class UpdatePlan:
         verify_certificate_authority(
             ca, expected_fingerprint=config.certificate_authority_fingerprint
         )
-        self.admin_pki_assets = get_pki_assets_path(self.user_email, ca.id)
+        self.admin_pki_assets = get_pki_assets_path(
+            self.user_email, ca.id, CryptoKeyType.EC
+        )
         self.ca = ca
 
     def prepare_admin_cube(self):

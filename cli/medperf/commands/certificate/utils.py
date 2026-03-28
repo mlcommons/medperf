@@ -2,6 +2,7 @@ from medperf import config
 from medperf.entities.certificate import Certificate
 from medperf.utils import get_pki_assets_path, remove_path
 from medperf.account_management import get_medperf_user_data
+from medperf.enums import CryptoKeyType
 import os
 import base64
 import logging
@@ -20,8 +21,9 @@ def _check_and_clean_certificate_corruption(local_cert_folder):
         remove_path(local_cert_folder, sensitive=True)
 
 
-def current_user_certificate_status():
-    """Check the status of the current user certificate. Possible cases:
+def current_user_certificate_status(key_type: CryptoKeyType):
+    """Check the status of the current user certificate corresponding to the key
+    type. Possible cases:
     - No local certificate folder and no submitted certificate
     - No local certificate folder and a submitted certificate (if the user changed machines)
     - A local certificate folder and no submitted certificate
@@ -42,11 +44,13 @@ def current_user_certificate_status():
     """
 
     # Get remote certificate object
-    user_cert_object = Certificate.get_user_certificate()
+    user_cert_object = Certificate.get_user_certificate(key_type=key_type)
 
     # Get local certificate folder
     email = get_medperf_user_data()["email"]
-    local_cert_folder = get_pki_assets_path(email, config.certificate_authority_id)
+    local_cert_folder = get_pki_assets_path(
+        email, config.certificate_authority_id, key_type=key_type
+    )
 
     # If certificate is corrupted, delete the certificate folder
     _check_and_clean_certificate_corruption(local_cert_folder)
@@ -102,9 +106,11 @@ def check_matching_certificates(user_cert_object, local_cert_folder):
     return local_certificate_content == remote_certificate_content
 
 
-def load_user_private_key():
+def load_user_private_key(key_type: CryptoKeyType):
     email = get_medperf_user_data()["email"]
-    local_cert_folder = get_pki_assets_path(email, config.certificate_authority_id)
+    local_cert_folder = get_pki_assets_path(
+        email, config.certificate_authority_id, key_type=key_type
+    )
     private_key_file = os.path.join(local_cert_folder, config.private_key_file)
     if not os.path.exists(private_key_file):
         logging.debug(f"User private key file doesn't exist: {private_key_file}")

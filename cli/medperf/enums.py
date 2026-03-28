@@ -32,3 +32,8 @@ class ContainerTypes(Enum):
 class ModelType(Enum):
     ASSET = "ASSET"
     CONTAINER = "CONTAINER"
+
+
+class CryptoKeyType(Enum):
+    RSA = "RSA"
+    EC = "EC"

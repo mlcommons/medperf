@@ -8,6 +8,7 @@ from medperf.entities.aggregator import Aggregator
 from medperf.entities.cube import Cube
 from medperf.utils import get_pki_assets_path, remove_path
 from medperf.certificates import verify_certificate_authority
+from medperf.enums import CryptoKeyType
 
 
 class StartAggregator:
@@ -89,7 +90,9 @@ class StartAggregator:
             ca, expected_fingerprint=config.certificate_authority_fingerprint
         )
         agg_address = self.aggregator.address
-        self.aggregator_pki_assets = get_pki_assets_path(agg_address, ca.id)
+        self.aggregator_pki_assets = get_pki_assets_path(
+            agg_address, ca.id, CryptoKeyType.RSA
+        )
         self.ca = ca
 
     def run_experiment(self):

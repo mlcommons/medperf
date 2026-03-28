@@ -255,7 +255,7 @@ class ModelResultList(GenericAPIView):
 class CertificateList(GenericAPIView):
     serializer_class = CertificateDetailSerializer
     queryset = ""
-    filterset_fields = ("name", "owner", "is_valid", "ca")
+    filterset_fields = ("name", "owner", "is_valid", "ca", "key_type")
 
     def get_object(self, pk):
         try:

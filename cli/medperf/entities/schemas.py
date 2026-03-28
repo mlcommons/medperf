@@ -2,7 +2,7 @@ from datetime import datetime
 from pydantic import BaseModel, Field, validator
 from typing import Optional, Union
 
-from medperf.enums import Status
+from medperf.enums import Status, CryptoKeyType
 
 
 class MedperfSchema(BaseModel):
@@ -90,6 +90,7 @@ class CASchema(MedperfSchema):
 
 class CertificateSchema(MedperfSchema):
     certificate_content_base64: str
+    key_type: CryptoKeyType
     ca: int
 
 

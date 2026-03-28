@@ -121,16 +121,13 @@ class TrainingEvent(Entity):
         return latest_report_path
 
     def prepare_participants_list(self):
-        certificates = config.comms.get_training_datasets_certificates(
+        certificates, user_info = Certificate.get_training_datasets_certificates(
             self.training_exp
         )
         certificates_mapping = {}
         for cert in certificates:
-            owner_info = cert.pop("owner")
-            cert["owner"] = owner_info["id"]
-            cert_obj = Certificate(**cert)
-            email = owner_info["email"]
-            certificates_mapping[email] = cert_obj.certificate_content_base64
+            email = user_info[cert.id]["email"]
+            certificates_mapping[email] = cert.certificate_content_base64
 
         final_dict = {}
         for participant_label, participant_email in self.participants.items():

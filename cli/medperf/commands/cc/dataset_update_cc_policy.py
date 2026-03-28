@@ -11,16 +11,17 @@ from medperf.entities.certificate import Certificate
 from medperf.utils import get_string_hash
 from medperf.commands.certificate.utils import current_user_certificate_status
 import base64
+from medperf.enums import CryptoKeyType
 
 
 def get_permitted_workloads(dataset: Dataset):
     user_obj = get_medperf_user_object()
     if dataset.owner != user_obj.id:
         raise MedperfException("User must be data owner")
-    status_dict = current_user_certificate_status()
+    status_dict = current_user_certificate_status(CryptoKeyType.RSA)
     user_cert = None
     if status_dict["should_be_submitted"]:
-        user_cert = Certificate.get_local_user_certificate()
+        user_cert = Certificate.get_local_user_certificate(CryptoKeyType.RSA)
     elif status_dict["no_action_required"]:
         user_cert = status_dict["user_cert_object"]
 
