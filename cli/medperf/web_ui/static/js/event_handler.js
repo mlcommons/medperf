@@ -173,6 +173,9 @@ function appendManyToLogPanel(messages, logPanel) {
         if (first && first.parentNode) first.parentNode.removeChild(first);
     }
     logPanel.scrollTop = logPanel.scrollHeight;
+    if (typeof window.updateLogPanelPreview === "function") {
+        window.updateLogPanelPreview();
+    }
 }
 
 function appendToLogPanel(message, logPanel) {
@@ -186,6 +189,9 @@ function appendToLogPanel(message, logPanel) {
         if (first && first.parentNode) first.parentNode.removeChild(first);
     }
     logPanel.scrollTop = logPanel.scrollHeight;
+    if (typeof window.updateLogPanelPreview === "function") {
+        window.updateLogPanelPreview();
+    }
 }
 
 window.addEventListener("beforeunload", function () {

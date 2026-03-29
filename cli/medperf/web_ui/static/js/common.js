@@ -191,6 +191,7 @@ function showPanel(title) {
     var panel = document.getElementById("panel");
     if (panelTitle) panelTitle.textContent = title;
     if (panel) { panel.style.display = ""; panel.classList.remove("hidden"); }
+    collapseLogPanel();
     window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
 }
 
@@ -291,6 +292,66 @@ var currentStageElement = null, logPanel, stagesList;
 window.isPromptReceived = false;
 window.onPromptComplete = null;
 
+var isLogPanelExpanded = false;
+
+function getLastLogLine() {
+    if (!logPanel) return "";
+    var lines = (logPanel.textContent || "")
+        .split("\n")
+        .map(function (line) { return line.trim(); })
+        .filter(Boolean);
+    return lines.length ? lines[lines.length - 1] : "";
+}
+
+function updateLogPanelPreview() {
+    var preview = document.getElementById("log-panel-preview");
+    if (!preview) return;
+    var lastLine = getLastLogLine();
+    preview.textContent = lastLine || "No logs yet.";
+}
+
+function setLogPanelExpanded(expanded) {
+    var container = document.getElementById("log-panel-container");
+    var btn = document.getElementById("toggle-log-panel-btn");
+    var btnText = document.getElementById("toggle-log-panel-text");
+    var icon = document.getElementById("toggle-log-panel-icon");
+    var preview = document.getElementById("log-panel-preview");
+    if (!container || !btn || !btnText || !icon || !preview) return;
+
+    isLogPanelExpanded = expanded;
+    if (expanded) {
+        container.classList.remove("log-panel-collapsed");
+        preview.classList.add("hidden");
+        btnText.textContent = "Collapse";
+        icon.classList.remove("fa-chevron-down");
+        icon.classList.add("fa-chevron-up");
+        if (logPanel) logPanel.scrollTop = logPanel.scrollHeight;
+    } else {
+        container.classList.add("log-panel-collapsed");
+        preview.classList.remove("hidden");
+        btnText.textContent = "Expand";
+        icon.classList.remove("fa-chevron-up");
+        icon.classList.add("fa-chevron-down");
+        updateLogPanelPreview();
+    }
+    btn.setAttribute("aria-expanded", expanded ? "true" : "false");
+}
+
+function collapseLogPanel() {
+    setLogPanelExpanded(false);
+}
+
+function toggleLogPanel() {
+    setLogPanelExpanded(!isLogPanelExpanded);
+}
+
+function initializeLogPanelCollapse() {
+    var btn = document.getElementById("toggle-log-panel-btn");
+    if (!btn) return;
+    btn.addEventListener("click", toggleLogPanel);
+    collapseLogPanel();
+}
+
 function bindModalCloseButtons() {
     var footer = document.getElementById("page-modal-footer");
     if (footer) footer.addEventListener("click", function (e) {
@@ -369,6 +430,7 @@ function onDomReady() {
     if (Array.isArray(window.notifications)) window.notifications.forEach(function (n) { addNotification(n); });
     logPanel = document.getElementById("log-panel");
     stagesList = document.getElementById("stages-list");
+    initializeLogPanelCollapse();
 
     var respondNo = document.getElementById("respond-no-btn");
     var respondYes = document.getElementById("respond-yes-btn");
@@ -405,3 +467,5 @@ if (document.readyState === "loading") {
 } else {
     onDomReady();
 }
+
+window.updateLogPanelPreview = updateLogPanelPreview;

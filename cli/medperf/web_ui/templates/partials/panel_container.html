@@ -4,6 +4,22 @@
         <ul id="stages-list" class="space-y-2 text-gray-900 dark:text-gray-100"></ul>
     </div>
     <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border-2 border-green-100 dark:border-gray-700 mt-6">
-        <pre id="log-panel" class="text-sm overflow-x-auto whitespace-pre-wrap font-mono bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 p-4 rounded-lg max-h-[300px] overflow-y-auto"></pre>
+        <div class="flex items-center justify-between gap-3 mb-3">
+            <h3 class="text-base font-semibold text-gray-900 dark:text-white">Logs</h3>
+            <button
+                id="toggle-log-panel-btn"
+                type="button"
+                class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+                aria-expanded="false"
+                aria-controls="log-panel-container"
+            >
+                <span id="toggle-log-panel-text">Expand</span>
+                <i id="toggle-log-panel-icon" class="fas fa-chevron-down" aria-hidden="true"></i>
+            </button>
+        </div>
+        <p id="log-panel-preview" class="text-sm text-gray-600 dark:text-gray-400 mb-3 truncate">No logs yet.</p>
+        <div id="log-panel-container" class="log-panel-collapsed">
+            <pre id="log-panel" class="text-sm overflow-x-auto whitespace-pre-wrap font-mono bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 p-4 rounded-lg max-h-[300px] overflow-y-auto"></pre>
+        </div>
     </div>
 </div>
