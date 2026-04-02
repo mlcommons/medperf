@@ -128,7 +128,9 @@ def aggregator_detail_ui(
                 output_path = get_pki_assets_path(address, ca.id)
                 certificate_exists = os.path.exists(output_path)
             except Exception as exp:
-                logger.warning(f"Failed to check server certificate for aggregator {aggregator_id}: {exp}")
+                logger.warning(
+                    f"Failed to check server certificate for aggregator {aggregator_id}: {exp}"
+                )
 
         experiments_using_aggregator = entity.get_training_experiments()
 
@@ -177,6 +179,7 @@ def _run_aggregator_worker(
     request: Request,
     training_exp_id: int,
     aggregator_id: int,
+    publish_on: str,
     task_id: str,
 ):
     redirect_url = f"/aggregators/ui/display/{aggregator_id}"
@@ -184,7 +187,7 @@ def _run_aggregator_worker(
     notification_message = "Aggregator run started successfully"
     config.ui.set_task_id(task_id)
     try:
-        StartAggregator.run(training_exp_id=training_exp_id, publish_on="0.0.0.0")
+        StartAggregator.run(training_exp_id=training_exp_id, publish_on=publish_on)
         return_response["status"] = "success"
     except Exception as exp:
         return_response["status"] = "failed"
@@ -206,6 +209,7 @@ def run_aggregator(
     request: Request,
     aggregator_id: int = Form(...),
     training_exp_id: int = Form(...),
+    publish_on: str = Form("127.0.0.1"),
     current_user: bool = Depends(check_user_api),
 ):
     agg_meta = config.comms.get_experiment_aggregator(training_exp_id)
@@ -216,7 +220,7 @@ def run_aggregator(
 
     threading.Thread(
         target=_run_aggregator_worker,
-        args=(request, training_exp_id, aggregator_id, task_id),
+        args=(request, training_exp_id, aggregator_id, publish_on, task_id),
         daemon=True,
     ).start()
 

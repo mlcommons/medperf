@@ -129,6 +129,14 @@
                         <option value="{{ exp.id }}" {% if aggregator_running and form_data.get("training_exp_id") == exp.id | string %}selected{% endif %}>{{ exp.name }} (ID: {{ exp.id }})</option>
                         {% endfor %}
                     </select>
+                    <div>
+                        <label for="publish-on-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Publish on</label>
+                        <input type="text" id="publish-on-input" name="publish_on" autocomplete="off" placeholder="127.0.0.1"
+                            class="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white font-mono text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                            value="{% if aggregator_running %}{{ form_data.get('publish_on', '127.0.0.1') }}{% else %}127.0.0.1{% endif %}"
+                            {% if not experiments_using_aggregator or not certificate_exists or task_running %}disabled{% endif %}>
+                        <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">Host or IP the aggregator binds to.</p>
+                    </div>
                     <button id="run-aggregator-btn" type="submit" class="w-full px-4 py-2.5 rounded-xl medperf-bg dark:bg-green-600 text-white font-semibold hover:opacity-90 cursor-pointer" {% if not experiments_using_aggregator or not certificate_exists or task_running %}disabled{% endif %}>Run aggregator</button>
                 </form>
             </div>
