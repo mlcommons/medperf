@@ -160,8 +160,18 @@ function markStageAsComplete(stageElement) {
 }
 
 var logNodes = [];
+
+function showLogPanelSectionIfHidden() {
+    var s = document.getElementById("log-panel-section");
+    if (s && s.classList.contains("hidden")) {
+        s.classList.remove("hidden");
+        s.setAttribute("aria-hidden", "false");
+    }
+}
+
 function appendManyToLogPanel(messages, logPanel) {
     if (!messages || !messages.length || !logPanel) return;
+    showLogPanelSectionIfHidden();
     for (var i = 0; i < messages.length; i++) {
         var node = document.createTextNode(messages[i] + "\n");
         logPanel.appendChild(node);
@@ -177,6 +187,7 @@ function appendManyToLogPanel(messages, logPanel) {
 
 function appendToLogPanel(message, logPanel) {
     if (!logPanel) return;
+    showLogPanelSectionIfHidden();
     var node = document.createTextNode(message + "\n");
     logPanel.appendChild(node);
     logNodes.push(node);
