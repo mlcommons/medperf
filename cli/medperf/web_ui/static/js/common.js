@@ -294,45 +294,25 @@ window.onPromptComplete = null;
 
 var isLogPanelExpanded = false;
 
-function getLastLogLine() {
-    if (!logPanel) return "";
-    var lines = (logPanel.textContent || "")
-        .split("\n")
-        .map(function (line) { return line.trim(); })
-        .filter(Boolean);
-    return lines.length ? lines[lines.length - 1] : "";
-}
-
-function updateLogPanelPreview() {
-    var preview = document.getElementById("log-panel-preview");
-    if (!preview) return;
-    var lastLine = getLastLogLine();
-    preview.textContent = lastLine || "No logs yet.";
-}
-
 function setLogPanelExpanded(expanded) {
     var container = document.getElementById("log-panel-container");
     var btn = document.getElementById("toggle-log-panel-btn");
     var btnText = document.getElementById("toggle-log-panel-text");
     var icon = document.getElementById("toggle-log-panel-icon");
-    var preview = document.getElementById("log-panel-preview");
-    if (!container || !btn || !btnText || !icon || !preview) return;
+    if (!container || !btn || !btnText || !icon) return;
 
     isLogPanelExpanded = expanded;
     if (expanded) {
         container.classList.remove("log-panel-collapsed");
-        preview.classList.add("hidden");
         btnText.textContent = "Collapse";
         icon.classList.remove("fa-chevron-down");
         icon.classList.add("fa-chevron-up");
         if (logPanel) logPanel.scrollTop = logPanel.scrollHeight;
     } else {
         container.classList.add("log-panel-collapsed");
-        preview.classList.remove("hidden");
         btnText.textContent = "Expand";
         icon.classList.remove("fa-chevron-up");
         icon.classList.add("fa-chevron-down");
-        updateLogPanelPreview();
     }
     btn.setAttribute("aria-expanded", expanded ? "true" : "false");
 }
@@ -467,5 +447,3 @@ if (document.readyState === "loading") {
 } else {
     onDomReady();
 }
-
-window.updateLogPanelPreview = updateLogPanelPreview;
