@@ -7,18 +7,15 @@
 {% block title %}Register Asset{% endblock %}
 
 {% block content %}
-{% set asset_register_running = (task_running and "asset_registration" in request.app.state.active_tasks) %}
+{% set asset_register_running = (task_running and request.app.state.task.name == "asset_registration") %}
 {% if asset_register_running %}
-{% set form_data = request.app.state.active_tasks["asset_registration"].formData %}
-{% else %}
-{% set form_data = {} %}
+{% set form_data = request.app.state.task.formData %}
 {% endif %}
 
 <div class="container mx-auto px-4 py-8 max-w-3xl">
     <h1 class="text-3xl font-bold medperf-accent dark:text-green-400 text-center mb-8">Register a New Asset</h1>
 
     <form id="asset-register-form" class="space-y-6" action="/assets/register" method="post" data-panel-title="Registering asset" data-confirm-message="register this asset?">
-        <input type="hidden" name="task_name" value="asset_registration">
         <div>
             <label for="name" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Asset name</label>
             <div class="flex flex-wrap items-stretch gap-2">
@@ -78,7 +75,7 @@
 <script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
 <script src="{{ url_for('static', path='js/assets/asset_register.js') }}"></script>
 <script src="{{ url_for('static', path='js/folder_browsing.js') }}"></script>
-{% if task_running and "asset_registration" in request.app.state.active_tasks %}
+{% if task_running and request.app.state.task.name == "asset_registration" %}
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         resumeRunningTask("#asset-register-form");

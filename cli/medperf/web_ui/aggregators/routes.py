@@ -1,6 +1,5 @@
 import logging
 import os
-import threading
 
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -175,17 +174,18 @@ def get_server_certificate(
     return return_response
 
 
-def _run_aggregator_worker(
+@router.post("/run", response_class=JSONResponse)
+def run_aggregator(
     request: Request,
-    training_exp_id: int,
-    aggregator_id: int,
-    publish_on: str,
-    task_id: str,
+    aggregator_id: int = Form(...),
+    training_exp_id: int = Form(...),
+    publish_on: str = Form("127.0.0.1"),
+    current_user: bool = Depends(check_user_api),
 ):
-    redirect_url = f"/aggregators/ui/display/{aggregator_id}"
+    initialize_state_task(request, task_name="start_aggregator")
+
     return_response = {"status": "", "error": ""}
     notification_message = "Aggregator run started successfully"
-    config.ui.set_task_id(task_id)
     try:
         StartAggregator.run(training_exp_id=training_exp_id, publish_on=publish_on)
         return_response["status"] = "success"
@@ -196,32 +196,11 @@ def _run_aggregator_worker(
         logger.exception(exp)
 
     config.ui.end_task(return_response)
-    reset_state_task(request, task_id)
+    reset_state_task(request)
     config.ui.add_notification(
         message=notification_message,
         return_response=return_response,
-        url=redirect_url,
+        url=f"/aggregators/ui/display/{aggregator_id}",
     )
 
-
-@router.post("/run", response_class=JSONResponse)
-def run_aggregator(
-    request: Request,
-    aggregator_id: int = Form(...),
-    training_exp_id: int = Form(...),
-    publish_on: str = Form("127.0.0.1"),
-    current_user: bool = Depends(check_user_api),
-):
-    agg_meta = config.comms.get_experiment_aggregator(training_exp_id)
-    if not agg_meta or agg_meta.get("id") != aggregator_id:
-        raise ValueError("Selected training experiment does not use this aggregator")
-
-    task_id = initialize_state_task(request, task_name="start_aggregator")
-
-    threading.Thread(
-        target=_run_aggregator_worker,
-        args=(request, training_exp_id, aggregator_id, publish_on, task_id),
-        daemon=True,
-    ).start()
-
-    return {"status": "started", "error": ""}
+    return return_response

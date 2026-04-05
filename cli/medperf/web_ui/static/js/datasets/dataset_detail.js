@@ -1,15 +1,8 @@
 var REDIRECT_BASE = "/datasets/ui/display/";
 var trainingPollingIntervalId = null;
 
-const RUN_TRAINING_TASK_NAME = "start_training";
 const CONTAINER_TASK_TRAIN = "train";
 const RUNNING_TASKS_POLL_MS = 2000;
-const TASK_PREPARE = "prepare";
-const TASK_SET_OPERATIONAL = "dataset_set_operational";
-const TASK_ASSOCIATION = "dataset_association";
-const TASK_TRAINING_ASSOCIATION = "dataset_training_association";
-const TASK_BENCHMARK_RUN = "run_benchmark";
-const TASK_RESULT_SUBMIT = "submit_result";
 
 function updateTrainingRunningBanner(tasks) {
     var banner = document.getElementById("training-running-banner");
@@ -17,24 +10,9 @@ function updateTrainingRunningBanner(tasks) {
     var running = Array.isArray(tasks) && tasks.indexOf(CONTAINER_TASK_TRAIN) !== -1;
     if (running) {
         banner.classList.remove("hidden");
-        document.querySelectorAll(".start-training-btn").forEach(function (btn) { btn.disabled = true; });
     } else {
         banner.classList.add("hidden");
-        if (window.taskName !== RUN_TRAINING_TASK_NAME) {
-            document.querySelectorAll(".start-training-btn").forEach(function (btn) {
-                btn.disabled = false;
-            });
-        }
-        if (trainingPollingIntervalId && window.taskName !== RUN_TRAINING_TASK_NAME) { clearInterval(trainingPollingIntervalId); trainingPollingIntervalId = null; }
     }
-}
-
-function onStartTrainingSuccess(response) {
-    if (response && response.status === "started"){
-        displayAlert("success", "Training worker started successfully.");
-        startPollingTrainingRunningTasks();
-    }
-    else showErrorModal("Something went wrong while running the training", response);
 }
 
 function pollTrainingRunningTasks() {
@@ -53,6 +31,45 @@ function startPollingTrainingRunningTasks() {
     if (!trainingPollingIntervalId) trainingPollingIntervalId = setInterval(pollTrainingRunningTasks, RUNNING_TASKS_POLL_MS);
 }
 
+
+function onRunTrainingSuccess(response) {
+    if (response.status === "success") {
+        showReloadModal({ title: "Training Ran Successfully", seconds: 3 });
+    } else showErrorModal("Something went wrong while running the training", response);
+}
+
+async function submitActionFormWithForm(form) {
+    var formData = new FormData(form);
+    var panelTitle = form.getAttribute("data-panel-title") || "Action";
+    var isRunForm = (form.getAttribute("action") || "").indexOf("/datasets/start_training") !== -1;
+
+    disableElements(".detail-container form button, .detail-container form input, .detail-container form select");
+    var submitBtn = form.querySelector('button[type="submit"]');
+    if (submitBtn) addSpinner(submitBtn);
+    showPanel(panelTitle + "...");
+
+    var successCallback = isRunForm ? onRunTrainingSuccess : onActionSuccess(panelTitle);
+    window.onPromptComplete = successCallback;
+
+    ajaxRequest(
+        form.action,
+        "POST",
+        formData,
+        successCallback,
+        "Error: " + panelTitle
+    );
+    window.taskId = await getTaskId();
+    streamEvents(logPanel, stagesList, currentStageElement);
+    if (isRunForm) startPollingTrainingRunningTasks();
+}
+
+function submitActionForm(e) {
+    e.preventDefault();
+    var form = e.target;
+    var msg = form.getAttribute("data-confirm-message") || "continue?";
+    showConfirmModal(form, submitActionFormWithForm, msg);
+}
+
 function stopTraining() {
     var btn = document.getElementById("stop-training-btn");
     btn.disabled = true;
@@ -69,27 +86,7 @@ function stopTraining() {
         .catch(function () { btn.disabled = false; });
 }
 
-function requestStartTraining(form) {
-    var submitBtn = form.querySelector("button[type=submit]");
-    if (submitBtn) addSpinner(submitBtn);
-    window.onPromptComplete = onStartTrainingSuccess;
-    var formData = new FormData(form);
-    formData.append("task_name", RUN_TRAINING_TASK_NAME);
-    disableElements(".card button");
-    showPanel("Running training...");
-    window.taskName = RUN_TRAINING_TASK_NAME;
-    ajaxRequest(
-        "/datasets/start_training",
-        "POST",
-        formData,
-        onStartTrainingSuccess,
-        "Error running training:"
-    );
-    streamEvents(logPanel, stagesList, currentStageElement);
-}
-
-
-function runBenchmarkExecution(executeBenchmarkButton) {
+async function runBenchmarkExecution(executeBenchmarkButton) {
     addSpinner(executeBenchmarkButton);
     var formData = new FormData();
     var benchmarkId = executeBenchmarkButton.getAttribute("data-benchmark-id");
@@ -109,22 +106,11 @@ function runBenchmarkExecution(executeBenchmarkButton) {
     formData.append("benchmark_id", benchmarkId);
     formData.append("run_all", runAll);
     disableElements(".card button");
-    window.taskName = TASK_BENCHMARK_RUN;
     ajaxRequest("/datasets/run", "POST", formData, onDatasetBenchmarkExecutionSuccess, "Error running benchmark execution:");
+    window.taskId = await getTaskId();
     showPanel("Running Benchmark Execution...");
     streamEvents(logPanel, stagesList, currentStageElement);
 }
-
-function onTrainSuccess(response) {
-    if (response && response.status === "success"){
-        updateTrainingRunningBanner([]);
-        showReloadModal({ title: "Training Completed", seconds: 3 });
-    }
-    else showErrorModal("Something went wrong during training", response);
-}
-
-// Expose for data-success-handler on start training form
-window.onStartTrainingSuccess = onStartTrainingSuccess;
 
 function init() {
     document.querySelectorAll("form[id$='-form']:not(#redirect-export-form), form[id^='dataset-association-form-'], form[id^='dataset-training-association-form-'], form[id^='start-training-form-']").forEach(function (form) {

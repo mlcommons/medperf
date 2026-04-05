@@ -1,5 +1,3 @@
-/* CC operator configuration (settings page): uses our form design with submitActionForm and data-success-handler. */
-
 var CC_OPERATOR_FIELD_IDS = [
     "operator-project_id",
     "operator-service_account_name",

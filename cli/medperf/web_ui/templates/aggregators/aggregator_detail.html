@@ -3,9 +3,9 @@
 {% block title %}Aggregator Details{% endblock %}
 
 {% block detail_panel %}
-{% set aggregator_running = (task_running and "start_aggregator" in request.app.state.active_tasks) %}
+{% set aggregator_running = (task_running and request.app.state.task.name == "start_aggregator") %}
 {% if aggregator_running %}
-{% set form_data = request.app.state.active_tasks["start_aggregator"].formData %}
+{% set form_data = request.app.state.task.formData %}
 {% endif %}
 
 <div class="mb-8">
@@ -97,7 +97,6 @@
                 {% else %}
                 <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Obtain a server certificate for this aggregator address.</p>
                 <form id="get-server-cert-form" class="space-y-3 mt-auto" action="/aggregators/get_server_certificate" method="post" data-panel-title="Getting server certificate" data-confirm-message="get the server certificate for this aggregator?">
-                    <input type="hidden" name="task_name" value="aggregator_get_server_cert">
                     <input type="hidden" name="aggregator_id" value="{{ entity.id }}">
                     <button type="submit" class="w-full px-4 py-2.5 rounded-xl medperf-bg dark:bg-green-600 text-white font-semibold hover:opacity-90 cursor-pointer" {% if task_running %} disabled {% endif %}>Get certificate</button>
                 </form>
@@ -121,7 +120,6 @@
                 <p class="text-sm text-amber-600 dark:text-amber-400 mb-4">No training experiments use this aggregator. Set this aggregator on a training experiment first.</p>
                 {% endif %}
                 <form id="start-aggregator-form" action="/aggregators/run" method="post" class="space-y-3 mt-auto" data-panel-title="Running aggregator" data-confirm-message="run the aggregator for the selected training experiment?">
-                    <input type="hidden" name="task_name" value="start_aggregator">
                     <input type="hidden" name="aggregator_id" value="{{ entity.id }}">
                     <select name="training_exp_id" class="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 cursor-pointer" required {% if not experiments_using_aggregator or not certificate_exists or task_running %}disabled{% endif %}>
                         <option value="" disabled selected>Select experiment</option>
@@ -155,16 +153,14 @@
 <script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
 <script src="{{ url_for('static', path='js/aggregators/aggregator_detail.js') }}"></script>
 {% if request.app.state.task_running %}
-{% if "aggregator_get_server_cert" in request.app.state.active_tasks %}
-{% if request.app.state.active_tasks["aggregator_get_server_cert"].formData.get("aggregator_id", "")|string == entity.id|string %}
+{% if request.app.state.task.formData.get("aggregator_id", "")|string == entity.id|string %}
+{% if request.app.state.task.name == "aggregator_get_server_cert" %}
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         resumeRunningTask("#get-server-cert-form");
     });
 </script>
-{% endif %}
-{% elif "start_aggregator" in request.app.state.active_tasks %}
-{% if request.app.state.active_tasks["start_aggregator"].formData.get("aggregator_id", "")|string == entity.id|string %}
+{% elif request.app.state.task.name == "start_aggregator" %}
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         startPollingRunningTasks();

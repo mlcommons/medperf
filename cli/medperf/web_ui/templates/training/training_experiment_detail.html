@@ -95,7 +95,6 @@
         {% if available_aggregators %}
         <form id="set-aggregator-form" action="/training/add_aggregator" method="post" class="training-action-form" data-panel-title="Setting aggregator" data-confirm-message="set this aggregator for this training experiment?">
             <input type="hidden" name="training_exp_id" value="{{ entity.id }}">
-            <input type="hidden" name="task_name" value="set_training_aggregator">
             <div class="flex flex-wrap items-center gap-3">
                 <select name="aggregator_id" class="flex-1 min-w-[200px] px-4 py-2.5 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500 cursor-pointer" required>
                     <option value="" disabled selected>Select an aggregator</option>
@@ -134,7 +133,6 @@
                 </div>
                 <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Path to a YAML config file to set the experiment plan.</p>
                 <form id="set-plan-form" action="/training/set_plan" method="post" class="flex flex-col flex-1 gap-3" data-panel-title="Setting training plan" data-confirm-message="set the training plan?">
-                    <input type="hidden" name="task_name" value="set_training_plan">
                     <input type="hidden" name="training_exp_id" value="{{ entity.id }}">
                     <fieldset class="flex flex-col flex-1 gap-3 border-0 p-0 m-0 min-w-0" {% if not aggregator %}disabled{% endif %}>
                         <div class="flex flex-wrap items-stretch gap-2">
@@ -153,7 +151,6 @@
                 </div>
                 <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Runtime-update of a scalar field of the training plan.</p>
                 <form id="update-plan-form" action="/training/update_plan" method="post" class="flex flex-col flex-1 gap-3" data-panel-title="Updating training plan" data-confirm-message="update the training plan with this field?">
-                    <input type="hidden" name="task_name" value="update_training_plan">
                     <input type="hidden" name="training_exp_id" value="{{ entity.id }}">
                     <fieldset class="flex flex-col flex-1 gap-3 border-0 p-0 m-0 min-w-0" {% if not plan_exists %}disabled{% endif %}>
                         <div class="flex flex-wrap gap-3">
@@ -173,7 +170,6 @@
                 </div>
                 <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Start a new training event for this experiment. Optionally provide a participants list file (YAML).</p>
                 <form id="start-event-form" action="/training/start_event" method="post" class="flex flex-col flex-1 gap-3" data-panel-title="Starting event" data-confirm-message="start this training event?">
-                    <input type="hidden" name="task_name" value="start_training_event">
                     <input type="hidden" name="training_exp_id" value="{{ entity.id }}">
                     <fieldset class="flex flex-col flex-1 gap-3 border-0 p-0 m-0 min-w-0" {% if not plan_exists %}disabled{% endif %}>
                         <input type="text" name="event_name" placeholder="Event name" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500" required>
@@ -193,7 +189,6 @@
                 </div>
                 <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">End the current training event.</p>
                 <form id="close-event-form" action="/training/close_event" method="post" class="flex flex-col flex-1" data-panel-title="Closing event" data-confirm-message="close the current training event?">
-                    <input type="hidden" name="task_name" value="close_training_event">
                     <input type="hidden" name="training_exp_id" value="{{ entity.id }}">
                     <button type="submit" class="cursor-pointer w-full px-4 py-2.5 rounded-xl bg-amber-600 dark:bg-amber-500 text-white font-semibold hover:opacity-90 mt-auto">Close event</button>
                 </form>
@@ -207,7 +202,6 @@
                 </div>
                 <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Fetch and display current experiment status.</p>
                 <form id="get-status-form" action="/training/get_experiment_status" method="post" class="flex flex-col flex-1" data-panel-title="Getting experiment status" data-confirm-message="get the experiment status?">
-                    <input type="hidden" name="task_name" value="get_training_status">
                     <input type="hidden" name="training_exp_id" value="{{ entity.id }}">
                     <fieldset class="flex flex-col flex-1 border-0 p-0 m-0 min-w-0" {% if not plan_exists %}disabled{% endif %}>
                         <button type="submit" class="cursor-pointer w-full px-4 py-2.5 rounded-xl medperf-bg dark:bg-green-600 text-white font-semibold hover:opacity-90 mt-auto">Get status</button>
@@ -240,13 +234,11 @@
                     <span class="px-3 py-1 rounded-full text-xs font-bold {% if assoc.approval_status == 'APPROVED' %}bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300{% elif assoc.approval_status == 'REJECTED' %}bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300{% else %}bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-300{% endif %}">{{ assoc.approval_status }}</span>
                     {% if assoc.approval_status == 'PENDING' %}
                     <form action="/training/approve" method="post" class="inline training-approve-reject-form" data-panel-title="Approving association" data-confirm-message="approve this dataset association?">
-                        <input type="hidden" name="task_name" value="approve_training_dataset_association">
                         <input type="hidden" name="training_exp_id" value="{{ entity.id }}">
                         <input type="hidden" name="dataset_id" value="{{ assoc.dataset }}">
                         <button type="submit" class="px-3 py-1.5 rounded-lg medperf-bg dark:bg-green-600 text-white text-sm font-semibold hover:opacity-90 cursor-pointer">Approve</button>
                     </form>
                     <form action="/training/reject" method="post" class="inline training-approve-reject-form" data-panel-title="Rejecting association" data-confirm-message="reject this dataset association?">
-                        <input type="hidden" name="task_name" value="reject_training_dataset_association">
                         <input type="hidden" name="training_exp_id" value="{{ entity.id }}">
                         <input type="hidden" name="dataset_id" value="{{ assoc.dataset }}">
                         <button type="submit" class="px-3 py-1.5 rounded-lg bg-red-600 text-white text-sm font-semibold hover:opacity-90 cursor-pointer">Reject</button>
@@ -281,43 +273,45 @@
 <script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
 <script src="{{ url_for('static', path='js/folder_browsing.js') }}"></script>
 <script src="{{ url_for('static', path='js/training/training_detail.js') }}"></script>
-{% if task_running%}
-{% if "set_training_plan" in request.app.state.active_tasks %}
+{% if task_running %}
+{% if request.app.state.task.formData.get("training_exp_id", "")|string == entity.id|string %}
+{% if request.app.state.task.name == "set_training_plan" %}
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         resumeRunningTask("#set-plan-form");
     });
 </script>
-{% elif "set_training_aggregator" in request.app.state.active_tasks %}
+{% elif request.app.state.task.name == "set_training_aggregator" %}
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         resumeRunningTask("#set-aggregator-form");
     });
 </script>
-{% elif "start_training_event" in request.app.state.active_tasks %}
+{% elif request.app.state.task.name == "start_training_event" %}
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         resumeRunningTask("#start-event-form");
     });
 </script>
-{% elif "get_training_status" in request.app.state.active_tasks %}
+{% elif request.app.state.task.name == "get_training_status" %}
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         resumeRunningTask("#get-status-form");
     });
 </script>
-{% elif "update_training_plan" in request.app.state.active_tasks %}
+{% elif request.app.state.task.name == "update_training_plan" %}
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         resumeRunningTask("#update-plan-form");
     });
 </script>
-{% elif "close_training_event" in request.app.state.active_tasks %}
+{% elif request.app.state.task.name == "close_training_event" %}
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         resumeRunningTask("#close-event-form");
     });
 </script>
+{% endif %}
 {% endif %}
 {% endif %}
 {% endblock %}

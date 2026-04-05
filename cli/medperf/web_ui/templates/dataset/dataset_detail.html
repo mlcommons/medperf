@@ -16,7 +16,7 @@
             <h1 class="text-5xl font-bold medperf-accent dark:text-green-400">{{ dataset.name }}</h1>
         </div>
         <form action="/datasets/export/ui" method="POST" id="redirect-export-form" class="{% if not is_owner %}hidden{% endif %}">
-            <input type="hidden" name="dataset_id" value="{{ dataset.id }}">
+            <input type="hidden" name="entity_id" value="{{ dataset.id }}">
             <input class="px-6 py-3 rounded-xl bg-gray-700 dark:bg-gray-600 text-white font-bold hover:opacity-90 cursor-pointer" type="submit" name="submit" value="Export Dataset">
         </form>
     </div>
@@ -102,8 +102,7 @@
                 </div>
                 <p class="text-sm text-gray-600 dark:text-gray-400 mb-4 flex-1">Run data preprocessing and sanity checks for this dataset.</p>
                 <form id="prepare-dataset-form" action="/datasets/prepare" method="post" class="dataset-action-form" data-panel-title="Preparing dataset" data-confirm-message="prepare this dataset?">
-                    <input type="hidden" name="task_name" value="prepare">
-                    <input type="hidden" name="dataset_id" value="{{ dataset.id }}">
+                    <input type="hidden" name="entity_id" value="{{ dataset.id }}">
                     <button type="submit" id="prepare-dataset" class="w-full px-4 py-2.5 rounded-xl medperf-bg dark:bg-green-600 text-white font-semibold hover:opacity-90 cursor-pointer" {% if task_running %}disabled{% endif %}>Prepare</button>
                 </form>
             </div>
@@ -142,8 +141,7 @@
                 </div>
                 <p class="text-sm text-gray-600 dark:text-gray-400 mb-4 flex-1">Mark this dataset as operational so it can be used in benchmarks and training experiments.</p>
                 <form id="set-operational-form" action="/datasets/set_operational" method="post" class="dataset-action-form" data-panel-title="Setting dataset to operational" data-confirm-message="set this dataset to operation?">
-                    <input type="hidden" name="task_name" value="dataset_set_operational">
-                    <input type="hidden" name="dataset_id" value="{{ dataset.id }}">
+                    <input type="hidden" name="entity_id" value="{{ dataset.id }}">
                     <button type="submit" id="set-operational" class="w-full px-4 py-2.5 rounded-xl bg-amber-600 dark:bg-amber-500 text-white font-semibold hover:opacity-90 cursor-pointer" {% if task_running %}disabled{% endif %}>Set operational</button>
                 </form>
             </div>
@@ -175,8 +173,7 @@
                             <div class="flex gap-2 flex-shrink-0">
                                 <a href="/benchmarks/ui/display/{{ benchmark.id }}" class="px-3 py-1.5 rounded-lg bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-white text-sm font-semibold hover:opacity-90 whitespace-nowrap cursor-pointer">View</a>
                                 <form id="dataset-association-form-{{ benchmark.id }}" action="/datasets/associate" method="post" class="inline dataset-action-form" data-panel-title="Requesting association" data-confirm-message="request association with this benchmark?">
-                                    <input type="hidden" name="task_name" value="dataset_association">
-                                    <input type="hidden" name="dataset_id" value="{{ dataset.id }}">
+                                    <input type="hidden" name="entity_id" value="{{ dataset.id }}">
                                     <input type="hidden" name="benchmark_id" value="{{ benchmark.id }}">
                                     <button type="submit" class="px-3 py-1.5 rounded-lg medperf-bg dark:bg-green-600 text-white text-sm font-semibold hover:opacity-90 whitespace-nowrap cursor-pointer disabled:cursor-not-allowed" data-testid="request-bmk-association" {% if task_running %}disabled{% endif %}><i class="fas fa-paper-plane mr-1"></i>Request</button>
                                 </form>
@@ -210,20 +207,21 @@
                             <div class="flex gap-2 flex-shrink-0">
                                 <a href="/training/ui/display/{{ exp.id }}" class="px-3 py-1.5 rounded-lg bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-white text-sm font-semibold hover:opacity-90 whitespace-nowrap cursor-pointer">View</a>
                                 {% if exp.id in training_associations %}
-                                {% if training_associations[exp.id].approval_status != 'APPROVED' %}
-                                <form id="dataset-training-association-form-{{ exp.id }}" action="/datasets/associate_training" method="post" class="inline dataset-training-action-form dataset-action-form" data-panel-title="Requesting association" data-confirm-message="request association with this training experiment?">
-                                    <input type="hidden" name="task_name" value="dataset_training_association">
-                                    <input type="hidden" name="dataset_id" value="{{ dataset.id }}">
+                                {% set tr_status = training_associations[exp.id].approval_status %}
+                                {% if tr_status == 'APPROVED' %}
+                                <span class="inline-flex items-center px-3 py-1.5 rounded-lg bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200 text-sm font-semibold border border-green-200 dark:border-green-800"><i class="fas fa-check-circle mr-1.5"></i>Approved</span>
+                                {% elif tr_status == 'REJECTED' %}
+                                <form id="dataset-training-association-form-{{ exp.id }}" action="/datasets/associate_training" method="post" class="inline dataset-training-action-form dataset-action-form" data-panel-title="Requesting association" data-confirm-message="request association with this training experiment again?">
+                                    <input type="hidden" name="entity_id" value="{{ dataset.id }}">
                                     <input type="hidden" name="training_exp_id" value="{{ exp.id }}">
-                                    <button type="submit" class="px-3 py-1.5 rounded-lg medperf-bg dark:bg-green-600 text-white text-sm font-semibold hover:opacity-90 whitespace-nowrap cursor-pointer disabled:cursor-not-allowed" {% if task_running %}disabled{% endif %}><i class="fas fa-paper-plane mr-1"></i>Request again</button>
+                                    <button type="submit" class="px-3 py-1.5 rounded-lg medperf-bg dark:bg-green-600 text-white text-sm font-semibold hover:opacity-90 whitespace-nowrap cursor-pointer disabled:cursor-not-allowed" {% if task_running %}disabled{% endif %}><i class="fas fa-redo mr-1"></i>Request again</button>
                                 </form>
                                 {% else %}
-                                <span class="px-3 py-1.5 rounded-lg bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 text-sm font-semibold">Approved</span>
+                                <span class="inline-flex items-center px-3 py-1.5 rounded-lg bg-amber-100 dark:bg-amber-900/40 text-amber-900 dark:text-amber-200 text-sm font-semibold border border-amber-200 dark:border-amber-800"><i class="fas fa-hourglass-half mr-1.5"></i>Pending approval</span>
                                 {% endif %}
                                 {% else %}
                                 <form id="dataset-training-association-form-{{ exp.id }}" action="/datasets/associate_training" method="post" class="inline dataset-training-action-form dataset-action-form" data-panel-title="Requesting association" data-confirm-message="associate this dataset with this training experiment?">
-                                    <input type="hidden" name="task_name" value="dataset_training_association">
-                                    <input type="hidden" name="dataset_id" value="{{ dataset.id }}">
+                                    <input type="hidden" name="entity_id" value="{{ dataset.id }}">
                                     <input type="hidden" name="training_exp_id" value="{{ exp.id }}">
                                     <button type="submit" class="px-3 py-1.5 rounded-lg medperf-bg dark:bg-green-600 text-white text-sm font-semibold hover:opacity-90 whitespace-nowrap cursor-pointer disabled:cursor-not-allowed" {% if task_running %}disabled{% endif %}><i class="fas fa-paper-plane mr-1"></i>Request</button>
                                 </form>
@@ -285,8 +283,7 @@
 			</a>
 			</h4>
 			<form id="run-all-{{ assoc }}-form" action="/datasets/run" method="post" class="inline dataset-action-form" data-panel-title="Running benchmark execution" data-confirm-message="run the benchmark execution for all models?">
-				<input type="hidden" name="task_name" value="run_benchmark">
-				<input type="hidden" name="dataset_id" value="{{ dataset.id }}">
+				<input type="hidden" name="entity_id" value="{{ dataset.id }}">
 				<input type="hidden" name="benchmark_id" value="{{ assoc }}">
 				<input type="hidden" name="run_all" value="true">
 				{% if benchmark_models[assoc] %}{% for model in benchmark_models[assoc] %}<input type="hidden" name="model_ids" value="{{ model.id }}">{% endfor %}{% endif %}
@@ -329,8 +326,7 @@
 						<div class="flex items-center flex-wrap gap-2">
 							<div class="mx-2">
 								<form id="run-{{ assoc }}-{{ model.id }}-form" action="/datasets/run" method="post" class="inline dataset-action-form" data-panel-title="Running benchmark execution" data-confirm-message="{% if results_exist %}rerun the benchmark execution for the selected model? This will clear previous results.{% else %}run the benchmark execution for the selected model?{% endif %}">
-									<input type="hidden" name="task_name" value="run_benchmark">
-									<input type="hidden" name="dataset_id" value="{{ dataset.id }}">
+									<input type="hidden" name="entity_id" value="{{ dataset.id }}">
 									<input type="hidden" name="benchmark_id" value="{{ assoc }}">
 									<input type="hidden" name="run_all" value="false">
 									<input type="hidden" name="model_ids" value="{{ model.id }}">
@@ -358,10 +354,9 @@
 								{% else %}
 								<div class="mx-2">
                                     <form id="submit-{{ assoc }}-{{ model.result.id }}-form" action="/datasets/submit_result" method="post" class="inline dataset-action-form" data-panel-title="Submitting result" data-confirm-message="submit the result?">
-										<input type="hidden" name="task_name" value="submit_result">
 										<input type="hidden" name="result_id" value="{{ model.result.id }}">
 										<input type="hidden" name="benchmark_id" value="{{ assoc }}">
-										<input type="hidden" name="dataset_id" value="{{ dataset.id }}">
+										<input type="hidden" name="entity_id" value="{{ dataset.id }}">
 										<button type="submit" id="submit-{{ assoc }}-{{ model.result.id }}" class="px-6 py-3 medperf-bg dark:bg-green-600 text-white rounded-xl font-bold hover:opacity-90 cursor-pointer disabled:cursor-not-allowed" {% if task_running %}disabled{% endif %}><i class="fas fa-upload mr-2"></i>Submit</button>
 									</form>
 								</div>
@@ -402,9 +397,8 @@
                     <span class="px-3 py-1 rounded-full text-xs font-bold ml-2 {% if assoc.approval_status == 'APPROVED' %}bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300{% elif assoc.approval_status == 'REJECTED' %}bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300{% else %}bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-300{% endif %}">{{ assoc.approval_status }}</span>
                 </div>
                 {% if assoc.approval_status == 'APPROVED' and dataset_is_operational %}
-                <form id="start-training-form-{{ exp_id }}" action="/datasets/start_training" method="post" class="inline dataset-training-action-form dataset-action-form" data-panel-title="Starting training" data-confirm-message="start training for this experiment with this dataset?" data-success-handler="onStartTrainingSuccess">
-                    <input type="hidden" name="task_name" value="start_training">
-                    <input type="hidden" name="dataset_id" value="{{ dataset.id }}">
+                <form id="start-training-form-{{ exp_id }}" action="/datasets/start_training" method="post" class="inline dataset-training-action-form dataset-action-form" data-panel-title="Running training" data-confirm-message="start training for this experiment with this dataset?">
+                    <input type="hidden" name="entity_id" value="{{ dataset.id }}">
                     <input type="hidden" name="training_exp_id" value="{{ exp_id }}">
                     <button type="submit" class="px-4 py-2 rounded-xl medperf-bg dark:bg-green-600 text-white font-semibold hover:opacity-90 cursor-pointer start-training-btn">
                         <i class="fas fa-play mr-2"></i>Start training
@@ -441,27 +435,27 @@
 <script src="{{ url_for('static', path='js/datasets/dataset_detail.js') }}"></script>
 <script src="{{ url_for('static', path='js/cc.js') }}"></script>
 {% if task_running %}
-{% if "prepare" in request.app.state.active_tasks and request.app.state.active_tasks["prepare"].formData.get("dataset_id") == dataset.id|string %}
+{% if request.app.state.task.formData.get("entity_id") == dataset.id|string %}
+{% set form_data = request.app.state.task.formData %}
+{% if request.app.state.task.name == "prepare" %}
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         resumeRunningTask("#prepare-dataset-form");
     });
 </script>
-{% elif "dataset_set_operational" in request.app.state.active_tasks and request.app.state.active_tasks["dataset_set_operational"].formData.get("dataset_id") == dataset.id|string %}
+{% elif request.app.state.task.name == "dataset_set_operational" %}
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         resumeRunningTask("#set-operational-form");
     });
 </script>
-{% elif "dataset_association" in request.app.state.active_tasks and request.app.state.active_tasks["dataset_association"].formData.get("dataset_id") == dataset.id|string %}
-{% set form_data = request.app.state.active_tasks["dataset_association"].formData %}
+{% elif request.app.state.task.name == "dataset_association" %}
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         resumeRunningTask("#dataset-association-form-{{ form_data.get('benchmark_id') }}");
     });
 </script>
-{% elif  "run_benchmark" in request.app.state.active_tasks and request.app.state.active_tasks["run_benchmark"].formData.get("dataset_id") == dataset.id|string %}
-{% set form_data = request.app.state.active_tasks["run_benchmark"].formData %}
+{% elif  request.app.state.task.name == "run_benchmark" %}
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         const runAll = "{{ form_data.get('run_all') }}" === "true";
@@ -472,22 +466,19 @@
         }
     });
 </script>
-{% elif  "submit_result" in request.app.state.active_tasks and request.app.state.active_tasks["submit_result"].formData.get("dataset_id") == dataset.id|string %}
-{% set form_data = request.app.state.active_tasks["submit_result"].formData %}
+{% elif  request.app.state.task.name == "submit_result" %}
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         resumeRunningTask("#submit-{{ form_data.get('benchmark_id') }}-{{ form_data.get('result_id') }}-form");
     });
 </script>
-{% elif "dataset_training_association" in request.app.state.active_tasks and request.app.state.active_tasks["dataset_training_association"].formData.get("dataset_id") == dataset.id|string %}
-{% set form_data = request.app.state.active_tasks["dataset_training_association"].formData %}
+{% elif  request.app.state.task.name == "dataset_training_association" %}
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         resumeRunningTask("#dataset-training-association-form-{{ form_data.get('training_exp_id') }}");
     });
 </script>
-{% elif "start_training" in request.app.state.active_tasks and request.app.state.active_tasks["start_training"].formData.get("dataset_id") == dataset.id|string %}
-{% set form_data = request.app.state.active_tasks["start_training"].formData %}
+{% elif  request.app.state.task.name == "start_training" %}
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         const exp_id = "{{ form_data.get('training_exp_id') }}";
@@ -495,13 +486,13 @@
         resumeRunningTask("#start-training-form-" + exp_id);
     });
 </script>
-{% elif "data_update_cc_config" in request.app.state.active_tasks and request.app.state.active_tasks["data_update_cc_config"].formData.get("entity_id") == dataset.id|string %}
+{% elif  request.app.state.task.name == "data_update_cc_config" %}
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         resumeRunningTask("#edit-cc-asset-form");
     });
 </script>
-{% elif "data_update_cc_policy" in request.app.state.active_tasks and request.app.state.active_tasks["data_update_cc_policy"].formData.get("entity_id") == dataset.id|string %}
+{% elif  request.app.state.task.name == "data_update_cc_policy" %}
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         resumeRunningTask("#sync-cc-policy-form");
@@ -509,5 +500,5 @@
 </script>
 {% endif %}
 {% endif %}
-
+{% endif %}
 {% endblock extra_js %}

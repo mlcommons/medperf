@@ -7,15 +7,14 @@
 {% block title %}Register Container{% endblock %}
 
 {% block content %}
-{% set container_register_running = (task_running and "register_container" in request.app.state.active_tasks) %}
+{% set container_register_running = (task_running and request.app.state.task.name == "register_container") %}
 {% if container_register_running %}
-{% set form_data = request.app.state.active_tasks["register_container"].formData %}
+{% set form_data = request.app.state.task.formData %}
 {% endif %}
 
 <div class="container mx-auto px-4 py-8 max-w-3xl">
     <h1 class="text-3xl font-bold medperf-accent dark:text-green-400 text-center mb-4">Register a New Container</h1>
     <form id="register-container-form" class="space-y-6" action="/containers/register" method="post" data-panel-title="Registering container" data-confirm-message="register this container?">
-        <input type="hidden" name="task_name" value="register_container">
         <div>
             <label for="name" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Container name</label>
             <div class="flex flex-wrap items-stretch gap-2">
@@ -86,7 +85,7 @@
 <script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
 <script src="{{ url_for('static', path='js/containers/container_register.js') }}"></script>
 <script src="{{ url_for('static', path='js/folder_browsing.js') }}"></script>
-{% if task_running and "register_container" in request.app.state.active_tasks %}
+{% if task_running and request.app.state.task.name == "register_container" %}
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         resumeRunningTask("#register-container-form");
