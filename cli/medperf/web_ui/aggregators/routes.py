@@ -44,6 +44,7 @@ def register_aggregator(
     name: str = Form(...),
     address: str = Form(...),
     port: int = Form(...),
+    admin_port: int = Form(...),
     aggregation_mlcube: int = Form(...),
     current_user: bool = Depends(check_user_api),
 ):
@@ -55,6 +56,7 @@ def register_aggregator(
             name=name,
             address=address.strip(),
             port=port,
+            admin_port=admin_port,
             aggregation_mlcube=aggregation_mlcube,
         )
         return_response["status"] = "success"

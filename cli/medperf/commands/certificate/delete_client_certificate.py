@@ -3,12 +3,13 @@ from medperf.exceptions import CleanExit
 from medperf.utils import approval_prompt, get_pki_assets_path, remove_path
 from medperf import config
 from medperf.entities.certificate import Certificate
+from medperf.enums import CryptoKeyType
 import logging
 
 
 class DeleteCertificate:
     @staticmethod
-    def run(approved: bool = False):
+    def run(key_type: CryptoKeyType, approved: bool = False):
         """delete local cert folder and invalidate server certificate object"""
 
         msg = "Please confirm that you would like to delete your current certificate."
@@ -19,7 +20,7 @@ class DeleteCertificate:
             raise CleanExit("Certificate deletion cancelled.")
 
         # Invalidate server certificate object
-        cert = Certificate.get_user_certificate()
+        cert = Certificate.get_user_certificate(key_type=key_type)
         if cert is not None:
             logging.debug("Found a remote certificate. Invalidating the certificate.")
             body = {"is_valid": False}
@@ -27,5 +28,7 @@ class DeleteCertificate:
 
         # Delete local certificate folder
         email = get_medperf_user_data()["email"]
-        local_cert_folder = get_pki_assets_path(email, config.certificate_authority_id)
+        local_cert_folder = get_pki_assets_path(
+            email, config.certificate_authority_id, key_type=key_type
+        )
         remove_path(local_cert_folder, sensitive=True)

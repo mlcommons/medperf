@@ -25,6 +25,7 @@ import medperf.config as config
 from medperf.exceptions import CleanExit, ExecutionError, InvalidArgumentError
 import shlex
 from email_validator import validate_email, EmailNotValidError
+from medperf.enums import CryptoKeyType
 
 
 def get_string_hash(string: bytes) -> str:
@@ -608,14 +609,17 @@ def run_command(
     return proc_out
 
 
-def get_pki_assets_path(common_name: str, ca_id: int):
+def get_pki_assets_path(common_name: str, ca_id: int, key_type: CryptoKeyType) -> str:
     # Base64 encoding is used just to avoid special characters used in emails
     # and server domains/ipaddresses.
     logging.debug(f"Getting pki assets path for {common_name}")
     cn_encoded = base64.b64encode(common_name.encode("utf-8")).decode("utf-8")
     cn_encoded = cn_encoded.rstrip("=")
     logging.debug(f"common name base64encoded: {cn_encoded}")
-    return os.path.join(config.pki_assets, cn_encoded, str(ca_id))
+    path = os.path.join(config.pki_assets, cn_encoded, str(ca_id))
+    if key_type == CryptoKeyType.EC:
+        path = os.path.join(path, "signing")
+    return path
 
 
 def get_participant_label(email, data_id):

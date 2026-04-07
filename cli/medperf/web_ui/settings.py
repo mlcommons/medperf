@@ -14,6 +14,7 @@ from medperf.entities.ca import CA
 from medperf.exceptions import InvalidArgumentError
 from medperf.utils import make_pretty_dict
 from medperf.init import initialize
+from medperf.enums import CryptoKeyType
 from medperf.web_ui.common import (
     check_user_api,
     check_user_ui,
@@ -34,6 +35,7 @@ def settings_ui(request: Request, current_user: bool = Depends(check_user_ui)):
     config_p = read_config()
     cas = None
     certificate_status = None
+    signing_certificate_status = None
 
     cc_config_defaults = {}
     cc_configured = False
@@ -42,7 +44,10 @@ def settings_ui(request: Request, current_user: bool = Depends(check_user_ui)):
     if is_logged_in():
         cas = CA.all()
         cas = {c.id: c.name for c in cas}
-        certificate_status = current_user_certificate_status()
+        certificate_status = current_user_certificate_status(key_type=CryptoKeyType.RSA)
+        signing_certificate_status = current_user_certificate_status(
+            key_type=CryptoKeyType.EC
+        )
 
         user = get_medperf_user_object()
         cc_config_defaults = user.get_cc_config()
@@ -60,6 +65,8 @@ def settings_ui(request: Request, current_user: bool = Depends(check_user_ui)):
             "default_ca": config.certificate_authority_id,
             "default_fingerprint": config.certificate_authority_fingerprint,
             "certificate_status": certificate_status,
+            "signing_certificate_status": signing_certificate_status,
+            "CryptoKeyType": CryptoKeyType,
             "cc_config_defaults": cc_config_defaults,
             "cc_configured": cc_configured,
             "cc_initialized": cc_initialized,
@@ -144,13 +151,14 @@ def view_profile(
 @router.post("/get_certificate", response_class=JSONResponse)
 def get_certificate(
     request: Request,
+    key_type: CryptoKeyType = Form(...),
     current_user: bool = Depends(check_user_api),
 ):
     initialize_state_task(request, task_name="get_client_certificate")
     return_response = {"status": "", "error": ""}
 
     try:
-        GetUserCertificate.run()
+        GetUserCertificate.run(key_type=key_type)
         return_response["status"] = "success"
         notification_message = "Certificate retrieved"
     except Exception as exp:
@@ -171,13 +179,14 @@ def get_certificate(
 @router.post("/delete_certificate", response_class=JSONResponse)
 def delete_certificate(
     request: Request,
+    key_type: CryptoKeyType = Form(...),
     current_user: bool = Depends(check_user_api),
 ):
     initialize_state_task(request, task_name="delete_client_certificate")
     return_response = {"status": "", "error": ""}
 
     try:
-        DeleteCertificate.run()
+        DeleteCertificate.run(key_type=key_type)
         return_response["status"] = "success"
         notification_message = "Certificate deleted"
     except Exception as exp:
@@ -198,13 +207,14 @@ def delete_certificate(
 @router.post("/submit_certificate", response_class=JSONResponse)
 def submit_certificate(
     request: Request,
+    key_type: CryptoKeyType = Form(...),
     current_user: bool = Depends(check_user_api),
 ):
     initialize_state_task(request, task_name="submit_client_certificate")
     return_response = {"status": "", "error": ""}
 
     try:
-        SubmitCertificate.run()
+        SubmitCertificate.run(key_type=key_type)
         return_response["status"] = "success"
         notification_message = "Certificate submitted"
     except Exception as exp:

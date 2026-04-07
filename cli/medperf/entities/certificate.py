@@ -12,6 +12,7 @@ import logging
 from cryptography import x509
 from cryptography.hazmat.primitives import serialization
 from medperf.entities.utils import handle_validation_error
+from medperf.enums import CryptoKeyType
 
 
 class Certificate(Entity):
@@ -45,6 +46,7 @@ class Certificate(Entity):
         self._model = CertificateSchema(**kwargs)
         super().__init__()
         self.certificate_content_base64 = self._model.certificate_content_base64
+        self.key_type = self._model.key_type
         self.ca = self._model.ca
 
     @property
@@ -70,7 +72,27 @@ class Certificate(Entity):
         cert_data_list = config.comms.get_benchmark_datasets_certificates(
             benchmark_id=benchmark_id
         )
+        return cls._process_cert_data_list(cert_data_list, CryptoKeyType.RSA)
 
+    @classmethod
+    def get_training_datasets_certificates(
+        cls, training_exp_id: int
+    ) -> Tuple[List[Certificate], dict[int, dict]]:
+        # this api returns owners as dicts.
+        cert_data_list = config.comms.get_training_datasets_certificates(
+            training_exp_id
+        )
+        return cls._process_cert_data_list(cert_data_list, CryptoKeyType.EC)
+
+    @classmethod
+    def _process_cert_data_list(
+        cls, cert_data_list: List[dict], key_type: CryptoKeyType
+    ) -> Tuple[List[Certificate], dict[int, dict]]:
+        cert_data_list = [
+            cert_data
+            for cert_data in cert_data_list
+            if cert_data["key_type"] == key_type.value
+        ]
         # Transfer user info to another dict
         users_mapping = dict()
         for cert_data in cert_data_list:
@@ -81,24 +103,30 @@ class Certificate(Entity):
         return cert_obj_list, users_mapping
 
     @classmethod
-    def get_user_certificate(cls):
+    def get_user_certificate(cls, key_type: CryptoKeyType):
         user_id = get_medperf_user_data()["id"]
         user_certificates = Certificate.all(
-            filters={"owner": user_id, "ca": config.certificate_authority_id}
+            filters={
+                "owner": user_id,
+                "ca": config.certificate_authority_id,
+                "key_type": key_type.value,
+            }
         )
         if len(user_certificates) == 0:
             return
 
         if len(user_certificates) > 1:
             raise MedperfException(
-                "Internal Error: Multiple certificates has been found"
+                "Internal Error: Multiple certificates have been found"
             )
         return user_certificates[0]
 
     @classmethod
-    def get_local_user_certificate(cls):
+    def get_local_user_certificate(cls, key_type: CryptoKeyType):
         email = get_medperf_user_data()["email"]
-        local_cert_folder = get_pki_assets_path(email, config.certificate_authority_id)
+        local_cert_folder = get_pki_assets_path(
+            email, config.certificate_authority_id, key_type=key_type
+        )
         local_certificate_file = os.path.join(
             local_cert_folder, config.certificate_file
         )
@@ -113,6 +141,7 @@ class Certificate(Entity):
             name="tmp_local_cert",
             certificate_content_base64=cert_b64encoded,
             ca=config.certificate_authority_id,
+            key_type=key_type,
         )
 
     @classmethod
@@ -144,6 +173,7 @@ class Certificate(Entity):
             "UID": self.identifier,
             "Name": self.name,
             "CA ID": self.ca,
+            "Key Type": self.key_type.value,
             "Created At": self.created_at,
             "Is Valid": self.is_valid,
         }

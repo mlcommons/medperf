@@ -12,6 +12,7 @@ from medperf.utils import (
 import yaml
 import os
 from medperf.certificates import verify_certificate_authority
+from medperf.enums import CryptoKeyType
 
 
 class GetExperimentStatus:
@@ -51,7 +52,9 @@ class GetExperimentStatus:
         verify_certificate_authority(
             ca, expected_fingerprint=config.certificate_authority_fingerprint
         )
-        self.admin_pki_assets = get_pki_assets_path(self.user_email, ca.id)
+        self.admin_pki_assets = get_pki_assets_path(
+            self.user_email, ca.id, CryptoKeyType.EC
+        )
         self.ca = ca
 
     def prepare_admin_cube(self):

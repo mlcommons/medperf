@@ -19,6 +19,7 @@ from medperf.asset_management.asset_management import run_workload, download_res
 from medperf.utils import get_string_hash
 from medperf.commands.certificate.utils import load_user_private_key
 from medperf.containers.runners.docker_utils import full_docker_image_name
+from medperf.enums import CryptoKeyType
 
 
 class ConfidentialExecution:
@@ -102,15 +103,14 @@ class ConfidentialExecution:
 
     def setup_workload(self):
         if self.dataset.owner == self.operator.id:
-            cert_obj = Certificate.get_user_certificate()
+            cert_obj = Certificate.get_user_certificate(CryptoKeyType.RSA)
         else:
-            datasets_certs = config.comms.get_benchmark_datasets_certificates(
+            datasets_certs, _ = Certificate.get_benchmark_datasets_certificates(
                 self.benchmark_id
             )
             for cert in datasets_certs:
-                if cert["owner"]["id"] == self.dataset.owner:
-                    cert.pop("owner")
-                    cert_obj = Certificate(**cert)
+                if cert.owner == self.dataset.owner:
+                    cert_obj = cert
                     break
             else:
                 raise ExecutionError("Dataset not associated.")
@@ -149,7 +149,7 @@ class ConfidentialExecution:
         results_path = os.path.join(
             config.script_result_folder, str(self.execution.id), timestamp
         )
-        private_key_bytes = load_user_private_key()
+        private_key_bytes = load_user_private_key(CryptoKeyType.RSA)
         if private_key_bytes is None:
             raise DecryptionError("Missing Private Key")
 

@@ -4,12 +4,14 @@ function checkAggregatorFormValidity() {
     var nameEl = document.getElementById("name");
     var addressEl = document.getElementById("address");
     var portEl = document.getElementById("port");
+    var adminPortEl = document.getElementById("admin-port");
     var cubeEl = document.getElementById("aggregation-mlcube");
     var nameValue = nameEl ? nameEl.value.trim() : "";
     var addressValue = addressEl ? addressEl.value.trim() : "";
     var portValue = portEl && portEl.value ? parseInt(portEl.value, 10) : 0;
+    var adminPortValue = adminPortEl && adminPortEl.value ? parseInt(adminPortEl.value, 10) : 0;
     var cubeValue = cubeEl && cubeEl.value ? parseInt(cubeEl.value, 10) : 0;
-    var isValid = nameValue.length > 0 && addressValue.length > 0 && portValue > 0 && portValue <= 65535 && cubeValue > 0;
+    var isValid = nameValue.length > 0 && addressValue.length > 0 && portValue > 0 && portValue <= 65535 && adminPortValue > 0 && adminPortValue <= 65535 && cubeValue > 0;
     var btn = document.getElementById("register-aggregator-btn");
     if (btn) btn.disabled = !isValid;
 }

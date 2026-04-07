@@ -60,7 +60,14 @@
     </section>
 
     <section id="user-certificate">
+        {% if request.app.state.ui_mode == request.app.state.EVALUATION_MODE %}
         <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4">Certificate Settings</h2>
+        {% set key_type = CryptoKeyType.RSA %}
+        {% else %}
+        <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4">Signing Certificate Settings</h2>
+        {% set key_type = CryptoKeyType.EC %}
+        {% set certificate_status = signing_certificate_status %}
+        {% endif %}
         <div id="certificate-settings" class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border-2 border-green-100 dark:border-gray-700 text-center text-gray-900 dark:text-white">
             {% if not logged_in %}
             <p class="text-gray-600 dark:text-gray-400">Log in to view certificate settings</p>
@@ -68,6 +75,7 @@
             {% if certificate_status["no_certs_found"] %}
             <p class="text-gray-700 dark:text-gray-300 mb-4">No Certificate Found</p>
             <form id="get-cert-form" action="/settings/get_certificate" method="post" class="inline settings-action-form" data-panel-title="Getting Client Certificate" data-confirm-message="get a new certificate?" >
+                <input type="hidden" name="key_type" value="{{ key_type }}">
                 <button id="get-cert-btn" type="submit" class="px-6 py-3 bg-gray-700 dark:bg-gray-600 text-white rounded-xl font-bold hover:opacity-90 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed" {% if task_running %}disabled{% endif %} title="{{ tooltips.get_client_certificate_btn }}">Get User Certificate</button>
             </form>
             {% else %}
@@ -82,10 +90,12 @@
             <div class="flex flex-wrap items-center justify-center gap-3 mt-2">
             {% if certificate_status["should_be_submitted"] %}
             <form id="submit-cert-form" action="/settings/submit_certificate" method="post" class="settings-action-form m-0" data-panel-title="Submitting Client Certificate" data-confirm-message="submit the certificate?">
+                <input type="hidden" name="key_type" value="{{ key_type }}">
                 <button id="submit-cert-btn" type="submit" class="px-6 py-3 min-h-[48px] medperf-bg dark:bg-green-600 text-white rounded-xl font-bold hover:opacity-90 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed inline-flex items-center justify-center" {% if task_running %}disabled{% endif %} title="{{ tooltips.submit_certificate_btn }}">Submit Certificate</button>
             </form>
             {% endif %}
             <form id="delete-cert-form" action="/settings/delete_certificate" method="post" class="settings-action-form m-0" data-panel-title="Deleting Client Certificate" data-confirm-message="delete the certificate?">
+                <input type="hidden" name="key_type" value="{{ key_type }}">
                 <button id="delete-cert-btn" type="submit" class="px-6 py-3 min-h-[48px] bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed inline-flex items-center justify-center" {% if task_running %}disabled{% endif %} title="{{ tooltips.invalidate_certificate_btn }}">Delete</button>
             </form>
             </div>
