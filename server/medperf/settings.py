@@ -318,3 +318,5 @@ TOKEN_USER_EMAIL_CLAIM = "https://medperf.org/email"
 AUTO_APPROVE_BENCHMARKS_FROM = env("AUTO_APPROVE_BENCHMARKS_FROM", default="").split(
     ","
 )
+
+AUTO_APPROVE_TRAINING_FROM = env("AUTO_APPROVE_TRAINING_FROM", default="").split(",")

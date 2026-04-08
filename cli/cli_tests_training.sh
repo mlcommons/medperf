@@ -120,14 +120,6 @@ print_eval medperf training submit -n trainexp -d trainexp -p $PREP_UID -m $TRAI
 checkFailed "Training exp submission failed"
 TRAINING_UID=$(medperf training ls | grep trainexp | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 echo "TRAINING_UID=$TRAINING_UID" >> "$LAST_ENV_FILE"
-
-# Approve benchmark
-ADMIN_TOKEN=$(jq -r --arg ADMIN $ADMIN '.[$ADMIN]' $MOCK_TOKENS_FILE)
-checkFailed "Retrieving admin token failed"
-echo "ADMIN_TOKEN=$ADMIN_TOKEN" >> "$LAST_ENV_FILE"
-
-curl -sk -X PUT $SERVER_URL$VERSION_PREFIX/training/$TRAINING_UID/ -d '{"approval_status": "APPROVED"}' -H 'Content-Type: application/json' -H "Authorization: Bearer $ADMIN_TOKEN"
-checkFailed "training exp approval failed"
 ##########################################################
 
 echo "\n"
