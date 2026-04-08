@@ -8,6 +8,7 @@ from medperf.commands.certificate.utils import (
 )
 from medperf.tests.mocks.certificate import TestCertificate
 from medperf import config
+from medperf.enums import CryptoKeyType
 
 PATCH_STATUS = "medperf.commands.certificate.utils.{}"
 
@@ -119,7 +120,7 @@ def test_current_user_certificate_status(
             )
 
     # Act
-    status = current_user_certificate_status()
+    status = current_user_certificate_status(CryptoKeyType.RSA)
 
     # Assert
     assert status["user_cert_object"] == remote_exists
@@ -173,12 +174,12 @@ def test_load_user_private_key_reads_file(mocker, fs):
     fs.create_file(key_path, contents=b"private-key-bytes")
 
     # Act
-    result = load_user_private_key()
+    result = load_user_private_key(CryptoKeyType.RSA)
 
     # Assert
     assert result == b"private-key-bytes"
 
     # Remove file, should return None
     fs.remove(key_path)
-    result = load_user_private_key()
+    result = load_user_private_key(CryptoKeyType.RSA)
     assert result is None
