@@ -20,6 +20,7 @@ from medperf.web_ui.common import (
     reset_state_task,
     templates,
 )
+from medperf.enums import CryptoKeyType
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -126,7 +127,7 @@ def aggregator_detail_ui(
                 ca = CA.get(ca_id)
                 aggregator = Aggregator.get(aggregator_id)
                 address = aggregator.address
-                output_path = get_pki_assets_path(address, ca.id)
+                output_path = get_pki_assets_path(address, ca.id, CryptoKeyType.RSA)
                 certificate_exists = os.path.exists(output_path)
             except Exception as exp:
                 logger.warning(
