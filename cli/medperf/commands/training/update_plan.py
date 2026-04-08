@@ -18,6 +18,7 @@ class UpdatePlan:
         """
         execution = cls(training_exp_id, field_name, field_value)
         execution.prepare()
+        execution.validate()
         execution.prepare_plan()
         execution.prepare_pki_assets()
         with config.ui.interactive():
@@ -34,6 +35,12 @@ class UpdatePlan:
         self.training_exp = TrainingExp.get(self.training_exp_id)
         self.ui.print(f"Training Experiment: {self.training_exp.name}")
         self.user_email: str = get_medperf_user_data()["email"]
+
+    def validate(self):
+        if self.training_exp.fl_admin_mlcube is None:
+            raise ValueError(
+                "The training experiment does not have an admin container."
+            )
 
     def prepare_plan(self):
         self.training_exp.prepare_plan()

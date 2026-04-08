@@ -26,6 +26,7 @@ class GetExperimentStatus:
         execution = cls(training_exp_id)
         with config.ui.interactive():
             execution.prepare()
+            execution.validate()
             execution.prepare_plan()
             execution.prepare_pki_assets()
             execution.prepare_admin_cube()
@@ -43,6 +44,12 @@ class GetExperimentStatus:
         self.ui.print(f"Training Experiment: {self.training_exp.name}")
         self.user_email: str = get_medperf_user_data()["email"]
         self.status_output = generate_tmp_path()
+
+    def validate(self):
+        if self.training_exp.fl_admin_mlcube is None:
+            raise ValueError(
+                "The training experiment does not have an admin container."
+            )
 
     def prepare_plan(self):
         self.training_exp.prepare_plan()
