@@ -75,7 +75,6 @@
             {% if certificate_status["no_certs_found"] %}
             <p class="text-gray-700 dark:text-gray-300 mb-4">No Certificate Found</p>
             <form id="get-cert-form" action="/settings/get_certificate" method="post" class="inline settings-action-form" data-panel-title="Getting Client Certificate" data-confirm-message="get a new certificate?" >
-                <input type="hidden" name="task_name" value="get_client_certificate">
                 <input type="hidden" name="key_type" value="{{ key_type }}">
                 <button id="get-cert-btn" type="submit" class="px-6 py-3 bg-gray-700 dark:bg-gray-600 text-white rounded-xl font-bold hover:opacity-90 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed" {% if task_running %}disabled{% endif %} title="{{ tooltips.get_client_certificate_btn }}">Get User Certificate</button>
             </form>
@@ -83,21 +82,23 @@
             <p class="text-gray-700 dark:text-gray-300 mb-4">Certificate Exists</p>
             {% if certificate_status["should_be_submitted"] %}
             <p class="mb-4 text-gray-700 dark:text-gray-300"><strong>Status:</strong> <span class="px-4 py-1 rounded-full text-xs font-bold border-2 bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-200 border-yellow-200 dark:border-yellow-700" data-testid="cert-status">to be uploaded</span></p>
-            <form id="submit-cert-form" action="/settings/submit_certificate" method="post" class="inline settings-action-form" data-panel-title="Submitting Client Certificate" data-confirm-message="submit the certificate?">
-                <input type="hidden" name="task_name" value="submit_client_certificate">
-                <input type="hidden" name="key_type" value="{{ key_type }}">
-                <button id="submit-cert-btn" type="submit" class="px-6 py-3 medperf-bg dark:bg-green-600 text-white rounded-xl font-bold hover:opacity-90 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed" {% if task_running %}disabled{% endif %} title="{{ tooltips.submit_certificate_btn }}">Submit Certificate</button>
-            </form>
             {% elif certificate_status["should_be_invalidated"] %}
             <p class="mb-4 text-gray-700 dark:text-gray-300"><strong>Status:</strong> <span class="px-4 py-1 rounded-full text-xs font-bold border-2 bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-200 border-red-200 dark:border-red-800" data-testid="cert-status">invalid</span></p>
             {% else %}
             <p class="mb-4 text-gray-700 dark:text-gray-300"><strong>Status:</strong> <span class="px-4 py-1 rounded-full text-xs font-bold border-2 bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200 border-green-200 dark:border-green-700" data-testid="cert-status">valid</span></p>
             {% endif %}
-            <form id="delete-cert-form" action="/settings/delete_certificate" method="post" class="inline settings-action-form" data-panel-title="Deleting Client Certificate" data-confirm-message="delete the certificate?">
-                <input type="hidden" name="task_name" value="delete_client_certificate">
+            <div class="flex flex-wrap items-center justify-center gap-3 mt-2">
+            {% if certificate_status["should_be_submitted"] %}
+            <form id="submit-cert-form" action="/settings/submit_certificate" method="post" class="settings-action-form m-0" data-panel-title="Submitting Client Certificate" data-confirm-message="submit the certificate?">
                 <input type="hidden" name="key_type" value="{{ key_type }}">
-                <button id="delete-cert-btn" type="submit" class="px-6 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed" {% if task_running %}disabled{% endif %} title="{{ tooltips.invalidate_certificate_btn }}">Delete</button>
+                <button id="submit-cert-btn" type="submit" class="px-6 py-3 min-h-[48px] medperf-bg dark:bg-green-600 text-white rounded-xl font-bold hover:opacity-90 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed inline-flex items-center justify-center" {% if task_running %}disabled{% endif %} title="{{ tooltips.submit_certificate_btn }}">Submit Certificate</button>
             </form>
+            {% endif %}
+            <form id="delete-cert-form" action="/settings/delete_certificate" method="post" class="settings-action-form m-0" data-panel-title="Deleting Client Certificate" data-confirm-message="delete the certificate?">
+                <input type="hidden" name="key_type" value="{{ key_type }}">
+                <button id="delete-cert-btn" type="submit" class="px-6 py-3 min-h-[48px] bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed inline-flex items-center justify-center" {% if task_running %}disabled{% endif %} title="{{ tooltips.invalidate_certificate_btn }}">Delete</button>
+            </form>
+            </div>
             {% endif %}
             {% endif %}
         </div>
@@ -138,19 +139,19 @@
 </script>
 <script src="{{ url_for('static', path='js/settings.js') }}"></script>
 {% if task_running %}
-{% if "get_client_certificate" in request.app.state.active_tasks %}
+{% if request.app.state.task.name == "get_client_certificate" %}
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         resumeRunningTask("#get-cert-form");
     });
 </script>
-{% elif "delete_client_certificate" in request.app.state.active_tasks %}
+{% elif request.app.state.task.name == "delete_client_certificate" %}
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         resumeRunningTask("#delete-cert-form");
     });
 </script>
-{% elif "submit_client_certificate" in request.app.state.active_tasks %}
+{% elif request.app.state.task.name == "submit_client_certificate" %}
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         resumeRunningTask("#submit-cert-form");

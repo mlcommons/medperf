@@ -4,6 +4,7 @@ import base64
 import re
 import os
 import signal
+import subprocess
 import yaml
 import random
 import hashlib
@@ -23,7 +24,6 @@ from git import Repo, GitCommandError
 import medperf.config as config
 from medperf.exceptions import CleanExit, ExecutionError, InvalidArgumentError
 import shlex
-import time
 from email_validator import validate_email, EmailNotValidError
 from medperf.enums import CryptoKeyType
 
@@ -507,10 +507,19 @@ def check_for_updates() -> None:
 
 
 class spawn_and_kill:
-    def __init__(self, cmd, timeout=None, task=None, *args, **kwargs):
+    def __init__(
+        self,
+        cmd,
+        timeout=None,
+        task=None,
+        docker_container_name=None,
+        *args,
+        **kwargs,
+    ):
         self.cmd = cmd
         self.timeout = timeout
         self.task = task
+        self.docker_container_name = docker_container_name
         self._args = args
         self._kwargs = kwargs
         self.proc: spawn
@@ -521,21 +530,29 @@ class spawn_and_kill:
         return spawn(*args, **kwargs)
 
     def killpg(self):
-        """Stop the process group: SIGTERM first, then SIGKILL after a short wait."""
-        try:
-            pgid = os.getpgid(self.pid)
-        except OSError:
-            pgid = self.pid
-        try:
-            os.killpg(pgid, signal.SIGTERM)
-        except OSError:
-            pass
-        time.sleep(1)
-        try:
-            if self.proc.isalive():
-                os.killpg(pgid, signal.SIGKILL)
-        except OSError:
-            pass
+        if self.docker_container_name:
+            try:
+                result = subprocess.run(
+                    ["docker", "stop", "-t", "0", self.docker_container_name],
+                    capture_output=True,
+                    text=True,
+                    timeout=10,
+                    check=False,
+                )
+                if result.returncode != 0:
+                    logging.debug(
+                        "docker stop %s exited %s: %s",
+                        self.docker_container_name,
+                        result.returncode,
+                        (result.stderr or result.stdout or "").strip(),
+                    )
+            except (subprocess.TimeoutExpired, FileNotFoundError, OSError) as e:
+                logging.warning(
+                    "Could not docker stop %s: %s",
+                    self.docker_container_name,
+                    e,
+                )
+        os.killpg(self.pid, signal.SIGKILL)
 
     def __enter__(self):
         self.proc = self.spawn(
@@ -567,11 +584,18 @@ class spawn_and_kill:
         return False
 
 
-def run_command(cmd, timeout=None, output_logs=None, task=None):
+def run_command(
+    cmd, timeout=None, output_logs=None, task=None, docker_container_name=None
+):
     logging.debug(f"Command as list, to be run: {cmd}")
     command_as_str = shlex.join(cmd)
     logging.debug(f"Running command: {command_as_str}")
-    with spawn_and_kill(command_as_str, timeout=timeout, task=task) as proc_wrapper:
+    with spawn_and_kill(
+        command_as_str,
+        timeout=timeout,
+        task=task,
+        docker_container_name=docker_container_name,
+    ) as proc_wrapper:
         proc = proc_wrapper.proc
         proc_out = combine_proc_sp_text(proc)
 

@@ -20,6 +20,7 @@ from .docker_utils import (
 )
 from medperf.encryption import SymmetricEncryption
 from medperf.utils import remove_path, run_command, tmp_path_for_file_decryption
+import uuid
 
 
 class DockerRunner(Runner):
@@ -185,8 +186,16 @@ class DockerRunner(Runner):
     def _invoke_run(self, image, run_args, timeout, output_logs):
         run_args["image"] = image
         task = run_args.pop("task")
+        container_name = f"medperf-{task}-{uuid.uuid4().hex[:16]}"
+        run_args["container_name"] = container_name
 
         # Run
         command = craft_docker_run_command(run_args)
-        logging.debug("Running docker container")
-        run_command(command, timeout, output_logs, task=task)
+        logging.debug("Running docker container as %s", container_name)
+        run_command(
+            command,
+            timeout,
+            output_logs,
+            task=task,
+            docker_container_name=container_name,
+        )

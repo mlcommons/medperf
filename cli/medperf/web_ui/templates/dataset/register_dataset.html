@@ -6,15 +6,14 @@
 {% block title %}Register Dataset{% endblock %}
 
 {% block content %}
-{% set dataset_register_running = (task_running and "register_dataset" in request.app.state.active_tasks) %}
+{% set dataset_register_running = (task_running and request.app.state.task.name == "register_dataset") %}
 {% if dataset_register_running %}
-{% set form_data = request.app.state.active_tasks["register_dataset"].formData %}
+{% set form_data = request.app.state.task.formData %}
 {% endif %}
 <div class="container mx-auto px-4 py-8 max-w-3xl">
     <h1 class="text-3xl font-bold medperf-accent dark:text-green-400 text-center mb-8">Register a New Dataset</h1>
 
     <form id="register-dataset-form" class="space-y-6" action="/datasets/register" method="post" data-panel-title="Registering dataset" data-confirm-message="register this dataset?">
-        <input type="hidden" name="task_name" value="register_dataset">
         {% if request.app.state.ui_mode == request.app.state.EVALUATION_MODE %}
         <div>
             <label for="benchmark" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Select Benchmark</label>
@@ -110,7 +109,7 @@
 <script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
 <script src="{{ url_for('static', path='js/datasets/dataset_register.js') }}"></script>
 <script src="{{ url_for('static', path='js/folder_browsing.js') }}"></script>
-{% if task_running and "register_dataset" in request.app.state.active_tasks %}
+{% if task_running and request.app.state.task.name == "register_dataset" %}
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         resumeRunningTask("#register-dataset-form");

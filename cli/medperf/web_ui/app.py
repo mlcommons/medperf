@@ -19,6 +19,7 @@ from medperf.web_ui.benchmarks.routes import router as benchmarks_router
 from medperf.web_ui.containers.routes import router as containers_router
 from medperf.web_ui.models.routes import router as models_router
 from medperf.web_ui.assets.routes import router as assets_router
+from medperf.web_ui.schemas import WebUITask
 from medperf.web_ui.training.routes import router as training_router
 from medperf.web_ui.aggregators.routes import router as aggregators_router
 from medperf.web_ui.yaml_fetch.routes import router as yaml_fetch_router
@@ -29,7 +30,7 @@ from medperf.web_ui.medperf_login import router as medperf_login
 from medperf.web_ui.settings import router as settings_router
 from medperf.web_ui.auth import wrap_openapi, NotAuthenticatedException, security_token
 
-JS_VERSION = "1.0.0"
+JS_VERSION = "1.0.1"
 
 UI_MODE_COOKIE = "medperf-mode"
 UI_MODE_TRAINING = "training"
@@ -79,7 +80,7 @@ web_app.openapi = wrap_openapi(web_app)
 
 @web_app.on_event("startup")
 def startup_event():
-    web_app.state.active_tasks = {}  # task_id -> WebUITask (multiple tasks can run)
+    web_app.state.task = WebUITask()
     web_app.state.old_tasks = []  # List of [schemas.WebUITask]
     web_app.state.task_running = False
     web_app.state.MAXLOGMESSAGES = config.webui_max_log_messages

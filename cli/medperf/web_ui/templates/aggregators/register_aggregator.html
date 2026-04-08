@@ -4,9 +4,9 @@
 {% block title %}Register Aggregator{% endblock %}
 
 {% block content %}
-{% set agg_register_running = (task_running and "register_aggregator" in request.app.state.active_tasks) %}
+{% set agg_register_running = (task_running and request.app.state.task.name == "register_aggregator") %}
 {% if agg_register_running %}
-{% set form_data = request.app.state.active_tasks["register_aggregator"].formData %}
+{% set form_data = request.app.state.task.formData %}
 {% endif %}
 
 <div class="container mx-auto px-4 py-8 max-w-3xl">
@@ -16,7 +16,6 @@
     </p>
 
     <form id="aggregator-register-form" class="space-y-6" action="/aggregators/register" method="post" data-panel-title="Registering aggregator" data-confirm-message="register this aggregator?">
-        <input type="hidden" name="task_name" value="register_aggregator">
         <div>
             <label for="name" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Name</label>
             <div class="flex flex-wrap items-stretch gap-2">
@@ -76,7 +75,7 @@
 {% block extra_js %}
 <script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
 <script src="{{ url_for('static', path='js/aggregators/aggregator_register.js') }}"></script>
-{% if task_running and  "register_aggregator" in request.app.state.active_tasks %}
+{% if task_running and request.app.state.task.name == "register_aggregator" %}
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         resumeRunningTask("#register-aggregator-form");

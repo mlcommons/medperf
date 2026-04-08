@@ -63,6 +63,11 @@
         window.maxLogMessages = Number("{{ request.app.state.MAXLOGMESSAGES }}");
         window.evSource = null;
     </script>
+    {% if task_running %}
+    <script>
+        window.taskId = "{{ request.app.state.task.id }}";
+    </script>
+    {% endif %}
     {% block extra_css %} {% endblock extra_css %}
 </head>
 <body class="min-h-screen bg-[#f1f8f4] dark:bg-gray-900">

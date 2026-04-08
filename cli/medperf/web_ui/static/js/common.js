@@ -191,6 +191,7 @@ function showPanel(title) {
     var panel = document.getElementById("panel");
     if (panelTitle) panelTitle.textContent = title;
     if (panel) { panel.style.display = ""; panel.classList.remove("hidden"); }
+    collapseLogPanel();
     window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
 }
 
@@ -221,9 +222,24 @@ function showConfirmModal(clickedBtn, callback, message) {
     showModal({ title: modalTitle, body: modalBody, footer: modalFooter, extra_func: extra });
 }
 
+async function getTaskId() {
+    try {
+        const response = await fetch("/current_task");
+
+        if (!response.ok) {
+            throw new Error("Network response was not ok");
+        }
+
+        const data = await response.json();
+        return data.task_id;
+    } catch (error) {
+        console.error("Failed to get task id:", error);
+        throw error;
+    }
+}
+
 function respondToPrompt(value) {
     var formData = new FormData();
-    formData.append("task_name", window.taskName || "");
     formData.append("is_approved", value ? "true" : "false");
     fetch("/events", { method: "POST", body: formData });
     window.isPromptReceived = false;
@@ -235,12 +251,9 @@ function respondToPrompt(value) {
 }
 
 function resumeRunningTask(formSelector) {
-    const form = document.querySelector(formSelector);
     const submitBtn = document.querySelector(formSelector + ' button[type="submit"]');
     const panelTitle = document.querySelector(formSelector)?.getAttribute("data-panel-title");
-    const taskName = form.querySelector('input[name="task_name"]')?.value;
     
-    window.taskName = taskName || "";
     addSpinner(submitBtn);
     showPanel(panelTitle + "...");
     window.onPromptComplete = onActionSuccess(panelTitle, null);
@@ -291,6 +304,46 @@ var currentStageElement = null, logPanel, stagesList;
 window.isPromptReceived = false;
 window.onPromptComplete = null;
 
+var isLogPanelExpanded = false;
+
+function setLogPanelExpanded(expanded) {
+    var container = document.getElementById("log-panel-container");
+    var btn = document.getElementById("toggle-log-panel-btn");
+    var btnText = document.getElementById("toggle-log-panel-text");
+    var icon = document.getElementById("toggle-log-panel-icon");
+    if (!container || !btn || !btnText || !icon) return;
+
+    isLogPanelExpanded = expanded;
+    if (expanded) {
+        container.classList.remove("log-panel-collapsed");
+        btnText.textContent = "Collapse";
+        icon.classList.remove("fa-chevron-down");
+        icon.classList.add("fa-chevron-up");
+        if (logPanel) logPanel.scrollTop = logPanel.scrollHeight;
+    } else {
+        container.classList.add("log-panel-collapsed");
+        btnText.textContent = "Expand";
+        icon.classList.remove("fa-chevron-up");
+        icon.classList.add("fa-chevron-down");
+    }
+    btn.setAttribute("aria-expanded", expanded ? "true" : "false");
+}
+
+function collapseLogPanel() {
+    setLogPanelExpanded(false);
+}
+
+function toggleLogPanel() {
+    setLogPanelExpanded(!isLogPanelExpanded);
+}
+
+function initializeLogPanelCollapse() {
+    var btn = document.getElementById("toggle-log-panel-btn");
+    if (!btn) return;
+    btn.addEventListener("click", toggleLogPanel);
+    collapseLogPanel();
+}
+
 function bindModalCloseButtons() {
     var footer = document.getElementById("page-modal-footer");
     if (footer) footer.addEventListener("click", function (e) {
@@ -325,26 +378,22 @@ function onActionSuccess(panelTitle) {
     };
 }
 
-function submitActionFormWithForm(form) {
+async function submitActionFormWithForm(form) {
     const formData = new FormData(form);
     const panelTitle = form.getAttribute("data-panel-title") || "Running task";
-    const taskName = form.querySelector('input[name="task_name"]').value;
     const submitBtn = form.querySelector('button[type="submit"]');
     const handlerName = form.getAttribute("data-success-handler");
 
-    disableElements(".detail-container form button, .detail-container form input, .detail-container form select, .detail-container form textarea, .card button");
+    disableElements("form button, form input, form select, form textarea, .card button");
     addSpinner(submitBtn);
-    window.taskName = taskName;
     window.onPromptComplete = (handlerName && typeof window[handlerName] === "function") ? window[handlerName] : onActionSuccess(panelTitle);
     showPanel(panelTitle + "...");
-    // Open EventSource before POST so we receive the task-end event for fast (sync) tasks like submit_result
-    streamEvents(logPanel, stagesList, currentStageElement);
+    
     ajaxRequest(
         form.action,
         "POST",
         formData,
         function (response) {
-            // For synchronous tasks the server returns the final result in the HTTP body; show modal from that so it always appears
             if (response && (response.status === "success" || response.status === "failed")) {
                 if (typeof window.onPromptComplete === "function") {
                     window.onPromptComplete(response);
@@ -354,6 +403,8 @@ function submitActionFormWithForm(form) {
         },
         "Error: " + panelTitle
     );
+    window.taskId = await getTaskId();
+    streamEvents(logPanel, stagesList, currentStageElement);
 }
 
 function submitActionForm(e) {
@@ -369,6 +420,7 @@ function onDomReady() {
     if (Array.isArray(window.notifications)) window.notifications.forEach(function (n) { addNotification(n); });
     logPanel = document.getElementById("log-panel");
     stagesList = document.getElementById("stages-list");
+    initializeLogPanelCollapse();
 
     var respondNo = document.getElementById("respond-no-btn");
     var respondYes = document.getElementById("respond-yes-btn");

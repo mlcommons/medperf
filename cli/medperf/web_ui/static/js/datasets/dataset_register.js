@@ -1,4 +1,4 @@
-REDIRECT_BASE = "/datasets/ui/display/";
+var REDIRECT_BASE = "/datasets/ui/display/";
 
 function checkDatasetFormValidity() {
     var benchmarkEl = document.getElementById("benchmark");

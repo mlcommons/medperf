@@ -11,15 +11,15 @@ function scrollToElement(selector) {
 }
 
 function streamEvents(logPanel, stagesList, currentStageElement, streamOld) {
-    var url = "/events?task_name=" + encodeURIComponent(window.taskName);
-    url += streamOld ? "&stream_old=true" : "&stream_old=false";
+    var url = "/events?";
+    url += streamOld ? "stream_old=true" : "stream_old=false";
     
     var eventSource = new EventSource(url);
     window.evSource = eventSource;
 
     eventSource.onmessage = function (event) {
         var data = JSON.parse(event.data);
-        if (data.task_id != null && data.task_id !== window.taskName) return;
+        if (data.task_id != null && data.task_id !== window.taskId) return;
         if (data.end) {
             eventSource.close();
             window.evSource = null;
@@ -160,8 +160,18 @@ function markStageAsComplete(stageElement) {
 }
 
 var logNodes = [];
+
+function showLogPanelSectionIfHidden() {
+    var s = document.getElementById("log-panel-section");
+    if (s && s.classList.contains("hidden")) {
+        s.classList.remove("hidden");
+        s.setAttribute("aria-hidden", "false");
+    }
+}
+
 function appendManyToLogPanel(messages, logPanel) {
     if (!messages || !messages.length || !logPanel) return;
+    showLogPanelSectionIfHidden();
     for (var i = 0; i < messages.length; i++) {
         var node = document.createTextNode(messages[i] + "\n");
         logPanel.appendChild(node);
@@ -177,6 +187,7 @@ function appendManyToLogPanel(messages, logPanel) {
 
 function appendToLogPanel(message, logPanel) {
     if (!logPanel) return;
+    showLogPanelSectionIfHidden();
     var node = document.createTextNode(message + "\n");
     logPanel.appendChild(node);
     logNodes.push(node);

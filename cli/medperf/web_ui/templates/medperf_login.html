@@ -10,10 +10,10 @@
 {% endblock %}
 
 {% block content %}
-{% set login_running = (task_running and "medperf_login" in request.app.state.active_tasks) %}
+{% set login_running = (task_running and request.app.state.task.name == "medperf_login") %}
 
 {% if login_running %}
-{% set form_data = request.app.state.active_tasks["medperf_login"].formData %}
+{% set form_data = request.app.state.task.formData %}
 {% endif %}
 <div class="min-h-screen flex items-center justify-center p-4 login-page-bg w-full">
     <div class="w-full max-w-md">
@@ -40,7 +40,6 @@
             {% endif %}
 
             <form id="medperf-login-form" class="space-y-6" action="/medperf_login" method="post" data-panel-title="Logging in" data-confirm-message="sign in with this email?" data-success-handler="onLoginSuccess">
-                <input type="hidden" name="task_name" value="medperf_login">
                 <div>
                     <label for="email" class="block text-gray-700 dark:text-gray-300 text-sm font-semibold mb-3">
                         <i class="fas fa-envelope medperf-accent dark:text-green-400 mr-2"></i>Email Address
@@ -75,7 +74,7 @@
 {% block extra_js %}
 <script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
 <script src="{{ url_for('static', path='js/medperf_auth.js') }}"></script>
-{% if task_running and "medperf_login" in request.app.state.active_tasks %}
+{% if task_running and request.app.state.task.name == "medperf_login" %}
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         resumeRunningTask("#medperf-login-form");

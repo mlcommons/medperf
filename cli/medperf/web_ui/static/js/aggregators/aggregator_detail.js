@@ -1,3 +1,5 @@
+var REDIRECT_BASE = "/aggregators/ui/display/";
+
 const RUNNING_TASKS_POLL_MS = 2000;
 const AGGREGATOR_CONTAINER_TASK_NAME = "start_aggregator";
 var pollingIntervalId = null;
@@ -13,9 +15,6 @@ function updateRunningBanner(tasks) {
     } else {
         banner.classList.add("hidden");
         runCard.classList.remove("opacity-80");
-        var submit = runCard.querySelector('form[action*="/aggregators/run"] button[type="submit"]');
-        if (submit && window.taskName !== RUN_AGGREGATOR_TASK_ID) submit.disabled = false;
-        if (pollingIntervalId && window.taskName !== RUN_AGGREGATOR_TASK_ID) { clearInterval(pollingIntervalId); pollingIntervalId = null; }
     }
 }
 
@@ -33,16 +32,6 @@ function startPollingRunningTasks() {
     if (!pollingIntervalId) pollingIntervalId = setInterval(pollRunningTasks, RUNNING_TASKS_POLL_MS);
 }
 
-/** Task ID for event stream (matches backend active_tasks / task_id). */
-const RUN_AGGREGATOR_TASK_ID = "start_aggregator";
-/** Task name in running_containers (matches cube.run task=). Used for polling and stop. */
-const GET_SERVER_CERT_TASK_NAME = "aggregator_get_server_cert";
-
-function getAggregatorId(form) {
-    var input = form ? form.querySelector('input[name="aggregator_id"]') : null;
-    return input ? input.value : null;
-}
-
 function onGetServerCertSuccess(response) {
     if (response.status === "success") {
         showReloadModal({ title: "Server Certificate Retrieved Successfully", seconds: 3 });
@@ -52,13 +41,12 @@ function onGetServerCertSuccess(response) {
 }
 
 function onRunAggregatorSuccess(response) {
-    if (response && response.status === "started") {
-        displayAlert("success", "Aggregator worker started successfully.");
-        startPollingRunningTasks();
+    if (response.status === "success") {
+        showReloadModal({ title: "Aggregator Ran Successfully", seconds: 3 });
     } else showErrorModal("Something went wrong while running the aggregator", response);
 }
 
-function submitActionFormWithForm(form) {
+async function submitActionFormWithForm(form) {
     var formData = new FormData(form);
     var panelTitle = form.getAttribute("data-panel-title") || "Action";
     var isRunForm = (form.getAttribute("action") || "").indexOf("/aggregators/run") !== -1;
@@ -70,7 +58,6 @@ function submitActionFormWithForm(form) {
 
     var successCallback = isRunForm ? onRunAggregatorSuccess : onGetServerCertSuccess;
     window.onPromptComplete = successCallback;
-    window.taskName = isRunForm ? RUN_AGGREGATOR_TASK_ID : GET_SERVER_CERT_TASK_NAME;
 
     ajaxRequest(
         form.action,
@@ -79,6 +66,7 @@ function submitActionFormWithForm(form) {
         successCallback,
         "Error: " + panelTitle
     );
+    window.taskId = await getTaskId();
     streamEvents(logPanel, stagesList, currentStageElement);
     if (isRunForm) startPollingRunningTasks();
 }

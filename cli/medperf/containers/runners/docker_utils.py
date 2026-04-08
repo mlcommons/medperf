@@ -74,6 +74,9 @@ def volumes_to_cli_args(input_volumes: list, output_volumes: list):
 def craft_docker_run_command(run_args: dict):  # noqa: C901
     logging.debug(f"Crafting command from run args: {run_args}")
     command = ["docker", "run"]
+    container_name = run_args.pop("container_name", None)
+    if container_name:
+        command.extend(["--name", container_name])
     remove_container = run_args.pop("remove_container", False)
     if remove_container:
         command.append("--rm")

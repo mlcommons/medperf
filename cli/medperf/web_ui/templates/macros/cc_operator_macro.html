@@ -1,4 +1,3 @@
-{# CC operator form: used on settings page. Uses our form design: action, task_name, data-panel-title, data-confirm-message, data-success-handler. #}
 {% import "constants/tooltips.html" as tooltips %}
 {% macro cc_operator(defaults, configured, initialized, task_running=false) %}
 {% set fields = [
@@ -20,7 +19,6 @@
           data-panel-title="Updating CC operator configuration"
           data-confirm-message="edit CC operator configuration?"
           data-success-handler="onCCOperatorEditRequestSuccess">
-        <input type="hidden" name="task_name" value="edit_cc_operator">
         <div class="flex items-center gap-4">
             <label class="relative inline-flex items-center cursor-pointer" for="configure-cc-operator">
                 <input type="checkbox" id="configure-cc-operator" name="configure_cc" value="true" class="sr-only peer" {% if configured %}checked{% endif %} {% if task_running %}disabled{% endif %}>

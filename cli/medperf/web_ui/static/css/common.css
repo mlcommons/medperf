@@ -422,6 +422,20 @@ button:disabled {
     background-color: #374151;
 }
 
+#log-panel-container {
+    overflow: hidden;
+    transition: max-height 220ms ease, opacity 220ms ease, transform 220ms ease;
+    max-height: 340px;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+#log-panel-container.log-panel-collapsed {
+    max-height: 0;
+    opacity: 0;
+    transform: translateY(-4px);
+}
+
 #yaml-content{
     max-height: 300px;
     overflow-y: scroll;
