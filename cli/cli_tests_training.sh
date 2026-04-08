@@ -32,11 +32,11 @@ echo "Retrieving mock datasets"
 echo "====================================="
 echo "downloading files to $DIRECTORY"
 
-wget -P $DIRECTORY https://storage.googleapis.com/medperf-storage/chestxray_train_sample.tar.gz
-tar -xf $DIRECTORY/chestxray_train_sample.tar.gz -C $DIRECTORY
-rm $DIRECTORY/chestxray_train_sample.tar.gz
-mv $DIRECTORY/chestxray_train_sample/dataset_1 $DIRECTORY/col1
-mv $DIRECTORY/chestxray_train_sample/dataset_2 $DIRECTORY/col2
+wget -P $DIRECTORY https://storage.googleapis.com/medperf-storage/chestxray_train_sample1.tar.gz
+tar -xf $DIRECTORY/chestxray_train_sample1.tar.gz -C $DIRECTORY
+rm $DIRECTORY/chestxray_train_sample1.tar.gz
+mv $DIRECTORY/chestxray_train_sample1/dataset_1 $DIRECTORY/col1
+mv $DIRECTORY/chestxray_train_sample1/dataset_2 $DIRECTORY/col2
 
 ##########################################################
 
