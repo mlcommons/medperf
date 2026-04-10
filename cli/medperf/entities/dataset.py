@@ -82,6 +82,7 @@ class Dataset(Entity):
             self.user_metadata["cc"] = {}
         self.user_metadata["cc"]["config"] = cc_config
         self.user_metadata["cc"]["initialized"] = False
+        self.user_metadata["cc"]["last_synced"] = None
 
     def set_cc_initialized(self):
         if not self.is_cc_configured():
