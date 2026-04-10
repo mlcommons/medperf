@@ -23,7 +23,7 @@
                 </div>
                 <div class="hidden md:flex gap-6">
                     {% if is_training_mode %}
-                    <a href="/training/ui" class="font-semibold pb-1 border-b-2 {% if nav_training %}text-white border-white{% else %}text-white/80 border-transparent hover:text-white hover:border-white/50{% endif %} transition-colors">Training</a>
+                    <a href="/training/ui" class="font-semibold pb-1 border-b-2 {% if nav_training %}text-white border-white{% else %}text-white/80 border-transparent hover:text-white hover:border-white/50{% endif %} transition-colors">Experiments</a>
                     <a href="/aggregators/ui" class="font-semibold pb-1 border-b-2 {% if nav_aggregators %}text-white border-white{% else %}text-white/80 border-transparent hover:text-white hover:border-white/50{% endif %} transition-colors">Aggregators</a>
                     {% else %}
                     <a href="/benchmarks/ui" class="font-semibold pb-1 border-b-2 {% if nav_benchmarks %}text-white border-white{% else %}text-white/80 border-transparent hover:text-white hover:border-white/50{% endif %} transition-colors">Benchmarks</a>
@@ -88,7 +88,7 @@
                 <a href="/set_mode?mode=training" class="px-3 py-1.5 rounded-lg text-sm font-semibold {% if is_training_mode %}bg-white/25 text-white{% else %}text-white/80{% endif %}">Training</a>
             </div>
             {% if is_training_mode %}
-            <a href="/training/ui" class="block py-2 text-white/90 hover:text-white">Training</a>
+            <a href="/training/ui" class="block py-2 text-white/90 hover:text-white">Experiments</a>
             <a href="/aggregators/ui" class="block py-2 text-white/90 hover:text-white">Aggregators</a>
             <a href="/datasets/ui" class="block py-2 text-white/90 hover:text-white">Datasets</a>
             <a href="/containers/ui" class="block py-2 text-white/90 hover:text-white">Containers</a>
