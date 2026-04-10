@@ -7,12 +7,8 @@ cd medperf_tutorial
 # Copy the data preparation container
 cp -r ../examples/chestxray_tutorial/data_preparator data_preparator
 
-# Copy the FL training container config
-mkdir -p fl_container
-cp ../examples/flower/fl/container_config.yaml fl_container/container_config.yaml
-
-# Copy the training plan config
-cp ../examples/flower/fl/workspace/training_config.yaml training_config.yaml
+# Copy the FL training container
+cp -r ../examples/flower/fl/ fl_container
 
 # Download sample training datasets (two collaborator datasets)
 url=https://storage.googleapis.com/medperf-storage/chestxray_train_sample1.tar.gz
