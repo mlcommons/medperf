@@ -42,7 +42,7 @@ class AssetStorageManager:
                 "read",
                 total=get_file_size(in_file),
                 miniters=1,
-                desc="Uploading encrypted dataset to the bucket",
+                desc="Uploading encrypted asset to the bucket",
                 unit="B",
                 unit_scale=True,
                 unit_divisor=1024,
@@ -64,8 +64,8 @@ class AssetStorageManager:
             raise MedperfException(f"Asset owner setup verification failed: {message}")
 
     def store_asset(self):
-        medperf_config.ui.text = "Encrypting data locally"
+        medperf_config.ui.text = "Encrypting asset locally"
         tmp_encrypted_asset_path, asset_hash = self.__encrypt_asset()
-        medperf_config.ui.text = "Uploading Encrypted data to GCP bucket"
+        medperf_config.ui.text = "Uploading Encrypted asset to GCP bucket"
         self.__upload_encrypted_asset(tmp_encrypted_asset_path)
         return asset_hash
