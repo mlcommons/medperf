@@ -7,7 +7,7 @@ docker pull mlcommons/chestxray-tutorial-prep:0.0.1
 docker pull mlcommons/medperf-flower-fl:1.0.0
 
 python seed.py --demo tutorial
-
+cd ..
 # Create three instances of web UI
 
 mkdir -p /workspaces/.medperf_config1
@@ -33,7 +33,7 @@ URL3=$(MEDPERF_CONFIG_STORAGE=/workspaces/.medperf_config3 medperf get_webui_pro
 
 echo "Medperf is ready for local usage"
 
-echo "Access Experiment Owner Web UI at $URL1"
+echo "Access Model Owner Web UI at $URL1"
 echo "Access Data Owner 1 Web UI at $URL2"
 echo "Access Data Owner 2 Web UI at $URL3"
 echo "Use the following address when registering the aggregator: $(hostname -I | cut -d " " -f 1)"
