@@ -10,26 +10,26 @@ export PROJECT_ID="project_id"
 export USER_EMAIL="user@example.com"
 
 # New service account name to create
-export SERVICE_ACCOUNT_NAME="sa_name"
+export SERVICE_ACCOUNT_NAME="sa_name"  # min 6 characters, max 30 characters, lowercase letters, digits, and dashes only
 
 # New KMS info to create
-export KEYRING_NAME="keyring_name"
-export KEY_NAME="key_name"
+export KEYRING_NAME="keyring_name" # min 6 characters, max 30 characters, lowercase letters, digits, and dashes only
+export KEY_NAME="key_name" # min 6 characters, max 30 characters, lowercase letters, digits, and dashes only
 export KEY_LOCATION="key_location"  # e.g., us-central1, europe-west3, ...
 
 # New Workload identity pool and OIDC provider info to create
-export WIP_ID="wip_name"
-export WIP_PROVIDER_ID="attestation-verifier"
+export WIP_ID="wip_name" # min 6 characters, max 30 characters, lowercase letters, digits, and dashes only
+export WIP_PROVIDER_ID="attestation-verifier" # min 6 characters, max 30 characters, lowercase letters, digits, and dashes only
 
 # New bucket info to create
-export BUCKET_NAME="bucket_name"  # bucket names are globally unique, please use a unique name
+export BUCKET_NAME="bucket_name"  # bucket names are globally unique, please use a unique name. min 6 characters, max 30 characters, lowercase letters, digits, and dashes only
 export BUCKET_LOCATION="bucket_location"  # e.g., us-central1, europe-west3, ...
 
 # New virtual machine info to create
-export VM_NAME="vm_name"
+export VM_NAME="vm_name" # min 6 characters, max 30 characters, lowercase letters, digits, and dashes only
 export BOOT_DISK_SIZE="500GB"  # adjust as needed, depends on the data size
 export VM_ZONE="vm_zone" # e.g., us-central1-a, europe-west4-c, ...
-export VM_NETWORK="default"  # Usually the default network name is "default", but adjust if you have a custom network setup
+export VM_NETWORK="default"  # min 6 characters, max 30 characters, lowercase letters, digits, and dashes only
 
 ####################################################
 #################### End Config ####################
@@ -47,7 +47,10 @@ gcloud services enable \
     cloudkms.googleapis.com \
     compute.googleapis.com \
     confidentialcomputing.googleapis.com \
-    iamcredentials.googleapis.com
+    iamcredentials.googleapis.com \
+    iam.googleapis.com
+
+sleep 10
 
 echo "********************************************************************************************"
 echo "************************************* Services enabled *************************************"
@@ -61,6 +64,7 @@ echo "**************************************************************************
 gcloud kms keyrings create "$KEYRING_NAME" \
     --location="$KEY_LOCATION"
 
+sleep 10
 echo "********************************************************************************************"
 echo "************************************* KMS Keyring created **********************************"
 echo "********************************************************************************************"
@@ -72,6 +76,7 @@ gcloud kms keys create "$KEY_NAME" \
     --purpose=encryption \
     --protection-level=hsm
 
+sleep 10
 echo "********************************************************************************************"
 echo "************************************* KMS Key created **************************************"
 echo "********************************************************************************************"
@@ -80,11 +85,13 @@ echo "**************************************************************************
 gcloud kms keys add-iam-policy-binding "$FULL_KEY_NAME" \
     --member=user:"$USER_EMAIL" \
     --role="roles/cloudkms.cryptoKeyEncrypter"
+sleep 10
 
 # allow user to manage iam policy of the key
 gcloud kms keys add-iam-policy-binding "$FULL_KEY_NAME" \
     --member=user:"$USER_EMAIL" \
     --role="roles/cloudkms.admin"
+sleep 10
 
 echo "********************************************************************************************"
 echo "************************************* KMS permissions granted ******************************"
@@ -96,6 +103,7 @@ echo "**************************************************************************
 
 # Create Workload Identity Pool
 gcloud iam workload-identity-pools create "$WIP_ID" --location=global
+sleep 10
 
 echo "********************************************************************************************"
 echo "************************************* WIP created ******************************************"
@@ -112,7 +120,7 @@ gcloud iam workload-identity-pools providers create-oidc "$WIP_PROVIDER_ID" \
 ::\"+assertion.submods.gce.project_number+\"\
 ::\"+assertion.submods.gce.instance_id" \
     --attribute-condition="assertion.swname == 'CONFIDENTIAL_SPACE'"
-
+sleep 10
 
 echo "********************************************************************************************"
 echo "************************************* WIP provider created *********************************"
@@ -124,7 +132,7 @@ gcloud iam workload-identity-pools add-iam-policy-binding "$WIP_ID" \
   --project="$PROJECT_ID" \
   --member=user:"$USER_EMAIL" \
   --role="roles/iam.workloadIdentityPoolAdmin"
-
+sleep 10
 
 echo "********************************************************************************************"
 echo "************************************* WIP permissions granted ******************************"
@@ -139,7 +147,7 @@ echo "**************************************************************************
 gcloud storage buckets create "gs://$BUCKET_NAME" \
     --location="$BUCKET_LOCATION" \
     --uniform-bucket-level-access
-
+sleep 10
 
 echo "********************************************************************************************"
 echo "************************************* Bucket created ***************************************"
@@ -149,6 +157,7 @@ echo "**************************************************************************
 gcloud storage buckets add-iam-policy-binding "gs://$BUCKET_NAME" \
     --member=user:"$USER_EMAIL" \
     --role="roles/storage.admin"
+sleep 10
 
 echo "********************************************************************************************"
 echo "************************************* Bucket permissions granted ***************************"
@@ -160,6 +169,7 @@ echo "**************************************************************************
 
 # create service account
 gcloud iam service-accounts create "$SERVICE_ACCOUNT_NAME"
+sleep 10
 
 echo "********************************************************************************************"
 echo "************************************* Service Account created ******************************"
@@ -170,21 +180,25 @@ gcloud iam service-accounts add-iam-policy-binding \
     "$SERVICE_ACCOUNT_EMAIL" \
     --member=user:"$USER_EMAIL" \
     --role="roles/iam.serviceAccountUser"
+sleep 10
 
 # give the service account cc workload user role
 gcloud projects add-iam-policy-binding "$PROJECT_ID" \
     --member=serviceAccount:"$SERVICE_ACCOUNT_EMAIL" \
     --role="roles/confidentialcomputing.workloadUser"
+sleep 10
 
 # give the service account permissions to write logs
 gcloud projects add-iam-policy-binding "$PROJECT_ID" \
     --member=serviceAccount:"$SERVICE_ACCOUNT_EMAIL" \
     --role="roles/logging.logWriter"
+sleep 10
 
 # grant the service account permissions to write to the bucket
 gcloud storage buckets add-iam-policy-binding "gs://$BUCKET_NAME" \
     --member=serviceAccount:"$SERVICE_ACCOUNT_EMAIL" \
     --role="roles/storage.objectAdmin"
+sleep 10
 
 echo "********************************************************************************************"
 echo "********************** Service account permissions granted *********************************"
@@ -212,6 +226,10 @@ echo "**************************************************************************
 #         --machine-type="$MACHINE_TYPE" \
 #         --service-account="$SERVICE_ACCOUNT_EMAIL"
 
+# Create the VM network
+gcloud compute networks create "$VM_NETWORK" --subnet-mode=auto
+sleep 10
+
 # Create GPU VM
 gcloud compute instances create "$VM_NAME" \
     --provisioning-model=FLEX_START \
@@ -229,6 +247,7 @@ gcloud compute instances create "$VM_NAME" \
     --max-run-duration=24h \
     --instance-termination-action=STOP \
     --discard-local-ssds-at-termination-timestamp=true
+sleep 10
 
 echo "********************************************************************************************"
 echo "************************************* VM created *******************************************"
@@ -236,6 +255,7 @@ echo "**************************************************************************
 
 # Stop the VM
 gcloud compute instances stop "$VM_NAME" --zone="$VM_ZONE" --project="$PROJECT_ID" --discard-local-ssd=false
+sleep 10
 
 echo "********************************************************************************************"
 echo "************************************* VM stopped *******************************************"
