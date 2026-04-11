@@ -618,7 +618,7 @@ def get_pki_assets_path(common_name: str, ca_id: int, key_type: CryptoKeyType) -
     logging.debug(f"common name base64encoded: {cn_encoded}")
     path = os.path.join(config.pki_assets, cn_encoded, str(ca_id))
     if key_type == CryptoKeyType.EC:
-        path = os.path.join(path, "signing")
+        path = os.path.join(config.pki_assets, "signing", cn_encoded, str(ca_id))
     return path
 
 
