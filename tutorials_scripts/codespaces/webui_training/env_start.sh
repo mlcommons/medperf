@@ -5,10 +5,23 @@ pip install -e ./cli
 pip install -r server/requirements.txt
 pip install -r server/test-requirements.txt
 medperf profile activate local
-
 bash tutorials_scripts/setup_webui_training_tutorial.sh
 cd server
 cp .env.local.local-auth.sqlite .env
+
+# prepare three different config storages for three webui instances
+mkdir -p /workspaces/.medperf_config1
+mkdir -p /workspaces/.medperf_config2
+mkdir -p /workspaces/.medperf_config3
+
+MEDPERF_CONFIG_STORAGE=/workspaces/.medperf_config1 medperf profile activate local
+MEDPERF_CONFIG_STORAGE=/workspaces/.medperf_config2 medperf profile activate local
+MEDPERF_CONFIG_STORAGE=/workspaces/.medperf_config3 medperf profile activate local
+
+
+MEDPERF_CONFIG_STORAGE=/workspaces/.medperf_config1 medperf auth login -e testmo@example.com
+MEDPERF_CONFIG_STORAGE=/workspaces/.medperf_config2 medperf auth login -e testdo@example.com
+MEDPERF_CONFIG_STORAGE=/workspaces/.medperf_config3 medperf auth login -e testdo2@example.com
 
 # patch to avoid cookie problem with multiple webui instances in browser
 sed -i "s|binascii.hexlify(os.urandom(24)).decode(\"ascii\")|\"65b42b6fe97765370daa97e9feeacbed46b74cf374556586\"|g" /workspaces/medperf/cli/medperf/web_ui/auth.py
