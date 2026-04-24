@@ -29,13 +29,12 @@ def get_permitted_workloads(model: Model):
         else:
             ref_model = Model.get(benchmark.reference_model)
             script_hash = ref_model.container_obj.image_hash
-        datasets_certs = config.comms.get_benchmark_datasets_certificates(benchmark_id)
+        datasets_certs, _ = Certificate.get_benchmark_datasets_certificates(
+            benchmark_id
+        )
         mappings = {}
         for cert in datasets_certs:
-            owner = cert.pop("owner")
-            user_id = owner["id"]
-            cert_obj = Certificate(**cert)
-            mappings[user_id] = cert_obj.public_key()
+            mappings[cert.owner] = cert.public_key()
 
         datasets_associations = config.comms.get_benchmark_datasets_associations(
             benchmark_id

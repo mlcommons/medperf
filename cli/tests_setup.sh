@@ -112,7 +112,6 @@ DEMO_URL="https://storage.googleapis.com/medperf-storage/medperf-integration-tes
 # prep cubes
 PREP_MLCUBE="$MEDPERF_ROOT_REPO/examples/tests/prep-sep/container_config.yaml"
 PREP_PARAMS="$MEDPERF_ROOT_REPO/examples/tests/prep-sep/workspace/parameters.yaml"
-PREP_TRAINING_MLCUBE="$MEDPERF_ROOT_REPO/examples/fl/prep/container_config.yaml"
 
 # model cubes
 FAILING_MODEL_MLCUBE="$MEDPERF_ROOT_REPO/examples/tests/model-bug/container_config.yaml" # doesn't fail with association
@@ -142,9 +141,9 @@ METRIC_MLCUBE="$MEDPERF_ROOT_REPO/examples/tests/metrics/container_config.yaml"
 METRIC_PARAMS="$MEDPERF_ROOT_REPO/examples/tests/metrics/workspace/parameters.yaml"
 
 # FL cubes
-TRAIN_MLCUBE="$MEDPERF_ROOT_REPO/examples/fl/fl/container_config.yaml"
-TRAIN_WEIGHTS="https://storage.googleapis.com/medperf-storage/testfl/init_weights_miccai.tar.gz"
-FLADMIN_MLCUBE="$MEDPERF_ROOT_REPO/examples/fl/fl_admin/container_config.yaml"
+TRAIN_MLCUBE="$MEDPERF_ROOT_REPO/examples/flower/fl/container_config.yaml"
+TRAIN_WEIGHTS="https://storage.googleapis.com/medperf-storage/init_weights_flower.tar.gz"
+FLADMIN_MLCUBE="$MEDPERF_ROOT_REPO/examples/flower/fl_admin/container_config.yaml"
 
 # Containers decryption keys
 DOCKER_DECRYPTION_KEY="$MEDPERF_ROOT_REPO/examples/tests/assets/docker_decryption_key.bin"
@@ -178,7 +177,7 @@ RANO_PREP="$MEDPERF_ROOT_REPO/examples/cc/rano/prep_container_config.yaml"
 RANO_PREP_PARAMS="$MEDPERF_ROOT_REPO/examples/cc/rano/prep_parameters.yaml"
 
 
-TRAINING_CONFIG="$MEDPERF_ROOT_REPO/examples/fl/fl/workspace/training_config.yaml"
+TRAINING_CONFIG="$MEDPERF_ROOT_REPO/examples/flower/fl/workspace/training_config.yaml"
 # create storage folders
 mkdir -p "$TEST_ROOT"
 mkdir -p "$MEDPERF_STORAGE"

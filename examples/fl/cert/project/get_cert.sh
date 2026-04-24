@@ -30,6 +30,10 @@ if [ -z "$MEDPERF_INPUT_CN" ]; then
     exit 1
 fi
 
+if [ -z "$MEDPERF_KEY_TYPE" ]; then
+    MEDPERF_KEY_TYPE="RSA"
+fi
+
 CA_ADDRESS=$(jq -r '.address' $ca_config)
 CA_PORT=$(jq -r '.port' $ca_config)
 CA_FINGERPRINT=$(jq -r '.fingerprint' $ca_config)
@@ -42,6 +46,7 @@ export STEPPATH=$pki_assets/.step
 
 if [ "$task" = "get_server_cert" ]; then
     PROVISIONER_ARGS="--provisioner $CA_SERVER_PROVISIONER"
+    MEDPERF_KEY_TYPE="RSA"  # enforce RSA for server certs
 elif [ "$task" = "get_client_cert" ]; then
     PROVISIONER_ARGS="--provisioner $CA_CLIENT_PROVISIONER --console"
 else
@@ -89,7 +94,7 @@ esac
 # generate private key and ask for a certificate
 step ca certificate --ca-url $CA_ADDRESS:$CA_PORT \
     --root $ROOT \
-    --kty=RSA \
+    --kty=$MEDPERF_KEY_TYPE \
     $PROVISIONER_ARGS \
     $MEDPERF_INPUT_CN $cert_path $key_path
 

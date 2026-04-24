@@ -217,7 +217,7 @@ echo "\n"
 echo "============================================="
 echo "Getting a certificate (dataowner1)"
 echo "============================================="
-print_eval medperf certificate get_client_certificate
+print_eval medperf certificate get_client_certificate --key_type RSA
 checkFailed "Failed to obtain Data Owner1 Certificate"
 ##########################################################
 
@@ -227,7 +227,7 @@ echo "\n"
 echo "============================================="
 echo "Submitting the certificate (dataowner1)"
 echo "============================================="
-print_eval medperf certificate submit_client_certificate -y
+print_eval medperf certificate submit_client_certificate --key_type RSA -y
 checkFailed "Failed to submit Data Owner1 Certificate"
 ##########################################################
 
@@ -287,7 +287,7 @@ echo "\n"
 echo "============================================="
 echo "Getting a certificate (dataowner2)"
 echo "============================================="
-print_eval medperf certificate get_client_certificate
+print_eval medperf certificate get_client_certificate --key_type RSA
 checkFailed "Failed to obtain Data Owner2 Certificate"
 ##########################################################
 
@@ -297,7 +297,7 @@ echo "\n"
 echo "============================================="
 echo "Submitting the certificate (dataowner2)"
 echo "============================================="
-print_eval medperf certificate submit_client_certificate -y
+print_eval medperf certificate submit_client_certificate --key_type RSA -y
 checkFailed "Failed to submit Data Owner2 Certificate"
 ##########################################################
 

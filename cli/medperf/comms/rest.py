@@ -1075,6 +1075,14 @@ class REST(Comms):
         error_msg = "Could not get training experiment participants info"
         return self.__get_list(url, filters=filters, error_msg=error_msg)
 
+    def get_training_datasets_certificates(
+        self, training_exp_id: int, filters=dict()
+    ) -> List[dict]:
+        """Retrieves certificates of Data Owners associated with a given training experiment"""
+        url = f"{self.server_url}/training/{training_exp_id}/datasets_certificates/"
+        error_msg = f"Could not retrieve certificates from Training Experiment {training_exp_id}"
+        return self.__get_list(url=url, filters=filters, error_msg=error_msg)
+
     def get_benchmark_datasets_with_users(
         self, benchmark_id: int, filters=dict()
     ) -> dict:
