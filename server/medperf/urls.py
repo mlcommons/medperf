@@ -32,9 +32,16 @@ urlpatterns = [
     path(API_PREFIX, include([
         path("benchmarks/", include("benchmark.urls", namespace=API_VERSION), name="benchmark"),
         path("mlcubes/", include("mlcube.urls", namespace=API_VERSION), name="mlcube"),
+        path("assets/", include("asset.urls", namespace=API_VERSION), name="asset"),
+        path("models/", include("model.urls", namespace=API_VERSION), name="model"),
         path("datasets/", include("dataset.urls", namespace=API_VERSION), name="dataset"),
         path("results/", include("result.urls", namespace=API_VERSION), name="result"),
         path("users/", include("user.urls", namespace=API_VERSION), name="users"),
         path("me/", include("utils.urls", namespace=API_VERSION), name="me"),
+        path("training/", include("training.urls", namespace=API_VERSION), name="training"),
+        path("aggregators/", include("aggregator.urls", namespace=API_VERSION), name="aggregator"),
+        path("cas/", include("ca.urls", namespace=API_VERSION), name="ca"),
+        path('certificates/', include('certificate.urls', namespace=API_VERSION), name="certificate"),
+        path("encrypted_keys/", include("encrypted_key.urls", namespace=API_VERSION), name='encrypted_keys')
     ])),
 ]

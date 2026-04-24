@@ -49,8 +49,11 @@ class DatasetGetTest(DatasetTest):
         )
         testdataset = self.create_dataset(testdataset).data
         self.testdataset = testdataset
-        self.private_fields = ["owner", "report"]
+        self.private_fields = ["report"]
         self.set_credentials(self.actor)
+
+    def __can_see_private_fields(self):
+        return self.actor == "data_owner" or self.actor == "prep_mlcube_owner"
 
     def test_generic_get_dataset(self):
         # Arrange
@@ -66,7 +69,7 @@ class DatasetGetTest(DatasetTest):
             if k in self.testdataset:
                 self.assertEqual(self.testdataset[k], v, f"Unexpected value for {k}")
 
-    def test_get_dataset_list_private_fields(self):
+    def test_get_dataset_private_fields(self):
         # Arrange
         dataset_id = self.testdataset["id"]
         url = self.url.format(dataset_id)
@@ -76,8 +79,13 @@ class DatasetGetTest(DatasetTest):
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        for key in response.data:
-            self.assertNotIn(key, self.private_fields, f"{key} shouldn't be visible")
+        if not self.__can_see_private_fields():
+            for key in response.data:
+                self.assertNotIn(
+                    key,
+                    self.private_fields,
+                    f"{key} shouldn't be visible to {self.actor}",
+                )
 
     def test_dataset_not_found(self):
         # Arrange
@@ -112,7 +120,7 @@ class DatasetPutTest(DatasetTest):
         testdataset = self.create_dataset(testdataset).data
 
         new_data_preproc_mlcube = self.mock_mlcube(
-            name="new name", mlcube_hash="new hash"
+            name="new name", container_config={"new hash": "new hash"}
         )
         new_prep_id = self.create_mlcube(new_data_preproc_mlcube).data["id"]
         newtestdataset = {
@@ -168,7 +176,7 @@ class DatasetPutTest(DatasetTest):
         testdataset = self.create_dataset(testdataset).data
 
         new_data_preproc_mlcube = self.mock_mlcube(
-            name="new name", mlcube_hash="new hash"
+            name="new name", container_config={"new hash": "new hash"}
         )
         new_prep_id = self.create_mlcube(new_data_preproc_mlcube).data["id"]
         newtestdataset = {
@@ -320,7 +328,7 @@ class PermissionTest(DatasetTest):
         # Arrange
         self.set_credentials(self.prep_mlcube_owner)
         new_data_preproc_mlcube = self.mock_mlcube(
-            name="new name", mlcube_hash="new hash"
+            name="new name", container_config={"new hash": "new hash"}
         )
         new_prep_id = self.create_mlcube(new_data_preproc_mlcube).data["id"]
         newtestdataset = {

@@ -57,12 +57,8 @@ def setup_api_admin(username):
 def mock_mlcube(**kwargs):
     data = {
         "name": "testmlcube",
-        "git_mlcube_url": "string",
-        "mlcube_hash": "string",
-        "git_parameters_url": "string",
-        "parameters_hash": "string",
-        "image_tarball_url": "",
-        "image_tarball_hash": "",
+        "container_config": {"key": "value"},
+        "parameters_config": {},
         "image_hash": "string",
         "additional_files_tarball_url": "string",
         "additional_files_tarball_hash": "string",
@@ -107,7 +103,7 @@ def mock_dataset(data_preparation_mlcube, **kwargs):
 
 def mock_benchmark(
     data_preparation_mlcube,
-    reference_model_mlcube,
+    reference_model,
     data_evaluator_mlcube,
     **kwargs,
 ):
@@ -119,13 +115,16 @@ def mock_benchmark(
         "demo_dataset_tarball_hash": "string",
         "demo_dataset_generated_uid": "string",
         "data_preparation_mlcube": data_preparation_mlcube,
-        "reference_model_mlcube": reference_model_mlcube,
+        "reference_model": reference_model,
         "data_evaluator_mlcube": data_evaluator_mlcube,
         "metadata": {"key": "value"},
         "state": "DEVELOPMENT",
         "is_valid": True,
         "is_active": True,
-        "user_metadata": {"key2": "value2"},
+        "dataset_auto_approval_allow_list": [],
+        "dataset_auto_approval_mode": "NEVER",
+        "model_auto_approval_allow_list": [],
+        "model_auto_approval_mode": "NEVER",
     }
 
     for key, val in kwargs.items():
@@ -147,6 +146,8 @@ def mock_result(benchmark, model, dataset, **kwargs):
         "user_metadata": {"key3": "value3"},
         "approval_status": "PENDING",
         "is_valid": True,
+        "model_report": {"execution_status": "finished"},
+        "evaluator_report": {"execution_status": "finished"},
     }
 
     for key, val in kwargs.items():
@@ -173,9 +174,9 @@ def mock_dataset_association(benchmark, dataset, **kwargs):
     return data
 
 
-def mock_mlcube_association(benchmark, mlcube, **kwargs):
+def mock_model_association(benchmark, model, **kwargs):
     data = {
-        "model_mlcube": mlcube,
+        "model": model,
         "benchmark": benchmark,
         "metadata": {"key": "value"},
         "approval_status": "PENDING",
@@ -186,4 +187,120 @@ def mock_mlcube_association(benchmark, mlcube, **kwargs):
             raise ValueError(f"Invalid argument: {key}")
         data[key] = val
 
+    return data
+
+
+def mock_ca(**kwargs):
+    """Mock CA object for testing
+
+    Note: Uses mlcube ID 1 for all three mlcubes (client, server, ca).
+    This mlcube is created during migrations and is always available.
+    """
+    data = {
+        "name": "test_ca",
+        "config": {"key": "value"},
+        "client_mlcube": 1,  # Use existing mlcube from migrations
+        "server_mlcube": 1,  # Use existing mlcube from migrations
+        "ca_mlcube": 1,  # Use existing mlcube from migrations
+        "is_valid": True,
+        "metadata": {},
+    }
+
+    for key, val in kwargs.items():
+        if key not in data:
+            raise ValueError(f"Invalid argument: {key}")
+        data[key] = val
+
+    return data
+
+
+def mock_certificate(ca, **kwargs):
+    """Mock Certificate object for testing
+
+    Args:
+        ca: The CA ID (required)
+    """
+    data = {
+        "name": "test_certificate",
+        "ca": ca,
+        "certificate_content_base64": "dGVzdF9jZXJ0aWZpY2F0ZV9jb250ZW50X2Jhc2U2NA==",
+        "is_valid": True,
+    }
+
+    for key, val in kwargs.items():
+        if key not in data:
+            raise ValueError(f"Invalid argument: {key}")
+        data[key] = val
+
+    return data
+
+
+def mock_encrypted_key(certificate, container, **kwargs):
+    """Mock EncryptedKey object for testing
+
+    Args:
+        certificate: The Certificate ID (required)
+        container: The MlCube ID to use as container (required)
+    """
+    data = {
+        "name": "test_key",
+        "certificate": certificate,
+        "container": container,
+        "encrypted_key_base64": "dGVzdF9lbmNyeXB0ZWRfa2V5X2NvbnRlbnQ=",
+        "is_valid": True,
+        "metadata": {},
+    }
+
+    for key, val in kwargs.items():
+        if key not in data:
+            raise ValueError(f"Invalid argument: {key}")
+        data[key] = val
+
+    return data
+
+
+def mock_model(**kwargs):
+    mock_container_obj = mock_mlcube(**kwargs)
+    data = {
+        "name": mock_container_obj["name"],
+        "state": mock_container_obj["state"],
+        "is_valid": mock_container_obj["is_valid"],
+        "metadata": mock_container_obj["metadata"],
+        "user_metadata": mock_container_obj["user_metadata"],
+        "container": mock_container_obj,
+        "type": "CONTAINER",
+    }
+    return data
+
+
+def mock_asset(**kwargs):
+    data = {
+        "name": "test_asset",
+        "asset_hash": "string",
+        "asset_url": "string",
+        "state": "DEVELOPMENT",
+        "is_valid": True,
+        "metadata": {"key": "value"},
+        "user_metadata": {"key2": "value2"},
+    }
+
+    for key, val in kwargs.items():
+        if key not in data:
+            raise ValueError(f"Invalid argument: {key}")
+        data[key] = val
+
+    return data
+
+
+def mock_asset_model(**kwargs):
+    mock_asset_obj = mock_asset(**kwargs)
+    data = {
+        "name": mock_asset_obj["name"],
+        "state": mock_asset_obj["state"],
+        "is_valid": mock_asset_obj["is_valid"],
+        "metadata": mock_asset_obj["metadata"],
+        "user_metadata": mock_asset_obj["user_metadata"],
+        "asset": mock_asset_obj,
+        "type": "ASSET",
+    }
     return data

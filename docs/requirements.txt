@@ -9,3 +9,4 @@ mkdocstrings-python==1.2.0
 mkdocs-macros-plugin==1.0.2
 # For some reason, later versions of griffe are throwing recursion limit error
 griffe==0.32.3
+pygments==2.18

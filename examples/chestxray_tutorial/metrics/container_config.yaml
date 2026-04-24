@@ -1,0 +1,18 @@
+container_type: DockerImage
+image: mlcommons/chestxray-tutorial-metrics:0.0.1
+tasks:
+  evaluate:
+    input_volumes:
+      predictions:
+        mount_path: /mlcommons/volumes/predictions
+        type: directory
+      labels:
+        mount_path: /mlcommons/volumes/labels
+        type: directory
+      parameters_file:
+        mount_path: /mlcommons/volumes/parameters/parameters_file.yaml
+        type: file
+    output_volumes:
+      output_path:
+        mount_path: /mlcommons/volumes/results/results.yaml
+        type: file

@@ -1,86 +1,106 @@
-from medperf.exceptions import InvalidArgumentError
+from medperf.tests.mocks.cube import TestCube
 import pytest
-
 import medperf.commands.compatibility_test.utils as utils
 import os
 import medperf.config as config
-
 
 PATCH_UTILS = "medperf.commands.compatibility_test.utils.{}"
 
 
 class TestPrepareCube:
     @pytest.fixture(autouse=True)
-    def setup(self, fs):
+    def setup(self, mocker, fs):
         cube_path = "/path/to/cube"
         cube_path_config = os.path.join(cube_path, config.cube_filename)
-        fs.create_file(cube_path_config, contents="cube mlcube.yaml contents")
+        fs.create_file(
+            cube_path_config,
+            contents="tasks:\n  task1:\n    parameters:\n      key: value",
+        )
 
         self.cube_path = cube_path
         self.cube_path_config = cube_path_config
 
     @pytest.mark.parametrize("uid", [1, "4"])
-    def test_server_cube_uid_is_returned_if_passed(self, uid):
-        # Act
-        returned_uid = utils.prepare_cube(uid)
-
-        # Assert
-        assert returned_uid == uid
-
-    @pytest.mark.parametrize("path_attr", ["cube_path", "cube_path_config"])
-    def test_local_cube_symlink_is_created_properly(self, path_attr):
-        # Act
-        new_uid = utils.prepare_cube(getattr(self, path_attr))
-
-        # Assert
-        cube_path = os.path.join(config.cubes_folder, new_uid)
-        assert os.path.islink(cube_path)
-        assert os.path.realpath(cube_path) == os.path.realpath(self.cube_path)
-
-    def test_local_cube_metadata_is_created(self):
-        # Act
-        new_uid = utils.prepare_cube(self.cube_path)
-
-        # Assert
-        metadata_file = os.path.join(
-            config.cubes_folder,
-            new_uid,
-            config.cube_metadata_filename,
-        )
-
-        assert os.path.exists(metadata_file)
-
-    def test_local_cube_metadata_is_not_created_if_found(self, fs):
+    def test_server_cube_is_retrieved_if_uid_passed(self, mocker, uid):
         # Arrange
-        metadata_file = os.path.join(self.cube_path, config.cube_metadata_filename)
-
-        metadata_contents = "meta contents before execution"
-
-        fs.create_file(metadata_file, contents=metadata_contents)
+        mock_cube = TestCube(id=uid)
+        mocker.patch(PATCH_UTILS.format("Cube.get"), return_value=mock_cube)
+        spy_setup = mocker.patch(
+            PATCH_UTILS.format("setup_cube"), return_value=mock_cube
+        )
 
         # Act
-        new_uid = utils.prepare_cube(self.cube_path)
+        returned_cube = utils.prepare_cube(uid)
 
         # Assert
-        metadata_file = os.path.join(
-            config.cubes_folder,
-            new_uid,
-            config.cube_metadata_filename,
-        )
-        assert open(metadata_file).read() == metadata_contents
+        assert returned_cube == mock_cube
+        spy_setup.assert_called_once_with(mock_cube, None)
 
-    def test_exception_is_raised_for_nonexisting_path(self):
-        # Act & Assert
-        with pytest.raises(InvalidArgumentError):
-            utils.prepare_cube("path/that/doesn't/exist")
 
-    def test_cleanup_is_set_up_correctly(self):
+class TestSetupCube:
+    def test_setup_cube_downloads_files_by_default(self, mocker):
+        # Arrange
+        mock_cube = TestCube(id=1)
+        spy_download = mocker.patch.object(TestCube, "download_run_files")
+
         # Act
-        uid = utils.prepare_cube(self.cube_path)
-        symlinked_path = os.path.join(config.cubes_folder, uid)
-        metadata_file = os.path.join(
-            self.cube_path,
-            config.cube_metadata_filename,
-        )
+        utils.setup_cube(mock_cube)
+
         # Assert
-        assert set([symlinked_path, metadata_file]).issubset(config.tmp_paths)
+        spy_download.assert_called_once()
+
+    def test_setup_cube_skips_download_with_local_image(self, mocker):
+        # Arrange
+        mock_cube = TestCube(id=1)
+        spy_download = mocker.patch.object(TestCube, "download_run_files")
+
+        # Act
+        utils.setup_cube(mock_cube, download=False)
+
+        # Assert
+        spy_download.assert_not_called()
+
+    def test_setup_cube_stores_decryption_key(self, mocker):
+        # Arrange
+        mock_cube = TestCube(id=5)
+        mock_cube.id = 5
+        dummy_key_path = "/tmp/somekey.key"
+        stored_key_path = "/tmp/stored_key_path"
+
+        spy_store = mocker.patch(
+            PATCH_UTILS.format("store_decryption_key"), return_value=stored_key_path
+        )
+        mocker.patch.object(TestCube, "download_run_files")
+
+        # Act
+        utils.setup_cube(
+            mock_cube,
+            decryption_key_file_path=dummy_key_path,
+        )
+
+        # Assert
+        spy_store.assert_called_once_with(5, dummy_key_path)
+        assert stored_key_path in config.sensitive_tmp_paths
+
+    def test_setup_cube_handles_no_decryption_key(self, mocker):
+        # Arrange
+        mock_cube = TestCube(id=1)
+        spy_store = mocker.patch(PATCH_UTILS.format("store_decryption_key"))
+        mocker.patch.object(TestCube, "download_run_files")
+
+        # Act
+        utils.setup_cube(mock_cube)
+
+        # Assert
+        spy_store.assert_not_called()
+
+    def test_setup_cube_returns_cube(self, mocker):
+        # Arrange
+        mock_cube = TestCube(id=1)
+        mocker.patch.object(TestCube, "download_run_files")
+
+        # Act
+        result = utils.setup_cube(mock_cube)
+
+        # Assert
+        assert result == mock_cube

@@ -1,6 +1,7 @@
 from rest_framework.permissions import BasePermission
 from .models import Benchmark
 from benchmarkdataset.models import BenchmarkDataset
+from benchmarkmodel.models import BenchmarkModel
 from django.db.models import OuterRef, Subquery
 
 
@@ -55,6 +56,36 @@ class IsAssociatedDatasetOwner(BasePermission):
         )
 
         if user_associated_datasets.exists():
+            return True
+        else:
+            return False
+
+
+class IsAssociatedModelOwner(BasePermission):
+    def has_permission(self, request, view):
+        pk = view.kwargs.get("pk", None)
+        if not pk:
+            return False
+
+        if not request.user.is_authenticated:
+            # This check is to prevent internal server error
+            # since user.mlcube_set is used below
+            return False
+
+        latest_models_assocs_status = (
+            BenchmarkModel.objects.all()
+            .filter(benchmark__id=pk, model__id=OuterRef("id"))
+            .order_by("-created_at")[:1]
+            .values("approval_status")
+        )
+
+        user_associated_models = (
+            request.user.model_set.all()
+            .annotate(assoc_status=Subquery(latest_models_assocs_status))
+            .filter(assoc_status="APPROVED")
+        )
+
+        if user_associated_models.exists():
             return True
         else:
             return False

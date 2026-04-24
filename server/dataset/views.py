@@ -60,7 +60,13 @@ class DatasetDetail(GenericAPIView):
         Retrieve a dataset instance.
         """
         dataset = self.get_object(pk)
-        serializer = DatasetPublicSerializer(dataset)
+        if (
+            dataset.owner.id == request.user.id
+            or dataset.data_preparation_mlcube.owner.id == request.user.id
+        ):
+            serializer = DatasetFullSerializer(dataset)
+        else:
+            serializer = DatasetPublicSerializer(dataset)
         return Response(serializer.data)
 
     def put(self, request, pk, format=None):

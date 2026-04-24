@@ -17,13 +17,7 @@ import os
 import logging
 import yaml
 import medperf.config as config
-from medperf.utils import (
-    generate_tmp_path,
-    get_cube_image_name,
-    remove_path,
-    untar,
-    get_file_hash,
-)
+from medperf.utils import generate_tmp_path, remove_path, untar, get_file_hash
 from .utils import download_resource
 
 
@@ -83,57 +77,28 @@ def _get_regular_file(url: str, output_path: str, expected_hash: str = None) -> 
     return output_path, hash_value
 
 
-def get_cube(url: str, cube_path: str, expected_hash: str = None):
-    """Downloads and writes a cube mlcube.yaml file"""
-    output_path = os.path.join(cube_path, config.cube_filename)
-    return _get_regular_file(url, output_path, expected_hash)
-
-
-def get_cube_params(url: str, cube_path: str, expected_hash: str = None):
-    """Downloads and writes a cube parameters.yaml file"""
-    output_path = os.path.join(cube_path, config.workspace_path, config.params_filename)
-    return _get_regular_file(url, output_path, expected_hash)
-
-
-def get_cube_image(url: str, cube_path: str, hash_value: str = None) -> str:
-    """Retrieves and stores the image file from the server. Stores images
-    on a shared location, and retrieves a cached image by hash if found locally.
-    Creates a symbolic link to the cube storage.
+def get_hashed_file(url: str, hash_value: str = None) -> str:
+    """Retrieves and stores the file. Stores files
+    on a shared location, and retrieves a cached file by hash if found locally.
 
     Args:
-        url (str): URL where the image file can be downloaded.
-        cube_path (str): Path to cube.
+        url (str): URL where the file can be downloaded.
         hash_value (str, Optional): File hash to store under shared storage. Defaults to None.
 
     Returns:
-        image_cube_file: Location where the image file is stored locally.
+        file_path: Location where the file is stored locally.
         hash_value (str): The hash of the downloaded file
     """
-    image_path = config.image_path
-    image_name = get_cube_image_name(cube_path)
-    image_cube_path = os.path.join(cube_path, image_path)
-    os.makedirs(image_cube_path, exist_ok=True)
-    image_cube_file = os.path.join(image_cube_path, image_name)
-    if os.path.islink(image_cube_file):  # could be a broken link
-        # Remove existing links
-        os.unlink(image_cube_file)
+    if hash_value:
+        output_path = os.path.join(config.hashed_files_folder, hash_value)
+        return _get_regular_file(url, output_path, hash_value)
 
-    imgs_storage = config.images_folder
-    if not hash_value:
-        # No hash provided, we need to download the file first
-        tmp_output_path = generate_tmp_path()
-        hash_value = download_resource(url, tmp_output_path)
-        img_storage = os.path.join(imgs_storage, hash_value)
-        shutil.move(tmp_output_path, img_storage)
-    else:
-        img_storage = os.path.join(imgs_storage, hash_value)
-        if not os.path.exists(img_storage):
-            # If image doesn't exist locally, download it normally
-            download_resource(url, img_storage, hash_value)
-
-    # Create a symbolic link to individual cube storage
-    os.symlink(img_storage, image_cube_file)
-    return image_cube_file, hash_value
+    # No hash provided, we need to download the file
+    tmp_output_path = generate_tmp_path()
+    hash_value = download_resource(url, tmp_output_path)
+    file_path = os.path.join(config.hashed_files_folder, hash_value)
+    shutil.move(tmp_output_path, file_path)
+    return file_path, hash_value
 
 
 def get_cube_additional(
@@ -158,7 +123,7 @@ def get_cube_additional(
     if not _should_get_cube_additional(
         additional_files_folder, expected_tarball_hash, mlcube_cache_file
     ):
-        return expected_tarball_hash
+        return additional_files_folder, expected_tarball_hash
 
     # Download the additional files. Make sure files are extracted in tmp storage
     # to avoid any clutter objects if uncompression fails for some reason.
@@ -180,7 +145,7 @@ def get_cube_additional(
         contents = {"additional_files_cached_hash": tarball_hash}
         yaml.dump(contents, f)
 
-    return tarball_hash
+    return additional_files_folder, tarball_hash
 
 
 def get_benchmark_demo_dataset(url: str, expected_hash: str = None) -> str:

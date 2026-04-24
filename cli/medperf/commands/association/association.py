@@ -1,5 +1,4 @@
 import typer
-from typing import Optional
 
 import medperf.config as config
 from medperf.decorators import clean_except
@@ -13,49 +12,75 @@ app = typer.Typer()
 
 @app.command("ls")
 @clean_except
-def list(filter: Optional[str] = typer.Argument(None)):
+def list(
+    benchmark: bool = typer.Option(False, "-b", help="list benchmark associations"),
+    training_exp: bool = typer.Option(False, "-t", help="list training associations"),
+    dataset: bool = typer.Option(False, "-d", help="list dataset associations"),
+    model: bool = typer.Option(False, "-m", help="list models associations"),
+    approval_status: str = typer.Option(
+        None, "--approval-status", help="Approval status"
+    ),
+):
     """Display all associations related to the current user.
 
     Args:
         filter (str, optional): Filter associations by approval status.
             Defaults to displaying all user associations.
     """
-    ListAssociations.run(filter)
+    ListAssociations.run(approval_status, benchmark, training_exp, dataset, model)
 
 
 @app.command("approve")
 @clean_except
 def approve(
-    benchmark_uid: int = typer.Option(..., "--benchmark", "-b", help="Benchmark UID"),
+    benchmark_uid: int = typer.Option(None, "--benchmark", "-b", help="Benchmark UID"),
+    training_exp_uid: int = typer.Option(
+        None, "--training_exp", "-t", help="Training exp UID"
+    ),
     dataset_uid: int = typer.Option(None, "--dataset", "-d", help="Dataset UID"),
-    mlcube_uid: int = typer.Option(None, "--mlcube", "-m", help="MLCube UID"),
+    model_uid: int = typer.Option(None, "--model", "-m", help="Model container UID"),
 ):
-    """Approves an association between a benchmark and a dataset or model mlcube
+    """Approves an association between a benchmark and a dataset or model container
 
     Args:
         benchmark_uid (int): Benchmark UID.
         dataset_uid (int, optional): Dataset UID.
-        mlcube_uid (int, optional): Model MLCube UID.
+        model_uid (int, optional): Model container UID.
     """
-    Approval.run(benchmark_uid, Status.APPROVED, dataset_uid, mlcube_uid)
+    Approval.run(
+        Status.APPROVED,
+        benchmark_uid,
+        training_exp_uid,
+        dataset_uid,
+        model_uid,
+    )
     config.ui.print("✅ Done!")
 
 
 @app.command("reject")
 @clean_except
 def reject(
-    benchmark_uid: int = typer.Option(..., "--benchmark", "-b", help="Benchmark UID"),
+    benchmark_uid: int = typer.Option(None, "--benchmark", "-b", help="Benchmark UID"),
+    training_exp_uid: int = typer.Option(
+        None, "--training_exp", "-t", help="Training exp UID"
+    ),
     dataset_uid: int = typer.Option(None, "--dataset", "-d", help="Dataset UID"),
-    mlcube_uid: int = typer.Option(None, "--mlcube", "-m", help="MLCube UID"),
+    model_uid: int = typer.Option(None, "--model", "-m", help="Model container UID"),
 ):
-    """Rejects an association between a benchmark and a dataset or model mlcube
+    """Rejects an association between a benchmark and a dataset or model container
 
     Args:
         benchmark_uid (int): Benchmark UID.
         dataset_uid (int, optional): Dataset UID.
-        mlcube_uid (int, optional): Model MLCube UID.
+        model_uid (int, optional): Model container UID.
     """
-    Approval.run(benchmark_uid, Status.REJECTED, dataset_uid, mlcube_uid)
+    Approval.run(
+        Status.REJECTED,
+        benchmark_uid,
+        training_exp_uid,
+        dataset_uid,
+        model_uid,
+    )
     config.ui.print("✅ Done!")
 
 
@@ -63,7 +88,7 @@ def reject(
 @clean_except
 def set_priority(
     benchmark_uid: int = typer.Option(..., "--benchmark", "-b", help="Benchmark UID"),
-    mlcube_uid: int = typer.Option(..., "--mlcube", "-m", help="MLCube UID"),
+    model_uid: int = typer.Option(..., "--model", "-m", help="Model container UID"),
     priority: int = typer.Option(..., "--priority", "-p", help="Priority, an integer"),
 ):
     """Updates the priority of a benchmark-model association. Model priorities within
@@ -81,8 +106,8 @@ def set_priority(
 
     Args:
         benchmark_uid (int): Benchmark UID.
-        mlcube_uid (int): Model MLCube UID.
+        model_uid (int): Model container UID.
         priority (int): Priority, an integer
     """
-    AssociationPriority.run(benchmark_uid, mlcube_uid, priority)
+    AssociationPriority.run(benchmark_uid, model_uid, priority)
     config.ui.print("✅ Done!")

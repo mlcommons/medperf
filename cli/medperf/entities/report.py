@@ -1,8 +1,10 @@
 import hashlib
-from typing import List, Union, Optional
+from typing import List
 
 import medperf.config as config
 from medperf.entities.interface import Entity
+from medperf.entities.schemas import TestReportSchema
+from medperf.entities.utils import handle_validation_error
 
 
 class TestReport(Entity):
@@ -27,17 +29,6 @@ class TestReport(Entity):
           the `get` and `all` methods.
     """
 
-    name: Optional[str] = "name"
-    demo_dataset_url: Optional[str]
-    demo_dataset_hash: Optional[str]
-    data_path: Optional[str]
-    labels_path: Optional[str]
-    prepared_data_hash: Optional[str]
-    data_preparation_mlcube: Optional[Union[int, str]]
-    model: Union[int, str]
-    data_evaluator_mlcube: Union[int, str]
-    results: Optional[dict]
-
     @staticmethod
     def get_type():
         return "report"
@@ -50,10 +41,20 @@ class TestReport(Entity):
     def get_metadata_filename():
         return config.test_report_file
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    @handle_validation_error
+    def __init__(self, **kwargs):
+        self._model = TestReportSchema(**kwargs)
+        super().__init__()
         self.id = None
         self.for_test = True
+        self.name = self._model.name
+        self.demo_dataset_url = self._model.demo_dataset_url
+        self.demo_dataset_hash = self._model.demo_dataset_hash
+        self.prepared_data_hash = self._model.prepared_data_hash
+        self.data_preparation_mlcube = self._model.data_preparation_mlcube
+        self.model = self._model.model
+        self.data_evaluator_mlcube = self._model.data_evaluator_mlcube
+        self.results = self._model.results
 
     @property
     def local_id(self):
@@ -73,15 +74,18 @@ class TestReport(Entity):
         return super().all(unregistered=True, filters={})
 
     @classmethod
-    def get(cls, uid: str, local_only: bool = False) -> "TestReport":
+    def get(
+        cls, uid: str, local_only: bool = False, valid_only: bool = True
+    ) -> "TestReport":
         """Gets an instance of the TestReport. ignores local_only inherited flag as TestReport is always a local entity.
         Args:
             uid (str): Report Unique Identifier
             local_only (bool): ignored. Left for aligning with parent Entity class
+            valid_only: if to raise an error in case of invalidated entity
         Returns:
             TestReport: Report Instance associated to the UID
         """
-        return super().get(uid, local_only=True)
+        return super().get(uid, local_only=True, valid_only=valid_only)
 
     def display_dict(self):
         if self.data_path:

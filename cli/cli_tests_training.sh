@@ -1,0 +1,543 @@
+# import setup
+. "$(dirname $(realpath "$0"))/tests_setup.sh"
+
+##########################################################
+################### Start Testing ########################
+##########################################################
+
+##########################################################
+echo "=========================================="
+echo "Creating test profiles for each user"
+echo "=========================================="
+print_eval medperf profile activate local
+checkFailed "local profile creation failed"
+
+print_eval medperf profile create -n testmodel
+checkFailed "testmodel profile creation failed"
+print_eval medperf profile create -n testagg
+checkFailed "testagg profile creation failed"
+print_eval medperf profile create -n testdata1
+checkFailed "testdata1 profile creation failed"
+print_eval medperf profile create -n testdata2
+checkFailed "testdata2 profile creation failed"
+print_eval medperf profile create -n fladmin
+checkFailed "fladmin profile creation failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Retrieving mock datasets"
+echo "====================================="
+echo "downloading files to $DIRECTORY"
+
+wget -P $DIRECTORY https://storage.googleapis.com/medperf-storage/chestxray_train_sample1.tar.gz
+tar -xf $DIRECTORY/chestxray_train_sample1.tar.gz -C $DIRECTORY
+rm $DIRECTORY/chestxray_train_sample1.tar.gz
+mv $DIRECTORY/chestxray_train_sample1/dataset_1 $DIRECTORY/col1
+mv $DIRECTORY/chestxray_train_sample1/dataset_2 $DIRECTORY/col2
+
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "=========================================="
+echo "Login each user"
+echo "=========================================="
+print_eval medperf profile activate testmodel
+checkFailed "testmodel profile activation failed"
+
+print_eval medperf auth login -e $MODELOWNER
+checkFailed "testmodel login failed"
+
+print_eval medperf profile activate testagg
+checkFailed "testagg profile activation failed"
+
+print_eval medperf auth login -e $AGGOWNER
+checkFailed "testagg login failed"
+
+print_eval medperf profile activate testdata1
+checkFailed "testdata1 profile activation failed"
+
+print_eval medperf auth login -e $DATAOWNER
+checkFailed "testdata1 login failed"
+
+print_eval medperf profile activate testdata2
+checkFailed "testdata2 profile activation failed"
+
+print_eval medperf auth login -e $DATAOWNER2
+checkFailed "testdata2 login failed"
+
+print_eval medperf profile activate fladmin
+checkFailed "fladmin profile activation failed"
+
+print_eval medperf auth login -e $FLADMIN
+checkFailed "fladmin login failed"
+
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Activate modelowner profile"
+echo "====================================="
+print_eval medperf profile activate testmodel
+checkFailed "testmodel profile activation failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Submit containers"
+echo "====================================="
+
+PREP_UID=$(medperf container ls | grep chestxray_prep | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+echo "PREP_UID=$PREP_UID" >> "$LAST_ENV_FILE"
+
+print_eval medperf container submit --name traincube -m $TRAIN_MLCUBE -a $TRAIN_WEIGHTS --operational
+checkFailed "fl container submission failed"
+TRAINCUBE_UID=$(medperf container ls | grep traincube | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+echo "TRAINCUBE_UID=$TRAINCUBE_UID" >> "$LAST_ENV_FILE"
+
+print_eval medperf container submit --name fladmincube -m $FLADMIN_MLCUBE --operational
+checkFailed "fladmin container submission failed"
+FLADMINCUBE_UID=$(medperf container ls | grep fladmincube | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+echo "FLADMINCUBE_UID=$FLADMINCUBE_UID" >> "$LAST_ENV_FILE"
+
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Submit Training Experiment"
+echo "====================================="
+print_eval medperf training submit -n trainexp -d trainexp -p $PREP_UID -m $TRAINCUBE_UID -a $FLADMINCUBE_UID
+checkFailed "Training exp submission failed"
+TRAINING_UID=$(medperf training ls | grep trainexp | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+echo "TRAINING_UID=$TRAINING_UID" >> "$LAST_ENV_FILE"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Activate aggowner profile"
+echo "====================================="
+print_eval medperf profile activate testagg
+checkFailed "testagg profile activation failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Running aggregator submission step"
+echo "====================================="
+HOSTNAME_=$(hostname -I | cut -d " " -f 1)
+echo "HOSTNAME_=$HOSTNAME_" >> "$LAST_ENV_FILE"
+# HOSTNAME_=$(hostname -A | cut -d " " -f 1)  # fqdn on github CI runner doesn't resolve from inside containers
+print_eval medperf aggregator submit -n aggreg -a $HOSTNAME_ -p 50273 --admin-port 50274 -m $TRAINCUBE_UID
+checkFailed "aggregator submission step failed"
+AGG_UID=$(medperf aggregator ls | grep aggreg | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+echo "AGG_UID=$AGG_UID" >> "$LAST_ENV_FILE"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Activate modelowner profile"
+echo "====================================="
+print_eval medperf profile activate testmodel
+checkFailed "testmodel profile activation failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Running set aggregator step"
+echo "====================================="
+print_eval medperf training set_aggregator -t $TRAINING_UID -a $AGG_UID -y
+checkFailed "Setting aggregator failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "submit plan"
+echo "====================================="
+print_eval medperf training set_plan -t $TRAINING_UID -c $TRAINING_CONFIG -y
+checkFailed "submit plan failed"
+
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "start event"
+echo "====================================="
+echo "testdo@example.com: testdo@example.com" >>./testcols.yaml
+echo "testdo2@example.com: testdo2@example.com" >>./testcols.yaml
+print_eval medperf training start_event -n event1 -t $TRAINING_UID -p ./testcols.yaml -y
+checkFailed "start event failed"
+rm ./testcols.yaml
+
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Activate dataowner profile"
+echo "====================================="
+print_eval medperf profile activate testdata1
+checkFailed "testdata1 profile activation failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Running data1 submission step"
+echo "====================================="
+print_eval medperf dataset submit -p $PREP_UID -d $DIRECTORY/col1/images -l $DIRECTORY/col1/labels --name="col1" --description="col1data" --location="col1location" -y
+checkFailed "Data1 submission step failed"
+DSET_1_UID=$(medperf dataset ls | grep col1 | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+echo "DSET_1_UID=$DSET_1_UID" >> "$LAST_ENV_FILE"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Running data1 preparation step"
+echo "====================================="
+print_eval medperf dataset prepare -d $DSET_1_UID
+checkFailed "Data1 preparation step failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Running data1 set_operational step"
+echo "====================================="
+print_eval medperf dataset set_operational -d $DSET_1_UID -y
+checkFailed "Data1 set_operational step failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Running data1 association step"
+echo "====================================="
+print_eval medperf dataset associate -d $DSET_1_UID -t $TRAINING_UID -y
+checkFailed "Data1 association step failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Get data1owner cert"
+echo "====================================="
+print_eval medperf certificate get_client_certificate --key_type EC
+checkFailed "Get data1owner cert failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Submit data1owner cert"
+echo "====================================="
+print_eval medperf certificate submit_client_certificate --key_type EC -y
+checkFailed "Submit data1owner cert failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Starting training with data1"
+echo "====================================="
+print_eval medperf dataset train -d $DSET_1_UID -t $TRAINING_UID -y </dev/null >col1.log 2>&1 &
+COL1_PID=$!
+echo "COL1_PID=$COL1_PID" >> "$LAST_ENV_FILE"
+
+# sleep so that the container is run before we change profiles
+sleep 10
+
+# Check if the command is still running.
+if [ ! -d "/proc/$COL1_PID" ]; then
+  checkFailed "data1 training doesn't seem to be running" 1
+fi
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Activate dataowner2 profile"
+echo "====================================="
+print_eval medperf profile activate testdata2
+checkFailed "testdata2 profile activation failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Running data2 submission step"
+echo "====================================="
+print_eval medperf dataset submit -p $PREP_UID -d $DIRECTORY/col2/images -l $DIRECTORY/col2/labels --name="col2" --description="col2data" --location="col2location" -y
+checkFailed "Data2 submission step failed"
+DSET_2_UID=$(medperf dataset ls | grep col2 | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+echo "DSET_2_UID=$DSET_2_UID" >> "$LAST_ENV_FILE"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Running data2 preparation step"
+echo "====================================="
+print_eval medperf dataset prepare -d $DSET_2_UID
+checkFailed "Data2 preparation step failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Running data2 set_operational step"
+echo "====================================="
+print_eval medperf dataset set_operational -d $DSET_2_UID -y
+checkFailed "Data2 set_operational step failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Running data2 association step"
+echo "====================================="
+print_eval medperf dataset associate -d $DSET_2_UID -t $TRAINING_UID -y
+checkFailed "Data2 association step failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Get data2owner cert"
+echo "====================================="
+print_eval medperf certificate get_client_certificate --key_type EC
+checkFailed "Get data2owner cert failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Submit data2owner cert"
+echo "====================================="
+print_eval medperf certificate submit_client_certificate --key_type EC -y
+checkFailed "Submit data2owner cert failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Starting training with data2"
+echo "====================================="
+print_eval medperf dataset train -d $DSET_2_UID -t $TRAINING_UID -y </dev/null >col2.log 2>&1 &
+COL2_PID=$!
+echo "COL2_PID=$COL2_PID" >> "$LAST_ENV_FILE"
+
+# sleep so that the container is run before we change profiles
+sleep 10
+
+# Check if the command is still running.
+if [ ! -d "/proc/$COL2_PID" ]; then
+  checkFailed "data2 training doesn't seem to be running" 1
+fi
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Activate aggowner profile"
+echo "====================================="
+print_eval medperf profile activate testagg
+checkFailed "testagg profile activation failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Get aggregator cert"
+echo "====================================="
+print_eval medperf certificate get_server_certificate -a $AGG_UID
+checkFailed "Get aggregator cert failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Starting aggregator"
+echo "====================================="
+print_eval medperf aggregator start -t $TRAINING_UID -p $HOSTNAME_ </dev/null >agg.log 2>&1 &
+AGG_PID=$!
+echo "AGG_PID=$AGG_PID" >> "$LAST_ENV_FILE"
+
+# sleep so that the container is run before we change profiles
+sleep 10
+
+# Check if the command is still running.
+if [ ! -d "/proc/$AGG_PID" ]; then
+  checkFailed "agg doesn't seem to be running" 1
+fi
+##########################################################
+
+# Commented for now since admin endpoints are not implemented in current FL container
+# echo "\n"
+
+# ##########################################################
+# echo "====================================="
+# echo "Activate fladmin profile"
+# echo "====================================="
+# print_eval medperf profile activate fladmin
+# checkFailed "fladmin profile activation failed"
+# ##########################################################
+
+# echo "\n"
+
+# ##########################################################
+# echo "====================================="
+# echo "Get fladmin certificate"
+# echo "====================================="
+# print_eval medperf certificate get_client_certificate
+# checkFailed "Get fladmin cert failed"
+# ##########################################################
+
+# echo "\n"
+
+# ##########################################################
+# echo "====================================="
+# echo "Check experiment status"
+# echo "====================================="
+# print_eval medperf training get_experiment_status -t $TRAINING_UID
+# checkFailed "Get experiment status failed"
+
+# sleep 3 # sleep some time then get status again
+
+# print_eval medperf training get_experiment_status -t $TRAINING_UID
+# checkFailed "Get experiment status failed"
+# ##########################################################
+
+# echo "\n"
+
+# ##########################################################
+# echo "====================================="
+# echo "Update plan parameter"
+# echo "====================================="
+# print_eval medperf training update_plan -t $TRAINING_UID -f "straggler_handling_policy.settings.straggler_cutoff_time" -v 1200
+# checkFailed "Update plan failed"
+# ##########################################################
+
+# echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Waiting for processes to exit successfully"
+echo "====================================="
+
+# The aggregator will stop after it's done, but collaborators won't.
+wait $AGG_PID
+checkFailed "agg didn't exit successfully"
+
+kill $COL1_PID
+kill $COL2_PID
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "close event"
+echo "====================================="
+print_eval medperf training close_event -t $TRAINING_UID -y
+checkFailed "close event failed"
+
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Logout users"
+echo "====================================="
+print_eval medperf profile activate testmodel
+checkFailed "testmodel profile activation failed"
+
+print_eval medperf auth logout
+checkFailed "logout failed"
+
+print_eval medperf profile activate testagg
+checkFailed "testagg profile activation failed"
+
+print_eval medperf auth logout
+checkFailed "logout failed"
+
+print_eval medperf profile activate testdata1
+checkFailed "testdata1 profile activation failed"
+
+print_eval medperf auth logout
+checkFailed "logout failed"
+
+print_eval medperf profile activate testdata2
+checkFailed "testdata2 profile activation failed"
+
+print_eval medperf auth logout
+checkFailed "logout failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Delete test profiles"
+echo "====================================="
+print_eval medperf profile activate default
+checkFailed "default profile activation failed"
+
+print_eval medperf profile delete testmodel
+checkFailed "Profile deletion failed"
+
+print_eval medperf profile delete testagg
+checkFailed "Profile deletion failed"
+
+print_eval medperf profile delete testdata1
+checkFailed "Profile deletion failed"
+
+print_eval medperf profile delete testdata2
+checkFailed "Profile deletion failed"
+##########################################################
+
+if ${CLEANUP}; then
+  clean
+fi

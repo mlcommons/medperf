@@ -1,0 +1,18 @@
+{% macro result_card(result) %}
+<div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border-2 border-green-100 dark:border-gray-700 mb-4 {% if not result.finalized %}unfinalized-result-card{% endif %}">
+    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-3">{{ result.name }}</h3>
+    {% if result.finalized %}
+    <button class="px-4 py-2 rounded-xl medperf-bg dark:bg-green-600 text-white font-semibold hover:opacity-90 view-result-btn" id="show-{{ result.id }}" data-result='{{ result.results|tojson }}'>View Result</button>
+    {% else %}
+    <p class="text-gray-500 dark:text-gray-400 text-sm">Results not submitted</p>
+    {% endif %}
+    <div class="mt-4 space-y-1 text-sm text-gray-700 dark:text-gray-300">
+        <p><strong>Data Owner:</strong> <i class="fas fa-user medperf-accent dark:text-green-400 mr-1"></i>{{ result.data_owner_email }}</p>
+        <p><strong>Model:</strong> <a href="/containers/ui/display/{{ result.model }}" class="medperf-accent dark:text-green-400 hover:underline">ID:{{ result.model }}</a></p>
+        <p><strong>Dataset:</strong> <a href="/datasets/ui/display/{{ result.dataset }}" class="medperf-accent dark:text-green-400 hover:underline">ID:{{ result.dataset }}</a></p>
+        <p><strong>Inference Status:</strong> {{ result.model_report|tojson }}</p>
+        <p><strong>Metrics Status:</strong> {{ result.evaluation_report|tojson }}</p>
+        <p><strong>Modified:</strong> <span data-date="{{ result.modified_at }}"></span></p>
+    </div>
+</div>
+{% endmacro %}

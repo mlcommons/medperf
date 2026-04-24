@@ -2,6 +2,7 @@ from typing import List, Dict, Union, Callable
 from abc import ABC
 import logging
 import os
+from medperf.utils import sanitize_path
 import yaml
 from medperf.exceptions import MedperfException, InvalidArgumentError
 from medperf.entities.schemas import MedperfSchema
@@ -10,7 +11,28 @@ from typing import Type, TypeVar
 EntityType = TypeVar("EntityType", bound="Entity")
 
 
-class Entity(MedperfSchema, ABC):
+class Entity(ABC):
+
+    def __init__(self):
+        self._model: MedperfSchema
+        self._fields = list(self._model.__fields__.keys())
+        self.for_test = self._model.for_test
+        self.id = self._model.id
+        self.name = self._model.name
+        self.owner = self._model.owner
+        self.is_valid = self._model.is_valid
+        self.created_at = self._model.created_at
+        self.modified_at = self._model.modified_at
+
+    def __setattr__(self, name, value):
+        if (
+            hasattr(self, "_model")
+            and hasattr(self, "_fields")
+            and name in self._fields
+        ):
+            setattr(self._model, name, value)
+        super().__setattr__(name, value)
+
     @staticmethod
     def get_type() -> str:
         raise NotImplementedError()
@@ -75,7 +97,7 @@ class Entity(MedperfSchema, ABC):
     @classmethod
     def __remote_all(cls: Type[EntityType], filters: dict) -> List[EntityType]:
         comms_fn = cls.remote_prefilter(filters)
-        entity_meta = comms_fn()
+        entity_meta = comms_fn(filters=filters)
         entities = [cls(**meta) for meta in entity_meta]
         return entities
 
@@ -112,7 +134,10 @@ class Entity(MedperfSchema, ABC):
 
     @classmethod
     def get(
-        cls: Type[EntityType], uid: Union[str, int], local_only: bool = False
+        cls: Type[EntityType],
+        uid: Union[str, int],
+        local_only: bool = False,
+        valid_only: bool = True,
     ) -> EntityType:
         """Gets an instance of the respective entity.
         Wether this requires only local read or remote calls depends
@@ -121,6 +146,7 @@ class Entity(MedperfSchema, ABC):
         Args:
             uid (str): Unique Identifier to retrieve the entity
             local_only (bool): If True, the entity will be retrieved locally
+            valid_only: if to raise en error in case of invalidated entity
 
         Returns:
             Entity: Entity Instance associated to the UID
@@ -176,6 +202,7 @@ class Entity(MedperfSchema, ABC):
         storage_path = cls.get_storage_path()
         metadata_filename = cls.get_metadata_filename()
         entity_file = os.path.join(storage_path, str(uid), metadata_filename)
+        entity_file = sanitize_path(entity_file)
         if not os.path.exists(entity_file):
             raise InvalidArgumentError(
                 f"No {cls.get_type()} with the given uid could be found"
@@ -184,6 +211,9 @@ class Entity(MedperfSchema, ABC):
             data = yaml.safe_load(f)
 
         return data
+
+    def todict(self) -> dict:
+        return self._model.dict()
 
     def write(self) -> str:
         """Writes the entity to the local storage

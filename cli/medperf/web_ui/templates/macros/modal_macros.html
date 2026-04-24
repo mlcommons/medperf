@@ -1,0 +1,28 @@
+{% macro add_modal(
+    modal_id,
+    modal_body,
+    modal_class="",
+    modal_footer=False,
+    close_button="",
+    success_button=""
+) %}
+<div class="fixed inset-0 z-50 hidden overflow-y-auto" id="{{ modal_id }}" tabindex="-1" aria-labelledby="{{ modal_id }}-title" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-black/50"></div>
+    <div class="flex min-h-full items-center justify-center p-4">
+        <div class="relative rounded-2xl shadow-xl w-full max-w-lg mx-auto bg-white dark:bg-gray-800 border-2 border-green-100 dark:border-gray-700 {{ modal_class }}">
+            <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+                <h2 class="text-xl font-bold medperf-accent dark:text-green-400" id="{{ modal_id }}-title"></h2>
+            </div>
+            <div class="modal-body p-6 overflow-y-auto max-h-[70vh] text-gray-900 dark:text-white">
+                {{ modal_body | safe }}
+            </div>
+            {% if modal_footer %}
+            <div class="modal-footer flex flex-wrap gap-2 justify-end p-6 border-t border-gray-200 dark:border-gray-700">
+                {{ close_button | safe }}
+                {{ success_button | safe }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endmacro %}

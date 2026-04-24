@@ -1,0 +1,134 @@
+{% import 'macros/modal_macros.html' as modal_macros %}
+{% set task_running = request.app.state.task_running %}
+{% set logged_in = request.app.state.logged_in %}
+{% set notifications = request.app.state.notifications %}
+{% set unread_notifications = request.app.state.unread_count %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}MedPerf{% endblock %}</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style type="text/tailwindcss">
+        @theme {
+            --color-medperf: #2e7d32;
+            --color-medperf-light: #4caf50;
+            --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+        }
+        @custom-variant dark (&:where(.dark, .dark *));
+    </style>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/font-awesome-5.15.4-all.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/prism-1.23.0.min.css') }}" id="prism-light-theme">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/prism-dark.css') }}" id="prism-dark-theme" disabled>
+    <link rel="stylesheet" href="{{ url_for('static', path='css/common.css') }}">
+    <link rel="icon" href="{{ url_for('static', path='images/favicon.png') }}">
+    <style>
+        body { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
+        .medperf-accent { color: #2e7d32; }
+        .dark .medperf-accent { color: #4ade80; }
+        .medperf-bg { background-color: #2e7d32; }
+        .dark .medperf-bg { background-color: #16a34a; }
+        .medperf-card { border-left: 4px solid #2e7d32; }
+        .dark .medperf-card { border-left-color: rgba(74, 222, 128, 0.5); }
+        .info-highlight { background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border-left: 4px solid #2e7d32; }
+        .dark .info-highlight { background: linear-gradient(135deg, #1f2937 0%, #374151 100%); border-left-color: #4ade80; }
+        [x-cloak] { display: none !important; }
+        #page-modal.modal-visible { opacity: 1; pointer-events: auto; }
+        #page-modal.modal-visible #page-modal-dialog { transform: scale(1); }
+    </style>
+    <script>
+        (function(){
+            window.taskRunning = true ? "{{ task_running }}" === "True" : false;
+            var d = document.documentElement;
+            var v = localStorage.getItem('medperf-dark');
+            if (v === '1' || (v === null && typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)){
+                d.classList.add('dark');
+                document.getElementById('prism-light-theme').disabled = true;
+                document.getElementById('prism-dark-theme').disabled = false;
+            }
+            else {
+                d.classList.remove('dark');
+                document.getElementById('prism-light-theme').disabled = false;
+                document.getElementById('prism-dark-theme').disabled = true;
+            }
+        })();
+    </script>
+    <script>
+        window.ui_mode = "{{ request.app.state.ui_mode }}";
+        window.evaluation_mode = "{{ request.app.state.EVALUATION_MODE }}";
+        window.notifications = {{ notifications | tojson }};
+        window.maxLogMessages = Number("{{ request.app.state.MAXLOGMESSAGES }}");
+        window.evSource = null;
+    </script>
+    {% if task_running %}
+    <script>
+        window.taskId = "{{ request.app.state.task.id }}";
+    </script>
+    {% endif %}
+    {% block extra_css %} {% endblock extra_css %}
+</head>
+<body class="min-h-screen bg-[#f1f8f4] dark:bg-gray-900">
+    {% include "partials/navbar.html" %}
+
+    <div class="page-wrap pt-6">
+        <div class="main-content">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    <div id="page-modal" class="fixed inset-0 z-50 opacity-0 pointer-events-none transition-opacity duration-300 ease-out" aria-hidden="true" role="dialog" aria-modal="true">
+        <div id="page-modal-backdrop" class="absolute inset-0 bg-black/50 transition-opacity duration-300"></div>
+        <div class="absolute inset-0 flex items-center justify-center p-4">
+            <div id="page-modal-dialog" class="rounded-2xl shadow-xl max-w-md w-full mx-auto relative bg-white dark:bg-gray-800 border-2 border-green-100 dark:border-gray-700 max-h-[90vh] flex flex-col scale-95 transition-transform duration-300 ease-out">
+                <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+                    <h2 id="page-modal-title" class="text-xl font-bold medperf-accent dark:text-green-400"></h2>
+                </div>
+                <div id="page-modal-body" class="p-6 overflow-y-auto flex-1 break-words text-gray-900 dark:text-white"></div>
+                <div id="page-modal-footer" class="p-6 border-t border-gray-200 dark:border-gray-700 flex flex-wrap gap-2 justify-end"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container" class="fixed top-20 left-1/2 -translate-x-1/2 z-[60] flex flex-col gap-2 pointer-events-none"></div>
+
+    {% include "partials/footer.html" %}
+
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.3/dist/cdn.min.js"></script>
+    <script src="{{ url_for('static', path='js/prism-1.23.0.min.js') }}"></script>
+    <script src="{{ url_for('static', path='js/prism-yaml-1.23.0.min.js') }}"></script>
+    <script src="{{ url_for('static', path='js/prism-json-1.29.0.min.js') }}"></script>
+    <script src="{{ url_for('static', path='js/modal-queue.js') }}"></script>
+    <script src="{{ url_for('static', path='js/notifications.js') }}"></script>
+    <script src="{{ url_for('static', path='js/common.js') }}"></script>
+
+    {% if task_running %}
+    <script data-testid="global-event-source-script">
+    if (!window.globalEventSource) {
+        window.globalEventSource = new EventSource("/events/global");
+        window.globalEventSource.addEventListener("notification", function(e) {
+            const data = JSON.parse(e.data);
+            processNotification(data);
+        });
+        window.globalEventSource.addEventListener("event", function(e) {
+            const data = JSON.parse(e.data);
+            showCriticalPopup(data);
+        });
+    }
+    window.addEventListener("beforeunload", function() {
+        if (window.globalEventSource) { window.globalEventSource.close(); window.globalEventSource = null; }
+    });
+    </script>
+    {% else %}
+    <script data-testid="global-events-script">
+        (function(){
+            var data = {{ request.app.state.global_events | tojson }};
+            if (Array.isArray(data)) data.forEach(function(event) { showCriticalPopup(event); });
+        })();
+    </script>
+    {% endif %}
+    {% block extra_js %} {% endblock extra_js %}
+</body>
+</html>

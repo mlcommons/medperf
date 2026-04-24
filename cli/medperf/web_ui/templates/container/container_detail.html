@@ -1,0 +1,80 @@
+
+{% extends "detail_base.html" %}
+
+{% import 'macros/model_detail_util_macro.html' as model_detail_util_macro %}
+
+{% block title %}Container Details{% endblock %}
+
+{% block detail_panel %}
+<div class="mb-8">
+    <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center mb-3">
+            <h1 class="text-5xl font-bold medperf-accent dark:text-green-400">{{ entity.name }}</h1>
+            {% if not is_owner and entity._encrypted %}
+            <i class="fas fa-lock text-xl ml-2 text-gray-500 dark:text-gray-400 cursor-help" title="Encrypted"></i>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg border-2 border-green-100 dark:border-gray-700 mb-6 {% if not entity.is_valid %}invalid-card{% endif %}">
+    <div class="flex flex-wrap justify-between items-center gap-4 mb-6">
+        <h2 class="text-3xl font-bold medperf-accent dark:text-green-400 flex items-center">
+            <i class="fas fa-info-circle mr-3"></i>Details
+        </h2>
+        <div class="flex flex-wrap gap-2">
+            <span class="px-4 py-1 rounded-full text-xs font-bold border-2 {% if entity.state == 'OPERATION' %}bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 border-green-200 dark:border-green-700{% else %}bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-300 border-yellow-200 dark:border-yellow-700{% endif %}">{% if entity.state == 'OPERATION' %}OPERATIONAL{% else %}{{ entity.state }}{% endif %}</span>
+            <span class="px-4 py-1 rounded-full text-xs font-bold border-2 {% if entity.is_valid %}bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 border-green-200 dark:border-green-700{% else %}bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800{% endif %}">{% if entity.is_valid %}VALID{% else %}INVALID{% endif %}</span>
+        </div>
+    </div>
+    <div class="info-highlight rounded-xl p-6 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-1 font-semibold">Container ID</p>
+                <p class="text-xl font-bold text-gray-900 dark:text-white">{{ entity.id }}</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-1 font-semibold">Owner</p>
+                <p class="text-xl font-bold text-gray-900 dark:text-white">
+                    <i class="fas fa-user medperf-accent dark:text-green-400 mr-2"></i>{% if is_owner %} You {% else %}{{ entity.owner }}{% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+    {{ model_detail_util_macro.container_detail_util(entity) }}
+    {% if not is_owner and entity._encrypted %}
+    <div class="mb-6">
+        <p class="text-sm text-gray-600 dark:text-gray-400 mb-2 font-semibold">Access</p>
+        {% if entity.access_status["has_access"] %}<span class="text-green-600 dark:text-green-400 font-bold">Access Granted</span>{% else %}<span class="text-red-600 dark:text-red-400 underline cursor-help" title="{{ entity.access_status['reason'] }}">Access Pending</span>{% endif %}
+    </div>
+    {% endif %}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t-2 border-gray-100 dark:border-gray-700">
+        <div>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-2 font-semibold">Created</p>
+            <span class="text-gray-800 dark:text-white font-medium" data-date="{{ entity.created_at }}"></span>
+        </div>
+        <div>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-2 font-semibold">Modified</p>
+            <span class="text-gray-800 dark:text-white font-medium" data-date="{{ entity.modified_at }}"></span>
+        </div>
+    </div>
+    {% if is_owner %}
+        {% if entity.is_encrypted() %}
+        <div class="mt-6 p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 text-center">
+            <a class="step-btn inline-block px-6 py-3 rounded-xl bg-yellow-500 text-white font-bold hover:bg-yellow-600" href="/containers/ui/display/{{ entity.id }}/access" data-testid="manage-access">Manage Access</a>
+            <p class="step-label mt-2 text-sm text-gray-600 dark:text-gray-400">Manage access permissions for this encrypted container</p>
+        </div>
+        {% endif %}
+    {% endif %}
+</div>
+
+{% include "partials/panel_container.html" %}
+{% include "partials/text_content_container.html" %}
+{% include "partials/yaml_container.html" %}
+{% include "partials/prompt_container.html" %}
+{% endblock detail_panel %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
+<script src="{{ url_for('static', path='js/containers/container_detail.js') }}"></script>
+{% endblock %}

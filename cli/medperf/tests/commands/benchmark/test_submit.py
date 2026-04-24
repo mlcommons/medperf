@@ -1,7 +1,7 @@
 from medperf.tests.mocks.benchmark import TestBenchmark
 import pytest
 
-from medperf.entities.result import Result
+from medperf.entities.execution import Execution
 from medperf.commands.benchmark.submit import SubmitBenchmark
 from medperf import config
 
@@ -16,14 +16,14 @@ BENCHMARK_INFO = {
     "demo_dataset_tarball_url": "https://test.test/data.tar.gz",
     "demo_dataset_tarball_hash": "",
     "data_preparation_mlcube": 0,
-    "reference_model_mlcube": 0,
+    "reference_model": 0,
     "data_evaluator_mlcube": 0,
 }
 
 
 @pytest.fixture
 def result(mocker):
-    result_obj = mocker.create_autospec(spec=Result)
+    result_obj = mocker.create_autospec(spec=Execution)
     # mocker.patch.object(result_obj, "todict", return_value={})
     result_obj.results = {}
     return result_obj

@@ -9,27 +9,27 @@ class ResultsTest(MedPerfTest):
     def generic_setup(self):
         # setup users
         data_owner = "data_owner"
-        mlcube_owner = "mlcube_owner"
+        model_owner = "model_owner"
         bmk_owner = "bmk_owner"
         bmk_prep_mlcube_owner = "bmk_prep_mlcube_owner"
-        ref_mlcube_owner = "ref_mlcube_owner"
+        ref_model_owner = "ref_model_owner"
         eval_mlcube_owner = "eval_mlcube_owner"
         other_user = "other_user"
 
         self.create_user(data_owner)
-        self.create_user(mlcube_owner)
+        self.create_user(model_owner)
         self.create_user(bmk_owner)
         self.create_user(bmk_prep_mlcube_owner)
-        self.create_user(ref_mlcube_owner)
+        self.create_user(ref_model_owner)
         self.create_user(eval_mlcube_owner)
         self.create_user(other_user)
 
         # setup globals
         self.data_owner = data_owner
-        self.mlcube_owner = mlcube_owner
+        self.model_owner = model_owner
         self.bmk_owner = bmk_owner
         self.bmk_prep_mlcube_owner = bmk_prep_mlcube_owner
-        self.ref_mlcube_owner = ref_mlcube_owner
+        self.ref_model_owner = ref_model_owner
         self.eval_mlcube_owner = eval_mlcube_owner
         self.other_user = other_user
 
@@ -52,7 +52,7 @@ class GenericResultsPostTest(ResultsTest):
         # create benchmark
         prep, _, _, benchmark = self.shortcut_create_benchmark(
             self.bmk_prep_mlcube_owner,
-            self.ref_mlcube_owner,
+            self.ref_model_owner,
             self.eval_mlcube_owner,
             self.bmk_owner,
         )
@@ -70,20 +70,20 @@ class GenericResultsPostTest(ResultsTest):
         )
         self.create_dataset_association(assoc, self.data_owner, self.bmk_owner)
 
-        # create model mlcube
-        self.set_credentials(self.mlcube_owner)
-        mlcube = self.mock_mlcube(state="OPERATION")
-        mlcube = self.create_mlcube(mlcube).data
+        # create model model
+        self.set_credentials(self.model_owner)
+        model = self.mock_model(state="OPERATION")
+        model = self.create_model(model).data
 
-        # create mlcube assoc
-        assoc = self.mock_mlcube_association(
-            benchmark["id"], mlcube["id"], approval_status="APPROVED"
+        # create model assoc
+        assoc = self.mock_model_association(
+            benchmark["id"], model["id"], approval_status="APPROVED"
         )
-        self.create_mlcube_association(assoc, self.mlcube_owner, self.bmk_owner)
+        self.create_model_association(assoc, self.model_owner, self.bmk_owner)
 
         self.bmk_id = benchmark["id"]
         self.dataset_id = dataset["id"]
-        self.mlcube_id = mlcube["id"]
+        self.model_id = model["id"]
 
         self.set_credentials(self.actor)
 
@@ -91,7 +91,7 @@ class GenericResultsPostTest(ResultsTest):
         """Testing the valid scenario"""
         # Arrange
         testresult = self.mock_result(
-            self.bmk_id, self.mlcube_id, self.dataset_id, results={"r": 1}
+            self.bmk_id, self.model_id, self.dataset_id, results={"r": 1}
         )
 
         # Act
@@ -116,7 +116,7 @@ class GenericResultsPostTest(ResultsTest):
             "is_valid": True,
         }
         testresult = self.mock_result(
-            self.bmk_id, self.mlcube_id, self.dataset_id, results={"r": 1}
+            self.bmk_id, self.model_id, self.dataset_id, results={"r": 1}
         )
 
         for key in default_values:
@@ -143,9 +143,11 @@ class GenericResultsPostTest(ResultsTest):
             "modified_at": "time2",
             "approved_at": "time3",
             "approval_status": "APPROVED",
+            "finalized": True,
+            "finalized_at": "time4",
         }
         testresult = self.mock_result(
-            self.bmk_id, self.mlcube_id, self.dataset_id, results={"r": 1}
+            self.bmk_id, self.model_id, self.dataset_id, results={"r": 1}
         )
 
         testresult.update(readonly)
@@ -174,9 +176,9 @@ class SerializersResultsPostTest(ResultsTest):
         self.generic_setup()
 
         # create benchmark
-        prep, ref_mlcube, _, benchmark = self.shortcut_create_benchmark(
+        prep, ref_model, _, benchmark = self.shortcut_create_benchmark(
             self.bmk_prep_mlcube_owner,
-            self.ref_mlcube_owner,
+            self.ref_model_owner,
             self.eval_mlcube_owner,
             self.bmk_owner,
         )
@@ -188,27 +190,27 @@ class SerializersResultsPostTest(ResultsTest):
         )
         dataset = self.create_dataset(dataset).data
 
-        # create model mlcube
-        self.set_credentials(self.mlcube_owner)
-        mlcube = self.mock_mlcube(state="OPERATION")
-        mlcube = self.create_mlcube(mlcube).data
+        # create model model
+        self.set_credentials(self.model_owner)
+        model = self.mock_model(state="OPERATION")
+        model = self.create_model(model).data
 
         self.bmk_id = benchmark["id"]
         self.dataset_id = dataset["id"]
-        self.mlcube_id = mlcube["id"]
-        self.ref_mlcube_id = ref_mlcube["id"]
+        self.model_id = model["id"]
+        self.ref_model_id = ref_model["id"]
 
         self.set_credentials(self.actor)
 
     def test_result_creation_with_unassociated_dataset(self):
         # Arrange
-        assoc = self.mock_mlcube_association(
-            self.bmk_id, self.mlcube_id, approval_status="APPROVED"
+        assoc = self.mock_model_association(
+            self.bmk_id, self.model_id, approval_status="APPROVED"
         )
-        self.create_mlcube_association(assoc, self.mlcube_owner, self.bmk_owner)
+        self.create_model_association(assoc, self.model_owner, self.bmk_owner)
 
         testresult = self.mock_result(
-            self.bmk_id, self.mlcube_id, self.dataset_id, results={"r": 1}
+            self.bmk_id, self.model_id, self.dataset_id, results={"r": 1}
         )
         # Act
         response = self.client.post(self.url, testresult, format="json")
@@ -216,7 +218,18 @@ class SerializersResultsPostTest(ResultsTest):
         # Assert
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_result_creation_with_unassociated_mlcube(self):
+    def test_result_creation_with_unassociated_dataset_and_reference_model(self):
+        # Arrange
+        testresult = self.mock_result(
+            self.bmk_id, self.ref_model_id, self.dataset_id, results={"r": 1}
+        )
+        # Act
+        response = self.client.post(self.url, testresult, format="json")
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_result_creation_with_unassociated_model(self):
         # Arrange
         assoc = self.mock_dataset_association(
             self.bmk_id, self.dataset_id, approval_status="APPROVED"
@@ -224,7 +237,7 @@ class SerializersResultsPostTest(ResultsTest):
         self.create_dataset_association(assoc, self.data_owner, self.bmk_owner)
 
         testresult = self.mock_result(
-            self.bmk_id, self.mlcube_id, self.dataset_id, results={"r": 1}
+            self.bmk_id, self.model_id, self.dataset_id, results={"r": 1}
         )
         # Act
         response = self.client.post(self.url, testresult, format="json")
@@ -246,13 +259,13 @@ class SerializersResultsPostTest(ResultsTest):
         ]
     )
     def test_result_creation_with_created_associations(
-        self, dataset_status, mlcube_status
+        self, dataset_status, model_status
     ):
         # Arrange
-        assoc = self.mock_mlcube_association(
-            self.bmk_id, self.mlcube_id, approval_status=mlcube_status
+        assoc = self.mock_model_association(
+            self.bmk_id, self.model_id, approval_status=model_status
         )
-        self.create_mlcube_association(assoc, self.mlcube_owner, self.bmk_owner)
+        self.create_model_association(assoc, self.model_owner, self.bmk_owner)
 
         assoc = self.mock_dataset_association(
             self.bmk_id, self.dataset_id, approval_status=dataset_status
@@ -260,13 +273,13 @@ class SerializersResultsPostTest(ResultsTest):
         self.create_dataset_association(assoc, self.data_owner, self.bmk_owner)
 
         testresult = self.mock_result(
-            self.bmk_id, self.mlcube_id, self.dataset_id, results={"r": 1}
+            self.bmk_id, self.model_id, self.dataset_id, results={"r": 1}
         )
         # Act
         response = self.client.post(self.url, testresult, format="json")
 
         # Assert
-        if dataset_status == mlcube_status == "APPROVED":
+        if dataset_status == model_status == "APPROVED":
             exp_status = status.HTTP_201_CREATED
         else:
             exp_status = status.HTTP_400_BAD_REQUEST
@@ -275,25 +288,25 @@ class SerializersResultsPostTest(ResultsTest):
 
     def test_result_creation_looks_for_latest_model_assocs(self):
         # Arrange
-        assoc = self.mock_mlcube_association(
-            self.bmk_id, self.mlcube_id, approval_status="APPROVED"
+        assoc = self.mock_model_association(
+            self.bmk_id, self.model_id, approval_status="APPROVED"
         )
-        self.create_mlcube_association(assoc, self.mlcube_owner, self.bmk_owner)
+        self.create_model_association(assoc, self.model_owner, self.bmk_owner)
 
         assoc = self.mock_dataset_association(
             self.bmk_id, self.dataset_id, approval_status="APPROVED"
         )
         self.create_dataset_association(assoc, self.data_owner, self.bmk_owner)
 
-        assoc = self.mock_mlcube_association(
-            self.bmk_id, self.mlcube_id, approval_status="REJECTED"
+        assoc = self.mock_model_association(
+            self.bmk_id, self.model_id, approval_status="REJECTED"
         )
-        self.create_mlcube_association(
-            assoc, self.mlcube_owner, self.bmk_owner, set_status_directly=True
+        self.create_model_association(
+            assoc, self.model_owner, self.bmk_owner, set_status_directly=True
         )
 
         testresult = self.mock_result(
-            self.bmk_id, self.mlcube_id, self.dataset_id, results={"r": 1}
+            self.bmk_id, self.model_id, self.dataset_id, results={"r": 1}
         )
         # Act
         response = self.client.post(self.url, testresult, format="json")
@@ -303,10 +316,10 @@ class SerializersResultsPostTest(ResultsTest):
 
     def test_result_creation_looks_for_latest_dataset_assocs(self):
         # Arrange
-        assoc = self.mock_mlcube_association(
-            self.bmk_id, self.mlcube_id, approval_status="APPROVED"
+        assoc = self.mock_model_association(
+            self.bmk_id, self.model_id, approval_status="APPROVED"
         )
-        self.create_mlcube_association(assoc, self.mlcube_owner, self.bmk_owner)
+        self.create_model_association(assoc, self.model_owner, self.bmk_owner)
 
         assoc = self.mock_dataset_association(
             self.bmk_id, self.dataset_id, approval_status="APPROVED"
@@ -321,7 +334,7 @@ class SerializersResultsPostTest(ResultsTest):
         )
 
         testresult = self.mock_result(
-            self.bmk_id, self.mlcube_id, self.dataset_id, results={"r": 1}
+            self.bmk_id, self.model_id, self.dataset_id, results={"r": 1}
         )
         # Act
         response = self.client.post(self.url, testresult, format="json")
@@ -337,7 +350,7 @@ class SerializersResultsPostTest(ResultsTest):
         self.create_dataset_association(assoc, self.data_owner, self.bmk_owner)
 
         testresult = self.mock_result(
-            self.bmk_id, self.ref_mlcube_id, self.dataset_id, results={"r": 1}
+            self.bmk_id, self.ref_model_id, self.dataset_id, results={"r": 1}
         )
         # Act
         response = self.client.post(self.url, testresult, format="json")
@@ -361,7 +374,7 @@ class GenericResultsGetListTest(ResultsTest):
         # create benchmark
         prep, _, _, benchmark = self.shortcut_create_benchmark(
             self.bmk_prep_mlcube_owner,
-            self.ref_mlcube_owner,
+            self.ref_model_owner,
             self.eval_mlcube_owner,
             self.bmk_owner,
         )
@@ -379,21 +392,21 @@ class GenericResultsGetListTest(ResultsTest):
         )
         self.create_dataset_association(assoc, self.data_owner, self.bmk_owner)
 
-        # create model mlcube
-        self.set_credentials(self.mlcube_owner)
-        mlcube = self.mock_mlcube(state="OPERATION")
-        mlcube = self.create_mlcube(mlcube).data
+        # create model model
+        self.set_credentials(self.model_owner)
+        model = self.mock_model(state="OPERATION")
+        model = self.create_model(model).data
 
-        # create mlcube assoc
-        assoc = self.mock_mlcube_association(
-            benchmark["id"], mlcube["id"], approval_status="APPROVED"
+        # create model assoc
+        assoc = self.mock_model_association(
+            benchmark["id"], model["id"], approval_status="APPROVED"
         )
-        self.create_mlcube_association(assoc, self.mlcube_owner, self.bmk_owner)
+        self.create_model_association(assoc, self.model_owner, self.bmk_owner)
 
         # create result
         self.set_credentials(self.data_owner)
         result = self.mock_result(
-            benchmark["id"], mlcube["id"], dataset["id"], results={"r": 1}
+            benchmark["id"], model["id"], dataset["id"], results={"r": 1}
         )
         result = self.create_result(result).data
         self.testresult = result
@@ -427,7 +440,7 @@ class PermissionTest(ResultsTest):
         # create benchmark
         prep, _, _, benchmark = self.shortcut_create_benchmark(
             self.bmk_prep_mlcube_owner,
-            self.ref_mlcube_owner,
+            self.ref_model_owner,
             self.eval_mlcube_owner,
             self.bmk_owner,
         )
@@ -445,20 +458,20 @@ class PermissionTest(ResultsTest):
         )
         self.create_dataset_association(assoc, self.data_owner, self.bmk_owner)
 
-        # create model mlcube
-        self.set_credentials(self.mlcube_owner)
-        mlcube = self.mock_mlcube(state="OPERATION")
-        mlcube = self.create_mlcube(mlcube).data
+        # create model model
+        self.set_credentials(self.model_owner)
+        model = self.mock_model(state="OPERATION")
+        model = self.create_model(model).data
 
-        # create mlcube assoc
-        assoc = self.mock_mlcube_association(
-            benchmark["id"], mlcube["id"], approval_status="APPROVED"
+        # create model assoc
+        assoc = self.mock_model_association(
+            benchmark["id"], model["id"], approval_status="APPROVED"
         )
-        self.create_mlcube_association(assoc, self.mlcube_owner, self.bmk_owner)
+        self.create_model_association(assoc, self.model_owner, self.bmk_owner)
 
         self.set_credentials(self.data_owner)
         result = self.mock_result(
-            benchmark["id"], mlcube["id"], dataset["id"], results={"r": 1}
+            benchmark["id"], model["id"], dataset["id"], results={"r": 1}
         )
 
         self.testresult = result
@@ -469,9 +482,9 @@ class PermissionTest(ResultsTest):
         [
             ("bmk_owner", status.HTTP_403_FORBIDDEN),
             ("bmk_prep_mlcube_owner", status.HTTP_403_FORBIDDEN),
-            ("ref_mlcube_owner", status.HTTP_403_FORBIDDEN),
+            ("ref_model_owner", status.HTTP_403_FORBIDDEN),
             ("eval_mlcube_owner", status.HTTP_403_FORBIDDEN),
-            ("mlcube_owner", status.HTTP_403_FORBIDDEN),
+            ("model_owner", status.HTTP_403_FORBIDDEN),
             ("other_user", status.HTTP_403_FORBIDDEN),
             (None, status.HTTP_401_UNAUTHORIZED),
         ]
@@ -490,9 +503,9 @@ class PermissionTest(ResultsTest):
         [
             ("bmk_owner", status.HTTP_403_FORBIDDEN),
             ("bmk_prep_mlcube_owner", status.HTTP_403_FORBIDDEN),
-            ("ref_mlcube_owner", status.HTTP_403_FORBIDDEN),
+            ("ref_model_owner", status.HTTP_403_FORBIDDEN),
             ("eval_mlcube_owner", status.HTTP_403_FORBIDDEN),
-            ("mlcube_owner", status.HTTP_403_FORBIDDEN),
+            ("model_owner", status.HTTP_403_FORBIDDEN),
             ("data_owner", status.HTTP_403_FORBIDDEN),
             ("other_user", status.HTTP_403_FORBIDDEN),
             (None, status.HTTP_401_UNAUTHORIZED),

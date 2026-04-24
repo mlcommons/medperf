@@ -6,17 +6,17 @@ import pytest
 from medperf.commands.association.priority import AssociationPriority
 
 TEST_ASSOCIATIONS = [
-    generate_benchmarkmodel(priority=0, model_mlcube=1),
-    generate_benchmarkmodel(priority=0, model_mlcube=2),
-    generate_benchmarkmodel(priority=0, model_mlcube=3),
+    generate_benchmarkmodel(priority=0, model=1),
+    generate_benchmarkmodel(priority=0, model=2),
+    generate_benchmarkmodel(priority=0, model=3),
 ]
 
 
 def set_priority_behavior(associations):
-    def func(benchmark_uid, mlcube_uid, priority):
+    def func(benchmark_uid, mlcube_uid, update_dict):
         for assoc in associations:
-            if assoc["model_mlcube"] == mlcube_uid:
-                assoc["priority"] = priority
+            if assoc["model"] == mlcube_uid:
+                assoc.update(update_dict)
 
     return func
 
@@ -31,12 +31,12 @@ def get_benchmark_model_associations_behavior(associations):
 def setup_comms(mocker, comms, associations):
     mocker.patch.object(
         comms,
-        "get_benchmark_model_associations",
+        "get_benchmark_models_associations",
         side_effect=get_benchmark_model_associations_behavior(associations),
     )
     mocker.patch.object(
         comms,
-        "set_mlcube_association_priority",
+        "update_benchmark_model_association",
         side_effect=set_priority_behavior(associations),
     )
 
@@ -63,9 +63,9 @@ class TestRun:
     def test_run_modifies_priority(self, model_uid, priority):
         # Arrange
         expected_associations = [
-            generate_benchmarkmodel(priority=4, model_mlcube=1),
-            generate_benchmarkmodel(priority=0, model_mlcube=2),
-            generate_benchmarkmodel(priority=0, model_mlcube=3),
+            generate_benchmarkmodel(priority=4, model=1),
+            generate_benchmarkmodel(priority=0, model=2),
+            generate_benchmarkmodel(priority=0, model=3),
         ]
 
         # Act
@@ -74,7 +74,7 @@ class TestRun:
         # Assert
         assert expected_associations == self.associations
 
-    @pytest.mark.parametrize("model_uid", [(55)])
+    @pytest.mark.parametrize("model_uid", [55])
     def test_run_fails_if_cube_not_associated(self, model_uid):
         # Arrange
         original_assocs = deepcopy(self.associations)

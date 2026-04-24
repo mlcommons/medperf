@@ -9,6 +9,7 @@ from medperf.utils import (
     approval_prompt,
     dict_pretty_print,
     get_folders_hash,
+    sanitize_path,
     remove_path,
 )
 from medperf.exceptions import CleanExit, InvalidArgumentError
@@ -69,9 +70,9 @@ class DataCreation:
         for_test: bool,
     ):
         self.ui = config.ui
-        self.data_path = str(Path(data_path).resolve())
-        self.labels_path = str(Path(labels_path).resolve())
-        self.metadata_path = metadata_path
+        self.data_path = sanitize_path(data_path)
+        self.labels_path = sanitize_path(labels_path)
+        self.metadata_path = sanitize_path(metadata_path)
         self.name = name
         self.description = description
         self.location = location
@@ -103,7 +104,7 @@ class DataCreation:
         no_resource = self.benchmark_uid is None and self.prep_cube_uid is None
         if no_resource or too_many_resources:
             raise InvalidArgumentError(
-                "Must provide either a benchmark or a preparation mlcube"
+                "Must provide either a benchmark or a preparation container"
             )
 
     def validate_prep_cube(self):

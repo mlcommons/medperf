@@ -66,19 +66,3 @@ class TestEntityList:
         # Act & Assert
         with pytest.raises(InvalidArgumentError):
             EntityList.run(Entity, fields)
-
-    @pytest.mark.parametrize("fields", [["UID", "Is Valid"], ["Registered"]])
-    def test_display_calls_tabulate_and_ui_as_expected(self, fields):
-        # Arrange
-        expected_list = [
-            [dict_[field] for field in fields]
-            for dict_ in self.state_variables["display_dicts"]
-        ]
-
-        # Act
-        EntityList.run(Entity, fields)
-
-        # Assert
-        self.spies["tabulate"].assert_called_once_with(expected_list, headers=fields)
-        tabulate_return = self.spies["tabulate"].return_value
-        self.spies["ui"].assert_called_once_with(tabulate_return)

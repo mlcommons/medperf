@@ -20,27 +20,13 @@ def test_activate_updates_active_profile(mocker, profile):
 
 
 @pytest.mark.parametrize("name", ["new_profile", "fets"])
-@pytest.mark.parametrize(
-    "args",
-    [
-        (["--platform=docker"], {"platform": "docker"}),
-        (
-            ["--server", "fets.org", "--no-cleanup"],
-            {"server": "fets.org", "cleanup": False},
-        ),
-        ([], {}),
-    ],
-)
-def test_create_adds_new_profile(mocker, name, args):
-    # Arrange
-    in_args, out_cfg = args
-
+def test_create_adds_new_profile(mocker, name):
     # Act
-    runner.invoke(app, ["create", "-n", name] + in_args)
+    runner.invoke(app, ["create", "-n", name])
 
     # Assert
     config_p = read_config()
-    assert config_p[name] == {**config_p.profiles["default"], **out_cfg}
+    assert config_p[name] == config_p.profiles["default"]
 
 
 def test_create_fails_if_name_exists(mocker):

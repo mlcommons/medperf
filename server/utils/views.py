@@ -1,5 +1,7 @@
 from user.serializers import UserSerializer
 from mlcube.serializers import MlCubeSerializer
+from asset.serializers import AssetSerializer
+from model.serializers import ModelSerializer
 from dataset.serializers import DatasetFullSerializer
 from result.serializers import ModelResultSerializer
 from benchmark.serializers import BenchmarkSerializer
@@ -8,6 +10,8 @@ from benchmarkmodel.serializers import BenchmarkModelListSerializer
 from benchmark.models import Benchmark
 from dataset.models import Dataset
 from mlcube.models import MlCube
+from asset.models import Asset
+from model.models import Model
 from result.models import ModelResult
 from benchmarkmodel.models import BenchmarkModel
 from benchmarkdataset.models import BenchmarkDataset
@@ -19,6 +23,20 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import serializers
+from training.models import TrainingExperiment
+from training.serializers import ReadTrainingExperimentSerializer
+from aggregator.models import Aggregator
+from aggregator.serializers import AggregatorSerializer
+from traindataset_association.models import ExperimentDataset
+from traindataset_association.serializers import ExperimentDatasetListSerializer
+from trainingevent.serializers import EventDetailSerializer
+from ca.serializers import CASerializer
+from trainingevent.models import TrainingEvent
+from ca.models import CA
+from certificate.models import Certificate
+from certificate.serializers import CertificateDetailSerializer
+from encrypted_key.models import EncryptedKey
+from encrypted_key.serializers import EncryptedKeyDetailSerializer
 
 
 class User(GenericAPIView):
@@ -54,6 +72,86 @@ class BenchmarkList(GenericAPIView):
         return self.get_paginated_response(serializer.data)
 
 
+class TrainingExperimentList(GenericAPIView):
+    serializer_class = ReadTrainingExperimentSerializer
+    queryset = ""
+
+    def get_object(self, pk):
+        try:
+            return TrainingExperiment.objects.filter(owner__id=pk)
+        except TrainingExperiment.DoesNotExist:
+            raise Http404
+
+    def get(self, request, format=None):
+        """
+        Retrieve all training_exps owned by the current user
+        """
+        training_exps = self.get_object(request.user.id)
+        training_exps = self.paginate_queryset(training_exps)
+        serializer = ReadTrainingExperimentSerializer(training_exps, many=True)
+        return self.get_paginated_response(serializer.data)
+
+
+class TrainingEventList(GenericAPIView):
+    serializer_class = EventDetailSerializer
+    queryset = ""
+
+    def get_object(self, pk):
+        try:
+            return TrainingEvent.objects.filter(owner__id=pk)
+        except TrainingEvent.DoesNotExist:
+            raise Http404
+
+    def get(self, request, format=None):
+        """
+        Retrieve all events owned by the current user
+        """
+        training_events = self.get_object(request.user.id)
+        training_events = self.paginate_queryset(training_events)
+        serializer = EventDetailSerializer(training_events, many=True)
+        return self.get_paginated_response(serializer.data)
+
+
+class AggregatorList(GenericAPIView):
+    serializer_class = AggregatorSerializer
+    queryset = ""
+
+    def get_object(self, pk):
+        try:
+            return Aggregator.objects.filter(owner__id=pk)
+        except Aggregator.DoesNotExist:
+            raise Http404
+
+    def get(self, request, format=None):
+        """
+        Retrieve all aggregators owned by the current user
+        """
+        aggregators = self.get_object(request.user.id)
+        aggregators = self.paginate_queryset(aggregators)
+        serializer = AggregatorSerializer(aggregators, many=True)
+        return self.get_paginated_response(serializer.data)
+
+
+class CAList(GenericAPIView):
+    serializer_class = CASerializer
+    queryset = ""
+
+    def get_object(self, pk):
+        try:
+            return CA.objects.filter(owner__id=pk)
+        except CA.DoesNotExist:
+            raise Http404
+
+    def get(self, request, format=None):
+        """
+        Retrieve all CAs owned by the current user
+        """
+        cas = self.get_object(request.user.id)
+        cas = self.paginate_queryset(cas)
+        serializer = CASerializer(cas, many=True)
+        return self.get_paginated_response(serializer.data)
+
+
 class MlCubeList(GenericAPIView):
     serializer_class = MlCubeSerializer
     queryset = ""
@@ -71,6 +169,46 @@ class MlCubeList(GenericAPIView):
         mlcubes = self.get_object(request.user.id)
         mlcubes = self.paginate_queryset(mlcubes)
         serializer = MlCubeSerializer(mlcubes, many=True)
+        return self.get_paginated_response(serializer.data)
+
+
+class AssetList(GenericAPIView):
+    serializer_class = AssetSerializer
+    queryset = ""
+
+    def get_object(self, pk):
+        try:
+            return Asset.objects.filter(owner__id=pk)
+        except Asset.DoesNotExist:
+            raise Http404
+
+    def get(self, request, format=None):
+        """
+        Retrieve all assets associated with the current user
+        """
+        assets = self.get_object(request.user.id)
+        assets = self.paginate_queryset(assets)
+        serializer = AssetSerializer(assets, many=True)
+        return self.get_paginated_response(serializer.data)
+
+
+class ModelList(GenericAPIView):
+    serializer_class = ModelSerializer
+    queryset = ""
+
+    def get_object(self, pk):
+        try:
+            return Model.objects.filter(owner__id=pk)
+        except Model.DoesNotExist:
+            raise Http404
+
+    def get(self, request, format=None):
+        """
+        Retrieve all models associated with the current user
+        """
+        models = self.get_object(request.user.id)
+        models = self.paginate_queryset(models)
+        serializer = ModelSerializer(models, many=True)
         return self.get_paginated_response(serializer.data)
 
 
@@ -114,6 +252,50 @@ class ModelResultList(GenericAPIView):
         return self.get_paginated_response(serializer.data)
 
 
+class CertificateList(GenericAPIView):
+    serializer_class = CertificateDetailSerializer
+    queryset = ""
+    filterset_fields = ("name", "owner", "is_valid", "ca", "key_type")
+
+    def get_object(self, pk):
+        try:
+            return Certificate.objects.filter(owner__id=pk)
+        except Certificate.DoesNotExist:
+            raise Http404
+
+    def get(self, request, format=None):
+        """
+        Retrieve all certs associated with the current user
+        """
+        certs = self.get_object(request.user.id)
+        certs = self.filter_queryset(certs)
+        certs = self.paginate_queryset(certs)
+        serializer = CertificateDetailSerializer(certs, many=True)
+        return self.get_paginated_response(serializer.data)
+
+
+class EncryptedKeyList(GenericAPIView):
+    serializer_class = EncryptedKeyDetailSerializer
+    queryset = ""
+    filterset_fields = ("name", "owner", "is_valid", "certificate", "container")
+
+    def get_object(self, pk):
+        try:
+            return EncryptedKey.objects.filter(owner__id=pk)
+        except EncryptedKey.DoesNotExist:
+            raise Http404
+
+    def get(self, request, format=None):
+        """
+        Retrieve all keys associated with the current user
+        """
+        keys = self.get_object(request.user.id)
+        keys = self.filter_queryset(keys)
+        keys = self.paginate_queryset(keys)
+        serializer = EncryptedKeyDetailSerializer(keys, many=True)
+        return self.get_paginated_response(serializer.data)
+
+
 class DatasetAssociationList(GenericAPIView):
     serializer_class = BenchmarkDatasetListSerializer
     queryset = ""
@@ -136,14 +318,14 @@ class DatasetAssociationList(GenericAPIView):
         return self.get_paginated_response(serializer.data)
 
 
-class MlCubeAssociationList(GenericAPIView):
+class ModelAssociationList(GenericAPIView):
     serializer_class = BenchmarkModelListSerializer
     queryset = ""
 
     def get_object(self, pk):
         try:
             return BenchmarkModel.objects.filter(
-                Q(model_mlcube__owner__id=pk) | Q(benchmark__owner__id=pk)
+                Q(model__owner__id=pk) | Q(benchmark__owner__id=pk)
             )
         except BenchmarkModel.DoesNotExist:
             raise Http404
@@ -155,6 +337,29 @@ class MlCubeAssociationList(GenericAPIView):
         benchmarkmodels = self.get_object(request.user.id)
         benchmarkmodels = self.paginate_queryset(benchmarkmodels)
         serializer = BenchmarkModelListSerializer(benchmarkmodels, many=True)
+        return self.get_paginated_response(serializer.data)
+
+
+class DatasetTrainingAssociationList(GenericAPIView):
+    serializer_class = ExperimentDatasetListSerializer
+    queryset = ""
+
+    def get_object(self, pk):
+        try:
+            # TODO: this retrieves everything (not just latest ones)
+            return ExperimentDataset.objects.filter(
+                Q(dataset__owner__id=pk) | Q(training_exp__owner__id=pk)
+            )
+        except ExperimentDataset.DoesNotExist:
+            raise Http404
+
+    def get(self, request, format=None):
+        """
+        Retrieve all training dataset associations involving an asset of mine
+        """
+        experiment_datasets = self.get_object(request.user.id)
+        experiment_datasets = self.paginate_queryset(experiment_datasets)
+        serializer = ExperimentDatasetListSerializer(experiment_datasets, many=True)
         return self.get_paginated_response(serializer.data)
 
 

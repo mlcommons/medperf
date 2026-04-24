@@ -1,0 +1,10 @@
+from django.urls import path
+from . import views
+
+app_name = "EncryptedKey"
+
+urlpatterns = [
+    path("", views.GetAllEncryptedKeys.as_view()),
+    path("<int:pk>/", views.GetEncryptedKeyById.as_view()),
+    path("bulk/", views.MultipleEncryptedKeys.as_view()),
+]

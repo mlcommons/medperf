@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}Error{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-12 max-w-3xl">
+    <h1 class="text-3xl font-bold medperf-accent dark:text-green-400 mb-6">An Error Occurred</h1>
+    <div class="bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 rounded-xl p-6" role="alert">
+        <p class="text-red-800 dark:text-red-200"><strong>Error:</strong> {{ exception }}</p>
+        <p class="text-red-700 dark:text-red-300 mt-2"><strong>Request:</strong> {{ request.url }}</p>
+        <p class="text-red-700 dark:text-red-300"><strong>Method:</strong> {{ request.method }}</p>
+        <p class="text-red-700 dark:text-red-300"><strong>Client:</strong> {{ request.client }}</p>
+    </div>
+</div>
+{% endblock %}

@@ -60,6 +60,18 @@ SUPERUSER_USERNAME = env("SUPERUSER_USERNAME")
 
 SUPERUSER_PASSWORD = env("SUPERUSER_PASSWORD")
 
+CA_NAME = env("CA_NAME")
+CA_CONFIG = env.json("CA_CONFIG")
+CA_MLCUBE_NAME = env("CA_MLCUBE_NAME")
+CA_MLCUBE_CONFIG = env.json("CA_MLCUBE_CONFIG")
+CA_MLCUBE_IMAGE_HASH = env("CA_MLCUBE_IMAGE_HASH")
+
+# These three fields will be read by an old migration (0002_createmedperfca)
+# but deleted/ignored in a new migration (0004_alter_mlcube_unique_together_mlcube_container_config_and_more)
+CA_MLCUBE_URL = "outdated_url_placeholder"
+CA_MLCUBE_HASH = "outdated_hash_placeholder"
+CA_MLCUBE_METADATA = dict()
+
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
 
 # TODO Change later to list of allowed domains
@@ -84,18 +96,30 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django_filters",
     "benchmark",
     "dataset",
     "benchmarkdataset",
     "mlcube",
+    "asset",
+    "model",
     "benchmarkmodel",
     "user",
     "result",
+    "training",
+    "aggregator",
+    "ca",
+    "traindataset_association",
+    "aggregator_association",
+    "ca_association",
+    "trainingevent",
     "rest_framework",
     "rest_framework.authtoken",
     "drf_spectacular",
     "drf_spectacular_sidecar",
     "corsheaders",
+    "certificate",
+    "encrypted_key",
 ]
 
 MIDDLEWARE = [
@@ -224,6 +248,7 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
     "DEFAULT_VERSIONING_CLASS": "rest_framework.versioning.NamespaceVersioning",
+    "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
     "DEFAULT_PARSER_CLASSES": [
         "rest_framework.parsers.JSONParser",
     ],
@@ -288,3 +313,10 @@ SIMPLE_JWT = {
     "JTI_CLAIM": None,  # Currently expected auth tokens don't contain such a claim
 }
 TOKEN_USER_EMAIL_CLAIM = "https://medperf.org/email"
+
+# Comma-separated list of emails
+AUTO_APPROVE_BENCHMARKS_FROM = env("AUTO_APPROVE_BENCHMARKS_FROM", default="").split(
+    ","
+)
+
+AUTO_APPROVE_TRAINING_FROM = env("AUTO_APPROVE_TRAINING_FROM", default="").split(",")

@@ -1,0 +1,19 @@
+<footer class="mt-auto border-t border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800/50">
+    <div class="container mx-auto px-4 py-6">
+        <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex flex-col items-center sm:items-start">
+                <a href="https://medperf.org" target="_blank" rel="noreferrer">
+                    <img alt="MedPerf Logo" src="{{ url_for('static', path='images/medperf_logo.svg') }}" class="h-10 w-auto dark:invert">
+                </a>
+                <span class="text-gray-600 dark:text-gray-400 text-sm mt-1">
+                    Powered by <a href="https://mlcommons.org" target="_blank" rel="noreferrer" class="medperf-accent dark:text-green-400 underline">ML Commons</a>
+                </span>
+            </div>
+            <div class="flex flex-col items-center sm:items-end text-gray-700 dark:text-gray-300 text-sm">
+                <span>&copy; 2020 - <span id="footer-current-year">2025</span> MLCommons</span>
+                <a href="https://mlcommons.org/en/policies/" target="_blank" rel="noreferrer" class="medperf-accent dark:text-green-400 underline">Privacy Policy</a>
+            </div>
+        </div>
+    </div>
+    <script>(function(){ var el = document.getElementById("footer-current-year"); if (el) el.textContent = new Date().getFullYear(); })();</script>
+</footer>

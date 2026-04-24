@@ -3,6 +3,7 @@ from PIL import Image
 import numpy as np
 import csv
 from tqdm import tqdm
+import yaml
 
 
 def prepare_dataset(
@@ -32,3 +33,16 @@ def prepare_dataset(
         np.save(os.path.join(output_labels_path, f"{image_id}.npy"), encoded_label)
 
     labels_file_stream.close()
+
+
+if __name__ == "__main__":
+    parameters_file = "/mlcommons/volumes/parameters/parameters_file.yaml"
+    data_path = "/mlcommons/volumes/raw_data"
+    labels_path = "/mlcommons/volumes/raw_labels"
+    output_path = "/mlcommons/volumes/data"
+    output_labels_path = "/mlcommons/volumes/labels"
+
+    with open(parameters_file) as f:
+        parameters = yaml.safe_load(f)
+
+    prepare_dataset(data_path, labels_path, parameters, output_path, output_labels_path)

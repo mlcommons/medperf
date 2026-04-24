@@ -136,7 +136,7 @@ class DatasetGetListTest(DatasetTest):
         self.other_user = other_user
 
         self.testdataset = testdataset
-        self.private_fields = ["owner", "report"]
+        self.private_fields = ["report"]
         self.set_credentials(self.actor)
 
     def test_generic_get_dataset_list(self):

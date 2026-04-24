@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import base64
 import re
 import os
 import signal
+import subprocess
 import yaml
 import random
 import hashlib
@@ -15,13 +17,27 @@ from pathlib import Path
 import shutil
 from pexpect import spawn
 from datetime import datetime
-from pydantic.datetime_parse import parse_datetime
 from typing import List
 from colorama import Fore, Style
 from pexpect.exceptions import TIMEOUT
 from git import Repo, GitCommandError
 import medperf.config as config
-from medperf.exceptions import ExecutionError, MedperfException
+from medperf.exceptions import CleanExit, ExecutionError, InvalidArgumentError
+import shlex
+from email_validator import validate_email, EmailNotValidError
+from medperf.enums import CryptoKeyType
+
+
+def get_string_hash(string: bytes) -> str:
+    """Calculates the sha256 hash for a given string.
+
+    Args:
+        string (bytes): String to be hashed.
+    """
+    sha = hashlib.sha256()
+    sha.update(string)
+    sha_val = sha.hexdigest()
+    return sha_val
 
 
 def get_file_hash(path: str) -> str:
@@ -48,7 +64,7 @@ def get_file_hash(path: str) -> str:
     return sha_val
 
 
-def remove_path(path):
+def remove_path(path, sensitive=False):
     """Cleans up a clutter object. In case of failure, it is moved to `.trash`"""
 
     # NOTE: We assume medperf will always have permissions to unlink
@@ -56,6 +72,7 @@ def remove_path(path):
     # in folders owned by medperf
 
     if not os.path.exists(path):
+        logging.debug(f"{path} was to be removed, but not found.")
         return
     logging.info(f"Removing clutter path: {path}")
 
@@ -71,14 +88,19 @@ def remove_path(path):
             shutil.rmtree(path)
     except OSError as e:
         logging.error(f"Could not remove {path}: {str(e)}")
-        move_to_trash(path)
+        move_to_trash(path, sensitive=sensitive)
 
 
-def move_to_trash(path):
+def move_to_trash(path, sensitive=False):
     trash_folder = config.trash_folder
     unique_path = os.path.join(trash_folder, generate_tmp_uid())
-    os.makedirs(unique_path)
+    os.makedirs(unique_path, mode=0o700)
     shutil.move(path, unique_path)
+    if sensitive:
+        msg = "WARNING: Failed to premanently delete a sensitive file!"
+        msg += " Delete the sensitive file manually as soon as possible!"
+        msg += f" The file is located at {unique_path}"
+        config.ui.print_critical(msg)
 
 
 def cleanup():
@@ -89,6 +111,9 @@ def cleanup():
 
     for path in config.tmp_paths:
         remove_path(path)
+
+    for path in config.sensitive_tmp_paths:
+        remove_path(path, sensitive=True)
 
     trash_folder = config.trash_folder
     if os.path.exists(trash_folder) and os.listdir(trash_folder):
@@ -151,21 +176,48 @@ def generate_tmp_path() -> str:
     return tmp_path
 
 
-def untar(filepath: str, remove: bool = True) -> str:
+def tar(filepath: str, folders_paths: List[str], folder_prefix: str = None) -> None:
+    """Tars the tar.gz file
+    Args:
+        filepath (str): Path where the tar.gz file will be saved.
+        folder_path (str): Path of the data should be compressed.
+        folder_prefix (str): new folder name that will contain the
+        compressed files in the tar file. (Default="")
+    """
+    if os.path.exists(filepath):
+        raise InvalidArgumentError(f"{filepath} already exists.")
+
+    logging.info(f"Compressing tar.gz at {filepath}")
+    tar_arc = tarfile.open(filepath, "w:gz")
+    for folder in folders_paths:
+        if folder_prefix:
+            arcname = os.path.join(folder_prefix, os.path.basename(folder))
+        else:
+            arcname = os.path.basename(folder)
+        tar_arc.add(folder, arcname=arcname)
+        logging.info(f"Compressing tar.gz at {filepath}: {folder} Added.")
+    tar_arc.close()
+
+
+def untar(filepath: str, remove: bool = True, extract_to: str = None) -> str:
     """Untars and optionally removes the tar.gz file
 
     Args:
         filepath (str): Path where the tar.gz file can be found.
-        remove (bool): Wether to delete the tar.gz file. Defaults to True.
+        remove (bool): Whether to delete the tar.gz file. Defaults to True.
+        extract_to (str): Where to extract the tar.gz file. Defaults to parent directory
 
     Returns:
         str: location where the untared files can be found.
     """
     logging.info(f"Uncompressing tar.gz at {filepath}")
-    addpath = str(Path(filepath).parent)
-    tar = tarfile.open(filepath)
-    tar.extractall(addpath)
-    tar.close()
+    addpath = extract_to or str(Path(filepath).parent)
+    try:
+        tar = tarfile.open(filepath)
+        tar.extractall(addpath)
+        tar.close()
+    except tarfile.ReadError as e:
+        raise ExecutionError("Cannot extract tar.gz file, " + e.__str__())
 
     # OS Specific issue: Mac Creates superfluous files with tarfile library
     [
@@ -176,6 +228,17 @@ def untar(filepath: str, remove: bool = True) -> str:
         logging.info(f"Deleting {filepath}")
         remove_path(filepath)
     return addpath
+
+
+def move_folder(src: str, dest: str) -> None:
+    """Recursively moves a folder from {src} to {dest}
+
+    Args:
+        src (str): Path of the source folder to be moved
+        dest (src): Path of the destination that the folder will be moved to
+    """
+    shutil.move(src, dest)
+    logging.info(f"Folder moved: {src} to {dest}")
 
 
 def approval_prompt(msg: str) -> bool:
@@ -196,6 +259,19 @@ def approval_prompt(msg: str) -> bool:
     return approval == "y"
 
 
+def make_pretty_dict(in_dict: dict, skip_none_values: bool = True):
+    """Helper function for distinctively creating dict string with yaml format.
+
+    Args:
+        in_dict (dict): dictionary to convert to yaml string
+        skip_none_values (bool): if fields with `None` values should be omitted
+    """
+    if skip_none_values:
+        in_dict = {k: v for (k, v) in in_dict.items() if v is not None}
+    yaml_dict = yaml.dump(in_dict)
+    return yaml_dict
+
+
 def dict_pretty_print(in_dict: dict, skip_none_values: bool = True):
     """Helper function for distinctively printing dictionaries with yaml format.
 
@@ -204,14 +280,9 @@ def dict_pretty_print(in_dict: dict, skip_none_values: bool = True):
         skip_none_values (bool): if fields with `None` values should be omitted
     """
     logging.debug(f"Printing dictionary to the user: {in_dict}")
-    ui = config.ui
-    ui.print()
-    ui.print("=" * 20)
-    if skip_none_values:
-        in_dict = {k: v for (k, v) in in_dict.items() if v is not None}
-    ui.print(yaml.dump(in_dict))
+    yaml_dict = make_pretty_dict(in_dict, skip_none_values)
+    config.ui.print_yaml(yaml_dict)
     logging.debug(f"Dictionary printed to the user: {in_dict}")
-    ui.print("=" * 20)
 
 
 class _MLCubeOutputFilter:
@@ -264,8 +335,6 @@ def combine_proc_sp_text(proc: spawn) -> str:
     log_filter = _MLCubeOutputFilter(proc.pid)
 
     while not break_:
-        if not proc.isalive():
-            break_ = True
         try:
             line = proc.readline()
         except TIMEOUT:
@@ -275,16 +344,20 @@ def combine_proc_sp_text(proc: spawn) -> str:
         line = line.decode("utf-8", "ignore")
 
         if not line:
-            continue
-
+            if proc.isalive():
+                continue
+            else:
+                break_ = True
         # Always log each line just in case the final proc_out
         # wasn't logged for some reason
         logging.debug(line)
         proc_out += line
         if not log_filter.check_line(line):
-            ui.print(f"{Fore.WHITE}{Style.DIM}{line.strip()}{Style.RESET_ALL}")
+            ui.print_subprocess_logs(
+                f"{Fore.WHITE}{Style.DIM}{line.strip()}{Style.RESET_ALL}"
+            )
 
-    logging.debug("MLCube process finished")
+    logging.debug("Container process finished")
     logging.debug(proc_out)
     return proc_out
 
@@ -379,53 +452,17 @@ def format_errors_dict(errors_dict: dict):
         error_msg += f"- {field}: "
         if isinstance(errors, str):
             error_msg += errors
+        elif isinstance(errors, dict):
+            error_msg += format_errors_dict(errors)
         elif len(errors) == 1:
             # If a single error for a field is given, don't create a sublist
-            error_msg += errors[0]
+            error_msg += str(errors[0])
         else:
             # Create a sublist otherwise
             for e_msg in errors:
                 error_msg += "\n"
                 error_msg += f"\t- {e_msg}"
     return error_msg
-
-
-def get_cube_image_name(cube_path: str) -> str:
-    """Retrieves the singularity image name of the mlcube by reading its mlcube.yaml file"""
-    cube_config_path = os.path.join(cube_path, config.cube_filename)
-    with open(cube_config_path, "r") as f:
-        cube_config = yaml.safe_load(f)
-
-    try:
-        # TODO: Why do we check singularity only there? Why not docker?
-        return cube_config["singularity"]["image"]
-    except KeyError:
-        msg = "The provided mlcube doesn't seem to be configured for singularity"
-        raise MedperfException(msg)
-
-
-def filter_latest_associations(associations, entity_key):
-    """Given a list of entity-benchmark associations, this function
-    retrieves a list containing the latest association of each
-    entity instance.
-
-    Args:
-        associations (list[dict]): the list of associations
-        entity_key (str): either "dataset" or "model_mlcube"
-
-    Returns:
-        list[dict]: the list containing the latest association of each
-                    entity instance.
-    """
-
-    associations.sort(key=lambda assoc: parse_datetime(assoc["created_at"]))
-    latest_associations = {}
-    for assoc in associations:
-        entity_id = assoc[entity_key]
-        latest_associations[entity_id] = assoc
-
-    latest_associations = list(latest_associations.values())
-    return latest_associations
 
 
 def check_for_updates() -> None:
@@ -470,9 +507,19 @@ def check_for_updates() -> None:
 
 
 class spawn_and_kill:
-    def __init__(self, cmd, timeout=None, *args, **kwargs):
+    def __init__(
+        self,
+        cmd,
+        timeout=None,
+        task=None,
+        docker_container_name=None,
+        *args,
+        **kwargs,
+    ):
         self.cmd = cmd
         self.timeout = timeout
+        self.task = task
+        self.docker_container_name = docker_container_name
         self._args = args
         self._kwargs = kwargs
         self.proc: spawn
@@ -483,16 +530,45 @@ class spawn_and_kill:
         return spawn(*args, **kwargs)
 
     def killpg(self):
-        os.killpg(self.pid, signal.SIGINT)
+        if self.docker_container_name:
+            try:
+                result = subprocess.run(
+                    ["docker", "stop", "-t", "0", self.docker_container_name],
+                    capture_output=True,
+                    text=True,
+                    timeout=10,
+                    check=False,
+                )
+                if result.returncode != 0:
+                    logging.debug(
+                        "docker stop %s exited %s: %s",
+                        self.docker_container_name,
+                        result.returncode,
+                        (result.stderr or result.stdout or "").strip(),
+                    )
+            except (subprocess.TimeoutExpired, FileNotFoundError, OSError) as e:
+                logging.warning(
+                    "Could not docker stop %s: %s",
+                    self.docker_container_name,
+                    e,
+                )
+        os.killpg(self.pid, signal.SIGKILL)
 
     def __enter__(self):
         self.proc = self.spawn(
             self.cmd, timeout=self.timeout, *self._args, **self._kwargs
         )
         self.pid = self.proc.pid
+
+        if self.task:
+            config.running_containers[self.task] = self
+
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.task:
+            config.running_containers.pop(self.task, None)
+
         if exc_type:
             self.exception_occurred = True
             # Forcefully kill the process group if any exception occurred, in particular,
@@ -506,3 +582,159 @@ class spawn_and_kill:
         self.proc.wait()
         # Return False to propagate exceptions, if any
         return False
+
+
+def run_command(
+    cmd, timeout=None, output_logs=None, task=None, docker_container_name=None
+):
+    logging.debug(f"Command as list, to be run: {cmd}")
+    command_as_str = shlex.join(cmd)
+    logging.debug(f"Running command: {command_as_str}")
+    with spawn_and_kill(
+        command_as_str,
+        timeout=timeout,
+        task=task,
+        docker_container_name=docker_container_name,
+    ) as proc_wrapper:
+        proc = proc_wrapper.proc
+        proc_out = combine_proc_sp_text(proc)
+
+    if output_logs is not None:
+        with open(output_logs, "w") as f:
+            f.write(proc_out)
+
+    if proc.exitstatus != 0:
+        raise ExecutionError("There was an error while executing the container")
+
+    return proc_out
+
+
+def get_pki_assets_path(common_name: str, ca_id: int, key_type: CryptoKeyType) -> str:
+    # Base64 encoding is used just to avoid special characters used in emails
+    # and server domains/ipaddresses.
+    logging.debug(f"Getting pki assets path for {common_name}")
+    cn_encoded = base64.b64encode(common_name.encode("utf-8")).decode("utf-8")
+    cn_encoded = cn_encoded.rstrip("=")
+    logging.debug(f"common name base64encoded: {cn_encoded}")
+    path = os.path.join(config.pki_assets, cn_encoded, str(ca_id))
+    if key_type == CryptoKeyType.EC:
+        path = os.path.join(config.pki_assets, "signing", cn_encoded, str(ca_id))
+    return path
+
+
+def get_participant_label(email, data_id):
+    # return f"d{data_id}"
+    return f"{email}"
+
+
+def sanitize_path(path: str) -> str:
+    # This function is a placeholder to silence codeql alerts
+    if path is None:
+        return
+    safe_root = config.safe_root
+    if safe_root:
+        safe_root = os.path.realpath(config.safe_root)
+    resolved_path = os.path.realpath(path)
+
+    # Ensure the resolved path is within the safe root directory
+    if not resolved_path.startswith(safe_root + os.sep):
+        raise InvalidArgumentError(f"Unaccepted path: {resolved_path}")
+
+    return resolved_path
+
+
+def print_webui_props(host, port, security_token):
+    print("=" * 40)
+    print()
+    print("Open your browser to:")
+    print(f"\033[1mhttp://{host}:{port}/security_check?token={security_token}\033[0m")
+    print()
+    print("Or use security token to view the web-UI:")
+    print("\033[1m" + security_token + "\033[0m")
+    print()
+    print("=" * 40)
+
+
+def get_webui_properties():
+    if not os.path.exists(config.webui_host_props):
+        raise CleanExit("Web UI properties file could not be found.")
+
+    with open(config.webui_host_props) as f:
+        props = yaml.safe_load(f)
+
+    # print security token to CLI (avoid logging to file)
+    host = props["host"]
+    port = props["port"]
+    security_token = props["security_token"]
+    print_webui_props(host, port, security_token)
+
+
+def get_decryption_key_path(container_id):
+    path = os.path.join(
+        config.container_keys_dir, str(container_id), config.container_key_file
+    )
+    path = sanitize_path(path)
+    return path
+
+
+def store_decryption_key(container_id, decryption_key_path):
+    logging.debug(
+        f"Storing decryption key {decryption_key_path} for container {container_id}"
+    )
+    target_path = get_decryption_key_path(container_id)
+    target_folder = os.path.dirname(target_path)
+    os.makedirs(target_folder, exist_ok=True)
+    shutil.copy(decryption_key_path, target_path)
+    logging.debug(f"Decryption key stored at {target_path}")
+    return target_path
+
+
+def _tmp_path_for_decryption(base_path: str):
+    """Generates a temporary file path as the output path for decryption"""
+    folder_name = generate_tmp_uid()
+    folder_path = os.path.join(base_path, folder_name)
+    os.makedirs(folder_path, mode=0o700)
+    config.sensitive_tmp_paths.append(folder_path)
+    file_path = os.path.join(folder_path, generate_tmp_uid())
+    return file_path
+
+
+def tmp_path_for_file_decryption():
+    """Generates a temporary file path as the output path for file decryption"""
+    return _tmp_path_for_decryption(base_path=config.decrypted_files_folder)
+
+
+def tmp_path_for_key_decryption():
+    """Generates a temporary file path as the output path for encrypted key decryption"""
+    return _tmp_path_for_decryption(base_path=config.container_keys_dir)
+
+
+def tmp_path_for_cc_asset_key():
+    """Generates a temporary file path to write key for decryption"""
+    return _tmp_path_for_decryption(base_path=config.cc_artifacts_dir)
+
+
+def secure_write_to_file(file_path, content: bytes, exec_permission=False):
+    permission_mode = 0o700 if exec_permission else 0o600
+    with open(file_path, "wb") as f:
+        pass
+    os.chmod(file_path, permission_mode)
+    with open(file_path, "ab") as f:
+        f.write(content)
+
+
+def generate_container_key_redaction_record(encrypted_key_base64: str):
+    sha = hashlib.sha256()
+    sha.update(base64.b64decode(encrypted_key_base64))
+    return sha.hexdigest()
+
+
+def validate_and_normalize_emails(emails: list[str]):
+    emails = [email.lower().strip() for email in emails if email.strip()]
+    for email in emails:
+        try:
+            validate_email(email, check_deliverability=False)
+        except EmailNotValidError as e:
+            logging.debug(f"Invalid email: |{email}|")
+            raise InvalidArgumentError(str(e))
+    return emails

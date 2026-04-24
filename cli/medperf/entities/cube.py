@@ -1,26 +1,26 @@
 import os
-import yaml
-import logging
-from typing import Dict, Optional, Union
-from pydantic import Field
-from pathlib import Path
+from typing import Union
 
-from medperf.utils import (
-    combine_proc_sp_text,
-    log_storage,
-    remove_path,
-    generate_tmp_path,
-    spawn_and_kill,
-)
 from medperf.entities.interface import Entity
-from medperf.entities.schemas import DeployableSchema
-from medperf.exceptions import InvalidArgumentError, ExecutionError, InvalidEntityError
+from medperf.entities.schemas import CubeSchema
+from medperf.exceptions import InvalidEntityError, MedperfException
 import medperf.config as config
 from medperf.comms.entity_resources import resources
-from medperf.account_management import get_medperf_user_data
+from medperf.account_management import get_medperf_user_data, is_user_logged_in
+from medperf.containers.runners import load_runner
+from medperf.containers.parsers import load_parser
+import yaml
+from medperf.utils import (
+    generate_tmp_path,
+    remove_path,
+    get_decryption_key_path,
+)
+from medperf.entities.encrypted_key import EncryptedKey
+import logging
+from medperf.entities.utils import handle_validation_error
 
 
-class Cube(Entity, DeployableSchema):
+class Cube(Entity):
     """
     Class representing an MLCube Container
 
@@ -30,21 +30,9 @@ class Cube(Entity, DeployableSchema):
     with standard metadata and a consistent file-system level interface.
     """
 
-    git_mlcube_url: str
-    mlcube_hash: Optional[str]
-    git_parameters_url: Optional[str]
-    parameters_hash: Optional[str]
-    image_tarball_url: Optional[str]
-    image_tarball_hash: Optional[str]
-    image_hash: Optional[str]
-    additional_files_tarball_url: Optional[str] = Field(None, alias="tarball_url")
-    additional_files_tarball_hash: Optional[str] = Field(None, alias="tarball_hash")
-    metadata: dict = {}
-    user_metadata: dict = {}
-
     @staticmethod
     def get_type():
-        return "cube"
+        return "container"
 
     @staticmethod
     def get_storage_path():
@@ -62,22 +50,62 @@ class Cube(Entity, DeployableSchema):
     def get_comms_uploader():
         return config.comms.upload_mlcube
 
-    def __init__(self, *args, **kwargs):
+    @handle_validation_error
+    def __init__(self, **kwargs):
         """Creates a Cube instance
 
         Args:
             cube_desc (Union[dict, CubeModel]): MLCube Instance description
         """
-        super().__init__(*args, **kwargs)
+        self._model = CubeSchema(**kwargs)
+        super().__init__()
+        self.state = self._model.state
+        self.container_config = self._model.container_config
+        self.parameters_config = self._model.parameters_config
+        self.image_hash = self._model.image_hash
+        self.additional_files_tarball_url = self._model.additional_files_tarball_url
+        self.additional_files_tarball_hash = self._model.additional_files_tarball_hash
+        self.metadata = self._model.metadata
+        self.user_metadata = self._model.user_metadata
 
-        self.cube_path = os.path.join(self.path, config.cube_filename)
-        self.params_path = None
-        if self.git_parameters_url:
-            self.params_path = os.path.join(self.path, config.params_filename)
+        self._set_helper_attributes()
+
+    def _set_helper_attributes(self):
+        # Note: the paths can be arbitrary
+        self.params_path = os.path.join(self.path, config.params_filename)
+        self.additional_files_folder_path = os.path.join(
+            self.path, config.additional_path
+        )
+        self._parser = None
+        self._runner = None
+
+    @property
+    def parser(self):
+        if self._parser is None:
+            self._parser = load_parser(self.container_config)
+        return self._parser
+
+    @property
+    def runner(self):
+        if self._runner is None:
+            self._runner = load_runner(self.parser)
+        return self._runner
 
     @property
     def local_id(self):
         return self.name
+
+    def is_encrypted(self) -> bool:
+        return self.parser.is_container_encrypted()
+
+    def is_model(self) -> bool:
+        return self.parser.is_model_container()
+
+    def is_script(self) -> bool:
+        return self.parser.is_script_container()
+
+    def check_hash(self) -> bool:
+        raise NotImplementedError("Hash checking not implemented for container.")
 
     @staticmethod
     def remote_prefilter(filters: dict):
@@ -96,11 +124,17 @@ class Cube(Entity, DeployableSchema):
         return comms_fn
 
     @classmethod
-    def get(cls, cube_uid: Union[str, int], local_only: bool = False) -> "Cube":
+    def get(
+        cls,
+        cube_uid: Union[str, int],
+        local_only: bool = False,
+        valid_only: bool = True,
+    ) -> "Cube":
         """Retrieves and creates a Cube instance from the comms. If cube already exists
         inside the user's computer then retrieves it from there.
 
         Args:
+            valid_only: if to raise an error in case of invalidated Cube
             cube_uid (str): UID of the cube.
 
         Returns:
@@ -108,261 +142,147 @@ class Cube(Entity, DeployableSchema):
         """
 
         cube = super().get(cube_uid, local_only)
-        if not cube.is_valid:
-            raise InvalidEntityError("The requested MLCube is marked as INVALID.")
-        cube.download_config_files()
+        if not cube.is_valid and valid_only:
+            raise InvalidEntityError("The requested container is marked as INVALID.")
         return cube
 
-    def download_mlcube(self):
-        url = self.git_mlcube_url
-        path, file_hash = resources.get_cube(url, self.path, self.mlcube_hash)
-        self.cube_path = path
-        self.mlcube_hash = file_hash
-
-    def download_parameters(self):
-        url = self.git_parameters_url
-        if url:
-            path, file_hash = resources.get_cube_params(
-                url, self.path, self.parameters_hash
+    def prepare_parameters_file(self):
+        if self.parameters_config is None:
+            raise MedperfException(
+                "Prepare parameters file called but no parameters set"
             )
-            self.params_path = path
-            self.parameters_hash = file_hash
+        logging.debug(f"Writing parameters to file: {self.params_path}")
+        with open(self.params_path, "w") as f:
+            yaml.safe_dump(self.parameters_config, f)
+        return self.params_path
 
     def download_additional(self):
         url = self.additional_files_tarball_url
         if url:
-            file_hash = resources.get_cube_additional(
+            path, file_hash = resources.get_cube_additional(
                 url, self.path, self.additional_files_tarball_hash
             )
+            self.additional_files_folder_path = path
             self.additional_files_tarball_hash = file_hash
-
-    def download_image(self):
-        url = self.image_tarball_url
-        tarball_hash = self.image_tarball_hash
-
-        if url:
-            _, local_hash = resources.get_cube_image(url, self.path, tarball_hash)
-            self.image_tarball_hash = local_hash
-        else:
-            if config.platform == "docker":
-                # For docker, image should be pulled before calculating its hash
-                self._get_image_from_registry()
-                self._set_image_hash_from_registry()
-            elif config.platform == "singularity":
-                # For singularity, we need the hash first before trying to convert
-                self._set_image_hash_from_registry()
-
-                image_folder = os.path.join(config.cubes_folder, config.image_path)
-                if os.path.exists(image_folder):
-                    for file in os.listdir(image_folder):
-                        if file == self._converted_singularity_image_name:
-                            return
-                        remove_path(os.path.join(image_folder, file))
-
-                self._get_image_from_registry()
-            else:
-                # TODO: such a check should happen on commands entrypoints, not here
-                raise InvalidArgumentError("Unsupported platform")
-
-    @property
-    def _converted_singularity_image_name(self):
-        return f"{self.image_hash}.sif"
-
-    def _set_image_hash_from_registry(self):
-        # Retrieve image hash from MLCube
-        logging.debug(f"Retrieving {self.id} image hash")
-        tmp_out_yaml = generate_tmp_path()
-        cmd = f"mlcube --log-level {config.loglevel} inspect --mlcube={self.cube_path} --format=yaml"
-        cmd += f" --platform={config.platform} --output-file {tmp_out_yaml}"
-        logging.info(f"Running MLCube command: {cmd}")
-        with spawn_and_kill(cmd, timeout=config.mlcube_inspect_timeout) as proc_wrapper:
-            proc = proc_wrapper.proc
-            combine_proc_sp_text(proc)
-        if proc.exitstatus != 0:
-            raise ExecutionError("There was an error while inspecting the image hash")
-        with open(tmp_out_yaml) as f:
-            mlcube_details = yaml.safe_load(f)
-        remove_path(tmp_out_yaml)
-        local_hash = mlcube_details["hash"]
-        if self.image_hash and local_hash != self.image_hash:
-            raise InvalidEntityError(
-                f"Hash mismatch. Expected {self.image_hash}, found {local_hash}."
-            )
-        self.image_hash = local_hash
-
-    def _get_image_from_registry(self):
-        # Retrieve image from image registry
-        logging.debug(f"Retrieving {self.id} image")
-        cmd = f"mlcube --log-level {config.loglevel} configure --mlcube={self.cube_path} --platform={config.platform}"
-        if config.platform == "singularity":
-            cmd += f" -Psingularity.image={self._converted_singularity_image_name}"
-        logging.info(f"Running MLCube command: {cmd}")
-        with spawn_and_kill(
-            cmd, timeout=config.mlcube_configure_timeout
-        ) as proc_wrapper:
-            proc = proc_wrapper.proc
-            combine_proc_sp_text(proc)
-        if proc.exitstatus != 0:
-            raise ExecutionError("There was an error while retrieving the MLCube image")
-
-    def download_config_files(self):
-        try:
-            self.download_mlcube()
-        except InvalidEntityError as e:
-            raise InvalidEntityError(f"MLCube {self.name} manifest file: {e}")
-
-        try:
-            self.download_parameters()
-        except InvalidEntityError as e:
-            raise InvalidEntityError(f"MLCube {self.name} parameters file: {e}")
 
     def download_run_files(self):
         try:
             self.download_additional()
         except InvalidEntityError as e:
-            raise InvalidEntityError(f"MLCube {self.name} additional files: {e}")
+            raise InvalidEntityError(f"Container {self.name} additional files: {e}")
 
         try:
-            self.download_image()
+            self.image_hash = self.runner.download(
+                expected_image_hash=self.image_hash,
+                download_timeout=config.mlcube_configure_timeout,
+                get_hash_timeout=config.mlcube_inspect_timeout,
+            )
         except InvalidEntityError as e:
-            raise InvalidEntityError(f"MLCube {self.name} image file: {e}")
+            raise InvalidEntityError(f"Container {self.name} image: {e}")
 
     def run(
         self,
         task: str,
         output_logs: str = None,
-        string_params: Dict[str, str] = {},
         timeout: int = None,
-        read_protected_input: bool = True,
-        **kwargs,
+        mounts: dict = None,
+        env: dict = None,
+        ports: list = None,
+        disable_network: bool = True,
     ):
-        """Executes a given task on the cube instance
+        if mounts is None:
+            mounts = {}
 
-        Args:
-            task (str): task to run
-            string_params (Dict[str], optional): Extra parameters that can't be passed as normal function args.
-                                                 Defaults to {}.
-            timeout (int, optional): timeout for the task in seconds. Defaults to None.
-            read_protected_input (bool, optional): Wether to disable write permissions on input volumes. Defaults to True.
-            kwargs (dict): additional arguments that are passed directly to the mlcube command
-        """
-        kwargs.update(string_params)
-        cmd = f"mlcube --log-level {config.loglevel} run"
-        cmd += f' --mlcube="{self.cube_path}" --task={task} --platform={config.platform} --network=none'
-        if config.gpus is not None:
-            cmd += f" --gpus={config.gpus}"
-        if read_protected_input:
-            cmd += " --mount=ro"
-        for k, v in kwargs.items():
-            cmd_arg = f'{k}="{v}"'
-            cmd = " ".join([cmd, cmd_arg])
+        if env is None:
+            env = {}
 
-        container_loglevel = config.container_loglevel
+        if ports is None:
+            ports = []
 
-        # TODO: we should override run args instead of what we are doing below
-        #       we shouldn't allow arbitrary run args unless our client allows it
-        if config.platform == "docker":
-            # use current user
-            cpu_args = self.get_config("docker.cpu_args") or ""
-            gpu_args = self.get_config("docker.gpu_args") or ""
-            cpu_args = " ".join([cpu_args, "-u $(id -u):$(id -g)"]).strip()
-            gpu_args = " ".join([gpu_args, "-u $(id -u):$(id -g)"]).strip()
-            cmd += f' -Pdocker.cpu_args="{cpu_args}"'
-            cmd += f' -Pdocker.gpu_args="{gpu_args}"'
+        os.makedirs(self.additional_files_folder_path, exist_ok=True)
+        if self.parameters_config is not None:
+            self.prepare_parameters_file()
+        extra_mounts = {
+            "parameters_file": self.params_path,
+            "additional_files": self.additional_files_folder_path,
+        }
 
-            if container_loglevel:
-                cmd += f' -Pdocker.env_args="-e MEDPERF_LOGLEVEL={container_loglevel.upper()}"'
-        elif config.platform == "singularity":
-            # use -e to discard host env vars, -C to isolate the container (see singularity run --help)
-            run_args = self.get_config("singularity.run_args") or ""
-            run_args = " ".join([run_args, "-eC"]).strip()
-            cmd += f' -Psingularity.run_args="{run_args}"'
+        extra_env = {}
+        if config.container_loglevel is not None:
+            extra_env["MEDPERF_LOGLEVEL"] = config.container_loglevel.upper()
 
-            # set image name in case of running docker image with singularity
-            # Assuming we only accept mlcube.yamls with either singularity or docker sections
-            # TODO: make checks on submitted mlcubes
-            singularity_config = self.get_config("singularity")
-            if singularity_config is None:
-                cmd += (
-                    f' -Psingularity.image="{self._converted_singularity_image_name}"'
-                )
-            # TODO: pass logging env for singularity also there
+        tmp_folder = generate_tmp_path()
+        os.makedirs(tmp_folder, exist_ok=True)
+
+        decryption_key_file = None
+        destroy_key = True
+        try:
+            # setup decryption key if container is encrypted
+            if self.is_encrypted():
+                decryption_key_file, destroy_key = self.__get_decryption_key()
+
+            # run
+            self.runner.run(
+                task,
+                tmp_folder,
+                output_logs,
+                timeout,
+                medperf_mounts={**mounts, **extra_mounts},
+                medperf_env={**env, **extra_env},
+                ports=ports,
+                disable_network=disable_network,
+                container_decryption_key_file=decryption_key_file,
+            )
+        finally:
+            if decryption_key_file and destroy_key:
+                remove_path(decryption_key_file, sensitive=True)
+
+    def __get_decryption_key(self):
+        logging.debug("Container is encrypted. Getting Decryption key.")
+
+        if not is_user_logged_in():
+            logging.debug("User is not logged in. Getting local key path.")
+            destroy_key = False
+            key_file = self.__get_decryption_key_from_filesystem()
         else:
-            raise InvalidArgumentError("Unsupported platform")
+            user_id = get_medperf_user_data()["id"]
+            if self.owner == user_id:
+                logging.debug("User is the owner. Getting local key path.")
+                destroy_key = False
+                key_file = self.__get_decryption_key_from_filesystem()
+            else:
+                logging.debug(
+                    "User is not the owner. Getting encrypted key from server."
+                )
+                destroy_key = True
+                key_file = self.__get_decryption_key_from_server()
 
-        # set accelerator count to zero to avoid unexpected behaviours and
-        # force mlcube to only use --gpus to figure out GPU config
-        cmd += " -Pplatform.accelerator_count=0"
+        logging.debug(
+            f"Decryption key path: {key_file}. To be destroyed: {destroy_key}"
+        )
+        return key_file, destroy_key
 
-        logging.info(f"Running MLCube command: {cmd}")
-        with spawn_and_kill(cmd, timeout=timeout) as proc_wrapper:
-            proc = proc_wrapper.proc
-            proc_out = combine_proc_sp_text(proc)
+    def __get_decryption_key_from_filesystem(self):
+        key_file = get_decryption_key_path(self.identifier)
+        if not os.path.exists(key_file):
+            raise InvalidEntityError("Container decryption key file doesn't exist")
+        return key_file
 
-        if output_logs is not None:
-            with open(output_logs, "w") as f:
-                f.write(proc_out)
-        if proc.exitstatus != 0:
-            raise ExecutionError("There was an error while executing the cube")
+    def __get_decryption_key_from_server(self):
+        key = EncryptedKey.get_user_container_key(self.id)
+        key_file = key.decrypt()
+        return key_file
 
-        log_storage()
-        return proc
+    def is_report_specified(self):
+        return self.parser.is_report_specified()
 
-    def get_default_output(self, task: str, out_key: str, param_key: str = None) -> str:
-        """Returns the output parameter specified in the mlcube.yaml file
-
-        Args:
-            task (str): the task of interest
-            out_key (str): key used to identify the desired output in the yaml file
-            param_key (str): key inside the parameters file that completes the output path. Defaults to None.
-
-        Returns:
-            str: the path as specified in the mlcube.yaml file for the desired
-                output for the desired task. Defaults to None if out_key not found
-        """
-        out_path = self.get_config(f"tasks.{task}.parameters.outputs.{out_key}")
-        if out_path is None:
-            return
-
-        if isinstance(out_path, dict):
-            # output is specified as a dict with type and default values
-            out_path = out_path["default"]
-        cube_loc = str(Path(self.cube_path).parent)
-        out_path = os.path.join(cube_loc, "workspace", out_path)
-
-        if self.params_path is not None and param_key is not None:
-            with open(self.params_path, "r") as f:
-                params = yaml.safe_load(f)
-
-            out_path = os.path.join(out_path, params[param_key])
-
-        return out_path
-
-    def get_config(self, identifier):
-        """
-        Returns the output parameter specified in the mlcube.yaml file
-
-        Args:
-            identifier (str): `.` separated keys to traverse the mlcube dict
-        Returns:
-            str: the parameter value, None if not found
-        """
-        with open(self.cube_path, "r") as f:
-            cube = yaml.safe_load(f)
-
-        keys = identifier.split(".")
-        for key in keys:
-            if key not in cube:
-                return
-            cube = cube[key]
-
-        return cube
+    def is_metadata_specified(self):
+        return self.parser.is_metadata_specified()
 
     def display_dict(self):
         return {
             "UID": self.identifier,
             "Name": self.name,
-            "Config File": self.git_mlcube_url,
             "State": self.state,
             "Created At": self.created_at,
             "Registered": self.is_registered,

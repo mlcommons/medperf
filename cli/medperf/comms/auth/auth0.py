@@ -39,12 +39,15 @@ class Auth0(Auth):
         interval = device_code_response["interval"]
 
         config.ui.print(
-            "\nPlease go to the following link to complete your login request:\n"
-            f"\t{verification_uri_complete}\n\n"
-            "Make sure that you will be presented with the following code:\n"
-            f"\t{user_code}\n\n"
+            "\nPlease go to the following link to complete your login request:\n\t"
         )
-        config.ui.print_warning(
+        config.ui.print_url(verification_uri_complete)
+        config.ui.print(
+            "\n\nMake sure that you will be presented with the following code:\n\t"
+        )
+        config.ui.print_code(user_code)
+        config.ui.print("\n\n")
+        config.ui.print_cli_warning(
             "Keep this terminal open until you complete your login request. "
             "The command will exit on its own once you complete the request. "
             "If you wish to stop the login request anyway, press Ctrl+C."
@@ -135,8 +138,10 @@ class Auth0(Auth):
     def logout(self):
         """Logs out the user by revoking their refresh token and deleting the
         stored tokens."""
-
-        creds = read_credentials()
+        try:
+            creds = read_credentials()
+        except AuthenticationError:
+            return
         refresh_token = creds["refresh_token"]
 
         url = f"https://{self.domain}/oauth/revoke"
@@ -169,11 +174,15 @@ class Auth0(Auth):
             except sqlite3.OperationalError:
                 msg = "Another process is using the database. Try again later"
                 raise CommunicationError(msg)
-            token = self._access_token
+
             # Sqlite will automatically execute COMMIT and close the connection
             # if an exception is raised during the retrieval of the access token.
-            db.execute("COMMIT")
-            db.close()
+
+            try:
+                token = self._access_token
+            finally:
+                db.execute("COMMIT")
+                db.close()
 
             return token
 

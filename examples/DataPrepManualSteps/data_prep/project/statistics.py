@@ -49,16 +49,26 @@ if __name__ == "__main__":
         dest="data",
         type=str,
         help="directory containing the prepared data",
+        default="/mlcommons/volumes/data",
     )
     parser.add_argument(
         "--labels_path",
         dest="labels",
+        default="/mlcommons/volumes/labels",
     )
     parser.add_argument(
-        "--out_file", dest="out_file", type=str, help="file to store statistics"
+        "--out_file",
+        dest="out_file",
+        type=str,
+        help="file to store statistics",
+        default="/mlcommons/volumes/statistics/statistics.yaml",
     )
     parser.add_argument(
-        "--metadata_path", dest="metadata", type=str, help="path to the metadata"
+        "--metadata_path",
+        dest="metadata",
+        type=str,
+        help="path to the metadata",
+        default="/mlcommons/volumes/metadata",
     )
 
     args = parser.parse_args()

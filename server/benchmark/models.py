@@ -16,8 +16,13 @@ class Benchmark(models.Model):
         ("OPERATION", "OPERATION"),
     )
 
-    name = models.CharField(max_length=20, unique=True)
-    description = models.CharField(max_length=100, blank=True)
+    AUTO_APPROVAL_MODE = (
+        ("NEVER", "NEVER"),
+        ("ALWAYS", "ALWAYS"),
+        ("ALLOWLIST", "ALLOWLIST"),
+    )
+    name = models.CharField(max_length=128, unique=True)
+    description = models.CharField(max_length=256, blank=True)
     docs_url = models.CharField(max_length=100, blank=True)
     owner = models.ForeignKey(User, on_delete=models.PROTECT)
     demo_dataset_tarball_url = models.CharField(max_length=256)
@@ -28,10 +33,10 @@ class Benchmark(models.Model):
         on_delete=models.PROTECT,
         related_name="data_preprocessor_mlcube",
     )
-    reference_model_mlcube = models.ForeignKey(
-        "mlcube.MlCube",
+    reference_model = models.ForeignKey(
+        "model.Model",
         on_delete=models.PROTECT,
-        related_name="reference_model_mlcube",
+        related_name="reference_model_benchmark",
     )
     data_evaluator_mlcube = models.ForeignKey(
         "mlcube.MlCube",
@@ -46,6 +51,14 @@ class Benchmark(models.Model):
     is_active = models.BooleanField(default=True)
     approval_status = models.CharField(
         choices=BENCHMARK_STATUS, max_length=100, default="PENDING"
+    )
+    dataset_auto_approval_allow_list = models.JSONField(default=list, blank=True)
+    dataset_auto_approval_mode = models.CharField(
+        choices=AUTO_APPROVAL_MODE, max_length=100, default="NEVER"
+    )
+    model_auto_approval_allow_list = models.JSONField(default=list, blank=True)
+    model_auto_approval_mode = models.CharField(
+        choices=AUTO_APPROVAL_MODE, max_length=100, default="NEVER"
     )
     user_metadata = models.JSONField(default=dict, blank=True, null=True)
     approved_at = models.DateTimeField(null=True, blank=True)

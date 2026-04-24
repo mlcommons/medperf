@@ -1,7 +1,8 @@
 from .token_storage import TokenStore
 from medperf.config_management import read_config, write_config
 from medperf import config
-from medperf.exceptions import MedperfException
+from medperf.exceptions import AuthenticationError
+from medperf.entities.user import User
 
 
 def read_user_account():
@@ -11,6 +12,10 @@ def read_user_account():
 
     account_info = config_p.active_profile[config.credentials_keyword]
     return account_info
+
+
+def is_user_logged_in():
+    return read_user_account() is not None
 
 
 def set_credentials(
@@ -49,7 +54,7 @@ def set_credentials(
 def read_credentials():
     account_info = read_user_account()
     if account_info is None:
-        raise MedperfException("You are not logged in")
+        raise AuthenticationError("You are not logged in")
     email = account_info["email"]
     access_token, refresh_token = TokenStore().read_tokens(email)
 
@@ -63,7 +68,7 @@ def read_credentials():
 def delete_credentials():
     config_p = read_config()
     if config.credentials_keyword not in config_p.active_profile:
-        raise MedperfException("You are not logged in")
+        raise AuthenticationError("You are not logged in")
 
     email = config_p.active_profile[config.credentials_keyword]["email"]
     TokenStore().delete_tokens(email)
@@ -83,11 +88,14 @@ def set_medperf_user_data():
     return medperf_user
 
 
-def get_medperf_user_data():
+def get_medperf_user_data(use_cache=True):
     """Return cached medperf user data. Get from the server if not found"""
+    if not use_cache:
+        return set_medperf_user_data()
+
     config_p = read_config()
     if config.credentials_keyword not in config_p.active_profile:
-        raise MedperfException("You are not logged in")
+        raise AuthenticationError("You are not logged in")
 
     medperf_user = config_p.active_profile[config.credentials_keyword].get(
         "medperf_user", None
@@ -96,3 +104,9 @@ def get_medperf_user_data():
         medperf_user = set_medperf_user_data()
 
     return medperf_user
+
+
+def get_medperf_user_object():
+    """Get the MedPerf user as a User object"""
+    user_data = get_medperf_user_data(False)
+    return User(**user_data)

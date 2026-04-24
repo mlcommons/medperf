@@ -1,0 +1,1 @@
+The MedPerf server registers a container as metadata comprised of a set of components that can be retrieved from the internet. This means that before submitting a container you have to host its components on the internet. You can refer to [this page](../concepts/container_components.md) if you want to understand what the components are.

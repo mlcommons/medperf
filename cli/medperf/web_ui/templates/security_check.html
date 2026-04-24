@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Security Check{% endblock %}
+
+{% block content %}
+<div class="min-h-[80vh] flex items-center justify-center px-4 py-12">
+    <div class="w-full max-w-md">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-xl border-2 border-green-100 dark:border-gray-700">
+            <h2 class="text-2xl font-bold medperf-accent dark:text-green-400 text-center mb-6">Security Check</h2>
+
+            {% if error %}
+            <div class="mb-6 p-4 rounded-xl bg-red-50 dark:bg-red-900/30 border-2 border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-center" role="alert">
+                {{ error }}
+            </div>
+            {% endif %}
+
+            <form id="security-check-form" method="POST" action="/security_check">
+                <input type="hidden" name="redirect_url" value="{{ redirect_url }}">
+                <div class="mb-6">
+                    <label for="token" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Enter your Security Token printed in MedPerf CLI output</label>
+                    <input type="text" id="token" name="token" class="w-full px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500" placeholder="security token" required>
+                </div>
+                <div class="text-center">
+                    <button id="security-check-btn" type="button" class="w-full py-3 medperf-bg dark:bg-green-600 text-white rounded-xl font-bold hover:opacity-90 transition-all">Access Web UI</button>
+                </div>
+            </form>
+            <div class="text-center mt-4">
+                <button type="button" class="text-medperf-accent dark:text-green-400 hover:underline font-medium" id="show-help-modal">Why is this required?</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    document.getElementById("security-check-btn").addEventListener("click", function(e) {
+        e.currentTarget.disabled = true;
+        document.getElementById("security-check-form").submit();
+    });
+    document.getElementById("show-help-modal").addEventListener("click", function() {
+        var modalBody = "<p class=\"text-lg\">This token is a simple way to make sure that only the person who started the app, can access this page.<br><br>When the app starts, it shows a one-time code (the security token) in the terminal. You just copy that code and paste it here.<br><br>It is a safety step to prevent other users on the same computer from seeing your data or using the app without permission.</p>";
+        var modalFooter = "<button type=\"button\" class=\"px-4 py-2 rounded-xl bg-red-600 text-white font-semibold close-modal-btn\">Close</button>";
+        showModal({ title: "Security Check Help", body: modalBody, footer: modalFooter, modalClasses: "max-w-2xl w-full" });
+    });
+})();
+</script>
+{% endblock %}

@@ -10,20 +10,20 @@ class BenchmarkTest(MedPerfTest):
         # setup users
         bmk_owner = "bmk_owner"
         prep_mlcube_owner = "prep_mlcube_owner"
-        ref_mlcube_owner = "ref_mlcube_owner"
+        ref_model_owner = "ref_model_owner"
         eval_mlcube_owner = "eval_mlcube_owner"
         other_user = "other_user"
 
         self.create_user(bmk_owner)
         self.create_user(prep_mlcube_owner)
-        self.create_user(ref_mlcube_owner)
+        self.create_user(ref_model_owner)
         self.create_user(eval_mlcube_owner)
         self.create_user(other_user)
 
         # setup globals
         self.bmk_owner = bmk_owner
         self.prep_mlcube_owner = prep_mlcube_owner
-        self.ref_mlcube_owner = ref_mlcube_owner
+        self.ref_model_owner = ref_model_owner
         self.eval_mlcube_owner = eval_mlcube_owner
         self.other_user = other_user
 
@@ -34,7 +34,7 @@ class BenchmarkTest(MedPerfTest):
 @parameterized_class(
     [
         {"actor": "prep_mlcube_owner"},
-        {"actor": "ref_mlcube_owner"},
+        {"actor": "ref_model_owner"},
         {"actor": "eval_mlcube_owner"},
         {"actor": "bmk_owner"},
         {"actor": "other_user"},
@@ -48,14 +48,21 @@ class BenchmarkGetTest(BenchmarkTest):
         self.generic_setup()
         _, _, _, testbenchmark = self.shortcut_create_benchmark(
             self.prep_mlcube_owner,
-            self.ref_mlcube_owner,
+            self.ref_model_owner,
             self.eval_mlcube_owner,
             self.bmk_owner,
             target_approval_status="PENDING",
             state="DEVELOPMENT",
         )
         self.testbenchmark = testbenchmark
+        self.private_fields = [
+            "dataset_auto_approval_allow_list",
+            "model_auto_approval_allow_list",
+        ]
         self.set_credentials(self.actor)
+
+    def __can_see_private_fields(self):
+        return self.actor == "bmk_owner"
 
     def test_generic_get_benchmark(self):
         # Arrange
@@ -70,6 +77,24 @@ class BenchmarkGetTest(BenchmarkTest):
         for k, v in response.data.items():
             if k in self.testbenchmark:
                 self.assertEqual(self.testbenchmark[k], v, f"Unexpected value for {k}")
+
+    def test_get_benchmark_private_fields(self):
+        # Arrange
+        benchmark_id = self.testbenchmark["id"]
+        url = self.url.format(benchmark_id)
+
+        # Act
+        response = self.client.get(url)
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        if not self.__can_see_private_fields():
+            for key in response.data:
+                self.assertNotIn(
+                    key,
+                    self.private_fields,
+                    f"{key} shouldn't be visible to {self.actor}",
+                )
 
     def test_benchmark_not_found(self):
         # Arrange
@@ -102,7 +127,7 @@ class BenchmarkPutTest(BenchmarkTest):
         # Arrange
         _, _, _, testbenchmark = self.shortcut_create_benchmark(
             self.prep_mlcube_owner,
-            self.ref_mlcube_owner,
+            self.ref_model_owner,
             self.eval_mlcube_owner,
             self.bmk_owner,
             target_approval_status="PENDING",
@@ -110,12 +135,16 @@ class BenchmarkPutTest(BenchmarkTest):
         )
 
         new_data_preproc_mlcube = self.mock_mlcube(
-            name="new prep", mlcube_hash="new prep"
+            name="new prep", container_config={"new prep": "new prep"}
         )
-        new_ref_mlcube = self.mock_mlcube(name="new ref", mlcube_hash="new ref")
-        new_eval_mlcube = self.mock_mlcube(name="new eval", mlcube_hash="new eval")
+        new_ref_model = self.mock_model(
+            name="new ref", container_config={"new ref": "new ref"}
+        )
+        new_eval_mlcube = self.mock_mlcube(
+            name="new eval", container_config={"new eval": "new eval"}
+        )
         new_prep_id = self.create_mlcube(new_data_preproc_mlcube).data["id"]
-        new_ref_id = self.create_mlcube(new_ref_mlcube).data["id"]
+        new_ref_id = self.create_model(new_ref_model).data["id"]
         new_eval_id = self.create_mlcube(new_eval_mlcube).data["id"]
 
         newtestbenchmark = {
@@ -126,13 +155,17 @@ class BenchmarkPutTest(BenchmarkTest):
             "demo_dataset_tarball_hash": "newstring",
             "demo_dataset_generated_uid": "newstring",
             "data_preparation_mlcube": new_prep_id,
-            "reference_model_mlcube": new_ref_id,
+            "reference_model": new_ref_id,
             "data_evaluator_mlcube": new_eval_id,
             "metadata": {"newkey": "newvalue"},
             "state": "OPERATION",
             "is_valid": False,
             "is_active": False,
             "user_metadata": {"newkey2": "newvalue2"},
+            "dataset_auto_approval_allow_list": ["test@example.com"],
+            "dataset_auto_approval_mode": "ALWAYS",
+            "model_auto_approval_allow_list": ["test2@example.com"],
+            "model_auto_approval_mode": "ALLOWLIST",
         }
         url = self.url.format(testbenchmark["id"])
 
@@ -154,7 +187,7 @@ class BenchmarkPutTest(BenchmarkTest):
         # Arrange
         _, _, _, testbenchmark = self.shortcut_create_benchmark(
             self.prep_mlcube_owner,
-            self.ref_mlcube_owner,
+            self.ref_model_owner,
             self.eval_mlcube_owner,
             self.bmk_owner,
             target_approval_status=benchmark_approval_status,
@@ -167,6 +200,10 @@ class BenchmarkPutTest(BenchmarkTest):
             "is_active": False,
             "user_metadata": {"newkey": "newval"},
             "demo_dataset_tarball_url": "newstring",
+            "dataset_auto_approval_allow_list": ["test@example.com"],
+            "dataset_auto_approval_mode": "ALLOWLIST",
+            "model_auto_approval_allow_list": ["test2@example.com"],
+            "model_auto_approval_mode": "ALWAYS",
         }
         url = self.url.format(testbenchmark["id"])
 
@@ -187,7 +224,7 @@ class BenchmarkPutTest(BenchmarkTest):
         # Arrange
         _, _, _, testbenchmark = self.shortcut_create_benchmark(
             self.prep_mlcube_owner,
-            self.ref_mlcube_owner,
+            self.ref_model_owner,
             self.eval_mlcube_owner,
             self.bmk_owner,
             target_approval_status=benchmark_approval_status,
@@ -195,12 +232,16 @@ class BenchmarkPutTest(BenchmarkTest):
         )
 
         new_data_preproc_mlcube = self.mock_mlcube(
-            name="new prep", mlcube_hash="new prep"
+            name="new prep", container_config={"new prep": "new prep"}
         )
-        new_ref_mlcube = self.mock_mlcube(name="new ref", mlcube_hash="new ref")
-        new_eval_mlcube = self.mock_mlcube(name="new eval", mlcube_hash="new eval")
+        new_ref_model = self.mock_model(
+            name="new ref", container_config={"new ref": "new ref"}
+        )
+        new_eval_mlcube = self.mock_mlcube(
+            name="new eval", container_config={"new eval": "new eval"}
+        )
         new_prep_id = self.create_mlcube(new_data_preproc_mlcube).data["id"]
-        new_ref_id = self.create_mlcube(new_ref_mlcube).data["id"]
+        new_ref_id = self.create_model(new_ref_model).data["id"]
         new_eval_id = self.create_mlcube(new_eval_mlcube).data["id"]
 
         newtestbenchmark = {
@@ -210,7 +251,7 @@ class BenchmarkPutTest(BenchmarkTest):
             "demo_dataset_tarball_hash": "newstring",
             "demo_dataset_generated_uid": "newstring",
             "data_preparation_mlcube": new_prep_id,
-            "reference_model_mlcube": new_ref_id,
+            "reference_model": new_ref_id,
             "data_evaluator_mlcube": new_eval_id,
             "metadata": {"newkey": "newvalue"},
             "state": "DEVELOPMENT",
@@ -242,7 +283,7 @@ class BenchmarkPutTest(BenchmarkTest):
         # Arrange
         _, _, _, testbenchmark = self.shortcut_create_benchmark(
             self.prep_mlcube_owner,
-            self.ref_mlcube_owner,
+            self.ref_model_owner,
             self.eval_mlcube_owner,
             self.bmk_owner,
             target_approval_status=benchmark_approval_status,
@@ -269,7 +310,7 @@ class BenchmarkPutTest(BenchmarkTest):
         # Arrange
         _, _, _, testbenchmark = self.shortcut_create_benchmark(
             self.prep_mlcube_owner,
-            self.ref_mlcube_owner,
+            self.ref_model_owner,
             self.eval_mlcube_owner,
             self.bmk_owner,
             target_approval_status="APPROVED",
@@ -277,13 +318,22 @@ class BenchmarkPutTest(BenchmarkTest):
 
         _, _, _, newtestbenchmark = self.shortcut_create_benchmark(
             self.prep_mlcube_owner,
-            self.ref_mlcube_owner,
+            self.ref_model_owner,
             self.eval_mlcube_owner,
             self.bmk_owner,
             target_approval_status="PENDING",
-            prep_mlcube_kwargs={"name": "newprep", "mlcube_hash": "newprephash"},
-            ref_mlcube_kwargs={"name": "newref", "mlcube_hash": "newrefhash"},
-            eval_mlcube_kwargs={"name": "neweval", "mlcube_hash": "newevalhash"},
+            prep_mlcube_kwargs={
+                "name": "newprep",
+                "container_config": {"newprephash": "newprephash"},
+            },
+            ref_model_kwargs={
+                "name": "newref",
+                "container_config": {"newrefhash": "newrefhash"},
+            },
+            eval_mlcube_kwargs={
+                "name": "neweval",
+                "container_config": {"newevalhash": "newevalhash"},
+            },
             state="DEVELOPMENT",
             name="newname",
         )
@@ -301,7 +351,7 @@ class BenchmarkPutTest(BenchmarkTest):
         # Arrange
         _, _, _, testbenchmark = self.shortcut_create_benchmark(
             self.prep_mlcube_owner,
-            self.ref_mlcube_owner,
+            self.ref_model_owner,
             self.eval_mlcube_owner,
             self.bmk_owner,
             target_approval_status="PENDING",
@@ -321,12 +371,12 @@ class BenchmarkPutTest(BenchmarkTest):
         # Arrange
         _, _, _, testbenchmark = self.shortcut_create_benchmark(
             self.prep_mlcube_owner,
-            self.ref_mlcube_owner,
+            self.ref_model_owner,
             self.eval_mlcube_owner,
             self.bmk_owner,
             target_approval_status="PENDING",
             state="DEVELOPMENT",
-            ref_mlcube_kwargs={"state": "DEVELOPMENT"},
+            ref_model_kwargs={"state": "DEVELOPMENT"},
         )
 
         url = self.url.format(testbenchmark["id"])
@@ -341,7 +391,7 @@ class BenchmarkPutTest(BenchmarkTest):
         # Arrange
         _, _, _, testbenchmark = self.shortcut_create_benchmark(
             self.prep_mlcube_owner,
-            self.ref_mlcube_owner,
+            self.ref_model_owner,
             self.eval_mlcube_owner,
             self.bmk_owner,
             target_approval_status="PENDING",
@@ -373,17 +423,21 @@ class BenchmarkApproveTest(BenchmarkTest):
 
     @parameterized.expand(
         [
-            ("PENDING", "APPROVED"),
-            ("PENDING", "REJECTED"),
+            ("PENDING", "APPROVED", status.HTTP_200_OK),
+            ("PENDING", "REJECTED", status.HTTP_200_OK),
+            ("APPROVED", "REJECTED", status.HTTP_200_OK),
+            ("APPROVED", "PENDING", status.HTTP_400_BAD_REQUEST),
+            ("REJECTED", "PENDING", status.HTTP_400_BAD_REQUEST),
+            ("REJECTED", "APPROVED", status.HTTP_400_BAD_REQUEST),
         ]
     )
-    def test_approval_status_cannot_be_changed_in_development(
-        self, prev_approval_status, new_approval_status
+    def test_approval_status_change_in_development(
+        self, prev_approval_status, new_approval_status, exp_status_code
     ):
         # Arrange
         _, _, _, testbenchmark = self.shortcut_create_benchmark(
             self.prep_mlcube_owner,
-            self.ref_mlcube_owner,
+            self.ref_model_owner,
             self.eval_mlcube_owner,
             self.bmk_owner,
             target_approval_status=prev_approval_status,
@@ -397,7 +451,7 @@ class BenchmarkApproveTest(BenchmarkTest):
         )
 
         # Assert
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, exp_status_code)
 
     @parameterized.expand(
         [
@@ -415,7 +469,7 @@ class BenchmarkApproveTest(BenchmarkTest):
         # Arrange
         _, _, _, testbenchmark = self.shortcut_create_benchmark(
             self.prep_mlcube_owner,
-            self.ref_mlcube_owner,
+            self.ref_model_owner,
             self.eval_mlcube_owner,
             self.bmk_owner,
             target_approval_status=prev_approval_status,
@@ -445,7 +499,7 @@ class BenchmarkDeleteTest(BenchmarkTest):
         self.generic_setup()
         _, _, _, testbenchmark = self.shortcut_create_benchmark(
             self.prep_mlcube_owner,
-            self.ref_mlcube_owner,
+            self.ref_model_owner,
             self.eval_mlcube_owner,
             self.bmk_owner,
             target_approval_status="PENDING",
@@ -483,7 +537,7 @@ class PermissionTest(BenchmarkTest):
 
         _, _, _, testbenchmark = self.shortcut_create_benchmark(
             self.prep_mlcube_owner,
-            self.ref_mlcube_owner,
+            self.ref_model_owner,
             self.eval_mlcube_owner,
             self.bmk_owner,
             target_approval_status="PENDING",
@@ -510,7 +564,7 @@ class PermissionTest(BenchmarkTest):
     @parameterized.expand(
         [
             ("prep_mlcube_owner", status.HTTP_403_FORBIDDEN),
-            ("ref_mlcube_owner", status.HTTP_403_FORBIDDEN),
+            ("ref_model_owner", status.HTTP_403_FORBIDDEN),
             ("eval_mlcube_owner", status.HTTP_403_FORBIDDEN),
             ("other_user", status.HTTP_403_FORBIDDEN),
             (None, status.HTTP_401_UNAUTHORIZED),
@@ -521,12 +575,16 @@ class PermissionTest(BenchmarkTest):
         self.set_credentials(self.bmk_owner)
 
         new_data_preproc_mlcube = self.mock_mlcube(
-            name="new prep", mlcube_hash="new prep"
+            name="new prep", container_config={"new prep": "new prep"}
         )
-        new_ref_mlcube = self.mock_mlcube(name="new ref", mlcube_hash="new ref")
-        new_eval_mlcube = self.mock_mlcube(name="new eval", mlcube_hash="new eval")
+        new_ref_model = self.mock_model(
+            name="new ref", container_config={"new ref": "new ref"}
+        )
+        new_eval_mlcube = self.mock_mlcube(
+            name="new eval", container_config={"new eval": "new eval"}
+        )
         new_prep_id = self.create_mlcube(new_data_preproc_mlcube).data["id"]
-        new_ref_id = self.create_mlcube(new_ref_mlcube).data["id"]
+        new_ref_id = self.create_model(new_ref_model).data["id"]
         new_eval_id = self.create_mlcube(new_eval_mlcube).data["id"]
 
         newtestbenchmark = {
@@ -537,7 +595,7 @@ class PermissionTest(BenchmarkTest):
             "demo_dataset_tarball_hash": "newstring",
             "demo_dataset_generated_uid": "newstring",
             "data_preparation_mlcube": new_prep_id,
-            "reference_model_mlcube": new_ref_id,
+            "reference_model": new_ref_id,
             "data_evaluator_mlcube": new_eval_id,
             "metadata": {"newkey": "newvalue"},
             "state": "OPERATION",
@@ -548,6 +606,10 @@ class PermissionTest(BenchmarkTest):
             "approved_at": "some time",
             "created_at": "some time",
             "modified_at": "some time",
+            "dataset_auto_approval_allow_list": ["test@example.com"],
+            "dataset_auto_approval_mode": "ALWAYS",
+            "model_auto_approval_allow_list": ["test2@example.com"],
+            "model_auto_approval_mode": "ALLOWLIST",
         }
 
         self.set_credentials(user)
@@ -567,7 +629,7 @@ class PermissionTest(BenchmarkTest):
         [
             ("bmk_owner", status.HTTP_403_FORBIDDEN),
             ("prep_mlcube_owner", status.HTTP_403_FORBIDDEN),
-            ("ref_mlcube_owner", status.HTTP_403_FORBIDDEN),
+            ("ref_model_owner", status.HTTP_403_FORBIDDEN),
             ("eval_mlcube_owner", status.HTTP_403_FORBIDDEN),
             ("other_user", status.HTTP_403_FORBIDDEN),
             (None, status.HTTP_401_UNAUTHORIZED),
@@ -589,7 +651,7 @@ class PermissionTest(BenchmarkTest):
         [
             ("bmk_owner", status.HTTP_403_FORBIDDEN),
             ("prep_mlcube_owner", status.HTTP_403_FORBIDDEN),
-            ("ref_mlcube_owner", status.HTTP_403_FORBIDDEN),
+            ("ref_model_owner", status.HTTP_403_FORBIDDEN),
             ("eval_mlcube_owner", status.HTTP_403_FORBIDDEN),
             ("other_user", status.HTTP_403_FORBIDDEN),
             (None, status.HTTP_401_UNAUTHORIZED),

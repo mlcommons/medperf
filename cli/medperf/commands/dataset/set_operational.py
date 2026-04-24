@@ -1,6 +1,6 @@
 from medperf.entities.dataset import Dataset
 import medperf.config as config
-from medperf.utils import approval_prompt, dict_pretty_print, get_folders_hash
+from medperf.utils import approval_prompt, dict_pretty_print
 from medperf.exceptions import CleanExit, InvalidArgumentError
 import yaml
 
@@ -32,12 +32,8 @@ class DatasetSetOperational:
 
     def generate_uids(self):
         """Auto-generates dataset UIDs for both input and output paths"""
-        raw_data_path, raw_labels_path = self.dataset.get_raw_paths()
-        prepared_data_path = self.dataset.data_path
-        prepared_labels_path = self.dataset.labels_path
-
-        in_uid = get_folders_hash([raw_data_path, raw_labels_path])
-        generated_uid = get_folders_hash([prepared_data_path, prepared_labels_path])
+        in_uid = self.dataset.calculate_raw_hash()
+        generated_uid = self.dataset.calculate_prepared_hash()
         self.dataset.input_data_hash = in_uid
         self.dataset.generated_uid = generated_uid
 
@@ -50,6 +46,8 @@ class DatasetSetOperational:
         self.dataset.state = "OPERATION"
 
     def update(self):
+        msg = "This is the information that is going to be transmitted to the medperf server"
+        config.ui.print_warning(msg)
         body = self.todict()
         dict_pretty_print(body)
         msg = "Do you approve sending the presented data to MedPerf? [Y/n] "

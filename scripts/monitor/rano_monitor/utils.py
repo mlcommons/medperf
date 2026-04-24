@@ -227,6 +227,56 @@ def to_local_path(mlcube_path: str, local_parent_path: str):
     return os.path.normpath(os.path.join(local_parent_path, mlcube_path))
 
 
+def package_segmentations(tar, row, data_path, labels_path):
+    brainscans = get_tumor_review_paths(row.name, data_path, labels_path)[:-2]
+    id, tp = row.name.split("|")
+    tar_path = os.path.join("review_cases", id, tp)
+    reviewed_path = os.path.join("review_cases", id, tp, "finalized")
+    reviewed_dir = tarfile.TarInfo(name=reviewed_path)
+    reviewed_dir.type = tarfile.DIRTYPE
+    reviewed_dir.mode = 0o755
+    tar.addfile(reviewed_dir)
+    tar.add(labels_path, tar_path)
+
+    brainscan_path = os.path.join("review_cases", id, tp, "brain_scans")
+    for brainscan in brainscans:
+        brainscan_target_path = os.path.join(
+            brainscan_path, os.path.basename(brainscan)
+        )
+        tar.add(brainscan, brainscan_target_path)
+
+
+def package_brain_masks(tar, row, data_path, labels_path):
+    id, tp = row.name.split("|")
+    brain_mask_filename = "brainMask_fused.nii.gz"
+    tar_path = os.path.join("review_cases", id, tp)
+    base_path = os.path.join(labels_path, "..")
+    brain_mask_path = os.path.join(base_path, brain_mask_filename)
+    brain_mask_tar_path = os.path.join(tar_path, brain_mask_filename)
+    if os.path.exists(brain_mask_path):
+        tar.add(brain_mask_path, brain_mask_tar_path)
+
+    rawscan_path = os.path.join("review_cases", id, tp, "raw_scans")
+    rawscans = get_brain_review_paths(row.name, labels_path)[:-1]
+    for rawscan in rawscans:
+        rawscan_target_path = os.path.join(
+            rawscan_path, os.path.basename(rawscan)
+        )
+        tar.add(rawscan, rawscan_target_path)
+
+
+def package_summary_imgs(tar, row, data_path, labels_path):
+    id, tp = row.name.split("|")
+    base_path = os.path.join(labels_path, "..")
+    tar_path = os.path.join("review_cases", id, tp)
+    for file in os.listdir(base_path):
+        if not file.endswith(".png"):
+            continue
+        img_path = os.path.join(base_path, file)
+        img_tar_path = os.path.join(tar_path, file)
+        tar.add(img_path, img_tar_path)
+
+
 def package_review_cases(report: pd.DataFrame, dset_path: str):
     review_cases = report[
         (MANUAL_REVIEW_STAGE <= abs(report["status"]))
@@ -236,49 +286,24 @@ def package_review_cases(report: pd.DataFrame, dset_path: str):
         for i, row in review_cases.iterrows():
             data_path = to_local_path(row["data_path"], dset_path)
             labels_path = to_local_path(row["labels_path"], dset_path)
-            brainscans = get_tumor_review_paths(row.name, data_path, labels_path)[:-2]
-            rawscans = get_brain_review_paths(row.name, labels_path)[:-1]
-            base_path = os.path.join(labels_path, "..")
+            if os.path.isfile(labels_path):
+                labels_path = os.path.dirname(labels_path)
+                labels_path = os.path.join(labels_path, "..")
 
             # Add tumor segmentations
-            id, tp = row.name.split("|")
-            tar_path = os.path.join("review_cases", id, tp)
-            reviewed_path = os.path.join("review_cases", id, tp, "finalized")
-            reviewed_dir = tarfile.TarInfo(name=reviewed_path)
-            reviewed_dir.type = tarfile.DIRTYPE
-            reviewed_dir.mode = 0o755
-            tar.addfile(reviewed_dir)
-            tar.add(labels_path, tar_path)
-
-            brainscan_path = os.path.join("review_cases", id, tp, "brain_scans")
-            for brainscan in brainscans:
-                brainscan_target_path = os.path.join(
-                    brainscan_path, os.path.basename(brainscan)
-                )
-                tar.add(brainscan, brainscan_target_path)
+            package_segmentations(tar, row, data_path, labels_path)
 
             # Add brain mask
-            brain_mask_filename = "brainMask_fused.nii.gz"
-            brain_mask_path = os.path.join(base_path, brain_mask_filename)
-            brain_mask_tar_path = os.path.join(tar_path, brain_mask_filename)
-            if os.path.exists(brain_mask_path):
-                tar.add(brain_mask_path, brain_mask_tar_path)
-
-            # Add raw scans
-            rawscan_path = os.path.join("review_cases", id, tp, "raw_scans")
-            for rawscan in rawscans:
-                rawscan_target_path = os.path.join(
-                    rawscan_path, os.path.basename(rawscan)
-                )
-                tar.add(rawscan, rawscan_target_path)
+            try:
+                package_brain_masks(tar, row, data_path, labels_path)
+            except FileNotFoundError:
+                pass
 
             # Add summary images
-            for file in os.listdir(base_path):
-                if not file.endswith(".png"):
-                    continue
-                img_path = os.path.join(base_path, file)
-                img_tar_path = os.path.join(tar_path, file)
-                tar.add(img_path, img_tar_path)
+            try:
+                package_summary_imgs(tar, row, data_path, labels_path)
+            except FileNotFoundError:
+                pass
 
 
 def get_tar_identified_masks(file):

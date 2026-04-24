@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% import "constants/tooltips.html" as tooltips %}
+{% import 'macros/cc_operator_macro.html' as cc_operator_macro %}
+
+{% block title %}Settings{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-4xl">
+    <h1 class="text-3xl font-bold medperf-accent dark:text-green-400 text-center mb-8">Settings</h1>
+
+    <section class="mb-12">
+        <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4">Profile Settings</h2>
+        <p class="text-center text-gray-700 dark:text-gray-300 mb-6">
+            Current Profile: <strong data-testid="current-profile" class="medperf-accent dark:text-green-400">{{ profiles.active_profile_name.title() }}</strong>
+        </p>
+        <form id="profiles-form" class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border-2 border-green-100 dark:border-gray-700">
+            <div class="flex flex-col sm:flex-row sm:items-center gap-4 mb-6">
+                <label for="profile" class="sm:w-48 font-semibold text-gray-700 dark:text-gray-300">Select Profile</label>
+                <select name="profile" id="profile" class="flex-1 max-w-md px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500 cursor-pointer">
+                    <option value="" disabled>Select Profile</option>
+                    {% for profile in profiles %}
+                    <option value="{{ profile }}" {% if profile == profiles.active_profile_name %}selected{% endif %}>{{ profile.title() }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="flex flex-wrap justify-center gap-3">
+                <button type="button" class="px-6 py-3 medperf-bg dark:bg-green-600 text-white rounded-xl font-bold hover:opacity-90 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed" id="activate-profile-btn" disabled>Activate Profile</button>
+                <button type="button" class="px-6 py-3 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-white rounded-xl font-bold hover:opacity-90 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed" id="view-profile-btn" {% if task_running %}disabled{% endif %} title="{{ tooltips.view_profile_btn if tooltips.view_profile_btn is defined else '' }}">View Profile</button>
+            </div>
+        </form>
+
+        <div id="edit-config-container" class="mt-8 hidden">
+            <form id="edit-config-form" class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border-2 border-green-100 dark:border-gray-700 space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+                    <label for="gpus" class="sm:w-48 font-semibold text-gray-700 dark:text-gray-300">GPUs</label>
+                    <input type="text" id="gpus" name="gpus" class="flex-1 max-w-md px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white" value="{{ default_gpus }}" {% if task_running %}disabled{% endif %}>
+                </div>
+                <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+                    <label for="platform" class="sm:w-48 font-semibold text-gray-700 dark:text-gray-300">Platform</label>
+                    <input type="text" id="platform" name="platform" class="flex-1 max-w-md px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white" value="{{ default_platform }}" {% if task_running %}disabled{% endif %}>
+                </div>
+                <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+                    <label for="ca" class="sm:w-48 font-semibold text-gray-700 dark:text-gray-300">Certificate Authority</label>
+                    <select name="ca" id="ca" class="flex-1 max-w-md px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white" {% if not logged_in or task_running %}disabled{% endif %}>
+                        {% if not logged_in %}<option value="">Log in to select CA</option>{% else %}
+                        <option value="" disabled>Select CA</option>
+                        {% for ca in cas %}<option value="{{ ca }}" {% if ca == default_ca %}selected{% endif %}>{{ cas[ca] }}</option>{% endfor %}
+                        {% endif %}
+                    </select>
+                </div>
+                <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+                    <label for="fingerprint" class="sm:w-48 font-semibold text-gray-700 dark:text-gray-300">Fingerprint</label>
+                    <input type="text" id="fingerprint" name="fingerprint" class="flex-1 max-w-md px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white" {% if not logged_in or task_running %}disabled{% endif %} value="{% if not logged_in %}Log in to change fingerprint{% else %}{{ default_fingerprint }}{% endif %}">
+                </div>
+                <div class="flex justify-center pt-4">
+                    <button type="button" id="apply-profile-changes-btn" class="px-6 py-3 medperf-bg dark:bg-green-600 text-white rounded-xl font-bold hover:opacity-90 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed" disabled>Apply Changes</button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <section id="user-certificate">
+        {% if request.app.state.ui_mode == request.app.state.EVALUATION_MODE %}
+        <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4">Certificate Settings</h2>
+        {% set key_type = CryptoKeyType.RSA.value %}
+        {% else %}
+        <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4">Signing Certificate Settings</h2>
+        {% set key_type = CryptoKeyType.EC.value %}
+        {% set certificate_status = signing_certificate_status %}
+        {% endif %}
+        <div id="certificate-settings" class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border-2 border-green-100 dark:border-gray-700 text-center text-gray-900 dark:text-white">
+            {% if not logged_in %}
+            <p class="text-gray-600 dark:text-gray-400">Log in to view certificate settings</p>
+            {% else %}
+            {% if certificate_status["no_certs_found"] %}
+            <p class="text-gray-700 dark:text-gray-300 mb-4">No Certificate Found</p>
+            <form id="get-cert-form" action="/settings/get_certificate" method="post" class="inline settings-action-form" data-panel-title="Getting Client Certificate" data-confirm-message="get a new certificate?" >
+                <input type="hidden" name="key_type" value="{{ key_type }}">
+                <button id="get-cert-btn" type="submit" class="px-6 py-3 bg-gray-700 dark:bg-gray-600 text-white rounded-xl font-bold hover:opacity-90 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed" {% if task_running %}disabled{% endif %} title="{{ tooltips.get_client_certificate_btn }}">Get User Certificate</button>
+            </form>
+            {% else %}
+            <p class="text-gray-700 dark:text-gray-300 mb-4">Certificate Exists</p>
+            {% if certificate_status["should_be_submitted"] %}
+            <p class="mb-4 text-gray-700 dark:text-gray-300"><strong>Status:</strong> <span class="px-4 py-1 rounded-full text-xs font-bold border-2 bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-200 border-yellow-200 dark:border-yellow-700" data-testid="cert-status">to be uploaded</span></p>
+            {% elif certificate_status["should_be_invalidated"] %}
+            <p class="mb-4 text-gray-700 dark:text-gray-300"><strong>Status:</strong> <span class="px-4 py-1 rounded-full text-xs font-bold border-2 bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-200 border-red-200 dark:border-red-800" data-testid="cert-status">invalid</span></p>
+            {% else %}
+            <p class="mb-4 text-gray-700 dark:text-gray-300"><strong>Status:</strong> <span class="px-4 py-1 rounded-full text-xs font-bold border-2 bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200 border-green-200 dark:border-green-700" data-testid="cert-status">valid</span></p>
+            {% endif %}
+            <div class="flex flex-wrap items-center justify-center gap-3 mt-2">
+            {% if certificate_status["should_be_submitted"] %}
+            <form id="submit-cert-form" action="/settings/submit_certificate" method="post" class="settings-action-form m-0" data-panel-title="Submitting Client Certificate" data-confirm-message="submit the certificate?">
+                <input type="hidden" name="key_type" value="{{ key_type }}">
+                <button id="submit-cert-btn" type="submit" class="px-6 py-3 min-h-[48px] medperf-bg dark:bg-green-600 text-white rounded-xl font-bold hover:opacity-90 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed inline-flex items-center justify-center" {% if task_running %}disabled{% endif %} title="{{ tooltips.submit_certificate_btn }}">Submit Certificate</button>
+            </form>
+            {% endif %}
+            <form id="delete-cert-form" action="/settings/delete_certificate" method="post" class="settings-action-form m-0" data-panel-title="Deleting Client Certificate" data-confirm-message="delete the certificate?">
+                <input type="hidden" name="key_type" value="{{ key_type }}">
+                <button id="delete-cert-btn" type="submit" class="px-6 py-3 min-h-[48px] bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed inline-flex items-center justify-center" {% if task_running %}disabled{% endif %} title="{{ tooltips.invalidate_certificate_btn }}">Delete</button>
+            </form>
+            </div>
+            {% endif %}
+            {% endif %}
+        </div>
+    </section>
+
+    {% if logged_in %}
+    <section class="mb-12">
+        {{ cc_operator_macro.cc_operator(cc_config_defaults, cc_configured, cc_initialized, task_running=task_running) }}
+    </section>
+    {% endif %}
+
+    {% include "partials/panel_container.html" %}
+    <div class="text-center my-8">
+        {% include "partials/text_content_container.html" %}
+    </div>
+    {% include "partials/prompt_container.html" %}
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+<script>
+    window.ccPreferences = {
+        configured: {{ cc_configured|tojson }},
+        initialized: {{ cc_initialized|tojson }},
+        defaults: {{ cc_config_defaults|tojson }}
+    }
+</script>
+<script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
+<script src="{{ url_for('static', path='js/cc_operator.js') }}"></script>
+<script>
+    window.currentSettings = {
+        activeProfile: "{{ profiles.active_profile_name }}",
+        defaultGpus: "{{ default_gpus }}",
+        defaultPlatform: "{{ default_platform }}",
+        defaultCA: "{{ default_ca }}",
+        defaultFingerprint: "{{ default_fingerprint }}"
+    };
+</script>
+<script src="{{ url_for('static', path='js/settings.js') }}"></script>
+{% if task_running %}
+{% if request.app.state.task.name == "get_client_certificate" %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        resumeRunningTask("#get-cert-form");
+    });
+</script>
+{% elif request.app.state.task.name == "delete_client_certificate" %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        resumeRunningTask("#delete-cert-form");
+    });
+</script>
+{% elif request.app.state.task.name == "submit_client_certificate" %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        resumeRunningTask("#submit-cert-form");
+    });
+</script>
+{% endif %}
+{% endif %}
+{% endblock %}

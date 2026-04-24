@@ -9,11 +9,14 @@ from .serializers import MlCubeSerializer, MlCubeDetailSerializer
 from .permissions import IsAdmin, IsMlCubeOwner
 from dataset.serializers import DatasetFullSerializer
 from dataset.models import Dataset
+from model.serializers import ModelSerializer
+from model.models import Model
 
 
 class MlCubeList(GenericAPIView):
     serializer_class = MlCubeSerializer
     queryset = ""
+    filterset_fields = ("name", "owner", "state", "is_valid")
 
     @extend_schema(operation_id="mlcubes_retrieve_all")
     def get(self, request, format=None):
@@ -21,6 +24,7 @@ class MlCubeList(GenericAPIView):
         List all mlcubes
         """
         mlcubes = MlCube.objects.all()
+        mlcubes = self.filter_queryset(mlcubes)
         mlcubes = self.paginate_queryset(mlcubes)
         serializer = MlCubeSerializer(mlcubes, many=True)
         return self.get_paginated_response(serializer.data)
@@ -96,12 +100,33 @@ class MlCubeDatasetList(GenericAPIView):
         """
         Retrieve datasets associated with an MlCube instance.
         """
-        mlcube = self.get_object(pk)
-        if mlcube.state != "DEVELOPMENT":
-            errors = {"error": "The mlcube is not in DEVELOPMENT"}
-            return Response(errors, status=status.HTTP_400_BAD_REQUEST)
-
         datasets = Dataset.objects.all().filter(data_preparation_mlcube__pk=pk)
         datasets = self.paginate_queryset(datasets)
         serializer = DatasetFullSerializer(datasets, many=True)
         return self.get_paginated_response(serializer.data)
+
+
+class MlCubeModel(GenericAPIView):
+    serializer_class = ModelSerializer
+    queryset = ""
+
+    def get_object(self, pk):
+        try:
+            return MlCube.objects.get(pk=pk)
+        except MlCube.DoesNotExist:
+            raise Http404
+
+    def get_related_object(self, container):
+        try:
+            return container.model
+        except Model.DoesNotExist:
+            raise Http404
+
+    def get(self, request, pk, format=None):
+        """
+        Retrieve the model associated with an MlCube instance.
+        """
+        mlcube = self.get_object(pk)
+        model = self.get_related_object(mlcube)
+        serializer = ModelSerializer(model)
+        return Response(serializer.data)
