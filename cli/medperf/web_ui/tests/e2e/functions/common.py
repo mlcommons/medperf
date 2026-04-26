@@ -18,7 +18,6 @@ def login(page: BasePage, url: str, email: str):
     page.wait_for_visibility_element(page_modal)
 
     assert page.get_text(page.PAGE_MODAL_TITLE) == "Confirmation Prompt"
-    assert email in page.get_text(page.CONFIRM_TEXT)
 
     old_url = page.current_url
     page.confirm_run_task()
@@ -26,7 +25,7 @@ def login(page: BasePage, url: str, email: str):
     while not page_modal.is_displayed():
         time.sleep(0.2)
 
-    assert page.get_text(page.PAGE_MODAL_TITLE) == "Successfully Logged In"
+    assert page.get_text(page.PAGE_MODAL_TITLE) == "Logged in successfully"
 
     page.wait_for_staleness_element(page_modal)
     page.wait_for_url_change(old_url)

@@ -18,8 +18,9 @@ from .docker_utils import (
     load_image,
     delete_images,
 )
-from medperf.encryption import decrypt_gpg_file, check_gpg
+from medperf.encryption import SymmetricEncryption
 from medperf.utils import remove_path, run_command, tmp_path_for_file_decryption
+import uuid
 
 
 class DockerRunner(Runner):
@@ -27,7 +28,7 @@ class DockerRunner(Runner):
         self.parser = container_config_parser
         self.image: str = None
         if self.parser.is_container_encrypted():
-            check_gpg()
+            SymmetricEncryption().check()
 
     def download(
         self,
@@ -69,7 +70,7 @@ class DockerRunner(Runner):
         get_hash_timeout: int = None,
     ):
         file_url = self.parser.get_setup_args()
-        image_path, computed_image_hash = resources.get_cube_image(
+        image_path, computed_image_hash = resources.get_hashed_file(
             file_url, expected_image_hash
         )  # Hash checking happens in resources
         self.image_archive_path = image_path
@@ -90,6 +91,8 @@ class DockerRunner(Runner):
         self.parser.check_task_schema(task)
         run_args = self.parser.get_run_args(task)
         check_allowed_run_args(run_args)
+
+        run_args["task"] = task
 
         add_medperf_run_args(run_args)
         add_medperf_environment_variables(run_args, medperf_env)
@@ -159,7 +162,7 @@ class DockerRunner(Runner):
         repo_tags_list = []
         try:
             # decrypt archive
-            decrypt_gpg_file(
+            SymmetricEncryption().decrypt_file(
                 self.image_archive_path,
                 container_decryption_key_file,
                 decrypted_archive_path,
@@ -182,8 +185,17 @@ class DockerRunner(Runner):
 
     def _invoke_run(self, image, run_args, timeout, output_logs):
         run_args["image"] = image
+        task = run_args.pop("task")
+        container_name = f"medperf-{task}-{uuid.uuid4().hex[:16]}"
+        run_args["container_name"] = container_name
 
         # Run
         command = craft_docker_run_command(run_args)
-        logging.debug("Running docker container")
-        run_command(command, timeout, output_logs)
+        logging.debug("Running docker container as %s", container_name)
+        run_command(
+            command,
+            timeout,
+            output_logs,
+            task=task,
+            docker_container_name=container_name,
+        )

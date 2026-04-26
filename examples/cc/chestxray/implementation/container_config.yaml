@@ -1,0 +1,18 @@
+container_type: DockerImage
+image: mlcommons/medperf-cc-chestxray:0.0.0
+tasks:
+  run_script:
+    input_volumes:
+      data_path:
+        mount_path: /mlcommons/volumes/data
+        type: directory
+      labels_path:
+        mount_path: /mlcommons/volumes/labels
+        type: directory
+      model_files:
+        mount_path: /mlcommons/volumes/model_files
+        type: directory
+    output_volumes:
+      results_path:
+        mount_path: /mlcommons/volumes/results
+        type: directory

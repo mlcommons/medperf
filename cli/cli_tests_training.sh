@@ -32,15 +32,11 @@ echo "Retrieving mock datasets"
 echo "====================================="
 echo "downloading files to $DIRECTORY"
 
-wget -P $DIRECTORY https://storage.googleapis.com/medperf-storage/testfl/data/col1.tar.gz
-tar -xf $DIRECTORY/col1.tar.gz -C $DIRECTORY
-wget -P $DIRECTORY https://storage.googleapis.com/medperf-storage/testfl/data/col2.tar.gz
-tar -xf $DIRECTORY/col2.tar.gz -C $DIRECTORY
-wget -P $DIRECTORY https://storage.googleapis.com/medperf-storage/testfl/data/test.tar.gz
-tar -xf $DIRECTORY/test.tar.gz -C $DIRECTORY
-rm $DIRECTORY/col1.tar.gz
-rm $DIRECTORY/col2.tar.gz
-rm $DIRECTORY/test.tar.gz
+wget -P $DIRECTORY https://storage.googleapis.com/medperf-storage/chestxray_train_sample1.tar.gz
+tar -xf $DIRECTORY/chestxray_train_sample1.tar.gz -C $DIRECTORY
+rm $DIRECTORY/chestxray_train_sample1.tar.gz
+mv $DIRECTORY/chestxray_train_sample1/dataset_1 $DIRECTORY/col1
+mv $DIRECTORY/chestxray_train_sample1/dataset_2 $DIRECTORY/col2
 
 ##########################################################
 
@@ -99,9 +95,7 @@ echo "====================================="
 echo "Submit containers"
 echo "====================================="
 
-print_eval medperf container submit --name trainprep -m $PREP_TRAINING_MLCUBE --operational
-checkFailed "Train prep submission failed"
-PREP_UID=$(medperf container ls | grep trainprep | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+PREP_UID=$(medperf container ls | grep chestxray_prep | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 echo "PREP_UID=$PREP_UID" >> "$LAST_ENV_FILE"
 
 print_eval medperf container submit --name traincube -m $TRAIN_MLCUBE -a $TRAIN_WEIGHTS --operational
@@ -126,14 +120,6 @@ print_eval medperf training submit -n trainexp -d trainexp -p $PREP_UID -m $TRAI
 checkFailed "Training exp submission failed"
 TRAINING_UID=$(medperf training ls | grep trainexp | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 echo "TRAINING_UID=$TRAINING_UID" >> "$LAST_ENV_FILE"
-
-# Approve benchmark
-ADMIN_TOKEN=$(jq -r --arg ADMIN $ADMIN '.[$ADMIN]' $MOCK_TOKENS_FILE)
-checkFailed "Retrieving admin token failed"
-echo "ADMIN_TOKEN=$ADMIN_TOKEN" >> "$LAST_ENV_FILE"
-
-curl -sk -X PUT $SERVER_URL$VERSION_PREFIX/training/$TRAINING_UID/ -d '{"approval_status": "APPROVED"}' -H 'Content-Type: application/json' -H "Authorization: Bearer $ADMIN_TOKEN"
-checkFailed "training exp approval failed"
 ##########################################################
 
 echo "\n"
@@ -155,20 +141,10 @@ echo "====================================="
 HOSTNAME_=$(hostname -I | cut -d " " -f 1)
 echo "HOSTNAME_=$HOSTNAME_" >> "$LAST_ENV_FILE"
 # HOSTNAME_=$(hostname -A | cut -d " " -f 1)  # fqdn on github CI runner doesn't resolve from inside containers
-print_eval medperf aggregator submit -n aggreg -a $HOSTNAME_ -p 50273 -m $TRAINCUBE_UID
+print_eval medperf aggregator submit -n aggreg -a $HOSTNAME_ -p 50273 --admin-port 50274 -m $TRAINCUBE_UID
 checkFailed "aggregator submission step failed"
 AGG_UID=$(medperf aggregator ls | grep aggreg | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 echo "AGG_UID=$AGG_UID" >> "$LAST_ENV_FILE"
-##########################################################
-
-echo "\n"
-
-##########################################################
-echo "====================================="
-echo "Running aggregator association step"
-echo "====================================="
-print_eval medperf aggregator associate -a $AGG_UID -t $TRAINING_UID -y
-checkFailed "aggregator association step failed"
 ##########################################################
 
 echo "\n"
@@ -185,10 +161,10 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Approve aggregator association"
+echo "Running set aggregator step"
 echo "====================================="
-print_eval medperf association approve -t $TRAINING_UID -a $AGG_UID
-checkFailed "agg association approval failed"
+print_eval medperf training set_aggregator -t $TRAINING_UID -a $AGG_UID -y
+checkFailed "Setting aggregator failed"
 ##########################################################
 
 echo "\n"
@@ -220,45 +196,6 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Activate aggowner profile"
-echo "====================================="
-print_eval medperf profile activate testagg
-checkFailed "testagg profile activation failed"
-##########################################################
-
-echo "\n"
-
-##########################################################
-echo "====================================="
-echo "Get aggregator cert"
-echo "====================================="
-print_eval medperf certificate get_server_certificate -a $AGG_UID
-checkFailed "Get aggregator cert failed"
-##########################################################
-
-echo "\n"
-
-##########################################################
-echo "====================================="
-echo "Starting aggregator"
-echo "====================================="
-print_eval medperf aggregator start -t $TRAINING_UID -p $HOSTNAME_ </dev/null >agg.log 2>&1 &
-AGG_PID=$!
-echo "AGG_PID=$AGG_PID" >> "$LAST_ENV_FILE"
-
-# sleep so that the container is run before we change profiles
-sleep 7
-
-# Check if the command is still running.
-if [ ! -d "/proc/$AGG_PID" ]; then
-  checkFailed "agg doesn't seem to be running" 1
-fi
-##########################################################
-
-echo "\n"
-
-##########################################################
-echo "====================================="
 echo "Activate dataowner profile"
 echo "====================================="
 print_eval medperf profile activate testdata1
@@ -271,7 +208,7 @@ echo "\n"
 echo "====================================="
 echo "Running data1 submission step"
 echo "====================================="
-print_eval medperf dataset submit -p $PREP_UID -d $DIRECTORY/col1 -l $DIRECTORY/col1 --name="col1" --description="col1data" --location="col1location" -y
+print_eval medperf dataset submit -p $PREP_UID -d $DIRECTORY/col1/images -l $DIRECTORY/col1/labels --name="col1" --description="col1data" --location="col1location" -y
 checkFailed "Data1 submission step failed"
 DSET_1_UID=$(medperf dataset ls | grep col1 | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 echo "DSET_1_UID=$DSET_1_UID" >> "$LAST_ENV_FILE"
@@ -313,8 +250,18 @@ echo "\n"
 echo "====================================="
 echo "Get data1owner cert"
 echo "====================================="
-print_eval medperf certificate get_client_certificate
+print_eval medperf certificate get_client_certificate --key_type EC
 checkFailed "Get data1owner cert failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Submit data1owner cert"
+echo "====================================="
+print_eval medperf certificate submit_client_certificate --key_type EC -y
+checkFailed "Submit data1owner cert failed"
 ##########################################################
 
 echo "\n"
@@ -328,7 +275,7 @@ COL1_PID=$!
 echo "COL1_PID=$COL1_PID" >> "$LAST_ENV_FILE"
 
 # sleep so that the container is run before we change profiles
-sleep 7
+sleep 10
 
 # Check if the command is still running.
 if [ ! -d "/proc/$COL1_PID" ]; then
@@ -352,7 +299,7 @@ echo "\n"
 echo "====================================="
 echo "Running data2 submission step"
 echo "====================================="
-print_eval medperf dataset submit -p $PREP_UID -d $DIRECTORY/col2 -l $DIRECTORY/col2 --name="col2" --description="col2data" --location="col2location" -y
+print_eval medperf dataset submit -p $PREP_UID -d $DIRECTORY/col2/images -l $DIRECTORY/col2/labels --name="col2" --description="col2data" --location="col2location" -y
 checkFailed "Data2 submission step failed"
 DSET_2_UID=$(medperf dataset ls | grep col2 | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 echo "DSET_2_UID=$DSET_2_UID" >> "$LAST_ENV_FILE"
@@ -394,8 +341,18 @@ echo "\n"
 echo "====================================="
 echo "Get data2owner cert"
 echo "====================================="
-print_eval medperf certificate get_client_certificate
+print_eval medperf certificate get_client_certificate --key_type EC
 checkFailed "Get data2owner cert failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Submit data2owner cert"
+echo "====================================="
+print_eval medperf certificate submit_client_certificate --key_type EC -y
+checkFailed "Submit data2owner cert failed"
 ##########################################################
 
 echo "\n"
@@ -409,7 +366,7 @@ COL2_PID=$!
 echo "COL2_PID=$COL2_PID" >> "$LAST_ENV_FILE"
 
 # sleep so that the container is run before we change profiles
-sleep 7
+sleep 10
 
 # Check if the command is still running.
 if [ ! -d "/proc/$COL2_PID" ]; then
@@ -421,75 +378,100 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Activate fladmin profile"
-echo "====================================="
-print_eval medperf profile activate fladmin
-checkFailed "fladmin profile activation failed"
-##########################################################
-
-echo "\n"
-
-##########################################################
-echo "====================================="
-echo "Get fladmin certificate"
-echo "====================================="
-print_eval medperf certificate get_client_certificate
-checkFailed "Get fladmin cert failed"
-##########################################################
-
-echo "\n"
-
-##########################################################
-echo "====================================="
-echo "Check experiment status"
-echo "====================================="
-print_eval medperf training get_experiment_status -t $TRAINING_UID
-checkFailed "Get experiment status failed"
-
-sleep 3 # sleep some time then get status again
-
-print_eval medperf training get_experiment_status -t $TRAINING_UID
-checkFailed "Get experiment status failed"
-##########################################################
-
-echo "\n"
-
-##########################################################
-echo "====================================="
-echo "Update plan parameter"
-echo "====================================="
-print_eval medperf training update_plan -t $TRAINING_UID -f "straggler_handling_policy.settings.straggler_cutoff_time" -v 1200
-checkFailed "Update plan failed"
-##########################################################
-
-echo "\n"
-
-##########################################################
-echo "====================================="
-echo "Waiting for other prcocesses to exit successfully"
-echo "====================================="
-# NOTE: on systems with small process ID table or very short-lived processes,
-#       there is a probability that PIDs are reused and hence the
-#       code below may be inaccurate. Perhaps grep processes according to command
-#       string is the most efficient way to reduce that probability further.
-# Followup NOTE: not sure, but the "wait" command may fail if it is waiting for
-#                a process that is not a child of the current shell
-wait $COL1_PID
-checkFailed "data1 training didn't exit successfully"
-wait $COL2_PID
-checkFailed "data2 training didn't exit successfully"
-wait $AGG_PID
-checkFailed "agg didn't exit successfully"
-##########################################################
-
-echo "\n"
-
-##########################################################
-echo "====================================="
 echo "Activate aggowner profile"
 echo "====================================="
 print_eval medperf profile activate testagg
 checkFailed "testagg profile activation failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Get aggregator cert"
+echo "====================================="
+print_eval medperf certificate get_server_certificate -a $AGG_UID
+checkFailed "Get aggregator cert failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Starting aggregator"
+echo "====================================="
+print_eval medperf aggregator start -t $TRAINING_UID -p $HOSTNAME_ </dev/null >agg.log 2>&1 &
+AGG_PID=$!
+echo "AGG_PID=$AGG_PID" >> "$LAST_ENV_FILE"
+
+# sleep so that the container is run before we change profiles
+sleep 10
+
+# Check if the command is still running.
+if [ ! -d "/proc/$AGG_PID" ]; then
+  checkFailed "agg doesn't seem to be running" 1
+fi
+##########################################################
+
+# Commented for now since admin endpoints are not implemented in current FL container
+# echo "\n"
+
+# ##########################################################
+# echo "====================================="
+# echo "Activate fladmin profile"
+# echo "====================================="
+# print_eval medperf profile activate fladmin
+# checkFailed "fladmin profile activation failed"
+# ##########################################################
+
+# echo "\n"
+
+# ##########################################################
+# echo "====================================="
+# echo "Get fladmin certificate"
+# echo "====================================="
+# print_eval medperf certificate get_client_certificate
+# checkFailed "Get fladmin cert failed"
+# ##########################################################
+
+# echo "\n"
+
+# ##########################################################
+# echo "====================================="
+# echo "Check experiment status"
+# echo "====================================="
+# print_eval medperf training get_experiment_status -t $TRAINING_UID
+# checkFailed "Get experiment status failed"
+
+# sleep 3 # sleep some time then get status again
+
+# print_eval medperf training get_experiment_status -t $TRAINING_UID
+# checkFailed "Get experiment status failed"
+# ##########################################################
+
+# echo "\n"
+
+# ##########################################################
+# echo "====================================="
+# echo "Update plan parameter"
+# echo "====================================="
+# print_eval medperf training update_plan -t $TRAINING_UID -f "straggler_handling_policy.settings.straggler_cutoff_time" -v 1200
+# checkFailed "Update plan failed"
+# ##########################################################
+
+# echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Waiting for processes to exit successfully"
+echo "====================================="
+
+# The aggregator will stop after it's done, but collaborators won't.
+wait $AGG_PID
+checkFailed "agg didn't exit successfully"
+
+kill $COL1_PID
+kill $COL2_PID
 ##########################################################
 
 echo "\n"

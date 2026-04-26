@@ -1,18 +1,6 @@
 {# ./cli/medperf/web_ui/templates/constants/forms_placeholders.html #}
 
 {# Forms placeholders for benchmarks pages #}
-{% set workflow_test_data_preparation_container = "/home/user/data_preparation_container_config.yaml" %}
-{% set workflow_test_data_preparation_parameters = "/home/user/data_preparation_container_parameters.yaml (Optional)" %}
-{% set workflow_test_data_preparation_additional = "/home/user/data_preparation_container_additional_files_folder/ (Optional)" %}
-{% set workflow_test_reference_model_path = "/home/user/reference_model_config.yaml" %}
-{% set workflow_test_reference_model_parameters = "/home/user/reference_model_parameters.yaml (Optional)" %}
-{% set workflow_test_reference_model_additional = "/home/user/reference_model_additional_files_folder/ (Optional)" %}
-{% set workflow_test_metrics_container_path = "/home/user/metrics_container_config.yaml" %}
-{% set workflow_test_metrics_container_parameters = "/home/user/metrics_container_parameters.yaml (Optional)" %}
-{% set workflow_test_metrics_container_additional = "/home/user/metrics_container_additional_files_folder/ (Optional)" %}
-{% set workflow_test_reference_dataset_data_path = "/home/user/reference_dataset_data/" %}
-{% set workflow_test_reference_dataset_labels_path = "/home/user/reference_dataset_labels/" %}
-
 {% set register_benchmark_name = "Example Benchmark" %}
 {% set register_benchmark_description = "Example Description" %}
 {% set register_benchmark_reference_dataset_tarball_url =
@@ -41,13 +29,13 @@
 {% set import_dataset_raw_path = "/home/user/new_raw_data_folder_for_DEVELOPMENT_datasets/" %}
 
 {# Forms placeholders for containers pages #}
-{% set compatibility_test_container_file = "/home/user/model_config_file.yaml" %}
-{% set compatibility_test_parameters_file = "/home/user/model_parameters_file.yaml (Optional)" %}
-{% set compatibility_test_additional_file = "/home/user/model_additional_files_folder/ (Optional)" %}
-{% set compatibility_test_decryption_file = "/home/user/model_decryption_key.key" %}
-
 {% set register_container_name = "Example Container" %}
 {% set register_container_manifest_file = "/home/user/container_config_file.yaml" %}
 {% set register_container_parameters_file = "/home/user/container_parameters_file.yaml (Optional)" %}
 {% set register_container_additional_file = "https://www.example.com/container_additional_files.tar (Optional)" %}
 {% set register_container_decryption_file = "/home/user/container_decryption_key.key" %}
+
+{# Forms placeholders for asset registration page #}
+{% set register_asset_name = "Example Asset" %}
+{% set register_asset_url = "https://www.example.com/asset_example.tar" %}
+{% set register_asset_path = "/home/user/asset_example/" %}

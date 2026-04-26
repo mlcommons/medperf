@@ -5,6 +5,7 @@ from medperf.entities.training_exp import TrainingExp
 from medperf.entities.cube import Cube
 from medperf.utils import get_pki_assets_path
 from medperf.certificates import verify_certificate_authority
+from medperf.enums import CryptoKeyType
 
 
 class UpdatePlan:
@@ -17,6 +18,7 @@ class UpdatePlan:
         """
         execution = cls(training_exp_id, field_name, field_value)
         execution.prepare()
+        execution.validate()
         execution.prepare_plan()
         execution.prepare_pki_assets()
         with config.ui.interactive():
@@ -34,6 +36,12 @@ class UpdatePlan:
         self.ui.print(f"Training Experiment: {self.training_exp.name}")
         self.user_email: str = get_medperf_user_data()["email"]
 
+    def validate(self):
+        if self.training_exp.fl_admin_mlcube is None:
+            raise ValueError(
+                "The training experiment does not have an admin container."
+            )
+
     def prepare_plan(self):
         self.training_exp.prepare_plan()
 
@@ -42,7 +50,9 @@ class UpdatePlan:
         verify_certificate_authority(
             ca, expected_fingerprint=config.certificate_authority_fingerprint
         )
-        self.admin_pki_assets = get_pki_assets_path(self.user_email, ca.id)
+        self.admin_pki_assets = get_pki_assets_path(
+            self.user_email, ca.id, CryptoKeyType.EC
+        )
         self.ca = ca
 
     def prepare_admin_cube(self):

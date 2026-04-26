@@ -4,6 +4,7 @@ import base64
 import re
 import os
 import signal
+import subprocess
 import yaml
 import random
 import hashlib
@@ -24,6 +25,19 @@ import medperf.config as config
 from medperf.exceptions import CleanExit, ExecutionError, InvalidArgumentError
 import shlex
 from email_validator import validate_email, EmailNotValidError
+from medperf.enums import CryptoKeyType
+
+
+def get_string_hash(string: bytes) -> str:
+    """Calculates the sha256 hash for a given string.
+
+    Args:
+        string (bytes): String to be hashed.
+    """
+    sha = hashlib.sha256()
+    sha.update(string)
+    sha_val = sha.hexdigest()
+    return sha_val
 
 
 def get_file_hash(path: str) -> str:
@@ -438,6 +452,8 @@ def format_errors_dict(errors_dict: dict):
         error_msg += f"- {field}: "
         if isinstance(errors, str):
             error_msg += errors
+        elif isinstance(errors, dict):
+            error_msg += format_errors_dict(errors)
         elif len(errors) == 1:
             # If a single error for a field is given, don't create a sublist
             error_msg += str(errors[0])
@@ -491,9 +507,19 @@ def check_for_updates() -> None:
 
 
 class spawn_and_kill:
-    def __init__(self, cmd, timeout=None, *args, **kwargs):
+    def __init__(
+        self,
+        cmd,
+        timeout=None,
+        task=None,
+        docker_container_name=None,
+        *args,
+        **kwargs,
+    ):
         self.cmd = cmd
         self.timeout = timeout
+        self.task = task
+        self.docker_container_name = docker_container_name
         self._args = args
         self._kwargs = kwargs
         self.proc: spawn
@@ -504,16 +530,45 @@ class spawn_and_kill:
         return spawn(*args, **kwargs)
 
     def killpg(self):
-        os.killpg(self.pid, signal.SIGINT)
+        if self.docker_container_name:
+            try:
+                result = subprocess.run(
+                    ["docker", "stop", "-t", "0", self.docker_container_name],
+                    capture_output=True,
+                    text=True,
+                    timeout=10,
+                    check=False,
+                )
+                if result.returncode != 0:
+                    logging.debug(
+                        "docker stop %s exited %s: %s",
+                        self.docker_container_name,
+                        result.returncode,
+                        (result.stderr or result.stdout or "").strip(),
+                    )
+            except (subprocess.TimeoutExpired, FileNotFoundError, OSError) as e:
+                logging.warning(
+                    "Could not docker stop %s: %s",
+                    self.docker_container_name,
+                    e,
+                )
+        os.killpg(self.pid, signal.SIGKILL)
 
     def __enter__(self):
         self.proc = self.spawn(
             self.cmd, timeout=self.timeout, *self._args, **self._kwargs
         )
         self.pid = self.proc.pid
+
+        if self.task:
+            config.running_containers[self.task] = self
+
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.task:
+            config.running_containers.pop(self.task, None)
+
         if exc_type:
             self.exception_occurred = True
             # Forcefully kill the process group if any exception occurred, in particular,
@@ -529,11 +584,18 @@ class spawn_and_kill:
         return False
 
 
-def run_command(cmd, timeout=None, output_logs=None):
+def run_command(
+    cmd, timeout=None, output_logs=None, task=None, docker_container_name=None
+):
     logging.debug(f"Command as list, to be run: {cmd}")
     command_as_str = shlex.join(cmd)
     logging.debug(f"Running command: {command_as_str}")
-    with spawn_and_kill(command_as_str, timeout=timeout) as proc_wrapper:
+    with spawn_and_kill(
+        command_as_str,
+        timeout=timeout,
+        task=task,
+        docker_container_name=docker_container_name,
+    ) as proc_wrapper:
         proc = proc_wrapper.proc
         proc_out = combine_proc_sp_text(proc)
 
@@ -547,14 +609,17 @@ def run_command(cmd, timeout=None, output_logs=None):
     return proc_out
 
 
-def get_pki_assets_path(common_name: str, ca_id: int):
+def get_pki_assets_path(common_name: str, ca_id: int, key_type: CryptoKeyType) -> str:
     # Base64 encoding is used just to avoid special characters used in emails
     # and server domains/ipaddresses.
     logging.debug(f"Getting pki assets path for {common_name}")
     cn_encoded = base64.b64encode(common_name.encode("utf-8")).decode("utf-8")
     cn_encoded = cn_encoded.rstrip("=")
     logging.debug(f"common name base64encoded: {cn_encoded}")
-    return os.path.join(config.pki_assets, cn_encoded, str(ca_id))
+    path = os.path.join(config.pki_assets, cn_encoded, str(ca_id))
+    if key_type == CryptoKeyType.EC:
+        path = os.path.join(config.pki_assets, "signing", cn_encoded, str(ca_id))
+    return path
 
 
 def get_participant_label(email, data_id):
@@ -642,6 +707,11 @@ def tmp_path_for_file_decryption():
 def tmp_path_for_key_decryption():
     """Generates a temporary file path as the output path for encrypted key decryption"""
     return _tmp_path_for_decryption(base_path=config.container_keys_dir)
+
+
+def tmp_path_for_cc_asset_key():
+    """Generates a temporary file path to write key for decryption"""
+    return _tmp_path_for_decryption(base_path=config.cc_artifacts_dir)
 
 
 def secure_write_to_file(file_path, content: bytes, exec_permission=False):

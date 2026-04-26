@@ -20,6 +20,7 @@ from medperf.utils import (
     remove_path,
 )
 from medperf.certificates import verify_certificate_authority
+from medperf.enums import CryptoKeyType
 
 
 class TrainingExecution:
@@ -46,13 +47,13 @@ class TrainingExecution:
             execution.confirm_restart_on_failure()
 
         while True:
-            execution.prepare()
-            execution.validate()
-            execution.check_existing_outputs()
-            execution.prepare_plan()
-            execution.prepare_pki_assets()
-            execution.confirm_run()
             with config.ui.interactive():
+                execution.prepare()
+                execution.validate()
+                execution.check_existing_outputs()
+                execution.prepare_plan()
+                execution.prepare_pki_assets()
+                execution.confirm_run()
                 execution.prepare_training_cube()
                 try:
                     execution.run_experiment()
@@ -123,7 +124,9 @@ class TrainingExecution:
         verify_certificate_authority(
             ca, expected_fingerprint=config.certificate_authority_fingerprint
         )
-        self.dataset_pki_assets = get_pki_assets_path(self.user_email, ca.id)
+        self.dataset_pki_assets = get_pki_assets_path(
+            self.user_email, ca.id, CryptoKeyType.EC
+        )
         self.ca = ca
 
     def confirm_run(self):

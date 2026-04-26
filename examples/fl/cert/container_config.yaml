@@ -1,5 +1,5 @@
 container_type: DockerImage
-image: mlcommons/medperf-step-cli:0.0.2
+image: mlcommons/medperf-step-cli:0.0.3
 tasks:
   get_client_cert:
     run_args:

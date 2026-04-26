@@ -1,251 +1,131 @@
+var REDIRECT_BASE = "/datasets/ui/display/";
+var trainingPollingIntervalId = null;
 
-function onDatasetPrepareSuccess(response){
-    markAllStagesAsComplete();
-    if(response.status === "success"){
-        showReloadModal({
-            title: "Dataset Prepared Successfully",
-            seconds: 3,
-        });
-    }
-    else{
-        showErrorModal("Failed to Prepare Dataset", response);
-    }
-}
+const CONTAINER_TASK_TRAIN = "train";
+const RUNNING_TASKS_POLL_MS = 2000;
 
-async function prepareDataset(prepareButton) {
-    addSpinner(prepareButton);
-
-    const datasetId = prepareButton.getAttribute("data-dataset-id");
-    
-    const formData = new FormData();
-    formData.append("dataset_id", datasetId);
-
-    disableElements(".card button");
-    
-    ajaxRequest(
-        "/datasets/prepare",
-        "POST",
-        formData,
-        onDatasetPrepareSuccess,
-        "Error preparing dataset:"
-    );
-
-    window.runningTaskId = await getTaskId();
-    showPanel(`Preparing Dataset...`);
-    streamEvents(logPanel, stagesList, currentStageElement);
-}
-
-function onDatasetSetOperationSuccess(response){
-    markAllStagesAsComplete();
-    if(response.status === "success"){
-        showReloadModal({
-            title: "Dataset Set to Operation Successfully",
-            seconds: 3,
-        });
-    }
-    else{
-        showErrorModal("Failed to Set Dataset to Operation", response);
+function updateTrainingRunningBanner(tasks) {
+    var banner = document.getElementById("training-running-banner");
+    if (!banner) return;
+    var running = Array.isArray(tasks) && tasks.indexOf(CONTAINER_TASK_TRAIN) !== -1;
+    if (running) {
+        banner.classList.remove("hidden");
+    } else {
+        banner.classList.add("hidden");
     }
 }
 
-async function setDatasetToOperation(setOperationButton){
-    addSpinner(setOperationButton);
+function pollTrainingRunningTasks() {
+    var banner = document.getElementById("training-running-banner");
+    if (!banner) return;
+    fetch("/api/running_tasks", { method: "GET" })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            if (data && Array.isArray(data.tasks)) updateTrainingRunningBanner(data.tasks);
+        })
+        .catch(function () {});
+}
 
-    const datasetId = setOperationButton.getAttribute("data-dataset-id");
-    
-    const formData = new FormData();
-    formData.append("dataset_id", datasetId);
+function startPollingTrainingRunningTasks() {
+    pollTrainingRunningTasks();
+    if (!trainingPollingIntervalId) trainingPollingIntervalId = setInterval(pollTrainingRunningTasks, RUNNING_TASKS_POLL_MS);
+}
 
-    disableElements(".card button");
+
+function onRunTrainingSuccess(response) {
+    if (response.status === "success") {
+        showReloadModal({ title: "Training Ran Successfully", seconds: 3 });
+    } else showErrorModal("Something went wrong while running the training", response);
+}
+
+async function submitActionFormWithForm(form) {
+    var formData = new FormData(form);
+    var panelTitle = form.getAttribute("data-panel-title") || "Action";
+    var isRunForm = (form.getAttribute("action") || "").indexOf("/datasets/start_training") !== -1;
+
+    disableElements(".detail-container form button, .detail-container form input, .detail-container form select");
+    var submitBtn = form.querySelector('button[type="submit"]');
+    if (submitBtn) addSpinner(submitBtn);
+    showPanel(panelTitle + "...");
+
+    var successCallback = isRunForm ? onRunTrainingSuccess : onActionSuccess(panelTitle);
+    window.onPromptComplete = successCallback;
 
     ajaxRequest(
-        "/datasets/set_operational",
+        form.action,
         "POST",
         formData,
-        onDatasetSetOperationSuccess,
-        "Error setting dataset to operation:"
+        successCallback,
+        "Error: " + panelTitle
     );
-
-    window.runningTaskId = await getTaskId();
+    window.taskId = await getTaskId();
     streamEvents(logPanel, stagesList, currentStageElement);
+    if (isRunForm) startPollingTrainingRunningTasks();
 }
 
-function onDatasetAssociationRequestSuccess(response){
-    markAllStagesAsComplete();
-    if(response.status === "success"){
-        showReloadModal({
-            title: "Association Requested Successfully",
-            seconds: 3,
-        });
-    }
-    else{
-        showErrorModal("Association Request Failed", response);
-    }
+function submitActionForm(e) {
+    e.preventDefault();
+    var form = e.target;
+    var msg = form.getAttribute("data-confirm-message") || "continue?";
+    showConfirmModal(form, submitActionFormWithForm, msg);
 }
 
-async function requestDatasetAssociation(requestAssociationButton){
-    $("#dropdown-div").removeClass("show");
-    addSpinner($("#associate-dropdown-btn")[0]);
-
-    const datasetId = requestAssociationButton.getAttribute("data-dataset-id");
-    const benchmarkId = requestAssociationButton.getAttribute("data-benchmark-id");
-
-    const formData = new FormData();
-    formData.append("dataset_id", datasetId);
-    formData.append("benchmark_id", benchmarkId);
-
-    disableElements(".card button");
-
-    ajaxRequest(
-        "/datasets/associate",
-        "POST",
-        formData,
-        onDatasetAssociationRequestSuccess,
-        "Error requesting dataset association:"
-    );
-
-    showPanel(`Requesting Association...`);
-    window.runningTaskId = await getTaskId();
-    streamEvents(logPanel, stagesList, currentStageElement);
+function stopTraining() {
+    var btn = document.getElementById("stop-training-btn");
+    btn.disabled = true;
+    var formData = new FormData();
+    formData.append("task_name", CONTAINER_TASK_TRAIN);
+    fetch("/api/stop_task", { method: "POST", body: formData })
+        .then(function (r) {
+            if (r.ok) {
+                updateTrainingRunningBanner([]);
+                displayAlert("success", "Training stopped.");
+            }
+            btn.disabled = false;
+        })
+        .catch(function () { btn.disabled = false; });
 }
 
-function onDatasetBenchmarkExecutionSuccess(response){
-    markAllStagesAsComplete();
-    if(response.status === "success"){
-        showReloadModal({
-            title: "Execution Ran Successfully",
-            seconds: 3,
-        });
-    }
-    else{
-        showErrorModal("Execution Failed", response);
-    }
-}
-
-async function runBenchmarkExecution(executeBenchmarkButton){
+async function runBenchmarkExecution(executeBenchmarkButton) {
     addSpinner(executeBenchmarkButton);
-
-    let modelIds = [];
-    const formData = new FormData();
-
-    const benchmarkId = executeBenchmarkButton.getAttribute("data-benchmark-id");
-    const datasetId = executeBenchmarkButton.getAttribute("data-dataset-id");
-    const runAll = executeBenchmarkButton.getAttribute("data-runAll") === "true";
-
-    if(runAll){
-        const runButtons = document.querySelectorAll(`[id^="run-${benchmarkId}-"]`);
-        runButtons.forEach(button => {
-            if (!button.classList.contains('d-none')) {
-                modelIds.push(button.getAttribute("data-model-id"));
+    var formData = new FormData();
+    var benchmarkId = executeBenchmarkButton.getAttribute("data-benchmark-id");
+    var datasetId = executeBenchmarkButton.getAttribute("data-dataset-id");
+    var runAll = executeBenchmarkButton.getAttribute("data-runAll") === "true";
+    if (runAll) {
+        document.querySelectorAll("[id^='run-" + benchmarkId + "-']").forEach(function (button) {
+            if (!button.classList.contains("hidden") && !button.classList.contains("d-none")) {
+                formData.append("model_ids", button.getAttribute("data-model-id"));
                 addSpinner(button);
             }
         });
-        modelIds.forEach(modelId => {
-            formData.append("model_ids", modelId);
-        });
+    } else {
+        formData.append("model_ids", executeBenchmarkButton.getAttribute("data-model-id"));
     }
-    else{
-        modelIds = executeBenchmarkButton.getAttribute("data-model-id");
-        formData.append("model_ids", modelIds);
-        
-    }
-
     formData.append("dataset_id", datasetId);
     formData.append("benchmark_id", benchmarkId);
     formData.append("run_all", runAll);
-
     disableElements(".card button");
-
-    ajaxRequest(
-        "/datasets/run",
-        "POST",
-        formData,
-        onDatasetBenchmarkExecutionSuccess,
-        "Error running benchmark execution:"
-    );
-        
-    showPanel(`Running Benchmark Execution...`);
-    window.runningTaskId = await getTaskId();
+    ajaxRequest("/datasets/run", "POST", formData, onDatasetBenchmarkExecutionSuccess, "Error running benchmark execution:");
+    window.taskId = await getTaskId();
+    showPanel("Running Benchmark Execution...");
     streamEvents(logPanel, stagesList, currentStageElement);
 }
 
-function onResultSubmitSuccess(response){
-    markAllStagesAsComplete();
-    if(response.status === "success"){
-        showReloadModal({
-            title: "Results Successfully Submitted",
-            seconds: 3,
-        });
-    }
-    else{
-        showErrorModal("Results Submission Failed", response);
-    }
+function init() {
+    document.querySelectorAll("form[id$='-form']:not(#redirect-export-form), form[id^='dataset-association-form-'], form[id^='dataset-training-association-form-'], form[id^='start-training-form-']").forEach(function (form) {
+        form.addEventListener("submit", submitActionForm);
+    });
+    document.querySelectorAll("[id^='show-']").forEach(function (el) {
+        el.addEventListener("click", function () { showResult(el); });
+    });
+    var exportForm = document.getElementById("redirect-export-form");
+    if (exportForm) exportForm.addEventListener("submit", function (e) { e.preventDefault(); });
+
+    var stopTrainingBtn = document.getElementById("stop-training-btn");
+    if (stopTrainingBtn) stopTrainingBtn.addEventListener("click", function (e) {
+        showConfirmModal(e.currentTarget, function () { stopTraining(); }, "stop the running training?");
+    });
 }
-
-async function submitResult(submitResultButton){
-    addSpinner(submitResultButton);
-
-    const resultId = submitResultButton.getAttribute("data-result-id");
-    const benchmarkId = submitResultButton.getAttribute("data-benchmark-id");
-    const datasetId = submitResultButton.getAttribute("data-dataset-id");
-    
-    const formData = new FormData();
-    formData.append("result_id", resultId);
-    formData.append("benchmark_id", benchmarkId);
-    formData.append("dataset_id", datasetId)
-
-    disableElements(".card button");
-    
-    ajaxRequest(
-        "/datasets/submit_result",
-        "POST",
-        formData,
-        onResultSubmitSuccess,
-        "Error submitting results:"
-    );
-
-    window.runningTaskId = await getTaskId();
-    streamEvents(logPanel, stagesList, currentStageElement);
-}
-
-$(document).ready(() => {
-    $("#prepare-dataset").on("click", (e) => {
-        showConfirmModal(e.currentTarget, prepareDataset, "prepare this dataset?");
-    });
-
-    $("#set-operational").on("click", (e) => {
-        showConfirmModal(e.currentTarget, setDatasetToOperation, "set this dataset to operation?");
-    });
-
-    $(".request-association-btn").on("click", (e) => {
-        showConfirmModal(e.currentTarget, requestDatasetAssociation, "request dataset association?");
-    });
-
-    $("[id^='run-']").on("click", (e) => {
-        const targetButton = $(e.currentTarget);
-        if (targetButton.hasClass("run-all-btn")){
-            showConfirmModal(e.currentTarget, runBenchmarkExecution, "run the benchmark execution for all models?");
-        }
-        else{
-            let msg;
-            if (targetButton.attr("rerun") !== undefined){
-                msg = "rerun the benchmark execution for the selected model? This will clear previous results.";
-            }
-            else {
-                msg = "run the benchmark execution for the selected model?";
-            }
-            showConfirmModal(e.currentTarget, runBenchmarkExecution, msg);
-        }
-        
-    });
-
-    $("[id^='show-']").on("click", (e) => {
-        showResult(e.currentTarget);
-    });
-
-    $("[id^='submit-']").on("click", (e) => {
-        showConfirmModal(e.currentTarget, submitResult, "submit the result?");
-    });
-    
-    $("#redirect-export-form").off("submit");
-});
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+else init();

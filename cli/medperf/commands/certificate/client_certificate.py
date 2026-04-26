@@ -5,19 +5,20 @@ from medperf.ui.interface import UI
 from medperf.utils import get_pki_assets_path, remove_path
 from medperf import config
 from medperf.entities.ca import CA
+from medperf.enums import CryptoKeyType
 import os
 
 
 class GetUserCertificate:
     @staticmethod
-    def run(overwrite: bool = False):
+    def run(key_type: CryptoKeyType, overwrite: bool = False):
         """get user cert"""
         ui: UI = config.ui
         ca_id = config.certificate_authority_id
         ca = CA.get(ca_id)
 
         email = get_medperf_user_data()["email"]
-        output_path = get_pki_assets_path(email, ca.id)
+        output_path = get_pki_assets_path(email, ca.id, key_type=key_type)
         if os.path.exists(output_path):
             if not overwrite:
                 raise MedperfException(
@@ -28,4 +29,4 @@ class GetUserCertificate:
         with ui.interactive():
             ui.text = "Getting Certificate"
             with ui.parsed_output():
-                get_client_cert(ca, email, output_path)
+                get_client_cert(ca, email, output_path, key_type=key_type)

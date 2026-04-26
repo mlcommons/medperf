@@ -8,7 +8,7 @@ class LoginPage(BasePage):
     EMAIL_LABEL = (By.CSS_SELECTOR, 'label[for="email"]')
     EMAIL = (By.ID, "email")
     LOGIN = (By.ID, "medperf-login-btn")
-    NOT_LOGGED_IN_ALERT = (By.CSS_SELECTOR, "div.alert.alert-danger")
+    NOT_LOGGED_IN_ALERT = (By.CSS_SELECTOR, "div[data-testid='login-error']")
     CONFIRM_TEXT = (By.ID, "confirm-text")
 
     def login(self, email):

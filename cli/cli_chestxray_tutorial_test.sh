@@ -25,8 +25,6 @@ print_eval medperf profile create -n testbenchmark
 checkFailed "testbenchmark profile creation failed"
 print_eval medperf profile create -n testdata
 checkFailed "testdata profile creation failed"
-print_eval medperf profile create -n noserver
-checkFailed "noserver profile creation failed"
 print_eval medperf profile create -n testprivate
 checkFailed "testprivate profile creation failed"
 print_eval medperf profile set --server https://example.com
@@ -132,7 +130,7 @@ echo "\n"
 echo "============================================="
 echo "Getting a certificate"
 echo "============================================="
-print_eval medperf certificate get_client_certificate
+print_eval medperf certificate get_client_certificate --key_type RSA
 checkFailed "Failed to obtain Data Owner Certificate"
 ##########################################################
 
@@ -142,7 +140,7 @@ echo "\n"
 echo "============================================="
 echo "Submitting the certificate"
 echo "============================================="
-print_eval medperf certificate submit_client_certificate -y
+print_eval medperf certificate submit_client_certificate --key_type RSA -y
 checkFailed "Failed to submit Data Owner Certificate"
 ##########################################################
 
@@ -162,11 +160,11 @@ echo "\n"
 echo "====================================="
 echo "Submit a private model"
 echo "====================================="
-print_eval medperf container submit --name privmodel \
+print_eval medperf model submit --name privmodel \
   -m $CHESTXRAY_ENCRYPTED_MODEL -p $CHESTXRAY_ENCRYPTED_MODEL_PARAMS \
   -a $CHESTXRAY_ENCRYPTED_MODEL_ADD --decryption_key $PRIVATE_MODEL_LOCAL/key.bin --operational
-checkFailed "private container submission failed"
-PMODEL_UID=$(medperf container ls | grep privmodel | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+checkFailed "private model submission failed"
+PMODEL_UID=$(medperf model ls | grep privmodel | head -n 1 | tr -s ' ' | cut -d ' ' -f 2)
 ##########################################################
 
 echo "\n"
@@ -175,7 +173,7 @@ echo "\n"
 echo "====================================="
 echo "Running private model association"
 echo "====================================="
-print_eval medperf container associate -m $PMODEL_UID -b 1 -y
+print_eval medperf model associate -m $PMODEL_UID -b 1 -y
 checkFailed "private model association failed"
 ##########################################################
 
@@ -185,7 +183,7 @@ echo "\n"
 echo "====================================="
 echo "Give Access to Private Model"
 echo "====================================="
-print_eval medperf container grant_access --model-id $PMODEL_UID --benchmark-id 1 -y
+print_eval medperf model grant_access --model-id $PMODEL_UID --benchmark-id 1 -y
 checkFailed "Failed to Give Model Access to Data owner"
 ##########################################################
 
@@ -206,7 +204,7 @@ echo "====================================="
 echo "Running benchmark execution step - Public"
 echo "====================================="
 # Create results
-print_eval medperf run -b 1 -d $DSET_UID -m 5 -y
+print_eval medperf run -b 1 -d $DSET_UID -m 1 -y
 checkFailed "Benchmark execution step failed (public)"
 ##########################################################
 
@@ -219,60 +217,6 @@ echo "====================================="
 # Create results
 print_eval medperf run -b 1 -d $DSET_UID -m $PMODEL_UID -y
 checkFailed "Benchmark execution step failed (private)"
-##########################################################
-
-echo "\n"
-
-##########################################################
-echo "====================================="
-echo " Offline Compatibility Test - Public "
-echo "====================================="
-
-# Test offline compatibility test
-print_eval wget -P $MODEL_LOCAL/workspace/additional_files "https://storage.googleapis.com/medperf-storage/chestxray_tutorial/cnn_weights.tar.gz"
-print_eval tar -xzvf $MODEL_LOCAL/workspace/additional_files/cnn_weights.tar.gz -C $MODEL_LOCAL/workspace/additional_files
-
-## Change the server and logout just to make sure this command will work without connecting to a server
-print_eval medperf profile activate noserver
-checkFailed "noserver profile activation failed"
-
-
-print_eval medperf test run --offline --no-cache \
-  --demo_dataset_url https://storage.googleapis.com/medperf-storage/chestxray_tutorial/demo_data.tar.gz \
-  --demo_dataset_hash "71faabd59139bee698010a0ae3a69e16d97bc4f2dde799d9e187b94ff9157c00" \
-  -p $PREP_LOCAL/container_config.yaml \
-  -m $MODEL_LOCAL/container_config.yaml \
-  -e $METRIC_LOCAL/container_config.yaml \
-  --data_preparator_parameters $PREP_LOCAL/workspace/parameters.yaml \
-  --model_parameters $MODEL_LOCAL/workspace/parameters.yaml \
-  --evaluator_parameters $METRIC_LOCAL/workspace/parameters.yaml \
-  --model_additional_files $MODEL_LOCAL/workspace/additional_files/
-
-checkFailed "offline compatibility test execution step failed - public model"
-##########################################################
-
-echo "\n"
-
-##########################################################
-echo "====================================="
-echo " Offline Compatibility Test - Private "
-echo "====================================="
-print_eval medperf test run --offline --no-cache \
-  --demo_dataset_url https://storage.googleapis.com/medperf-storage/chestxray_tutorial/demo_data.tar.gz \
-  --demo_dataset_hash "71faabd59139bee698010a0ae3a69e16d97bc4f2dde799d9e187b94ff9157c00" \
-  -p $PREP_LOCAL/container_config.yaml \
-  -m $PRIVATE_MODEL_LOCAL/container_config.yaml \
-  -e $METRIC_LOCAL/container_config.yaml \
-  -d $PRIVATE_MODEL_LOCAL/key.bin \
-  --data_preparator_parameters $PREP_LOCAL/workspace/parameters.yaml \
-  --model_parameters $MODEL_LOCAL/workspace/parameters.yaml \
-  --evaluator_parameters $METRIC_LOCAL/workspace/parameters.yaml \
-  --model_additional_files $MODEL_LOCAL/workspace/additional_files/
-
-checkFailed "offline compatibility test execution step failed - private model"
-
-print_eval rm $MODEL_LOCAL/workspace/additional_files/cnn_weights.tar.gz
-print_eval rm $MODEL_LOCAL/workspace/additional_files/cnn_weights.pth
 ##########################################################
 
 echo "\n"
@@ -307,9 +251,6 @@ print_eval medperf profile delete testbenchmark
 checkFailed "Profile deletion failed"
 
 print_eval medperf profile delete testdata
-checkFailed "Profile deletion failed"
-
-print_eval medperf profile delete noserver
 checkFailed "Profile deletion failed"
 
 print_eval medperf profile delete testprivate

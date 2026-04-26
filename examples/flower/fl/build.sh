@@ -1,0 +1,1 @@
+docker build -t mlcommons/medperf-flower-fl:1.0.0 -f Dockerfile .

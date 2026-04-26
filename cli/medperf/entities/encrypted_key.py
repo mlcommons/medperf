@@ -1,7 +1,8 @@
 from __future__ import annotations
 import base64
 import logging
-from medperf.entities.schemas import MedperfSchema
+from medperf.entities.interface import Entity
+from medperf.entities.schemas import EncryptedKeySchema
 from medperf import config
 from medperf.exceptions import (
     MedperfException,
@@ -15,16 +16,22 @@ from medperf.commands.certificate.utils import (
 from medperf.encryption import AsymmetricEncryption
 from medperf.utils import tmp_path_for_key_decryption, secure_write_to_file
 from typing import List
+from medperf.entities.utils import handle_validation_error
+from medperf.enums import CryptoKeyType
 
 
-class EncryptedKey(MedperfSchema):
+class EncryptedKey(Entity):
     """
     Class representing an Encrypted Container Key
     """
 
-    encrypted_key_base64: str
-    container: int
-    certificate: int
+    @handle_validation_error
+    def __init__(self, **kwargs):
+        self._model = EncryptedKeySchema(**kwargs)
+        super().__init__()
+        self.encrypted_key_base64 = self._model.encrypted_key_base64
+        self.container = self._model.container
+        self.certificate = self._model.certificate
 
     @classmethod
     def get(cls, key_id: int) -> EncryptedKey:
@@ -44,7 +51,7 @@ class EncryptedKey(MedperfSchema):
     def get_user_container_key(cls, container_id: int) -> EncryptedKey:
         """Get encrypted key of a container for the current user certificate"""
         # Get user cert
-        user_cert_info = current_user_certificate_status()
+        user_cert_info = current_user_certificate_status(CryptoKeyType.RSA)
         if not user_cert_info["no_action_required"]:
             raise PrivateContainerAccessError("You don't have a valid certificate")
         user_cert = user_cert_info["user_cert_object"]
@@ -55,9 +62,8 @@ class EncryptedKey(MedperfSchema):
             user_cert.id, filters=filters
         )
         if len(keys) == 0:
-            raise PrivateContainerAccessError(
-                f"You don't have access to the container {container_id}"
-            )
+            logging.debug(f"No keys found for container {container_id}")
+            raise PrivateContainerAccessError("You don't have access to the container")
 
         if len(keys) > 1:
             raise MedperfException("Internal error: expected only one key.")
@@ -76,7 +82,7 @@ class EncryptedKey(MedperfSchema):
         output_path = tmp_path_for_key_decryption()
         logging.debug(f"Output path: {output_path}")
         encrypted_key_bytes = base64.b64decode(self.encrypted_key_base64)
-        private_key_bytes = load_user_private_key()
+        private_key_bytes = load_user_private_key(CryptoKeyType.RSA)
         if private_key_bytes is None:
             raise DecryptionError("Missing Private Key")
         decrypted_key_bytes = AsymmetricEncryption().decrypt(

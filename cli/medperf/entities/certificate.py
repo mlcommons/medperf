@@ -1,13 +1,18 @@
 from __future__ import annotations
 import os
 from medperf.entities.interface import Entity
+from medperf.entities.schemas import CertificateSchema
 from medperf.account_management import get_medperf_user_data
 from medperf import config
 from medperf.exceptions import MedperfException
-from medperf.utils import generate_tmp_path
+from medperf.utils import generate_tmp_path, get_pki_assets_path
 import base64
 from typing import List, Tuple
 import logging
+from cryptography import x509
+from cryptography.hazmat.primitives import serialization
+from medperf.entities.utils import handle_validation_error
+from medperf.enums import CryptoKeyType
 
 
 class Certificate(Entity):
@@ -15,9 +20,6 @@ class Certificate(Entity):
     Class representing a Certificate uploaded to the MedPerf server
     Currently only supports Client Certificates (ie common name is a email)
     """
-
-    certificate_content_base64: str
-    ca: int
 
     @staticmethod
     def get_type():
@@ -38,6 +40,14 @@ class Certificate(Entity):
     @staticmethod
     def get_comms_uploader():
         return config.comms.upload_certificate
+
+    @handle_validation_error
+    def __init__(self, **kwargs):
+        self._model = CertificateSchema(**kwargs)
+        super().__init__()
+        self.certificate_content_base64 = self._model.certificate_content_base64
+        self.key_type = self._model.key_type
+        self.ca = self._model.ca
 
     @property
     def local_id(self):
@@ -62,7 +72,27 @@ class Certificate(Entity):
         cert_data_list = config.comms.get_benchmark_datasets_certificates(
             benchmark_id=benchmark_id
         )
+        return cls._process_cert_data_list(cert_data_list, CryptoKeyType.RSA)
 
+    @classmethod
+    def get_training_datasets_certificates(
+        cls, training_exp_id: int
+    ) -> Tuple[List[Certificate], dict[int, dict]]:
+        # this api returns owners as dicts.
+        cert_data_list = config.comms.get_training_datasets_certificates(
+            training_exp_id
+        )
+        return cls._process_cert_data_list(cert_data_list, CryptoKeyType.EC)
+
+    @classmethod
+    def _process_cert_data_list(
+        cls, cert_data_list: List[dict], key_type: CryptoKeyType
+    ) -> Tuple[List[Certificate], dict[int, dict]]:
+        cert_data_list = [
+            cert_data
+            for cert_data in cert_data_list
+            if cert_data["key_type"] == key_type.value
+        ]
         # Transfer user info to another dict
         users_mapping = dict()
         for cert_data in cert_data_list:
@@ -73,19 +103,46 @@ class Certificate(Entity):
         return cert_obj_list, users_mapping
 
     @classmethod
-    def get_user_certificate(cls):
+    def get_user_certificate(cls, key_type: CryptoKeyType):
         user_id = get_medperf_user_data()["id"]
         user_certificates = Certificate.all(
-            filters={"owner": user_id, "ca": config.certificate_authority_id}
+            filters={
+                "owner": user_id,
+                "ca": config.certificate_authority_id,
+                "key_type": key_type.value,
+            }
         )
         if len(user_certificates) == 0:
             return
 
         if len(user_certificates) > 1:
             raise MedperfException(
-                "Internal Error: Multiple certificates has been found"
+                "Internal Error: Multiple certificates have been found"
             )
         return user_certificates[0]
+
+    @classmethod
+    def get_local_user_certificate(cls, key_type: CryptoKeyType):
+        email = get_medperf_user_data()["email"]
+        local_cert_folder = get_pki_assets_path(
+            email, config.certificate_authority_id, key_type=key_type
+        )
+        local_certificate_file = os.path.join(
+            local_cert_folder, config.certificate_file
+        )
+        if not os.path.exists(local_certificate_file):
+            logging.debug(f"No local certificate found: {local_certificate_file}")
+            return
+        with open(local_certificate_file, "rb") as f:
+            local_certificate_content = f.read()
+
+        cert_b64encoded = base64.b64encode(local_certificate_content).decode("utf-8")
+        return cls(
+            name="tmp_local_cert",
+            certificate_content_base64=cert_b64encoded,
+            ca=config.certificate_authority_id,
+            key_type=key_type,
+        )
 
     @classmethod
     def remote_prefilter(cls, filters: dict) -> callable:
@@ -102,11 +159,21 @@ class Certificate(Entity):
             comms_fn = config.comms.get_user_certificates
         return comms_fn
 
+    def public_key(self):
+        certificate_bytes = base64.b64decode(self.certificate_content_base64)
+        certificate_obj = x509.load_pem_x509_certificate(data=certificate_bytes)
+        public_key_bytes = certificate_obj.public_key().public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo,
+        )
+        return public_key_bytes
+
     def display_dict(self):
         return {
             "UID": self.identifier,
             "Name": self.name,
             "CA ID": self.ca,
+            "Key Type": self.key_type.value,
             "Created At": self.created_at,
             "Is Valid": self.is_valid,
         }

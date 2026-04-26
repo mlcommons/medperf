@@ -101,6 +101,22 @@ def __apply_trusted_ca_migrations(config_p: ConfigManager):
         ] = config.dev_certificate_authority_fingerprint
 
 
+def __apply_cc_migrations(config_p: ConfigManager):
+
+    for folder in [
+        "decrypted_files_folder",
+        "hashed_files_folder",
+        "script_result_folder",
+        "certificates_folder",
+        "assets_folder",
+        "models_folder",
+    ]:
+        if folder not in config_p.storage:
+            # Assuming for now all folders are always moved together
+            # I used here "benchmarks_folder" arbitrarily
+            config_p.storage[folder] = config_p.storage["benchmarks_folder"]
+
+
 def apply_configuration_migrations():
     if not os.path.exists(config.config_path):
         return
@@ -111,5 +127,6 @@ def apply_configuration_migrations():
     __apply_login_tracking_migrations(config_p)
     __apply_results_to_executions_migrations(config_p)
     __apply_trusted_ca_migrations(config_p)
+    __apply_cc_migrations(config_p)
 
     write_config(config_p)

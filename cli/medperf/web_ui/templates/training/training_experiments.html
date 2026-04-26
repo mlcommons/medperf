@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% import 'macros/training_macros.html' as training_macros %}
+
+{% block title %}Training Experiments{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-12">
+    <div class="mb-12">
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <h1 class="text-5xl font-bold medperf-accent dark:text-green-400 mb-3" data-testid="page-header">Training Experiments</h1>
+                <p class="text-gray-700 dark:text-gray-300 text-lg">Manage and explore training experiments</p>
+            </div>
+            <a class="px-8 py-4 medperf-bg dark:bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 dark:hover:bg-green-500 transition-all shadow-lg hover:shadow-xl inline-flex items-center" href="/training/register/ui" data-testid="reg-training-btn">
+                <i class="fas fa-plus mr-2"></i>Register New Training Experiment
+            </a>
+        </div>
+        <div class="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-md border-2 border-green-100 dark:border-gray-700 inline-flex">
+            <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only peer" id="switch" data-entity-name="training" {% if mine_only %}checked{% endif %}>
+                <div class="w-14 h-7 bg-gray-200 dark:bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-green-600"></div>
+                <span class="ml-4 text-gray-700 dark:text-gray-300 font-semibold">Show only my experiments</span>
+            </label>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" data-testid="cards-container">
+        {% if experiments %}
+        {% for exp in experiments %}
+        {{ training_macros.training_experiment_card(exp) }}
+        {% endfor %}
+        {% else %}
+        <h3 class="col-span-full text-center py-12 text-gray-600 dark:text-gray-400 text-xl" data-testid="no-exps-msg">No training experiments yet</h3>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.getElementById("switch").addEventListener("change", function() { getEntities(this); });
+</script>
+{% endblock %}

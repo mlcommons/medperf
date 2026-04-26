@@ -18,7 +18,7 @@ class DatasetPublicSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Dataset
-        exclude = ["owner", "report"]
+        exclude = ["report"]
 
 
 class DatasetDetailSerializer(serializers.ModelSerializer):

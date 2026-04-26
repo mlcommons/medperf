@@ -1,18 +1,6 @@
 {# ./cli/medperf/web_ui/templates/constants/tooltips.html #}
 
 {# Tooltips for benchmarks pages #}
-{% set workflow_test_data_preparation_container = "Path to the data preparation container" %}
-{% set workflow_test_data_preparation_parameters = "Path to the data preparation parameters file (Optional)" %}
-{% set workflow_test_data_preparation_additional = "Path to the data preparation additional files folder (Optional)" %}
-{% set workflow_test_reference_model_path = "Path to the reference model" %}
-{% set workflow_test_reference_model_parameters = "Path to the reference model parameters file (Optional)" %}
-{% set workflow_test_reference_model_additional = "Path to the reference model additional files folder (Optional)" %}
-{% set workflow_test_metrics_container_path = "Path to the metrics container" %}
-{% set workflow_test_metrics_container_parameters = "Path to the metrics container parameters file (Optional)" %}
-{% set workflow_test_metrics_container_additional = "Path to the metrics container additional files folder (Optional)" %}
-{% set workflow_test_reference_dataset_data_path = "Path to the reference dataset data folder" %}
-{% set workflow_test_reference_dataset_labels_path = "Path to the reference dataset labels folder" %}
-
 {% set register_benchmark_name = "Name of the benchmark you are registering" %}
 {% set register_benchmark_description = "Description of the benchmark you are registering" %}
 {% set register_benchmark_reference_dataset_tarball_url = "Full URL of the reference dataset tarball" %}
@@ -33,7 +21,7 @@
 {% set register_dataset_location = "Location of the dataset you are registering" %}
 {% set register_dataset_data_path = "Path to the data folder" %}
 {% set register_dataset_labels_path = "Path to the labels folder" %}
-
+{% set register_dataset_submit_as_prepared = "Check this box if the dataset is already prepared" %}
 {% set export_dataset_output_path = "Path to the folder that will contain the tar.gz dataset backup" %}
 
 {% set import_dataset_id = "Dataset UID to be imported" %}
@@ -41,18 +29,36 @@
 {% set import_dataset_raw_path = "New path to the DEVELOPMENT dataset raw data to be saved. Directory must be empty or doesn't exist" %}
 
 {# Tooltips for containers pages #}
-{% set compatibility_test_container_file = "Path to the config file for the model you want to test" %}
-{% set compatibility_test_parameters_file = "Path to the parameters file for the model you want to test (Optional)" %}
-{% set compatibility_test_additional_file = "Path to the additional files' folder for the model you want to test (Optional)" %}
-{% set compatibility_test_decryption_file = "Path to the decryption key file for the model you want to test" %}
-
 {% set register_container_name = "Name of the container you are registering" %}
 {% set register_container_manifest_file = "Path to the container config file for the container you are registering" %}
 {% set register_container_parameters_file = "Path to the parameters file for the container you are registering (Optional)" %}
 {% set register_container_additional_file = "URL of the additional files tarball for the container you are registering (Optional)" %}
 {% set register_container_decryption_file = "Path to decryption key for the container you are registering" %}
 
+{# Tooltips for training experiment registration #}
+{% set register_training_name = "Name of the training experiment you are registering" %}
+{% set register_training_description = "Short description of the training experiment" %}
+{% set register_training_docs_url = "Optional URL to documentation (e.g. README or paper)" %}
+{% set register_training_data_preparation_container = "Data preparation container used to preprocess datasets for this experiment. Must match the one used by datasets you associate." %}
+{% set register_training_fl_container = "Federated learning container that runs the training workflow (e.g. FL rounds, aggregation)." %}
+{% set register_training_fl_admin_container = "Optional container that provides FL admin/coordinator functionality (e.g. round control, participant selection)." %}
+
+{# Tooltips for aggregator registration #}
+{% set register_aggregator_name = "Name of the aggregator you are registering" %}
+{% set register_aggregator_address = "Hostname or IP address where the aggregator service is reachable" %}
+{% set register_aggregator_port = "Port number the aggregator listens on (1-65535)" %}
+{% set register_aggregator_admin_port = "Port number the aggregator listens on for admin endpoints (1-65535)" %}
+{% set register_aggregator_aggregation_mlcube = "Container that implements the aggregation logic (e.g. FedAvg) used by this aggregator" %}
+
 {# Tooltips for settings page #}
 {% set get_client_certificate_btn = "Get client certificate" %}
 {% set submit_certificate_btn = "Submit certificate to medperf server" %}
 {% set invalidate_certificate_btn = "Delete certificate/mark it as invalid" %}
+
+{# Tooltips for asset registration page #}
+{% set register_asset_name = "Name of the asset you are registering" %}
+{% set register_asset_url = "Full URL of the asset you are registering" %}
+{% set register_asset_path = "Path to the asset file you are registering" %}
+
+{# Tooltips for CC configuration #}
+{% set cc_misconfigured = "There is a problem with your CC configurtion. Click the button again once you resolve the problem." %}

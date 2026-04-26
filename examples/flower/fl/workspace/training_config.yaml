@@ -1,0 +1,4 @@
+num-server-rounds: 2
+local-epochs: 1
+learning-rate: 0.1
+batch-size: 16

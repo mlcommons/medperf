@@ -1,14 +1,16 @@
 from datetime import datetime
 import os
-from typing import Optional
 from medperf.entities.interface import Entity
+from medperf.entities.schemas import TrainingEventSchema
 import medperf.config as config
-from medperf.entities.schemas import MedperfSchema
 from medperf.account_management import get_medperf_user_data
 import yaml
+from medperf.entities.utils import handle_validation_error
+from medperf.entities.certificate import Certificate
+from medperf.exceptions import MedperfException
 
 
-class TrainingEvent(Entity, MedperfSchema):
+class TrainingEvent(Entity):
     """
     Class representing a compatibility test report entry
 
@@ -22,12 +24,6 @@ class TrainingEvent(Entity, MedperfSchema):
     - evaluator cube
     - results
     """
-
-    training_exp: int
-    participants: dict
-    finished: bool = False
-    finished_at: Optional[datetime]
-    report: Optional[dict]
 
     @staticmethod
     def get_type():
@@ -49,9 +45,19 @@ class TrainingEvent(Entity, MedperfSchema):
     def get_comms_uploader():
         return config.comms.upload_training_event
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    @handle_validation_error
+    def __init__(self, **kwargs):
+        self._model = TrainingEventSchema(**kwargs)
+        super().__init__()
+        self.training_exp = self._model.training_exp
+        self.participants = self._model.participants
+        self.finished = self._model.finished
+        self.finished_at = self._model.finished_at
+        self.report = self._model.report
 
+        self._set_helper_attributes()
+
+    def _set_helper_attributes(self):
         self.participants_list_path = os.path.join(
             self.path, config.participants_list_filename
         )
@@ -59,7 +65,9 @@ class TrainingEvent(Entity, MedperfSchema):
         self.agg_out_logs = os.path.join(
             self.path, config.training_out_agg_logs + timestamp
         )
-        self.col_out_logs = os.path.join(self.path, config.training_out_col_logs)
+        self.col_out_logs = os.path.join(
+            self.path, config.training_out_col_logs + timestamp
+        )
         self.out_weights = os.path.join(
             self.path, config.training_out_weights + timestamp
         )
@@ -113,8 +121,27 @@ class TrainingEvent(Entity, MedperfSchema):
         return latest_report_path
 
     def prepare_participants_list(self):
+        certificates, user_info = Certificate.get_training_datasets_certificates(
+            self.training_exp
+        )
+        certificates_mapping = {}
+        for cert in certificates:
+            email = user_info[cert.id]["email"]
+            certificates_mapping[email] = cert.certificate_content_base64
+
+        final_dict = {}
+        for participant_label, participant_email in self.participants.items():
+            if participant_email not in certificates_mapping:
+                raise MedperfException(
+                    f"No signing certificate found for participant {participant_email}"
+                )
+            final_dict[participant_label] = {
+                "email": participant_email,
+                "certificate": certificates_mapping[participant_email],
+            }
+
         with open(self.participants_list_path, "w") as f:
-            yaml.dump(self.participants, f)
+            yaml.dump(final_dict, f)
 
     def display_dict(self):
         return {

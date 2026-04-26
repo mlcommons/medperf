@@ -17,7 +17,7 @@ from .singularity_utils import (
     craft_singularity_run_command,
     convert_docker_image_to_sif,
 )
-from medperf.encryption import decrypt_gpg_file, check_gpg
+from medperf.encryption import SymmetricEncryption
 
 import os
 from medperf import config
@@ -43,7 +43,7 @@ class SingularityRunner(Runner):
         self.docker_image_hash: str = None
 
         if self.parser.is_container_encrypted():
-            check_gpg()
+            SymmetricEncryption().check()
 
     def _supports_nvccli(self):
         # TODO: later perhaps also check if nvidia-container-cli is installed
@@ -88,7 +88,7 @@ class SingularityRunner(Runner):
         get_hash_timeout: int = None,
     ):
         image_file_url = self.parser.get_setup_args()
-        image_file_path, computed_image_hash = resources.get_cube_image(
+        image_file_path, computed_image_hash = resources.get_hashed_file(
             image_file_url, expected_image_hash
         )  # Hash checking happens in resources
         self.image_file_path = image_file_path
@@ -123,6 +123,8 @@ class SingularityRunner(Runner):
         self.parser.check_task_schema(task)
         run_args = self.parser.get_run_args(task)
         check_allowed_run_args(run_args)
+
+        run_args["task"] = task
 
         add_medperf_run_args(run_args)
         add_medperf_environment_variables(run_args, medperf_env)
@@ -231,7 +233,7 @@ class SingularityRunner(Runner):
         decrypted_sif_file = tmp_path_for_file_decryption()
         try:
             # decrypt file
-            decrypt_gpg_file(
+            SymmetricEncryption().decrypt_file(
                 self.image_file_path,
                 container_decryption_key_file,
                 decrypted_sif_file,
@@ -259,7 +261,7 @@ class SingularityRunner(Runner):
         decrypted_archive_file = tmp_path_for_file_decryption()
         try:
             # decrypt file
-            decrypt_gpg_file(
+            SymmetricEncryption().decrypt_file(
                 self.image_file_path,
                 container_decryption_key_file,
                 decrypted_archive_file,
@@ -285,8 +287,9 @@ class SingularityRunner(Runner):
 
     def _invoke_run(self, image, run_args, timeout, output_logs):
         run_args["image"] = image
+        task = run_args.pop("task")
 
         # Run
         command = craft_singularity_run_command(run_args, self.executable)
         logging.debug("Running singulairty container")
-        run_command(command, timeout, output_logs)
+        run_command(command, timeout, output_logs, task=task)
