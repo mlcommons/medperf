@@ -1,0 +1,41 @@
+<script>
+(function () {
+    function reloadUi(page) {
+        page = page === undefined ? 1 : page;
+        if (page < 1 || !Number.isInteger(page)) return;
+
+        var switchEl = document.getElementById("switch");
+        var params = new URLSearchParams({ page: String(page), mine_only: switchEl && switchEl.checked ? "true" : "false" });
+        var locParams = new URLSearchParams(window.location.search);
+
+        var pageSizeEl = document.getElementById("page-size");
+        if (pageSizeEl && pageSizeEl.value) {
+            params.append("page_size", pageSizeEl.value);
+        } else if (locParams.get("page_size")) {
+            params.append("page_size", locParams.get("page_size"));
+        }
+
+        var orderingEl = document.getElementById("ordering");
+        if (orderingEl && orderingEl.value) {
+            params.append("ordering", orderingEl.value);
+        } else if (locParams.get("ordering")) {
+            params.append("ordering", locParams.get("ordering"));
+        }
+
+        window.location = "{{ listing_ui_path }}?" + params.toString();
+    }
+
+    ["ordering", "page-size", "switch"].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.addEventListener("change", function () { reloadUi(1); });
+    });
+
+    document.querySelectorAll(".page-link").forEach(function (link) {
+        link.addEventListener("click", function (e) {
+            e.preventDefault();
+            var page = link.getAttribute("data-page");
+            if (page !== null && page !== "") reloadUi(parseInt(page, 10));
+        });
+    });
+})();
+</script>

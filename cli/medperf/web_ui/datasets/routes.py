@@ -35,7 +35,11 @@ from medperf.web_ui.common import (
     initialize_state_task,
     reset_state_task,
 )
-from medperf.web_ui.utils import get_container_type
+from medperf.web_ui.utils import (
+    get_container_type,
+    build_listing_filters,
+    build_pagination_context,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -46,25 +50,40 @@ router = APIRouter()
 def datasets_ui(
     request: Request,
     mine_only: bool = False,
+    page: int = 1,
+    page_size: int = 9,
+    ordering: str = "created_at_desc",
     current_user: bool = Depends(check_user_ui),
 ):
     filters = {}
     my_user_id = get_medperf_user_data()["id"]
+
     if mine_only:
         filters["owner"] = my_user_id
+
+    total_count = Dataset.get_count(filters=filters)
+
+    filters.update(
+        build_listing_filters(page=page, page_size=page_size, ordering=ordering)
+    )
+
     datasets = Dataset.all(filters=filters)
 
-    datasets = sorted(datasets, key=lambda x: x.created_at, reverse=True)
-    # sort by (mine recent) (mine oldish), (other recent), (other oldish)
-    mine_datasets = [d for d in datasets if d.owner == my_user_id]
-    other_datasets = [d for d in datasets if d.owner != my_user_id]
-    datasets = mine_datasets + other_datasets
+    pagination_context = build_pagination_context(
+        page=page,
+        page_size=page_size,
+        ordering=ordering,
+        total_count=total_count,
+        page_items_count=len(datasets),
+    )
+
     return templates.TemplateResponse(
         "dataset/datasets.html",
         {
             "request": request,
             "datasets": datasets,
             "mine_only": mine_only,
+            **pagination_context,
         },
     )
 
