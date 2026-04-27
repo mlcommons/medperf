@@ -1,7 +1,7 @@
 import os
 from medperf.commands.association.utils import get_user_associations
 import yaml
-from typing import Tuple, List
+from typing import List
 
 from medperf.utils import get_folders_hash, remove_path
 from medperf.entities.interface import Entity
@@ -43,6 +43,10 @@ class Dataset(Entity):
     @staticmethod
     def get_comms_uploader():
         return config.comms.upload_dataset
+
+    @staticmethod
+    def get_comms_counter():
+        return config.comms.get_datasets_count
 
     @handle_validation_error
     def __init__(self, **kwargs):
@@ -181,11 +185,6 @@ class Dataset(Entity):
             comms_fn = func
 
         return comms_fn
-
-    @staticmethod
-    def remote_prefilter_counter(filters: dict) -> Tuple[callable, bool]:
-        owner = "owner" in filters and filters["owner"] == get_medperf_user_data()["id"]
-        return config.comms.get_datasets_count, owner
 
     @classmethod
     def get_benchmarks_associations(cls, dataset_uid: int) -> List[dict]:

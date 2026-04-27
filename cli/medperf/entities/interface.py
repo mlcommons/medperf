@@ -1,4 +1,4 @@
-from typing import List, Dict, Tuple, Union, Callable
+from typing import List, Dict, Union, Callable
 from abc import ABC
 import logging
 import os
@@ -7,6 +7,7 @@ import yaml
 from medperf.exceptions import MedperfException, InvalidArgumentError
 from medperf.entities.schemas import MedperfSchema
 from typing import Type, TypeVar
+from medperf.account_management import get_medperf_user_data
 
 EntityType = TypeVar("EntityType", bound="Entity")
 
@@ -51,6 +52,10 @@ class Entity(ABC):
 
     @staticmethod
     def get_comms_uploader() -> Callable[[dict], dict]:
+        raise NotImplementedError()
+
+    @staticmethod
+    def get_comms_counter() -> Callable[[dict, bool], int]:
         raise NotImplementedError()
 
     @property
@@ -129,18 +134,6 @@ class Entity(ABC):
 
         Returns:
             callable: A function for retrieving remote entities with the applied prefilters
-        """
-        raise NotImplementedError
-
-    @staticmethod
-    def remote_prefilter_counter(filters: dict) -> Tuple[Callable[[dict], int], bool]:
-        """Applies filtering logic that must be done before retrieving remote entities count
-
-        Args:
-            filters (dict): filters to apply
-
-        Returns:
-            callable: A function for retrieving remote entities count with the applied prefilters
         """
         raise NotImplementedError
 
@@ -273,6 +266,8 @@ class Entity(ABC):
             int: count of items
         """
         logging.info(f"Retrieving the count of {cls.get_type()} entities")
-        comms_fn, is_owner = cls.remote_prefilter_counter(filters=filters)
+        user_data = get_medperf_user_data()
+        is_owner = "owner" in filters and filters["owner"] == user_data["id"]
+        comms_fn = cls.get_comms_counter()
         count = comms_fn(filters=filters, is_owner=is_owner)
         return count

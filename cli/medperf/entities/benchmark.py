@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List
 from medperf.commands.association.utils import (
     get_experiment_associations,
     get_user_associations,
@@ -41,6 +41,10 @@ class Benchmark(Entity):
     @staticmethod
     def get_comms_uploader():
         return config.comms.upload_benchmark
+
+    @staticmethod
+    def get_comms_counter():
+        return config.comms.get_benchmarks_count
 
     @handle_validation_error
     def __init__(self, **kwargs):
@@ -90,11 +94,6 @@ class Benchmark(Entity):
         if "owner" in filters and filters["owner"] == get_medperf_user_data()["id"]:
             comms_fn = config.comms.get_user_benchmarks
         return comms_fn
-
-    @staticmethod
-    def remote_prefilter_counter(filters: dict) -> Tuple[callable, bool]:
-        owner = "owner" in filters and filters["owner"] == get_medperf_user_data()["id"]
-        return config.comms.get_benchmarks_count, owner
 
     @classmethod
     def get_models_uids(cls, benchmark_uid: int) -> List[int]:

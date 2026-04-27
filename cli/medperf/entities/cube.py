@@ -1,5 +1,5 @@
 import os
-from typing import Tuple, Union
+from typing import Union
 
 from medperf.entities.interface import Entity
 from medperf.entities.schemas import CubeSchema
@@ -49,6 +49,10 @@ class Cube(Entity):
     @staticmethod
     def get_comms_uploader():
         return config.comms.upload_mlcube
+
+    @staticmethod
+    def get_comms_counter():
+        return config.comms.get_cubes_count
 
     @handle_validation_error
     def __init__(self, **kwargs):
@@ -122,11 +126,6 @@ class Cube(Entity):
             comms_fn = config.comms.get_user_cubes
 
         return comms_fn
-
-    @staticmethod
-    def remote_prefilter_counter(filters: dict) -> Tuple[callable, bool]:
-        owner = "owner" in filters and filters["owner"] == get_medperf_user_data()["id"]
-        return config.comms.get_cubes_count, owner
 
     @classmethod
     def get(
