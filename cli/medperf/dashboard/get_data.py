@@ -13,7 +13,7 @@ from .utils import get_institution_from_email, stage_id2name
 def get_dsets(benchmark_id):
     bmk = Benchmark.get(benchmark_id)
     data_preparator = bmk.data_preparation_mlcube
-    dsets = Dataset.all(filters={"data_preparation_mlcube": data_preparator})
+    dsets = Dataset.all(filters={"data_preparator": data_preparator})
     dsets = [dset.todict() for dset in dsets]
     for dset in dsets:
         user_id = dset["owner"]

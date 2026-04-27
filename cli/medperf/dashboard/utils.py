@@ -1,26 +1,21 @@
 import os
-from medperf.utils import sanitize_path
-
-
-def stage_id2name(stage_str, stages_df):
-    _, code = stage_str.split()
-    code = float(code)
-    name = stages_df.loc[code, "status_name"]
-    return name
-
-
-def get_institution_from_email(email, user2institution):
-    invalid_institutions = {"gmail.com", "hotmail.com", "yahoo.com", "outlook.com"}
-    institution = user2institution.get(email, None)
-    if institution is not None:
-        return institution
-    plausible_institution = email.split("@")[1]
-    if plausible_institution in invalid_institutions:
-        return email
-    else:
-        return plausible_institution
 
 
 def get_reports_path(out_path, benchmark_id):
-    full_path = os.path.join(out_path, str(benchmark_id))
-    return sanitize_path(full_path)
+    """Directory used to store and read dashboard CSV artifacts for a benchmark."""
+    return os.path.join(str(out_path), str(benchmark_id))
+
+
+def get_institution_from_email(email, user2institution):
+    """Resolve institution label from user email using the institutions CSV mapping."""
+    return user2institution.get(email, email)
+
+
+def stage_id2name(stage_key, stages_df):
+    """Map a progress/status code from dataset reports to the human-readable stage name."""
+    try:
+        if stage_key in stages_df.index and "status_name" in stages_df.columns:
+            return str(stages_df.loc[stage_key, "status_name"])
+    except (KeyError, TypeError, ValueError):
+        pass
+    return str(stage_key)
