@@ -77,7 +77,6 @@ def register_training(
     data_preparation_container: str = Form(...),
     fl_container: str = Form(...),
     fl_admin_container: Optional[str] = Form(None),
-    operational: str = Form(""),
     current_user: bool = Depends(check_user_api),
 ):
     initialize_state_task(request, task_name="register_training_experiment")
@@ -87,18 +86,14 @@ def register_training(
         training_exp_info = {
             "name": name,
             "description": description or "",
-            "docs_url": (docs_url or "").strip() or None,
+            "docs_url": (docs_url or "").strip(),
             "demo_dataset_tarball_url": "link",
             "demo_dataset_tarball_hash": "hash",
             "demo_dataset_generated_uid": "uid",
             "data_preparation_mlcube": int(data_preparation_container),
             "fl_mlcube": int(fl_container),
             "fl_admin_mlcube": int(fl_admin_container) if fl_admin_container else None,
-            "state": (
-                "OPERATION"
-                if (operational and operational.lower() == "true")
-                else "DEVELOPMENT"
-            ),
+            "state": "DEVELOPMENT",
         }
         training_id = SubmitTrainingExp.run(training_exp_info)
         return_response["status"] = "success"

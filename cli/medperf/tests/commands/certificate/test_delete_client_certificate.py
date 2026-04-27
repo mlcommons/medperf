@@ -4,6 +4,7 @@ from medperf.commands.certificate.delete_client_certificate import DeleteCertifi
 from medperf.tests.mocks.certificate import TestCertificate
 from medperf.exceptions import CleanExit
 from medperf import config
+from medperf.enums import CryptoKeyType
 
 PATCH_DELETE = "medperf.commands.certificate.delete_client_certificate.{}"
 
@@ -28,7 +29,7 @@ def test_run_raises_if_not_approved(mocker, delete_fixture):
 
     # Act & Assert
     with pytest.raises(CleanExit):
-        DeleteCertificate.run(approved=False)
+        DeleteCertificate.run(CryptoKeyType.RSA, approved=False)
 
 
 def test_run_deletes_local_folder_and_invalidates_remote_cert(mocker, delete_fixture):
@@ -41,7 +42,7 @@ def test_run_deletes_local_folder_and_invalidates_remote_cert(mocker, delete_fix
     update_spy = mocker.patch.object(config.comms, "update_certificate")
 
     # Act
-    DeleteCertificate.run(approved=True)
+    DeleteCertificate.run(CryptoKeyType.RSA, approved=True)
 
     # Assert
     remove_path_spy.assert_called_once_with(delete_fixture, sensitive=True)
@@ -58,7 +59,7 @@ def test_run_deletes_local_folder_only_if_no_remote_cert(mocker, delete_fixture)
     update_spy = mocker.patch.object(config.comms, "update_certificate")
 
     # Act
-    DeleteCertificate.run(approved=True)
+    DeleteCertificate.run(CryptoKeyType.RSA, approved=True)
 
     # Assert
     remove_path_spy.assert_called_once_with(delete_fixture, sensitive=True)
@@ -75,7 +76,7 @@ def test_run_deletes_local_folder_anyway(mocker, delete_fixture):
     remove_path_spy = mocker.patch(PATCH_DELETE.format("remove_path"))
 
     # Act
-    DeleteCertificate.run(approved=True)
+    DeleteCertificate.run(CryptoKeyType.RSA, approved=True)
 
     # Assert
     remove_path_spy.assert_called_once_with(delete_fixture, sensitive=True)

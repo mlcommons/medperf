@@ -1,5 +1,5 @@
 import logging
-import threading
+import os
 
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -10,7 +10,9 @@ from medperf.commands.aggregator.submit import SubmitAggregator
 from medperf.commands.certificate.server_certificate import GetServerCertificate
 from medperf.commands.aggregator.run import StartAggregator
 from medperf.entities.aggregator import Aggregator
+from medperf.entities.ca import CA
 from medperf.entities.cube import Cube
+from medperf.utils import get_pki_assets_path
 from medperf.web_ui.common import (
     check_user_api,
     check_user_ui,
@@ -18,6 +20,7 @@ from medperf.web_ui.common import (
     reset_state_task,
     templates,
 )
+from medperf.enums import CryptoKeyType
 from medperf.web_ui.utils import build_listing_filters, build_pagination_context
 
 router = APIRouter()
@@ -43,6 +46,7 @@ def register_aggregator(
     name: str = Form(...),
     address: str = Form(...),
     port: int = Form(...),
+    admin_port: int = Form(...),
     aggregation_mlcube: int = Form(...),
     current_user: bool = Depends(check_user_api),
 ):
@@ -54,6 +58,7 @@ def register_aggregator(
             name=name,
             address=address.strip(),
             port=port,
+            admin_port=admin_port,
             aggregation_mlcube=aggregation_mlcube,
         )
         return_response["status"] = "success"
@@ -128,11 +133,28 @@ def aggregator_detail_ui(
     aggregator_id: int,
     current_user: bool = Depends(check_user_ui),
 ):
+    certificate_exists = False
+    experiments_using_aggregator = []
+
     my_user_id = get_medperf_user_data()["id"]
     entity = Aggregator.get(aggregator_id)
     owner = entity.owner == my_user_id
-    # Training experiments that have this aggregator set (reverse relation)
-    experiments_using_aggregator = entity.get_training_experiments()
+
+    if owner:
+        ca_id = config.certificate_authority_id
+        if ca_id:
+            try:
+                ca = CA.get(ca_id)
+                aggregator = Aggregator.get(aggregator_id)
+                address = aggregator.address
+                output_path = get_pki_assets_path(address, ca.id, CryptoKeyType.RSA)
+                certificate_exists = os.path.exists(output_path)
+            except Exception as exp:
+                logger.warning(
+                    f"Failed to check server certificate for aggregator {aggregator_id}: {exp}"
+                )
+
+        experiments_using_aggregator = entity.get_training_experiments()
 
     return templates.TemplateResponse(
         "aggregators/aggregator_detail.html",
@@ -141,6 +163,7 @@ def aggregator_detail_ui(
             "entity": entity,
             "experiments_using_aggregator": experiments_using_aggregator,
             "owner": owner,
+            "certificate_exists": certificate_exists,
         },
     )
 
@@ -174,18 +197,20 @@ def get_server_certificate(
     return return_response
 
 
-def _run_aggregator_worker(
+@router.post("/run", response_class=JSONResponse)
+def run_aggregator(
     request: Request,
-    training_exp_id: int,
-    aggregator_id: int,
-    task_id: str,
+    aggregator_id: int = Form(...),
+    training_exp_id: int = Form(...),
+    publish_on: str = Form("127.0.0.1"),
+    current_user: bool = Depends(check_user_api),
 ):
-    redirect_url = f"/aggregators/ui/display/{aggregator_id}"
+    initialize_state_task(request, task_name="start_aggregator")
+
     return_response = {"status": "", "error": ""}
     notification_message = "Aggregator run started successfully"
-    config.ui.set_task_id(task_id)
     try:
-        StartAggregator.run(training_exp_id=training_exp_id, publish_on="0.0.0.0")
+        StartAggregator.run(training_exp_id=training_exp_id, publish_on=publish_on)
         return_response["status"] = "success"
     except Exception as exp:
         return_response["status"] = "failed"
@@ -194,31 +219,11 @@ def _run_aggregator_worker(
         logger.exception(exp)
 
     config.ui.end_task(return_response)
-    reset_state_task(request, task_id)
+    reset_state_task(request)
     config.ui.add_notification(
         message=notification_message,
         return_response=return_response,
-        url=redirect_url,
+        url=f"/aggregators/ui/display/{aggregator_id}",
     )
 
-
-@router.post("/run", response_class=JSONResponse)
-def run_aggregator(
-    request: Request,
-    aggregator_id: int = Form(...),
-    training_exp_id: int = Form(...),
-    current_user: bool = Depends(check_user_api),
-):
-    agg_meta = config.comms.get_experiment_aggregator(training_exp_id)
-    if not agg_meta or agg_meta.get("id") != aggregator_id:
-        raise ValueError("Selected training experiment does not use this aggregator")
-
-    task_id = initialize_state_task(request, task_name="start_aggregator")
-
-    threading.Thread(
-        target=_run_aggregator_worker,
-        args=(request, training_exp_id, aggregator_id, task_id),
-        daemon=True,
-    ).start()
-
-    return {"status": "started", "error": ""}
+    return return_response

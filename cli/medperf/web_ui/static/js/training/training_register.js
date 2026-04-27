@@ -1,4 +1,4 @@
-REDIRECT_BASE = "/training/ui/display/";
+var REDIRECT_BASE = "/training/ui/display/";
 
 function onTrainingRegisterSuccess(response) {
     markAllStagesAsComplete();

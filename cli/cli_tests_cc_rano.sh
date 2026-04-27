@@ -184,7 +184,7 @@ echo "\n"
 echo "====================================="
 echo "get client certificate for data owner"
 echo "====================================="
-print_eval medperf certificate get_client_certificate
+print_eval medperf certificate get_client_certificate --key_type RSA
 checkFailed "get certificate failed"
 ##########################################################
 
@@ -194,7 +194,7 @@ echo "\n"
 echo "============================================="
 echo "Submitting the certificate"
 echo "============================================="
-print_eval medperf certificate submit_client_certificate -y
+print_eval medperf certificate submit_client_certificate --key_type RSA -y
 checkFailed "Failed to submit Data Owner Certificate"
 ##########################################################
 

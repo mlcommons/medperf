@@ -11,7 +11,7 @@ To run this tutorial, you need a machine with the following requirements:
 
 As the most easy way to play with the tutorials you can launch a preinstalled [Codespace](https://github.com/features/codespaces) cloud environment for MedPerf by clicking this link:
 
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/mlcommons/medperf/tree/tutorial?devcontainer_path=.devcontainer%2Fwebui%2Fdevcontainer.json){target="\_blank"}
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/mlcommons/medperf/tree/main?devcontainer_path=.devcontainer%2Fwebui%2Fdevcontainer.json){target="\_blank"}
 
 After opening the link, proceed to creating the codespace without changing any option. It will take around 7 minutes to get the codespace up and running. Please wait until you see the message `Medperf is ready for local usage` printed on the terminal.
 

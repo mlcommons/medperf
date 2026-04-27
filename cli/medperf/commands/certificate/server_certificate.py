@@ -4,6 +4,7 @@ from medperf.certificates import get_server_cert
 from medperf.exceptions import MedperfException
 from medperf.utils import get_pki_assets_path, remove_path
 from medperf import config
+from medperf.enums import CryptoKeyType
 import os
 
 
@@ -15,7 +16,7 @@ class GetServerCertificate:
         ca = CA.get(ca_id)
         aggregator = Aggregator.get(aggregator_id)
         address = aggregator.address
-        output_path = get_pki_assets_path(address, ca.id)
+        output_path = get_pki_assets_path(address, ca.id, key_type=CryptoKeyType.RSA)
         if os.path.exists(output_path):
             if not overwrite:
                 raise MedperfException(

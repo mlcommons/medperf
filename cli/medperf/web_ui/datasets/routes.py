@@ -1,6 +1,5 @@
 import os
 import logging
-import threading
 from typing import List, Optional
 
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -291,9 +290,9 @@ def register_dataset(
 ):
     initialize_state_task(request, task_name="register_dataset")
     return_response = {"status": "", "entity_id": None, "error": ""}
-    dataset_id = None
+    entity_id = None
     try:
-        dataset_id = DataCreation.run(
+        entity_id = DataCreation.run(
             benchmark_uid=benchmark,
             prep_cube_uid=prep_cube_uid,
             data_path=data_path,
@@ -306,7 +305,7 @@ def register_dataset(
             submit_as_prepared=bool(submit_as_prepared),
         )
         return_response["status"] = "success"
-        return_response["entity_id"] = dataset_id
+        return_response["entity_id"] = entity_id
         notification_message = "Dataset successfully registered"
     except Exception as exp:
         return_response["status"] = "failed"
@@ -320,8 +319,8 @@ def register_dataset(
         message=notification_message,
         return_response=return_response,
         url=(
-            f"/datasets/ui/display/{dataset_id}"
-            if dataset_id
+            f"/datasets/ui/display/{entity_id}"
+            if entity_id
             else "/datasets/register/ui"
         ),
     )
@@ -331,16 +330,16 @@ def register_dataset(
 @router.post("/prepare", response_class=JSONResponse)
 def prepare(
     request: Request,
-    dataset_id: int = Form(...),
+    entity_id: int = Form(...),
     current_user: bool = Depends(check_user_api),
 ):
     initialize_state_task(request, task_name="prepare")
-    return_response = {"status": "", "dataset_id": None, "error": ""}
+    return_response = {"status": "", "entity_id": None, "error": ""}
 
     try:
-        dataset_id = DataPreparation.run(dataset_id)
+        entity_id = DataPreparation.run(entity_id)
         return_response["status"] = "success"
-        return_response["dataset_id"] = dataset_id
+        return_response["entity_id"] = entity_id
         notification_message = "Dataset successfully prepared"
     except Exception as exp:
         return_response["status"] = "failed"
@@ -353,7 +352,7 @@ def prepare(
     config.ui.add_notification(
         message=notification_message,
         return_response=return_response,
-        url=f"/datasets/ui/display/{dataset_id}",
+        url=f"/datasets/ui/display/{entity_id}",
     )
     return return_response
 
@@ -361,16 +360,16 @@ def prepare(
 @router.post("/set_operational", response_class=JSONResponse)
 def set_operational(
     request: Request,
-    dataset_id: int = Form(...),
+    entity_id: int = Form(...),
     current_user: bool = Depends(check_user_api),
 ):
     initialize_state_task(request, task_name="dataset_set_operational")
-    return_response = {"status": "", "dataset_id": None, "error": ""}
+    return_response = {"status": "", "entity_id": None, "error": ""}
 
     try:
-        dataset_id = DatasetSetOperational.run(dataset_id)
+        entity_id = DatasetSetOperational.run(entity_id)
         return_response["status"] = "success"
-        return_response["dataset_id"] = dataset_id
+        return_response["entity_id"] = entity_id
         notification_message = "Dataset successfully set to operational"
     except Exception as exp:
         return_response["status"] = "failed"
@@ -383,7 +382,7 @@ def set_operational(
     config.ui.add_notification(
         message=notification_message,
         return_response=return_response,
-        url=f"/datasets/ui/display/{dataset_id}",
+        url=f"/datasets/ui/display/{entity_id}",
     )
     return return_response
 
@@ -391,7 +390,7 @@ def set_operational(
 @router.post("/associate", response_class=JSONResponse)
 def associate(
     request: Request,
-    dataset_id: int = Form(...),
+    entity_id: int = Form(...),
     benchmark_id: int = Form(...),
     current_user: bool = Depends(check_user_api),
 ):
@@ -399,7 +398,7 @@ def associate(
     return_response = {"status": "", "error": ""}
 
     try:
-        AssociateDataset.run(data_uid=dataset_id, benchmark_uid=benchmark_id)
+        AssociateDataset.run(data_uid=entity_id, benchmark_uid=benchmark_id)
         return_response["status"] = "success"
         notification_message = "Successfully requested dataset association"
     except Exception as exp:
@@ -413,7 +412,7 @@ def associate(
     config.ui.add_notification(
         message=notification_message,
         return_response=return_response,
-        url=f"/datasets/ui/display/{dataset_id}",
+        url=f"/datasets/ui/display/{entity_id}",
     )
     return return_response
 
@@ -421,7 +420,7 @@ def associate(
 @router.post("/associate_training", response_class=JSONResponse)
 def associate_training(
     request: Request,
-    dataset_id: int = Form(...),
+    entity_id: int = Form(...),
     training_exp_id: int = Form(...),
     current_user: bool = Depends(check_user_api),
 ):
@@ -429,7 +428,7 @@ def associate_training(
     return_response = {"status": "", "error": ""}
     try:
         AssociateTrainingDataset.run(
-            data_uid=dataset_id,
+            data_uid=entity_id,
             training_exp_uid=training_exp_id,
             approved=True,
         )
@@ -448,21 +447,25 @@ def associate_training(
     config.ui.add_notification(
         message=notification_message,
         return_response=return_response,
-        url=f"/datasets/ui/display/{dataset_id}",
+        url=f"/datasets/ui/display/{entity_id}",
     )
     return return_response
 
 
-def _run_training_worker(
-    request: Request, training_exp_id: int, dataset_id: int, task_id: str
+@router.post("/start_training", response_class=JSONResponse)
+def start_training(
+    request: Request,
+    entity_id: int = Form(...),
+    training_exp_id: int = Form(...),
+    current_user: bool = Depends(check_user_api),
 ):
-    redirect_url = f"/datasets/ui/display/{dataset_id}"
+    initialize_state_task(request, task_name="start_training")
+
     return_response = {"status": "", "error": ""}
-    notification_message = "Training successfully finished"
-    config.ui.set_task_id(task_id)
     try:
-        TrainingExecution.run(training_exp_id=training_exp_id, data_uid=dataset_id)
+        TrainingExecution.run(training_exp_id=training_exp_id, data_uid=entity_id)
         return_response["status"] = "success"
+        notification_message = "Training successfully finished"
     except Exception as exp:
         return_response["status"] = "failed"
         return_response["error"] = str(exp)
@@ -470,36 +473,20 @@ def _run_training_worker(
         logger.exception(exp)
 
     config.ui.end_task(return_response)
-    reset_state_task(request, task_id)
+    reset_state_task(request)
     config.ui.add_notification(
         message=notification_message,
         return_response=return_response,
-        url=redirect_url,
+        url=f"/datasets/ui/display/{entity_id}",
     )
 
-
-@router.post("/start_training", response_class=JSONResponse)
-def start_training(
-    request: Request,
-    dataset_id: int = Form(...),
-    training_exp_id: int = Form(...),
-    current_user: bool = Depends(check_user_api),
-):
-    task_id = initialize_state_task(request, task_name="start_training")
-
-    threading.Thread(
-        target=_run_training_worker,
-        args=(request, training_exp_id, dataset_id, task_id),
-        daemon=True,
-    ).start()
-
-    return {"status": "started", "error": ""}
+    return return_response
 
 
 @router.post("/run", response_class=JSONResponse)
 def run(
     request: Request,
-    dataset_id: int = Form(...),
+    entity_id: int = Form(...),
     benchmark_id: int = Form(...),
     model_ids: List[int] = Form(...),
     run_all: bool = Form(...),
@@ -511,7 +498,7 @@ def run(
     try:
         BenchmarkExecution.run(
             benchmark_id,
-            dataset_id,
+            entity_id,
             model_ids,
             no_cache=not run_all,
             rerun_finalized_executions=not run_all,
@@ -529,7 +516,7 @@ def run(
     config.ui.add_notification(
         message=notification_message,
         return_response=return_response,
-        url=f"/datasets/ui/display/{dataset_id}",
+        url=f"/datasets/ui/display/{entity_id}",
     )
     return return_response
 
@@ -566,10 +553,10 @@ def submit_result(
 def export_dataset_ui(
     request: Request,
     submit: str = Form(...),
-    dataset_id: int = Form(...),
+    entity_id: int = Form(...),
     current_user: bool = Depends(check_user_ui),
 ):
-    dataset = Dataset.get(dataset_id)
+    dataset = Dataset.get(entity_id)
     dataset.read_report()
     dataset.read_statistics()
     prep_cube = Cube.get(cube_uid=dataset.data_preparation_mlcube)
@@ -593,16 +580,16 @@ def export_dataset_ui(
 @router.post("/export", response_class=JSONResponse)
 def export_dataset(
     request: Request,
-    dataset_id: int = Form(...),
+    entity_id: int = Form(...),
     output_path: str = Form(...),
     current_user: bool = Depends(check_user_api),
 ):
 
     initialize_state_task(request, task_name="export_dataset")
-    return_response = {"status": "", "error": "", "dataset_id": dataset_id}
+    return_response = {"status": "", "error": "", "entity_id": entity_id}
 
     try:
-        ExportDataset.run(dataset_id, output_path)
+        ExportDataset.run(entity_id, output_path)
         return_response["status"] = "success"
         notification_message = "Dataset successfully exported"
     except Exception as exp:
@@ -636,21 +623,21 @@ def import_dataset_ui(
 @router.post("/import", response_class=JSONResponse)
 def import_dataset(
     request: Request,
-    dataset_id: int = Form(...),
+    entity_id: int = Form(...),
     input_path: str = Form(...),
     raw_dataset_path: str = Form(None),
     current_user: bool = Depends(check_user_api),
 ):
 
     initialize_state_task(request, task_name="import_dataset")
-    return_response = {"status": "", "error": "", "dataset_id": dataset_id}
+    return_response = {"status": "", "error": "", "entity_id": entity_id}
 
     try:
-        ImportDataset.run(dataset_id, input_path, raw_dataset_path)
+        ImportDataset.run(entity_id, input_path, raw_dataset_path)
         return_response["status"] = "success"
         notification_message = "Dataset successfully imported"
     except Exception as exp:
-        dataset_id = None
+        entity_id = None
         return_response["status"] = "failed"
         return_response["error"] = str(exp)
         notification_message = "Failed to import dataset"
@@ -661,7 +648,7 @@ def import_dataset(
     config.ui.add_notification(
         message=notification_message,
         return_response=return_response,
-        url=f"/datasets/ui/display/{dataset_id}" if dataset_id else "",
+        url=f"/datasets/ui/display/{entity_id}" if entity_id else "",
     )
 
     return return_response

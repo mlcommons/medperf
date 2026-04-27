@@ -5,15 +5,14 @@
 {% block title %}Register Benchmark{% endblock %}
 
 {% block content %}
-{% set benchmark_register_running = (task_running and  "register_benchmark" in request.app.state.active_tasks) %}
+{% set benchmark_register_running = (task_running and request.app.state.task.name == "register_benchmark") %}
 {% if benchmark_register_running %}
-{% set form_data = request.app.state.active_tasks["register_benchmark"].formData %}
+{% set form_data = request.app.state.task.formData %}
 {% endif %}
 
 <div class="container mx-auto px-4 py-8 max-w-3xl">
     <h1 class="text-3xl font-bold medperf-accent dark:text-green-400 text-center mb-4">Register a New Benchmark</h1>
     <form id="benchmark-register-form" class="space-y-6" action="/benchmarks/register" method="post" data-panel-title="Registering benchmark" data-confirm-message="register this benchmark?">
-        <input type="hidden" name="task_name" value="register_benchmark">
         <div class="flex flex-wrap gap-4">
             <label class="inline-flex items-center gap-2 cursor-pointer text-gray-900 dark:text-white"><input type="radio" name="skip_compatibility_tests" id="skip-tests" value="true" class="rounded-full border-gray-400 text-green-600 focus:ring-green-500 dark:border-gray-500 accent-green-600 dark:accent-green-400" {% if task_running %}disabled{% endif %}> Skip Compatibility Tests</label>
             <label class="inline-flex items-center gap-2 cursor-pointer text-gray-900 dark:text-white"><input type="radio" name="skip_compatibility_tests" id="noskip-tests" value="false" checked class="rounded-full border-gray-400 text-green-600 focus:ring-green-500 dark:border-gray-500 accent-green-600 dark:accent-green-400" {% if task_running %}disabled{% endif %}> Require Compatibility Tests</label>
@@ -97,7 +96,7 @@
 {% block extra_js %}
 <script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
 <script src="{{ url_for('static', path='js/benchmarks/benchmark_register.js') }}"></script>
-{% if task_running and  "register_benchmark" in request.app.state.active_tasks %}
+{% if task_running and request.app.state.task.name == "register_benchmark" %}
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         resumeRunningTask("#register-benchmark-form");

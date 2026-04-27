@@ -11,9 +11,8 @@ cd server
 cp .env.local.local-auth.sqlite .env
 
 # patch to deal with how codespaces handle port forwarding
-sed -i "1i import os" /workspaces/medperf/cli/medperf/web_ui/common.py
 sed -i "1i import jinja2" /workspaces/medperf/cli/medperf/web_ui/common.py
-sed -i "s|http://{host}:{port}/security_check?|http://\{os.environ.get('CODESPACE_NAME', 'localhost')\}-\{port\}.app.github.dev/security_check?|g" /workspaces/medperf/cli/medperf/web_ui/common.py
+sed -i "s|http://{host}:{port}/security_check?|http://\{os.environ.get('CODESPACE_NAME', 'localhost')\}-\{port\}.app.github.dev/security_check?|g" /workspaces/medperf/cli/medperf/utils.py
 cat << 'EOF' >> /workspaces/medperf/cli/medperf/web_ui/common.py
 
 @jinja2.pass_context

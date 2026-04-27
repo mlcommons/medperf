@@ -245,57 +245,35 @@ class GlobalEventsManager:
                     return
 
 
-def _buffer_key(task_id: Optional[str]) -> str:
-    """Key for per-task buffer; chunks must not mix events from different tasks."""
-    return task_id if task_id else "_"
-
-
 class EventsManager:
-    """
-    Buffers chunkable events (interactive prints) per task_id, flushes by size/age or
-    when a non-chunkable event arrives. Events are enqueued to a per-task queue so
-    each SSE stream (one per task) only receives that task's events.
-
-    flush_all_buffers: before enqueueing a non-chunkable event we flush every task's
-    buffer so chunkable events are sent first. Also used when a task ends.
-    """
-
     def __init__(self):
-        self._event_queues: Dict[str, Queue] = {}  # _buffer_key(task_id) -> Queue[EventBase]
-        self._queues_lock = threading.Lock()
-        self._buffers: Dict[str, Dict] = {}  # _buffer_key(task_id) -> {"events", "size", "created_at"}
+        self.events: Queue[EventBase] = Queue()
+        self.buffer: List[Event] = []
+        self.size = 0  # For bytes check
+        self.created_at = 0  # For age check - will be time.monotonic()
         self.lock = threading.Lock()
-        self._stop_event = threading.Event()
-        self._age_worker_started = False
+        self.stop_event = threading.Event()
         self.max_chunk_length = config.webui_max_chunk_length
         self.max_chunk_age = config.webui_max_chunk_age
         self.max_chunk_size = config.webui_max_chunk_size
 
-    def _queue_for(self, task_id: Optional[str]) -> Queue:
-        key = _buffer_key(task_id)
-        with self._queues_lock:
-            if key not in self._event_queues:
-                self._event_queues[key] = Queue()
-            return self._event_queues[key]
-
-    def _get_or_create_buffer(self, key: str) -> Dict:
-        if key not in self._buffers:
-            self._buffers[key] = {"events": [], "size": 0, "created_at": 0.0}
-        return self._buffers[key]
-
     def add_event(self, event: Event):
-        """Append an event to the chunk buffer for its task_id."""
+        """Append an event to the chunk buffer and update its size.
 
-        key = _buffer_key(event.task_id)
-        buf = self._get_or_create_buffer(key)
-        if not buf["events"]:
-            buf["created_at"] = time.monotonic()
-        buf["events"].append(event)
-        buf["size"] += event.get_size_bytes()
+        If the buffer is empty, set its created_at timestamp (monotonic) to now.
+
+        Args:
+            event (Event): The event to buffer (typically an interactive print line).
+        """
+
+        if not self.buffer:
+            self.created_at = time.monotonic()
+        self.buffer.append(event)
+        self.size += event.get_size_bytes()
 
     def process_event(self, event: Event):
         """
-        Process a single event: buffer chunkable events per task_id, flush if needed,
+        Process a single event: buffer chunkable events, flush if needed,
         or immediately enqueue non-chunkable events.
         """
 
@@ -306,20 +284,30 @@ class EventsManager:
             return
 
         with self.lock:
-            self.flush_all_buffers()
+            self.flush_buffer()
 
         self.enqueue_event(event)
 
     def enqueue_event(self, event: EventBase):
-        """Enqueue an event into the queue for its task_id so only that task's SSE receives it."""
-        self._queue_for(event.task_id).put_nowait(event)
+        """Enqueue an event (chunked or single) into the events queue.
 
-    def dequeue_event(self, task_id: Optional[str], timeout: Optional[float]) -> Optional[EventBase]:
-        """Return the next event or chunk for the given task_id (used by SSE stream)."""
-        return self._queue_for(task_id).get(block=True, timeout=timeout)
+        Args:
+            event (EventBase): The event or chunk to enqueue.
+        """
+        self.events.put_nowait(event)
+
+    def dequeue_event(self, timeout: Optional[float]) -> Optional[EventBase]:
+        """
+        Return the next event or chunk from the queue.
+
+        Args:
+            timeout (float | None): Seconds to wait for an event.
+        """
+
+        return self.events.get(block=True, timeout=timeout)
 
     def _build_chunk(self, events: List[Event], size: int) -> EventChunk:
-        """Build an EventChunk from events (all same task_id)."""
+        """Build an EventChunk object from a list of events."""
 
         for i, ev in enumerate(events, 1):
             ev.id = i
@@ -331,68 +319,66 @@ class EventsManager:
             size_bytes=size,
         )
 
-    def _flush_one_buffer(self, key: str) -> None:
-        """Flush a single task's buffer: emit chunk or single event, then clear it."""
-        buf = self._buffers.get(key)
-        if not buf or not buf["events"]:
+    def flush_buffer(self):
+        """
+        Flush the event buffer: if it contains multiple events, emit them as
+        an EventChunk; otherwise enqueue the single event. The buffer is then reset.
+        """
+        if not self.buffer:
             return
-        events = list(buf["events"])
-        size = buf["size"]
-        buf["events"].clear()
-        buf["size"] = 0
-        buf["created_at"] = 0.0
-        self._buffers.pop(key, None)  # remove empty buffer
+        buffer = list(self.buffer)
+        size = self.size
+        self.buffer.clear()
+        self.size = 0
+        self.created_at = 0
 
-        task_id = events[0].task_id
-        if len(events) != 1:
-            self._queue_for(task_id).put_nowait(self._build_chunk(events, size))
-        else:
-            self._queue_for(task_id).put_nowait(events[0])
+        if len(buffer) != 1:
+            chunk = self._build_chunk(buffer, size)
+            self.events.put_nowait(chunk)
+            return
 
-    def flush_all_buffers(self) -> None:
-        """Flush every task's buffer (e.g. before a non-chunkable event)."""
-        for key in list(self._buffers.keys()):
-            self._flush_one_buffer(key)
+        self.events.put_nowait(buffer[0])
 
-    def flush_by_size(self) -> None:
-        """Flush any task's buffer that exceeds max length or byte size."""
-        for key in list(self._buffers.keys()):
-            buf = self._buffers.get(key)
-            if not buf or not buf["events"]:
-                continue
-            length_ok = len(buf["events"]) >= self.max_chunk_length
-            size_ok = buf["size"] >= self.max_chunk_size
-            if length_ok or size_ok:
-                self._flush_one_buffer(key)
+    def flush_by_size(self):
+        """Flush the buffer if it exceeds the max event count or max byte size."""
 
-    def flush_by_age(self) -> None:
-        """Flush any task's buffer whose oldest event exceeds max age."""
-        now = time.monotonic()
-        for key in list(self._buffers.keys()):
-            buf = self._buffers.get(key)
-            if not buf or not buf["events"]:
-                continue
-            if (now - buf["created_at"]) >= self.max_chunk_age:
-                self._flush_one_buffer(key)
+        length_exceeded = len(self.buffer) >= self.max_chunk_length
+        size_bytes_exceeded = self.size >= self.max_chunk_size
 
-    def _flush_by_age_worker(self) -> None:
-        """Background loop: periodically flush buffers that exceed max age."""
-        while not self._stop_event.is_set():
+        if self.buffer and (length_exceeded or size_bytes_exceeded):
+            self.flush_buffer()
+
+    def flush_by_age(self):
+        """Flush the buffer if the oldest event exceeds the max age."""
+
+        time_exceeded = (time.monotonic() - self.created_at) >= self.max_chunk_age
+        if self.buffer and time_exceeded:
+            self.flush_buffer()
+
+    def flush_by_age_worker(self):
+        """
+        Background loop that periodically flushes the buffer if it exceeds max age.
+
+        Runs until 'stop_event' is set.
+        """
+
+        while not self.stop_event.is_set():
             with self.lock:
                 self.flush_by_age()
             time.sleep(0.2)
 
-    def start_buffering(self) -> None:
-        """Start the age-based flushing worker (idempotent; one worker for all tasks)."""
-        with self.lock:
-            if self._age_worker_started:
-                return
-            self._age_worker_started = True
-            self._stop_event.clear()
-        t = threading.Thread(target=self._flush_by_age_worker, daemon=True)
-        t.start()
+    def start_buffering(self):
+        """Start the age-based flushing worker thread."""
 
-    def stop_buffering(self) -> None:
-        """Flush all task buffers (e.g. when a task ends). Does not stop the age worker."""
+        self.stop_event.clear()
+
+        # worker for age-flushing
+        age_worker = threading.Thread(target=self.flush_by_age_worker, daemon=True)
+        age_worker.start()
+
+    def stop_buffering(self):
+        """Stop the age-flushing worker and flush any remaining buffered events."""
+
+        self.stop_event.set()
         with self.lock:
-            self.flush_all_buffers()
+            self.flush_buffer()

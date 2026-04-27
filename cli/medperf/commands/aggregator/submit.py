@@ -6,16 +6,24 @@ from medperf.entities.cube import Cube
 
 class SubmitAggregator:
     @classmethod
-    def run(cls, name: str, address: str, port: int, aggregation_mlcube: int):
+    def run(
+        cls,
+        name: str,
+        address: str,
+        port: int,
+        admin_port: int,
+        aggregation_mlcube: int,
+    ):
         """Submits a new aggregator to the medperf platform
         Args:
             name (str): aggregator name
             address (str): aggregator address/domain
             port (int): port which the aggregator will use
+            admin_port (int): port which the aggregator will use to serve admin requests
             aggregation_mlcube (int): aggregation mlcube uid
         """
         ui = config.ui
-        submission = cls(name, address, port, aggregation_mlcube)
+        submission = cls(name, address, port, admin_port, aggregation_mlcube)
 
         with ui.interactive():
             ui.text = "Submitting Aggregator to MedPerf"
@@ -25,9 +33,16 @@ class SubmitAggregator:
         submission.write(updated_benchmark_body)
         return submission.aggregator.id
 
-    def __init__(self, name: str, address: str, port: int, aggregation_mlcube: int):
+    def __init__(
+        self,
+        name: str,
+        address: str,
+        port: int,
+        admin_port: int,
+        aggregation_mlcube: int,
+    ):
         self.ui = config.ui
-        agg_config = {"address": address, "port": port}
+        agg_config = {"address": address, "port": port, "admin_port": admin_port}
         self.aggregator = Aggregator(
             name=name, config=agg_config, aggregation_mlcube=aggregation_mlcube
         )

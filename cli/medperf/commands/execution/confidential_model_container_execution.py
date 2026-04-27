@@ -23,6 +23,7 @@ from medperf.commands.certificate.utils import (
 )
 from medperf.commands.execution.container_execution import ContainerExecution
 from medperf.containers.runners.docker_utils import full_docker_image_name
+from medperf.enums import CryptoKeyType
 
 
 class ConfidentialModelContainerExecution:
@@ -127,10 +128,10 @@ class ConfidentialModelContainerExecution:
 
     def setup_workload(self):
         if self.dataset.owner == self.operator.id:
-            status_dict = current_user_certificate_status()
+            status_dict = current_user_certificate_status(CryptoKeyType.RSA)
             user_cert = None
             if status_dict["should_be_submitted"]:
-                user_cert = Certificate.get_local_user_certificate()
+                user_cert = Certificate.get_local_user_certificate(CryptoKeyType.RSA)
             elif status_dict["no_action_required"]:
                 user_cert = status_dict["user_cert_object"]
 
@@ -140,12 +141,11 @@ class ConfidentialModelContainerExecution:
                 )
             cert_obj = user_cert
         else:
-            datasets_certs = config.comms.get_benchmark_datasets_certificates(
+            datasets_certs, _ = Certificate.get_benchmark_datasets_certificates(
                 self.benchmark_id
             )
             for cert in datasets_certs:
-                if cert["owner"]["id"] == self.dataset.owner:
-                    cert.pop("owner")
+                if cert.owner == self.dataset.owner:
                     cert_obj = Certificate(**cert)
                     break
             else:
@@ -194,7 +194,7 @@ class ConfidentialModelContainerExecution:
     def download_predictions(self):
         config.ui.text = "Downloading inference predictions"
         results_path = self.local_execution_flow.preds_path
-        private_key_bytes = load_user_private_key()
+        private_key_bytes = load_user_private_key(CryptoKeyType.RSA)
         if private_key_bytes is None:
             raise DecryptionError("Missing Private Key")
 

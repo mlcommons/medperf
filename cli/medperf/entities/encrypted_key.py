@@ -17,6 +17,7 @@ from medperf.encryption import AsymmetricEncryption
 from medperf.utils import tmp_path_for_key_decryption, secure_write_to_file
 from typing import List
 from medperf.entities.utils import handle_validation_error
+from medperf.enums import CryptoKeyType
 
 
 class EncryptedKey(Entity):
@@ -50,7 +51,7 @@ class EncryptedKey(Entity):
     def get_user_container_key(cls, container_id: int) -> EncryptedKey:
         """Get encrypted key of a container for the current user certificate"""
         # Get user cert
-        user_cert_info = current_user_certificate_status()
+        user_cert_info = current_user_certificate_status(CryptoKeyType.RSA)
         if not user_cert_info["no_action_required"]:
             raise PrivateContainerAccessError("You don't have a valid certificate")
         user_cert = user_cert_info["user_cert_object"]
@@ -81,7 +82,7 @@ class EncryptedKey(Entity):
         output_path = tmp_path_for_key_decryption()
         logging.debug(f"Output path: {output_path}")
         encrypted_key_bytes = base64.b64decode(self.encrypted_key_base64)
-        private_key_bytes = load_user_private_key()
+        private_key_bytes = load_user_private_key(CryptoKeyType.RSA)
         if private_key_bytes is None:
             raise DecryptionError("Missing Private Key")
         decrypted_key_bytes = AsymmetricEncryption().decrypt(

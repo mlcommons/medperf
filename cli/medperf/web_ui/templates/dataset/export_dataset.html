@@ -7,9 +7,9 @@
 {% block title %}Export Dataset{% endblock %}
 
 {% block detail_panel %}
-{% set dataset_export_running = (task_running and "export_dataset" in request.app.state.active_tasks) %}
+{% set dataset_export_running = (task_running and request.app.state.task.name == "export_dataset") %}
 {% if dataset_export_running %}
-{% set form_data = request.app.state.active_tasks["export_dataset"].formData %}
+{% set form_data = request.app.state.task.formData %}
 {% endif %}
 
 <div class="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
@@ -50,7 +50,6 @@
     </div>
 
     <form id="dataset-export-form" class="space-y-6" action="/dataset/ui/export" method="post" data-panel-title="Exporting dataset" data-confirm-message="export this dataset?">
-        <input type="hidden" name="task_name" value="export_dataset">
         <div>
             <label for="output-path" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Output Folder</label>
             <div class="flex flex-wrap items-stretch gap-2">
@@ -82,7 +81,7 @@
 <script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
 <script src="{{ url_for('static', path='js/datasets/dataset_export.js') }}"></script>
 <script src="{{ url_for('static', path='js/folder_browsing.js') }}"></script>
-{% if task_running and "export_dataset" in request.app.state.active_tasks and request.app.state.active_tasks["export_dataset"].formData.get("dataset_id", "") == dataset.id|string %}
+{% if task_running and request.app.state.task.name == "export_dataset" and request.app.state.task.formData.get("dataset_id", "") == dataset.id|string %}
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         resumeRunningTask("#export-dataset-form");

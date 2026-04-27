@@ -92,7 +92,6 @@
                     <div class="flex gap-2 flex-shrink-0">
                         <a href="/benchmarks/ui/display/{{ benchmark.id }}" class="px-3 py-1.5 rounded-lg bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-white text-sm font-semibold hover:opacity-90 whitespace-nowrap">View</a>
                         <form id="model-association-form-{{ benchmark.id }}" action="/models/associate" method="post" class="inline model-action-form" data-panel-title="Requesting model association" data-confirm-message="request model association with this benchmark?">
-                            <input type="hidden" name="task_name" value="model_association">
                             <input type="hidden" name="model_id" value="{{ entity.id }}">
                             <input type="hidden" name="benchmark_id" value="{{ benchmark.id }}">
                             <button type="submit" class="request-association-btn px-3 py-1.5 rounded-lg medperf-bg dark:bg-green-600 text-white text-sm font-semibold hover:opacity-90 whitespace-nowrap cursor-pointer" data-testid="request-bmk-association" {% if task_running %}disabled{% endif %}>Request</button>
@@ -145,25 +144,27 @@
 <script src="{{ url_for('static', path='js/models/model_detail.js') }}"></script>
 <script src="{{ url_for('static', path='js/cc.js') }}"></script>
 {% if task_running %}
-{% if "model_association" in request.app.state.active_tasks and request.app.state.active_tasks["model_association"].formData.get("model_id", "") == entity.id|string %}
-{% set form_data = request.app.state.active_tasks["model_association"].formData %}
+{% if request.app.state.task.formData.get("model_id", "") == entity.id|string %}
+{% set form_data = request.app.state.task.formData %}
+{% if request.app.state.task.name == "model_association" %}
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         resumeRunningTask("#model-association-form-{{ form_data.get('benchmark_id', '') }}");
     });
 </script>
-{% elif "model_update_cc_config" in request.app.state.active_tasks and request.app.state.active_tasks["model_update_cc_config"].formData.get("model_id", "") == entity.id|string %}
+{% elif request.app.state.task.name == "model_update_cc_config" %}
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         resumeRunningTask("#edit-cc-asset-form");
     });
 </script>
-{% elif "model_update_cc_policy" in request.app.state.active_tasks and request.app.state.active_tasks["model_update_cc_policy"].formData.get("model_id", "") == entity.id|string %}
+{% elif request.app.state.task.name == "model_update_cc_policy" %}
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         resumeRunningTask("#sync-cc-policy-form");
     });
 </script>
+{% endif %}
 {% endif %}
 {% endif %}
 {% endblock %}

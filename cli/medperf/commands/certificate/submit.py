@@ -8,14 +8,15 @@ from medperf import config
 from medperf.ui.interface import UI
 from medperf.entities.certificate import Certificate
 from medperf.certificates import verify_certificate
+from medperf.enums import CryptoKeyType
 
 
 class SubmitCertificate:
     @classmethod
-    def run(cls, approved: bool = False):
+    def run(cls, key_type: CryptoKeyType, approved: bool = False):
         """Upload certificate to MedPerf server"""
         ui: UI = config.ui
-        submission = cls(approved)
+        submission = cls(key_type, approved)
 
         submission.prepare()
         with ui.interactive():
@@ -25,8 +26,9 @@ class SubmitCertificate:
         ui.print("Certificate uploaded")
         submission.write(updated_certificate_body)
 
-    def __init__(self, approved: bool = False):
+    def __init__(self, key_type: CryptoKeyType, approved: bool = False):
         self.ca_id = config.certificate_authority_id
+        self.key_type = key_type
         self.approved = approved
 
     def prepare(self):
@@ -34,7 +36,7 @@ class SubmitCertificate:
 
     def __prepare_cert_object(self):
         email = get_medperf_user_data()["email"]
-        pki_assets_path = get_pki_assets_path(email, self.ca_id)
+        pki_assets_path = get_pki_assets_path(email, self.ca_id, key_type=self.key_type)
         certificate_file_path = os.path.join(pki_assets_path, config.certificate_file)
 
         if not os.path.exists(certificate_file_path):
@@ -52,6 +54,7 @@ class SubmitCertificate:
             name=name,
             ca=self.ca_id,
             certificate_content_base64=cert_content_base64,
+            key_type=self.key_type,
         )
 
     def __generate_name(self):
