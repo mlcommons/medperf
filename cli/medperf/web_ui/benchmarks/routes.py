@@ -22,7 +22,7 @@ from medperf.web_ui.common import (
     sort_associations_display,
     check_user_ui,
 )
-from medperf.web_ui.utils import get_container_type
+from medperf.web_ui.utils import get_container_type, get_ui_ordering
 
 from medperf.commands.association.approval import Approval
 from medperf.enums import Status
@@ -44,14 +44,7 @@ def benchmarks_ui(
     current_user: bool = Depends(check_user_ui),
 ):
 
-    if ordering == "created_at_asc":
-        order = "created_at"
-    elif ordering == "name_asc":
-        order = "name"
-    elif ordering == "name_desc":
-        order = "-name"
-    else:
-        order = "-created_at"
+    order = get_ui_ordering(ordering)
 
     filters = {}
     my_user_id = get_medperf_user_data()["id"]

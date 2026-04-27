@@ -24,6 +24,7 @@ from medperf.web_ui.common import (
     check_user_ui,
     sanitize_redirect_url,
 )
+from medperf.web_ui.utils import get_ui_ordering
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -38,14 +39,7 @@ def containers_ui(
     ordering: str = "created_at_desc",
     current_user: bool = Depends(check_user_ui),
 ):
-    if ordering == "created_at_asc":
-        order = "created_at"
-    elif ordering == "name_asc":
-        order = "name"
-    elif ordering == "name_desc":
-        order = "-name"
-    else:
-        order = "-created_at"
+    order = get_ui_ordering(ordering)
 
     filters = {}
     my_user_id = get_medperf_user_data()["id"]

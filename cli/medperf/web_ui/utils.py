@@ -2,6 +2,15 @@ import uuid
 from medperf.entities.cube import Cube
 
 
+def get_ui_ordering(ordering: str) -> str:
+    ordering_map = {
+        "created_at_asc": "created_at",
+        "name_asc": "name",
+        "name_desc": "-name",
+    }
+    return ordering_map.get(ordering, "-created_at")
+
+
 def get_container_type(container: Cube):
     # todo: use container parser.
     container_config = container.container_config
