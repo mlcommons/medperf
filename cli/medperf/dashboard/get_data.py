@@ -3,14 +3,17 @@ import pandas as pd
 import datetime
 import numpy as np
 
+from medperf.entities.benchmark import Benchmark
 from medperf.entities.dataset import Dataset
 from medperf import config
 
-from .utils import get_institution_from_email, get_reports_path, stage_id2name
+from .utils import get_institution_from_email, stage_id2name
 
 
-def get_dsets(mlcube_id):
-    dsets = Dataset.all(filters={"mlcube": mlcube_id})
+def get_dsets(benchmark_id):
+    bmk = Benchmark.get(benchmark_id)
+    data_preparator = bmk.data_preparation_mlcube
+    dsets = Dataset.all(filters={"data_preparator": data_preparator})
     dsets = [dset.todict() for dset in dsets]
     for dset in dsets:
         user_id = dset["owner"]
@@ -86,10 +89,12 @@ def write_sites(dsets_df, institutions_df, full_path):
         f.write("\n".join(sites))
 
 
-def get_data(mlcube_id, stages_path, institutions_path, out_path):
-    dsets = get_dsets(mlcube_id)
-    full_path = get_reports_path(out_path, mlcube_id)
-    os.makedirs(full_path, exist_ok=True)
+def get_data(benchmark_id, stages_path, institutions_path, out_path):
+    dsets = get_dsets(benchmark_id)
+    if not dsets:
+        return
+
+    os.makedirs(out_path, exist_ok=True)
 
     institutions_df = pd.read_csv(institutions_path)
     user2institution = {u: i for i, u in institutions_df.values.tolist()}
@@ -97,5 +102,6 @@ def get_data(mlcube_id, stages_path, institutions_path, out_path):
     stages_df.set_index("Status Code", inplace=True)
 
     dsets_df = build_dset_df(dsets, user2institution, stages_df)
-    write_dsets_df(dsets_df, full_path)
-    write_sites(dsets_df, institutions_df, full_path)
+    write_dsets_df(dsets_df, out_path)
+    write_sites(dsets_df, institutions_df, out_path)
+    return True

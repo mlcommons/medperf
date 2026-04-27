@@ -95,6 +95,7 @@ aggregators_folder = "aggregators"
 cas_folder = "cas"
 training_events_folder = "training_events"
 certificates_folder = "certificates"
+dashboards_folder = "dashboards"
 assets_folder = "assets"
 models_folder = "models"
 
@@ -177,6 +178,10 @@ storage = {
         "base": default_base_storage,
         "name": certificates_folder,
     },
+    "dashboards_folder": {
+        "base": default_base_storage,
+        "name": dashboards_folder,
+    },
     "assets_folder": {
         "base": default_base_storage,
         "name": assets_folder,
@@ -209,6 +214,7 @@ server_folders = [
     "cas_folder",
     "training_events_folder",
     "certificates_folder",
+    "dashboards_folder",
     "assets_folder",
     "models_folder",
 ]
