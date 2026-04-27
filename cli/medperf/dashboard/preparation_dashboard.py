@@ -29,7 +29,8 @@ _MEDPERF_DASH_INDEX_STRING = """<!DOCTYPE html>
         (function(){
           try {
             var v = localStorage.getItem('medperf-dark');
-            var dark = v === '1' || (v === null && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            var match = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            var dark = v === '1' || (v === null && match);
             if (dark) document.documentElement.classList.add('dark');
             else document.documentElement.classList.remove('dark');
           } catch (e) {}
@@ -109,9 +110,7 @@ def _datatable():
         "css": [
             {
                 "selector": ".dash-spreadsheet-container",
-                "rule": "border-radius: 12px; font-family: "
-                + _MEDPERF_FONT
-                + ";",
+                "rule": "border-radius: 12px; font-family: " + _MEDPERF_FONT + ";",
             },
         ],
     }
@@ -167,7 +166,13 @@ def participant_dashboard(latest_table: pd.DataFrame, sites: pd.DataFrame):
                         className="mb-4 mb-md-0",
                     ),
                     dbc.Col(
-                        [dcc.Graph(figure=fig, responsive=True, config={"displayModeBar": True})],
+                        [
+                            dcc.Graph(
+                                figure=fig,
+                                responsive=True,
+                                config={"displayModeBar": True},
+                            )
+                        ],
                         md=6,
                     ),
                 ],
@@ -209,7 +214,9 @@ def preparation_status_dashboard(latest_table: pd.DataFrame, stages_colors, stag
         font=dict(size=20, family=_MEDPERF_FONT, color="#1f2937"),
         showarrow=False,
     )
-    stages_fig.update_layout(height=400, margin=dict(l=20, r=20, t=56, b=20), showlegend=True)
+    stages_fig.update_layout(
+        height=400, margin=dict(l=20, r=20, t=56, b=20), showlegend=True
+    )
     stages_fig.update_traces(marker=dict(line=dict(color="#fff", width=2)))
     _apply_medperf_chart_theme(stages_fig)
 
@@ -226,7 +233,9 @@ def preparation_status_dashboard(latest_table: pd.DataFrame, stages_colors, stag
         color=exec_status_dist.index,
         color_discrete_map=_EXEC_STATUS_COLORS,
     )
-    exec_fig.update_layout(height=400, margin=dict(l=20, r=20, t=56, b=20), showlegend=True)
+    exec_fig.update_layout(
+        height=400, margin=dict(l=20, r=20, t=56, b=20), showlegend=True
+    )
     exec_fig.update_traces(marker=dict(line=dict(color="#fff", width=2)))
     _apply_medperf_chart_theme(exec_fig)
 

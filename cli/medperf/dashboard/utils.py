@@ -1,5 +1,7 @@
 import os
 
+from medperf.utils import sanitize_path
+
 
 def get_reports_path(out_path, benchmark_id):
     """Directory used to store and read dashboard CSV artifacts for a benchmark."""
@@ -8,7 +10,8 @@ def get_reports_path(out_path, benchmark_id):
 
 def get_institution_from_email(email, user2institution):
     """Resolve institution label from user email using the institutions CSV mapping."""
-    return user2institution.get(email, email)
+    full_path = user2institution.get(email, email)
+    return sanitize_path(full_path)
 
 
 def stage_id2name(stage_key, stages_df):
