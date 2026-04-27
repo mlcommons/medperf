@@ -36,7 +36,11 @@ from medperf.web_ui.common import (
     initialize_state_task,
     reset_state_task,
 )
-from medperf.web_ui.utils import get_container_type, get_ui_ordering
+from medperf.web_ui.utils import (
+    get_container_type,
+    build_listing_filters,
+    build_pagination_context,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -52,8 +56,6 @@ def datasets_ui(
     ordering: str = "created_at_desc",
     current_user: bool = Depends(check_user_ui),
 ):
-    order = get_ui_ordering(ordering)
-
     filters = {}
     my_user_id = get_medperf_user_data()["id"]
 
@@ -62,23 +64,19 @@ def datasets_ui(
 
     total_count = Dataset.get_count(filters=filters)
 
-    # Pagination
-    offset = (page - 1) * page_size
-    filters["limit"] = page_size
-    filters["offset"] = offset
-
-    # Ordering
-    filters["ordering"] = order
+    filters.update(
+        build_listing_filters(page=page, page_size=page_size, ordering=ordering)
+    )
 
     datasets = Dataset.all(filters=filters)
 
-    total_pages = (total_count + page_size - 1) // page_size
-
-    start_index = 0
-    end_index = 0
-    if total_count != 0:
-        start_index = offset + 1
-        end_index = min(offset + len(datasets), total_count)
+    pagination_context = build_pagination_context(
+        page=page,
+        page_size=page_size,
+        ordering=ordering,
+        total_count=total_count,
+        page_items_count=len(datasets),
+    )
 
     return templates.TemplateResponse(
         "dataset/datasets.html",
@@ -86,13 +84,7 @@ def datasets_ui(
             "request": request,
             "datasets": datasets,
             "mine_only": mine_only,
-            "page": page,
-            "page_size": page_size,
-            "total_pages": total_pages,
-            "ordering": ordering,
-            "total_count": total_count,
-            "start_index": start_index,
-            "end_index": end_index,
+            **pagination_context,
         },
     )
 

@@ -22,7 +22,11 @@ from medperf.web_ui.common import (
     sort_associations_display,
     check_user_ui,
 )
-from medperf.web_ui.utils import get_container_type, get_ui_ordering
+from medperf.web_ui.utils import (
+    get_container_type,
+    build_listing_filters,
+    build_pagination_context,
+)
 
 from medperf.commands.association.approval import Approval
 from medperf.enums import Status
@@ -44,8 +48,6 @@ def benchmarks_ui(
     current_user: bool = Depends(check_user_ui),
 ):
 
-    order = get_ui_ordering(ordering)
-
     filters = {}
     my_user_id = get_medperf_user_data()["id"]
 
@@ -54,23 +56,19 @@ def benchmarks_ui(
 
     total_count = Benchmark.get_count(filters=filters)
 
-    # Pagination
-    offset = (page - 1) * page_size
-    filters["limit"] = page_size
-    filters["offset"] = offset
-
-    # Ordering
-    filters["ordering"] = order
+    filters.update(
+        build_listing_filters(page=page, page_size=page_size, ordering=ordering)
+    )
 
     benchmarks = Benchmark.all(filters=filters)
 
-    total_pages = (total_count + page_size - 1) // page_size
-
-    start_index = 0
-    end_index = 0
-    if total_count != 0:
-        start_index = offset + 1
-        end_index = min(offset + len(benchmarks), total_count)
+    pagination_context = build_pagination_context(
+        page=page,
+        page_size=page_size,
+        ordering=ordering,
+        total_count=total_count,
+        page_items_count=len(benchmarks),
+    )
 
     return templates.TemplateResponse(
         "benchmark/benchmarks.html",
@@ -78,13 +76,7 @@ def benchmarks_ui(
             "request": request,
             "benchmarks": benchmarks,
             "mine_only": mine_only,
-            "page": page,
-            "page_size": page_size,
-            "total_pages": total_pages,
-            "ordering": ordering,
-            "total_count": total_count,
-            "start_index": start_index,
-            "end_index": end_index,
+            **pagination_context,
         },
     )
 
