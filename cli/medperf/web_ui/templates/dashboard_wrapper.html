@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Preparation Dashboard | {{ benchmark_id }}{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+    <a href="{{ prev_url }}" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border-2 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200 font-semibold hover:bg-gray-100 dark:hover:bg-gray-800 hover:border-green-500 dark:hover:border-green-500 transition-colors mb-8">
+        <i class="fas fa-arrow-left" aria-hidden="true"></i>
+        Back to benchmark
+    </a>
+
+    <div class="mb-8">
+        <h1 class="text-4xl sm:text-5xl font-bold medperf-accent dark:text-green-400 mb-2">
+            {{ benchmark_name }}
+        </h1>
+        <p class="text-lg text-gray-600 dark:text-gray-400 flex items-center gap-2">
+            <i class="fas fa-chart-line medperf-accent dark:text-green-400" aria-hidden="true"></i>
+            Preparation dashboard
+        </p>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border-2 border-green-100 dark:border-gray-700 overflow-hidden">
+        <iframe
+            src="{{ mount_point }}"
+            title="Preparation dashboard for {{ benchmark_name }}"
+            class="block w-full min-h-[75vh] border-0 bg-white"
+            allowfullscreen
+            id="dashboard-frame"
+        ></iframe>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    var iframe = document.getElementById("dashboard-frame");
+    if (!iframe) return;
+
+    function medperfPushThemeToDash() {
+        var dark = document.documentElement.classList.contains("dark");
+        try {
+            if (iframe.contentWindow) {
+                iframe.contentWindow.postMessage({ type: "medperf-theme", dark: dark }, "*");
+            }
+        } catch (e) {
+            /* ignore */
+        }
+    }
+
+    function resizeIframe() {
+        try {
+            var doc = iframe.contentDocument || iframe.contentWindow.document;
+            var h = doc.documentElement.scrollHeight || doc.body.scrollHeight;
+            if (h > 0) iframe.style.height = h + "px";
+        } catch (e) {
+            console.warn("Could not resize iframe:", e);
+        }
+    }
+
+    iframe.addEventListener("load", function () {
+        medperfPushThemeToDash();
+        resizeIframe();
+        try {
+            var doc = iframe.contentDocument || iframe.contentWindow.document;
+            var observer = new ResizeObserver(resizeIframe);
+            observer.observe(doc.documentElement);
+            observer.observe(doc.body);
+        } catch (e) {
+            /* cross-origin or ResizeObserver unavailable */
+        }
+    });
+
+    if (window.MutationObserver) {
+        var mo = new MutationObserver(function () {
+            medperfPushThemeToDash();
+        });
+        mo.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    }
+
+    window.addEventListener("storage", function (ev) {
+        if (ev.key === "medperf-dark") medperfPushThemeToDash();
+    });
+
+    window.addEventListener("resize", resizeIframe);
+})();
+</script>
+{% endblock %}

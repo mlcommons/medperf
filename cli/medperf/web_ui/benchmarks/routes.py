@@ -34,6 +34,8 @@ from medperf.commands.benchmark.update_associations_poilcy import (
     UpdateAssociationsPolicy,
 )
 
+from medperf.web_ui.utils import mount_dashboard
+
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
@@ -352,3 +354,51 @@ def update_associations_policy(
         url=f"/benchmarks/ui/display/{benchmark_id}",
     )
     return return_response
+
+
+@router.post("/ui/dashboard", response_class=HTMLResponse)
+def preparation_dashboard(
+    request: Request,
+    benchmark_id: int = Form(...),
+    benchmark_name: str = Form(...),
+    stages: str = Form(...),
+    institutions: str = Form(...),
+    force_update: bool = Form(False),
+    current_user: bool = Depends(check_user_ui),
+):
+    errors = False
+    error_message = "Failed to load dashboard: "
+
+    benchmark = Benchmark.get(benchmark_id)
+    is_owner = benchmark.owner == get_medperf_user_data()["id"]
+    if not is_owner:
+        errors = True
+        error_message += "Only the benchmark owner can access the dashboard."
+
+    try:
+        if not errors:
+            mount_dashboard(request, benchmark_id, stages, institutions, force_update)
+    except Exception as exp:
+        logger.exception(exp)
+        errors = True
+        error_message += str(exp)
+
+    if errors:
+        return templates.TemplateResponse(
+            "error.html",
+            {
+                "request": request,
+                "exception": error_message,
+            },
+        )
+
+    return templates.TemplateResponse(
+        "dashboard_wrapper.html",
+        {
+            "request": request,
+            "mount_point": f"/ui/display/{benchmark_id}/dashboard/app",
+            "benchmark_id": benchmark_id,
+            "prev_url": f"/benchmarks/ui/display/{benchmark_id}/",
+            "benchmark_name": benchmark_name,
+        },
+    )
