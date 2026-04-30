@@ -1,0 +1,152 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+:root {
+    --medperf-green: #2e7d32;
+    --medperf-green-light: #4caf50;
+    --medperf-page-bg: #f1f8f4;
+    --medperf-card-bg: #ffffff;
+    --medperf-card-border: #c8e6c9;
+    --medperf-text: #111827;
+    --medperf-text-muted: #6b7280;
+    --medperf-radius: 16px;
+    --medperf-table-header-bg: #e8f5e9;
+    --medperf-table-header-fg: #1b5e20;
+    --medperf-table-cell-border: #e5e7eb;
+}
+
+html.dark {
+    --medperf-page-bg: #111827;
+    --medperf-card-bg: #1f2937;
+    --medperf-card-border: #374151;
+    --medperf-text: #f9fafb;
+    --medperf-text-muted: #9ca3af;
+    --medperf-table-header-bg: #14532d;
+    --medperf-table-header-fg: #bbf7d0;
+    --medperf-table-cell-border: #4b5563;
+}
+
+html,
+body {
+    font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+    background-color: var(--medperf-page-bg) !important;
+    color: var(--medperf-text);
+    margin: 0;
+}
+
+body {
+    padding: 8px 12px 32px;
+    min-height: 100vh;
+}
+
+.medperf-dash-main {
+    max-width: 1280px;
+    margin: 0 auto;
+}
+
+.medperf-dash-title {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    font-weight: 700;
+    color: var(--medperf-green);
+    margin: 0.75rem 0 1.25rem;
+    letter-spacing: -0.02em;
+}
+
+html.dark .medperf-dash-title {
+    color: #4ade80;
+}
+
+.medperf-dash-section {
+    background: var(--medperf-card-bg);
+    border: 2px solid var(--medperf-card-border);
+    border-radius: var(--medperf-radius);
+    box-shadow:
+        0 10px 15px -3px rgba(0, 0, 0, 0.08),
+        0 4px 6px -2px rgba(0, 0, 0, 0.04);
+    padding: 1.5rem 1.25rem;
+    margin-top: 1.25rem;
+    margin-bottom: 0.25rem;
+}
+
+html.dark .medperf-dash-section {
+    box-shadow:
+        0 10px 15px -3px rgba(0, 0, 0, 0.25),
+        0 4px 6px -2px rgba(0, 0, 0, 0.15);
+}
+
+.medperf-dash-section h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--medperf-green);
+    text-align: center;
+    margin-bottom: 1.25rem;
+}
+
+html.dark .medperf-dash-section h2 {
+    color: #4ade80;
+}
+
+.medperf-dash-alert {
+    border-radius: var(--medperf-radius) !important;
+    border: 2px solid #fcd34d !important;
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%) !important;
+    max-width: 42rem;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+html.dark .medperf-dash-alert {
+    border-color: #b45309 !important;
+    background: linear-gradient(135deg, #451a03 0%, #78350f 100%) !important;
+    color: #fde68a !important;
+}
+
+html.dark .medperf-dash-alert .alert-heading {
+    color: #fef3c7 !important;
+}
+
+.medperf-dash-table-wrap {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--medperf-card-border);
+}
+
+html.dark .dash-table-container .dash-spreadsheet-inner table {
+    background-color: var(--medperf-card-bg) !important;
+}
+
+html.dark .dash-table-container .dash-cell {
+    background-color: var(--medperf-card-bg) !important;
+    color: var(--medperf-text) !important;
+    border-color: var(--medperf-table-cell-border) !important;
+}
+
+html.dark .dash-table-container .dash-header {
+    background-color: var(--medperf-table-header-bg) !important;
+    color: var(--medperf-table-header-fg) !important;
+    border-color: var(--medperf-card-border) !important;
+}
+
+html.dark .dash-table-container .dash-filter--case {
+    background-color: var(--medperf-card-bg) !important;
+    color: var(--medperf-text) !important;
+}
+
+html.dark .dash-table-container .previous-next-container button {
+    color: var(--medperf-text) !important;
+}
+
+html.dark .medperf-dash-alert .lead {
+    color: inherit !important;
+}
+
+.modebar {
+    opacity: 0.7;
+}
+
+.modebar:hover {
+    opacity: 1;
+}
+
+html.dark .modebar-btn {
+    color: #e5e7eb !important;
+}

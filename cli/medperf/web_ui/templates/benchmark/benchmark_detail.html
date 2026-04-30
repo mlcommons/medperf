@@ -1,4 +1,5 @@
 {% extends "detail_base.html" %}
+{% import 'macros/modal_macros.html' as modal_macros %}
 {% import 'macros/association_card_macros.html' as association_card_macros %}
 {% import 'macros/result_card_macros.html' as result_card_macros %}
 {% import 'macros/container_macros.html' as container_macros %}
@@ -10,12 +11,51 @@
 
 {% block detail_panel %}
 <div class="mb-8">
-    <div class="flex items-center justify-between mb-6">
-        <div class="flex items-center mb-3">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div class="flex items-center mb-3 sm:mb-0">
             <h1 class="text-5xl font-bold medperf-accent dark:text-green-400">{{ entity.name }}</h1>
         </div>
+        {% if current_user_is_benchmark_owner %}
+        <button type="button" id="dashboard-btn" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl medperf-bg dark:bg-green-600 text-white font-bold hover:opacity-90 transition-all shadow-lg cursor-pointer shrink-0" {% if task_running %}disabled{% endif %}>
+            Preparation Dashboard
+            <i class="fas fa-caret-down transition-transform duration-200" style="transform: rotate(0deg);" aria-hidden="true"></i>
+        </button>
+        {% endif %}
     </div>
 </div>
+
+{% if current_user_is_benchmark_owner %}
+<div id="dashboard-form-wrapper" class="hidden bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg border-2 border-green-100 dark:border-gray-700 mb-6">
+    <h2 class="text-2xl font-bold medperf-accent dark:text-green-400 mb-6 flex items-center">
+        <i class="fas fa-chart-line mr-3"></i>Open preparation dashboard
+    </h2>
+    <form action="/benchmarks/ui/dashboard" method="POST" id="redirect-dashobard-form" class="space-y-6">
+        <input type="hidden" name="benchmark_id" value="{{ entity.id }}">
+        <input type="hidden" name="benchmark_name" value="{{ entity.name }}">
+        <div>
+            <label for="stages-path" class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Stages path</label>
+            <div class="flex flex-wrap gap-2 items-stretch">
+                <input name="stages" id="stages-path" type="text" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500" placeholder="{{ placeholders.dashboard_stages_path }}" {% if task_running %}disabled{% endif %} title="{{ tooltips.dashboard_stages_path }}">
+                <button type="button" id="browse-stages-btn" class="px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600 font-semibold cursor-pointer" {% if task_running %}disabled{% endif %}>Browse</button>
+            </div>
+        </div>
+        <div>
+            <label for="institutions-path" class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Institutions path</label>
+            <div class="flex flex-wrap gap-2 items-stretch">
+                <input name="institutions" id="institutions-path" type="text" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500" placeholder="{{ placeholders.dashboard_institutions_path }}" {% if task_running %}disabled{% endif %} title="{{ tooltips.dashboard_institutions_path }}">
+                <button type="button" id="browse-institutions-btn" class="px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600 font-semibold cursor-pointer" {% if task_running %}disabled{% endif %}>Browse</button>
+            </div>
+        </div>
+        <div class="flex items-center gap-3">
+            <input id="force-update" name="force_update" type="checkbox" class="rounded border-gray-300 dark:border-gray-600 text-green-600 focus:ring-green-500" title="{{ tooltips.dashboard_force_update }}">
+            <label for="force-update" class="text-sm font-semibold text-gray-800 dark:text-gray-200 cursor-pointer">Force update dashboard</label>
+        </div>
+        <div>
+            <button type="submit" class="px-8 py-4 medperf-bg dark:bg-green-600 text-white rounded-xl font-bold hover:opacity-90 transition-all shadow-lg cursor-pointer" {% if task_running %}disabled{% endif %}>Open dashboard</button>
+        </div>
+    </form>
+</div>
+{% endif %}
 
 <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg border-2 border-green-100 dark:border-gray-700 mb-6 {% if not entity.is_valid %}invalid-card{% endif %}">
     <div class="flex flex-wrap justify-between items-center gap-4 mb-6">
@@ -102,7 +142,7 @@
         <div class="hidden mb-3" id="dataset-allow-list-container">
             <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2" for="dataset-allow-list-text-input">Allow list emails</label>
             <div class="email-container" id="dataset-allow-list-emails" data-allowed-list='{{ entity.dataset_auto_approval_allow_list | tojson }}'>
-                <input type="text" name="dataset-allow-list-text-input" id="dataset-allow-list-text-input" class="w-full px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white mt-2" placeholder="Type email and hit Enter, comma, or space" {% if task_running %} disabled {% endif %}>
+                <input type="text" name="dataset-allow-list-text-input" id="dataset-allow-list-text-input" class="email-input w-full px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white mt-2" placeholder="Type email and hit Enter, comma, or space" {% if task_running %} disabled {% endif %}>
             </div>
         </div>
         <div>
@@ -116,7 +156,7 @@
         <div class="hidden mb-3" id="model-allow-list-container">
             <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2" for="model-allow-list-text-input">Allow list emails</label>
             <div class="email-container" id="model-allow-list-emails" data-allowed-list='{{ entity.model_auto_approval_allow_list | tojson }}'>
-                <input type="text" name="model-allow-list-text-input" id="model-allow-list-text-input" class="w-full px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white mt-2" placeholder="Type email and hit Enter, comma, or space" {% if task_running %} disabled {% endif %}>
+                <input type="text" name="model-allow-list-text-input" id="model-allow-list-text-input" class="email-input w-full px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white mt-2" placeholder="Type email and hit Enter, comma, or space" {% if task_running %} disabled {% endif %}>
             </div>
         </div>
         <div class="flex justify-start pt-4">

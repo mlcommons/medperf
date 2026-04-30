@@ -28,6 +28,7 @@ setup(
         [console_scripts]
         medperf=medperf.__main__:app
         medperf_webui=medperf.webui_main:app
+        medperf_dashboard=medperf.dashboard.__main__:t_app
         """,
     package_data={"medperf": package_data},
 )

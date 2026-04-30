@@ -69,7 +69,7 @@ function onUpdateAssociationsPolicySuccess(response) {
 
 function updateAssociationsPolicy(saveBtn) {
     addSpinner(saveBtn);
-    disableElements(".card button, .card input, .card select");
+    disableElements("#association-policy-form button, #association-policy-form input, #association-policy-form select");
     var datasetModeEl = document.getElementById("dataset-auto-approve-mode");
     var modelModeEl = document.getElementById("model-auto-approve-mode");
     var datasetApproveMode = datasetModeEl ? datasetModeEl.value : "NEVER";
@@ -145,6 +145,44 @@ function initBenchmarkDetail() {
 
     if (datasetModeEl) datasetModeEl.dispatchEvent(new Event("change"));
     if (modelModeEl) modelModeEl.dispatchEvent(new Event("change"));
+
+    var dashBtn = document.getElementById("dashboard-btn");
+    var dashFormWrap = document.getElementById("dashboard-form-wrapper");
+    var redirectForm = document.getElementById("redirect-dashobard-form");
+    if (dashBtn && dashFormWrap) {
+        dashBtn.addEventListener("click", function () {
+            var open = !dashFormWrap.classList.contains("hidden");
+            dashFormWrap.classList.toggle("hidden", open);
+            var icon = dashBtn.querySelector("i");
+            if (icon) icon.style.transform = open ? "rotate(0deg)" : "rotate(180deg)";
+        });
+    }
+    if (redirectForm) {
+        redirectForm.addEventListener("submit", function (e) {
+            e.preventDefault();
+            var stagesEl = document.getElementById("stages-path");
+            var instEl = document.getElementById("institutions-path");
+            if (!stagesEl || !(stagesEl.value || "").trim()) {
+                showErrorToast("Make sure to enter a valid path for the stages file");
+                return;
+            }
+            if (!instEl || !(instEl.value || "").trim()) {
+                showErrorToast("Make sure to enter a valid path for the institutions file");
+                return;
+            }
+            redirectForm.submit();
+        });
+    }
+    var browseStages = document.getElementById("browse-stages-btn");
+    if (browseStages) browseStages.addEventListener("click", function () {
+        browseWithFiles = true;
+        browseFolderHandler("stages-path");
+    });
+    var browseInst = document.getElementById("browse-institutions-btn");
+    if (browseInst) browseInst.addEventListener("click", function () {
+        browseWithFiles = true;
+        browseFolderHandler("institutions-path");
+    });
 }
 
 if (document.readyState === "loading") {
