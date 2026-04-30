@@ -50,6 +50,10 @@ class Cube(Entity):
     def get_comms_uploader():
         return config.comms.upload_mlcube
 
+    @staticmethod
+    def get_comms_counter():
+        return config.comms.get_cubes_count
+
     @handle_validation_error
     def __init__(self, **kwargs):
         """Creates a Cube instance

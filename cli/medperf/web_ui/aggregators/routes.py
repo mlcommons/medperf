@@ -21,6 +21,7 @@ from medperf.web_ui.common import (
     templates,
 )
 from medperf.enums import CryptoKeyType
+from medperf.web_ui.utils import build_listing_filters, build_pagination_context
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -88,22 +89,41 @@ def register_aggregator(
 def aggregators_ui(
     request: Request,
     mine_only: bool = False,
+    page: int = 1,
+    page_size: int = 9,
+    ordering: str = "created_at_desc",
     current_user: bool = Depends(check_user_ui),
 ):
     filters = {}
     my_user_id = get_medperf_user_data()["id"]
+
     if mine_only:
         filters["owner"] = my_user_id
 
+    total_count = Aggregator.get_count(filters=filters)
+
+    filters.update(
+        build_listing_filters(page=page, page_size=page_size, ordering=ordering)
+    )
+
     aggregators = Aggregator.all(filters=filters)
-    aggregators = sorted(aggregators, key=lambda x: x.created_at or "", reverse=True)
-    mine_aggs = [a for a in aggregators if a.owner == my_user_id]
-    other_aggs = [a for a in aggregators if a.owner != my_user_id]
-    aggregators = mine_aggs + other_aggs
+
+    pagination_context = build_pagination_context(
+        page=page,
+        page_size=page_size,
+        ordering=ordering,
+        total_count=total_count,
+        page_items_count=len(aggregators),
+    )
 
     return templates.TemplateResponse(
         "aggregators/aggregators.html",
-        {"request": request, "aggregators": aggregators, "mine_only": mine_only},
+        {
+            "request": request,
+            "aggregators": aggregators,
+            "mine_only": mine_only,
+            **pagination_context,
+        },
     )
 
 

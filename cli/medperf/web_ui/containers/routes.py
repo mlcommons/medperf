@@ -24,6 +24,7 @@ from medperf.web_ui.common import (
     check_user_ui,
     sanitize_redirect_url,
 )
+from medperf.web_ui.utils import build_listing_filters, build_pagination_context
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -33,24 +34,41 @@ logger = logging.getLogger(__name__)
 def containers_ui(
     request: Request,
     mine_only: bool = False,
+    page: int = 1,
+    page_size: int = 9,
+    ordering: str = "created_at_desc",
     current_user: bool = Depends(check_user_ui),
 ):
     filters = {}
     my_user_id = get_medperf_user_data()["id"]
+
     if mine_only:
         filters["owner"] = my_user_id
 
-    containers = Cube.all(
-        filters=filters,
+    total_count = Cube.get_count(filters=filters)
+
+    filters.update(
+        build_listing_filters(page=page, page_size=page_size, ordering=ordering)
     )
-    containers = sorted(containers, key=lambda x: x.created_at, reverse=True)
-    # sort by (mine recent) (mine oldish), (other recent), (other oldish)
-    my_containers = [c for c in containers if c.owner == my_user_id]
-    other_containers = [c for c in containers if c.owner != my_user_id]
-    containers = my_containers + other_containers
+
+    containers = Cube.all(filters=filters)
+
+    pagination_context = build_pagination_context(
+        page=page,
+        page_size=page_size,
+        ordering=ordering,
+        total_count=total_count,
+        page_items_count=len(containers),
+    )
+
     return templates.TemplateResponse(
         "container/containers.html",
-        {"request": request, "containers": containers, "mine_only": mine_only},
+        {
+            "request": request,
+            "containers": containers,
+            "mine_only": mine_only,
+            **pagination_context,
+        },
     )
 
 

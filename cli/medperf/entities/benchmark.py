@@ -42,6 +42,10 @@ class Benchmark(Entity):
     def get_comms_uploader():
         return config.comms.upload_benchmark
 
+    @staticmethod
+    def get_comms_counter():
+        return config.comms.get_benchmarks_count
+
     @handle_validation_error
     def __init__(self, **kwargs):
         """Creates a new benchmark instance
