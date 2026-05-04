@@ -1,15 +1,15 @@
 {# ./cli/medperf/web_ui/templates/macros/model_macros.html #}
 
 {% macro model_link(model) %}
-<span class="inline-flex items-center gap-2 p-2 rounded-lg {% if not model.is_valid %}invalid-card{% endif %}">
+<span class="inline-flex items-center gap-2 p-2 rounded-lg {% if not model.is_valid %}invalid-card{% endif %}" data-testid="model-link-wrapper">
     <strong>
-        <a href="/models/ui/display/{{ model.id }}" class="medperf-accent dark:text-green-400 hover:underline" data-testid="cont-name">{{ model.name }}</a>
+        <a href="/models/ui/display/{{ model.id }}" class="medperf-accent dark:text-green-400 hover:underline" data-testid="model-link">{{ model.name }}</a>
     </strong>
-    <small class="text-gray-500 dark:text-gray-400" data-date="{{ model.modified_at }}"></small>
+    <small class="text-gray-500 dark:text-gray-400" data-testid="model-link-date" data-date="{{ model.modified_at }}"></small>
     {% if model.state == 'OPERATION' %}
-    <i class="fas fa-check-circle text-green-600 dark:text-green-400"></i>
+    <i class="fas fa-check-circle text-green-600 dark:text-green-400" data-testid="model-link-state"></i>
     {% else %}
-    <i class="fas fa-exclamation-circle text-yellow-600 dark:text-yellow-400"></i>
+    <i class="fas fa-exclamation-circle text-yellow-600 dark:text-yellow-400" data-testid="model-link-state"></i>
     {% endif %}
 </span>
 {% endmacro %}

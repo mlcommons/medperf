@@ -1,5 +1,5 @@
 {% macro result_card(result) %}
-<div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border-2 border-green-100 dark:border-gray-700 mb-4 {% if not result.finalized %}unfinalized-result-card{% endif %}">
+<div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border-2 border-green-100 dark:border-gray-700 mb-4 {% if not result.finalized %}unfinalized-result-card{% endif %}" data-testid="{{ result.id }}">
     <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-3">{{ result.name }}</h3>
     {% if result.finalized %}
     <button class="px-4 py-2 rounded-xl medperf-bg dark:bg-green-600 text-white font-semibold hover:opacity-90 view-result-btn" id="show-{{ result.id }}" data-result='{{ result.results|tojson }}'>View Result</button>
