@@ -41,9 +41,7 @@ def register_training_ui(
     request: Request,
     current_user: bool = Depends(check_user_ui),
 ):
-    my_user_id = get_medperf_user_data()["id"]
-    filters = {"owner": my_user_id}
-    my_containers = Cube.all(filters=filters)
+    my_containers = Cube.all()
     containers = []
     for container in my_containers:
         container_obj = {
