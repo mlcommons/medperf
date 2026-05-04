@@ -3,7 +3,8 @@ from .base_page import BasePage
 
 
 class LoginPage(BasePage):
-    TITLE = (By.CSS_SELECTOR, "h3.text-center")
+    HEADER = (By.CSS_SELECTOR, "h2.text-3xl")
+    TITLE = HEADER
     FORM = (By.ID, "medperf-login-form")
     EMAIL_LABEL = (By.CSS_SELECTOR, 'label[for="email"]')
     EMAIL = (By.ID, "email")

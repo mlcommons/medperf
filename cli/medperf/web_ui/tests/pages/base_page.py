@@ -1,5 +1,6 @@
 from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.webdriver.common.by import By
+from selenium.webdriver import ActionChains
 from selenium.webdriver.support import expected_conditions as EC
 
 
@@ -12,8 +13,8 @@ class BasePage:
     CONFIRM_TEXT = (By.ID, "confirm-text")
     CONFIRM_BTN = (By.ID, "confirmation-btn")
     ERROR_TEXT = (By.ID, "error-text")
-    ERROR_HIDE = (By.CSS_SELECTOR, '.modal-footer [data-bs-dismiss="modal"]')
-    ERROR_RELOAD = (By.CSS_SELECTOR, '.modal-body [onclick="reloadPage();"]')
+    ERROR_HIDE = (By.CSS_SELECTOR, "#page-modal-footer .close-modal-btn")
+    ERROR_RELOAD = (By.CSS_SELECTOR, '#page-modal-body [onclick="reloadPage();"]')
     PANEL = (By.ID, "panel")
     PROMPT_CONTAINER = (By.ID, "prompt-container")
     TEXT_CONTAINER = (By.ID, "text-content")
@@ -71,9 +72,18 @@ class BasePage:
     def get_text(self, locator):
         return self.find(locator).text
 
+    def get_attribute(self, locator, attr_name):
+        return self.find(locator).get_attribute(attr_name)
+
     def confirm_run_task(self):
         self.click(self.CONFIRM_BTN)
         self.wait.until(EC.invisibility_of_element_located(self.CONFIRM_BTN))
+
+    def move_to_element(self, element):
+        ActionChains(self.driver).move_to_element(element).pause(0.15).perform()
+
+    def element_contains_spinner(self, element):
+        return bool(element.find_elements(By.CSS_SELECTOR, "[role='status']"))
 
     def __scroll_into_view(self, element):
         self.driver.execute_script(

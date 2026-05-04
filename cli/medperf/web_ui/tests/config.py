@@ -20,6 +20,8 @@ BASE_URL = f"http://{HOST}:{WEBUI_PORT}" + "{}"
 BMK_OWNER_EMAIL = "testbo@example.com"
 MODEL_OWNER_EMAIL = "testmo@example.com"
 DSET_OWNER_EMAIL = "testdo@example.com"
+DSET_OWNER2_EMAIL = "testdo2@example.com"
+AGG_OWNER_EMAIL = "testao@example.com"
 
 # Containers Names
 DATA_PREP_NAME = "my-prep"
@@ -88,3 +90,41 @@ DATASET_DESC = "A tutorial dataset"
 DATASET_LOCATION = "My machine"
 DATASET_DATA_PATH = "medperf_tutorial/sample_raw_data/images"
 DATASET_LABELS_PATH = "medperf_tutorial/sample_raw_data/labels"
+
+TRAINING_PREP_NAME = "chestxray_prep"
+TRAINING_FL_NAME = "traincube"
+TRAINING_FL_ADMIN_NAME = "fladmincube"
+TRAINING_EXP_NAME = "trainexp"
+TRAINING_EXP_DESC = "trainexp"
+TRAINING_AGG_NAME = "aggreg"
+TRAINING_AGG_PORT = 50273
+TRAINING_AGG_ADMIN_PORT = 50274
+TRAINING_EVENT_NAME = "event1"
+
+TRAINING_DATASET1_NAME = "col1"
+TRAINING_DATASET1_DESC = "col1data"
+TRAINING_DATASET1_LOCATION = "col1location"
+TRAINING_DATASET1_DATA_PATH = "examples/chestxray_train_sample_data/col1/images"
+TRAINING_DATASET1_LABELS_PATH = "examples/chestxray_train_sample_data/col1/labels"
+
+TRAINING_DATASET2_NAME = "col2"
+TRAINING_DATASET2_DESC = "col2data"
+TRAINING_DATASET2_LOCATION = "col2location"
+TRAINING_DATASET2_DATA_PATH = "examples/chestxray_train_sample_data/col2/images"
+TRAINING_DATASET2_LABELS_PATH = "examples/chestxray_train_sample_data/col2/labels"
+
+TRAINING_FL = ContainerInput(
+    name=TRAINING_FL_NAME,
+    config="examples/flower/fl/container_config.yaml",
+    parameters="",
+    additional_remote=(
+        "https://storage.googleapis.com/medperf-storage/init_weights_flower.tar.gz"
+    ),
+)
+TRAINING_FL_ADMIN = ContainerInput(
+    name=TRAINING_FL_ADMIN_NAME,
+    config="examples/flower/fl_admin/container_config.yaml",
+    parameters="",
+)
+
+TRAINING_PLAN_PATH = "examples/flower/fl/workspace/training_config.yaml"

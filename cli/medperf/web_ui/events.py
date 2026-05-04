@@ -30,14 +30,18 @@ def delete_notification(
     config.ui.delete_notification(notification_id)
 
 
-@router.get("/current_task", response_class=JSONResponse)
-def get_task_id(request: Request, current_user: bool = Depends(check_user_api)):
+def _get_task_id() -> dict:
     start_time = time.monotonic()
     while not config.ui.task_id:
         time.sleep(0.1)
         if time.monotonic() - start_time >= 2:
             break
     return {"task_id": config.ui.task_id}
+
+
+@router.get("/current_task", response_class=JSONResponse)
+def get_task_id(request: Request, current_user: bool = Depends(check_user_api)):
+    return _get_task_id()
 
 
 def process_event(request: Request, event: EventBase):

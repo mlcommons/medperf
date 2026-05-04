@@ -10,42 +10,42 @@
 {% endif %}
 
 <div class="container mx-auto px-4 py-8 max-w-3xl">
-    <h1 class="text-3xl font-bold medperf-accent dark:text-green-400 text-center mb-4">Register New Aggregator</h1>
+    <h1 data-testid="aggregator-register-header" class="text-3xl font-bold medperf-accent dark:text-green-400 text-center mb-4">Register New Aggregator</h1>
     <p class="text-center text-gray-700 dark:text-gray-300 mb-8">
         Register a new aggregator with address, port, and aggregation container.
     </p>
 
-    <form id="aggregator-register-form" class="space-y-6" action="/aggregators/register" method="post" data-panel-title="Registering aggregator" data-confirm-message="register this aggregator?">
+    <form id="aggregator-register-form" class="space-y-6" action="/aggregators/register" method="post" data-panel-title="Registering aggregator" data-confirm-message="register this aggregator?" data-task-running="{% if task_running %}1{% else %}0{% endif %}">
         <div>
-            <label for="name" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Name</label>
+            <label data-testid="aggregator-register-name-label" for="name" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Name</label>
             <div class="flex flex-wrap items-stretch gap-2">
                 <input name="name" type="text" id="name" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500" placeholder="Aggregator name" {% if task_running %}disabled{% endif %} {% if agg_register_running %}value="{{ form_data.get('name', '') }}"{% endif %} maxlength="128">
-                <span class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.register_aggregator_name }}"><i class="fas fa-info-circle text-lg"></i></span>
+                <span data-testid="aggregator-register-name-tooltip" class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.register_aggregator_name }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
         <div>
-            <label for="address" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Address</label>
+            <label data-testid="aggregator-register-address-label" for="address" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Address</label>
             <div class="flex flex-wrap items-stretch gap-2">
                 <input name="address" type="text" id="address" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500" placeholder="Hostname or IP" {% if task_running %}disabled{% endif %} {% if agg_register_running %}value="{{ form_data.get('address', '') }}"{% endif %}>
-                <span class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.register_aggregator_address }}"><i class="fas fa-info-circle text-lg"></i></span>
+                <span data-testid="aggregator-register-address-tooltip" class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.register_aggregator_address }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
         <div>
-            <label for="port" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Port</label>
+            <label data-testid="aggregator-register-port-label" for="port" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Port</label>
             <div class="flex flex-wrap items-stretch gap-2">
                 <input name="port" type="number" id="port" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500" placeholder="Port number" min="1" max="65535" {% if task_running %}disabled{% endif %} {% if agg_register_running %}value="{{ form_data.get('port', '') }}"{% endif %}>
-                <span class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.register_aggregator_port }}"><i class="fas fa-info-circle text-lg"></i></span>
+                <span data-testid="aggregator-register-port-tooltip" class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.register_aggregator_port }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
         <div>
-            <label for="admin_port" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Admin Port</label>
+            <label data-testid="aggregator-register-admin-port-label" for="admin_port" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Admin Port</label>
             <div class="flex flex-wrap items-stretch gap-2">
                 <input name="admin_port" type="number" id="admin-port" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500" placeholder="Admin Port number" min="1" max="65535" {% if task_running %}disabled{% endif %} {% if agg_register_running %}value="{{ form_data.get('admin_port', '') }}"{% endif %}>
-                <span class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.register_aggregator_admin_port }}"><i class="fas fa-info-circle text-lg"></i></span>
+                <span data-testid="aggregator-register-admin-port-tooltip" class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.register_aggregator_admin_port }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
         <div>
-            <label for="aggregation_mlcube" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Aggregation Container</label>
+            <label data-testid="aggregator-register-container-label" for="aggregation_mlcube" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Aggregation Container</label>
             <div class="flex flex-wrap items-stretch gap-2">
                 <select name="aggregation_mlcube" id="aggregation-mlcube" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500 cursor-pointer" {% if task_running %}disabled{% endif %}>
                     <option value="" disabled selected>Select a Container</option>
@@ -57,7 +57,7 @@
                     <option value="" disabled>No containers available</option>
                     {% endif %}
                 </select>
-                <span class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.register_aggregator_aggregation_mlcube }}"><i class="fas fa-info-circle text-lg"></i></span>
+                <span data-testid="aggregator-register-container-tooltip" class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.register_aggregator_aggregation_mlcube }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
         <div class="text-center pt-4">
