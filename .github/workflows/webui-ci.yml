@@ -49,5 +49,5 @@ jobs:
       run: medperf_webui & sleep 6
 
     - name: Run webUI evaluation tutorial E2E tests with pytest
-      working-directory: ./cli/medperf/web_ui/tests/e2e/test_medperf_tutorial_workflow.py
-      run: pytest
+      working-directory: ./cli/medperf/web_ui/tests/e2e/
+      run: pytest test_medperf_tutorial_workflow.py
