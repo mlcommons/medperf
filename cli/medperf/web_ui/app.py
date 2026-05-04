@@ -85,6 +85,9 @@ def startup_event():
     web_app.state.task_running = False
     web_app.state.MAXLOGMESSAGES = config.webui_max_log_messages
 
+    # {benchmark_id: dict} (checks if mounted and files changed)
+    web_app.state.dashboards = {}
+
     # List of [schemas.Notification] will appear in the notifications tab
     web_app.state.notifications = []
 
