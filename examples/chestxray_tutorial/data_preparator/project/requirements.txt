@@ -1,4 +1,4 @@
-pillow==9.5.0
+pillow==12.2.0
 numpy==1.24.3
 PyYAML==6.0
 tqdm==4.65.0
