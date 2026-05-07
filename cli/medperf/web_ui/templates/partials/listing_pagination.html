@@ -1,0 +1,50 @@
+{% if has_items and total_pages > 1 %}
+<nav class="mt-8 flex justify-center" aria-label="{{ pagination_label }}">
+    <div class="inline-flex flex-wrap items-center justify-center gap-1.5 rounded-xl bg-white dark:bg-gray-800 px-1.5 py-1.5 shadow border border-gray-200 dark:border-gray-600">
+        <span class="{% if page == 1 %}opacity-40 pointer-events-none{% endif %}">
+            <a class="page-link px-3.5 py-2 rounded-lg text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700" href="#" data-page="{{ page - 1 }}" {% if page == 1 %}aria-disabled="true" tabindex="-1"{% endif %}>Previous</a>
+        </span>
+        {% set window_start = page - 1 %}
+        {% set window_end = page + 1 %}
+        {% if window_start < 2 %}
+        {% set window_start = 2 %}
+        {% endif %}
+        {% if window_end > total_pages - 1 %}
+        {% set window_end = total_pages - 1 %}
+        {% endif %}
+
+        {% if page == 1 %}
+        <span class="min-w-[2.5rem] px-2.5 py-2 rounded-lg text-sm font-bold text-center medperf-bg dark:bg-green-600 text-white">1</span>
+        {% else %}
+        <a class="page-link min-w-[2.5rem] px-2.5 py-2 rounded-lg text-sm font-semibold text-center text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700" href="#" data-page="1">1</a>
+        {% endif %}
+
+        {% if window_start > 2 %}
+        <span class="min-w-[2.5rem] px-2.5 py-2 rounded-lg text-sm font-semibold text-center text-gray-500 dark:text-gray-400">...</span>
+        {% endif %}
+
+        {% for p in range(window_start, window_end + 1) %}
+            {% if p == page %}
+            <span class="min-w-[2.5rem] px-2.5 py-2 rounded-lg text-sm font-bold text-center medperf-bg dark:bg-green-600 text-white">{{ p }}</span>
+            {% else %}
+            <a class="page-link min-w-[2.5rem] px-2.5 py-2 rounded-lg text-sm font-semibold text-center text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700" href="#" data-page="{{ p }}">{{ p }}</a>
+            {% endif %}
+        {% endfor %}
+
+        {% if window_end < total_pages - 1 %}
+        <span class="min-w-[2.5rem] px-2.5 py-2 rounded-lg text-sm font-semibold text-center text-gray-500 dark:text-gray-400">...</span>
+        {% endif %}
+
+        {% if total_pages > 1 %}
+            {% if page == total_pages %}
+            <span class="min-w-[2.5rem] px-2.5 py-2 rounded-lg text-sm font-bold text-center medperf-bg dark:bg-green-600 text-white">{{ total_pages }}</span>
+            {% else %}
+            <a class="page-link min-w-[2.5rem] px-2.5 py-2 rounded-lg text-sm font-semibold text-center text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700" href="#" data-page="{{ total_pages }}">{{ total_pages }}</a>
+            {% endif %}
+        {% endif %}
+        <span class="{% if page == total_pages %}opacity-40 pointer-events-none{% endif %}">
+            <a class="page-link px-3.5 py-2 rounded-lg text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700" href="#" data-page="{{ page + 1 }}" {% if page == total_pages %}aria-disabled="true" tabindex="-1"{% endif %}>Next</a>
+        </span>
+    </div>
+</nav>
+{% endif %}

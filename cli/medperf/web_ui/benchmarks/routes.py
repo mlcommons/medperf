@@ -22,7 +22,11 @@ from medperf.web_ui.common import (
     sort_associations_display,
     check_user_ui,
 )
-from medperf.web_ui.utils import get_container_type
+from medperf.web_ui.utils import (
+    get_container_type,
+    build_listing_filters,
+    build_pagination_context,
+)
 
 from medperf.commands.association.approval import Approval
 from medperf.enums import Status
@@ -40,25 +44,42 @@ logger = logging.getLogger(__name__)
 def benchmarks_ui(
     request: Request,
     mine_only: bool = False,
+    page: int = 1,
+    page_size: int = 9,
+    ordering: str = "created_at_desc",
     current_user: bool = Depends(check_user_ui),
 ):
+
     filters = {}
     my_user_id = get_medperf_user_data()["id"]
+
     if mine_only:
         filters["owner"] = my_user_id
 
-    benchmarks = Benchmark.all(
-        filters=filters,
+    total_count = Benchmark.get_count(filters=filters)
+
+    filters.update(
+        build_listing_filters(page=page, page_size=page_size, ordering=ordering)
     )
 
-    benchmarks = sorted(benchmarks, key=lambda x: x.created_at, reverse=True)
-    # sort by (mine recent) (mine oldish), (other recent), (other oldish)
-    mine_benchmarks = [d for d in benchmarks if d.owner == my_user_id]
-    other_benchmarks = [d for d in benchmarks if d.owner != my_user_id]
-    benchmarks = mine_benchmarks + other_benchmarks
+    benchmarks = Benchmark.all(filters=filters)
+
+    pagination_context = build_pagination_context(
+        page=page,
+        page_size=page_size,
+        ordering=ordering,
+        total_count=total_count,
+        page_items_count=len(benchmarks),
+    )
+
     return templates.TemplateResponse(
         "benchmark/benchmarks.html",
-        {"request": request, "benchmarks": benchmarks, "mine_only": mine_only},
+        {
+            "request": request,
+            "benchmarks": benchmarks,
+            "mine_only": mine_only,
+            **pagination_context,
+        },
     )
 
 

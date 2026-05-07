@@ -30,7 +30,11 @@ from medperf.web_ui.common import (
     sort_associations_display,
     templates,
 )
-from medperf.web_ui.utils import get_container_type
+from medperf.web_ui.utils import (
+    get_container_type,
+    build_listing_filters,
+    build_pagination_context,
+)
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -119,22 +123,41 @@ def register_training(
 def training_ui(
     request: Request,
     mine_only: bool = False,
+    page: int = 1,
+    page_size: int = 9,
+    ordering: str = "created_at_desc",
     current_user: bool = Depends(check_user_ui),
 ):
     filters = {}
     my_user_id = get_medperf_user_data()["id"]
+
     if mine_only:
         filters["owner"] = my_user_id
 
+    total_count = TrainingExp.get_count(filters=filters)
+
+    filters.update(
+        build_listing_filters(page=page, page_size=page_size, ordering=ordering)
+    )
+
     experiments = TrainingExp.all(filters=filters)
-    experiments = sorted(experiments, key=lambda x: x.created_at or "", reverse=True)
-    mine_exps = [e for e in experiments if e.owner == my_user_id]
-    other_exps = [e for e in experiments if e.owner != my_user_id]
-    experiments = mine_exps + other_exps
+
+    pagination_context = build_pagination_context(
+        page=page,
+        page_size=page_size,
+        ordering=ordering,
+        total_count=total_count,
+        page_items_count=len(experiments),
+    )
 
     return templates.TemplateResponse(
         "training/training_experiments.html",
-        {"request": request, "experiments": experiments, "mine_only": mine_only},
+        {
+            "request": request,
+            "experiments": experiments,
+            "mine_only": mine_only,
+            **pagination_context,
+        },
     )
 
 

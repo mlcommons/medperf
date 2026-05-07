@@ -7,6 +7,7 @@ import yaml
 from medperf.exceptions import MedperfException, InvalidArgumentError
 from medperf.entities.schemas import MedperfSchema
 from typing import Type, TypeVar
+from medperf.account_management import get_medperf_user_data
 
 EntityType = TypeVar("EntityType", bound="Entity")
 
@@ -51,6 +52,10 @@ class Entity(ABC):
 
     @staticmethod
     def get_comms_uploader() -> Callable[[dict], dict]:
+        raise NotImplementedError()
+
+    @staticmethod
+    def get_comms_counter() -> Callable[[dict, bool], int]:
         raise NotImplementedError()
 
     @property
@@ -253,3 +258,16 @@ class Entity(ABC):
             dict: the display dictionary
         """
         raise NotImplementedError
+
+    @classmethod
+    def get_count(cls: Type[EntityType], filters: dict = {}) -> int:
+        """Returns the count of items in the entity
+        Returns:
+            int: count of items
+        """
+        logging.info(f"Retrieving the count of {cls.get_type()} entities")
+        user_data = get_medperf_user_data()
+        is_owner = "owner" in filters and filters["owner"] == user_data["id"]
+        comms_fn = cls.get_comms_counter()
+        count = comms_fn(filters=filters, is_owner=is_owner)
+        return count

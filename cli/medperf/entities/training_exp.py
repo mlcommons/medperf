@@ -40,6 +40,10 @@ class TrainingExp(Entity):
     def get_comms_uploader():
         return config.comms.upload_training_exp
 
+    @staticmethod
+    def get_comms_counter():
+        return config.comms.get_experiments_count
+
     @handle_validation_error
     def __init__(self, **kwargs):
         """Creates a new training_exp instance

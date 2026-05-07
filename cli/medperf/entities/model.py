@@ -41,6 +41,10 @@ class Model(Entity):
     def get_comms_uploader():
         return config.comms.upload_model
 
+    @staticmethod
+    def get_comms_counter():
+        return config.comms.get_models_count
+
     @handle_validation_error
     def __init__(self, **kwargs):
         self._model = ModelSchema(**kwargs)

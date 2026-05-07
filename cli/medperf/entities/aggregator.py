@@ -47,6 +47,10 @@ class Aggregator(Entity):
     def get_comms_uploader():
         return config.comms.upload_aggregator
 
+    @staticmethod
+    def get_comms_counter():
+        return config.comms.get_aggregators_count
+
     @handle_validation_error
     def __init__(self, **kwargs):
         self._model = AggregatorSchema(**kwargs)
