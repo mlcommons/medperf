@@ -18,19 +18,19 @@
                     <img alt="MedPerf Logo" src="{{ url_for('static', path='images/medperf_logo.svg') }}" class="h-10 w-auto brightness-0 invert">
                 </a>
                 <div class="hidden md:flex rounded-lg bg-white/10 p-1 gap-0.5" role="tablist">
-                    <a href="/set_mode?mode={{evaluation_mode}}" class="px-3 py-1.5 rounded-md text-sm font-semibold transition-colors {% if not is_training_mode %}bg-white/25 text-white{% else %}text-white/80 hover:text-white{% endif %}" role="tab">Evaluation</a>
-                    <a href="/set_mode?mode={{training_mode}}" class="px-3 py-1.5 rounded-md text-sm font-semibold transition-colors {% if is_training_mode %}bg-white/25 text-white{% else %}text-white/80 hover:text-white{% endif %}" role="tab">Training</a>
+                    <a data-testid="navbar-mode-evaluation" href="/set_mode?mode={{evaluation_mode}}" class="px-3 py-1.5 rounded-md text-sm font-semibold transition-colors {% if not is_training_mode %}bg-white/25 text-white{% else %}text-white/80 hover:text-white{% endif %}" role="tab">Evaluation</a>
+                    <a data-testid="navbar-mode-training" href="/set_mode?mode={{training_mode}}" class="px-3 py-1.5 rounded-md text-sm font-semibold transition-colors {% if is_training_mode %}bg-white/25 text-white{% else %}text-white/80 hover:text-white{% endif %}" role="tab">Training</a>
                 </div>
                 <div class="hidden md:flex gap-6">
                     {% if is_training_mode %}
-                    <a href="/training/ui" class="font-semibold pb-1 border-b-2 {% if nav_training %}text-white border-white{% else %}text-white/80 border-transparent hover:text-white hover:border-white/50{% endif %} transition-colors">Experiments</a>
-                    <a href="/aggregators/ui" class="font-semibold pb-1 border-b-2 {% if nav_aggregators %}text-white border-white{% else %}text-white/80 border-transparent hover:text-white hover:border-white/50{% endif %} transition-colors">Aggregators</a>
+                    <a data-testid="navbar-link-experiments" href="/training/ui" class="font-semibold pb-1 border-b-2 {% if nav_training %}text-white border-white{% else %}text-white/80 border-transparent hover:text-white hover:border-white/50{% endif %} transition-colors">Experiments</a>
+                    <a data-testid="navbar-link-aggregators" href="/aggregators/ui" class="font-semibold pb-1 border-b-2 {% if nav_aggregators %}text-white border-white{% else %}text-white/80 border-transparent hover:text-white hover:border-white/50{% endif %} transition-colors">Aggregators</a>
                     {% else %}
-                    <a href="/benchmarks/ui" class="font-semibold pb-1 border-b-2 {% if nav_benchmarks %}text-white border-white{% else %}text-white/80 border-transparent hover:text-white hover:border-white/50{% endif %} transition-colors">Benchmarks</a>
-                    <a href="/models/ui" class="font-semibold pb-1 border-b-2 {% if nav_models %}text-white border-white{% else %}text-white/80 border-transparent hover:text-white hover:border-white/50{% endif %} transition-colors">Models</a>
+                    <a data-testid="navbar-link-benchmarks" href="/benchmarks/ui" class="font-semibold pb-1 border-b-2 {% if nav_benchmarks %}text-white border-white{% else %}text-white/80 border-transparent hover:text-white hover:border-white/50{% endif %} transition-colors">Benchmarks</a>
+                    <a data-testid="navbar-link-models" href="/models/ui" class="font-semibold pb-1 border-b-2 {% if nav_models %}text-white border-white{% else %}text-white/80 border-transparent hover:text-white hover:border-white/50{% endif %} transition-colors">Models</a>
                     {% endif %}
-                    <a href="/containers/ui" class="font-semibold pb-1 border-b-2 {% if nav_containers %}text-white border-white{% else %}text-white/80 border-transparent hover:text-white hover:border-white/50{% endif %} transition-colors">Containers</a>
-                    <a href="/datasets/ui" class="font-semibold pb-1 border-b-2 {% if nav_datasets %}text-white border-white{% else %}text-white/80 border-transparent hover:text-white hover:border-white/50{% endif %} transition-colors">Datasets</a>
+                    <a data-testid="navbar-link-containers" href="/containers/ui" class="font-semibold pb-1 border-b-2 {% if nav_containers %}text-white border-white{% else %}text-white/80 border-transparent hover:text-white hover:border-white/50{% endif %} transition-colors">Containers</a>
+                    <a data-testid="navbar-link-datasets" href="/datasets/ui" class="font-semibold pb-1 border-b-2 {% if nav_datasets %}text-white border-white{% else %}text-white/80 border-transparent hover:text-white hover:border-white/50{% endif %} transition-colors">Datasets</a>
                 </div>
             </div>
 

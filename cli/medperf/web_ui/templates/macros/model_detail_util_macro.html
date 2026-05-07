@@ -2,16 +2,16 @@
 
 {% macro container_detail_util(container) %}
 <div class="mb-6">
-    <p class="text-sm text-gray-600 dark:text-gray-400 mb-2 font-semibold">Container Manifest</p>
-    <button type="button" data-field="Container Config" data-yaml-data='{{ container.container_config | tojson }}' class="yaml-link medperf-accent dark:text-green-400 hover:underline font-medium">Click to display Container Configuration</button>
+    <p class="text-sm text-gray-600 dark:text-gray-400 mb-2 font-semibold" data-testid="container-manifest-label">Container Manifest</p>
+    <button type="button" data-testid="container-manifest-yaml-btn" data-field="Container Config" data-yaml-data='{{ container.container_config | tojson }}' class="yaml-link medperf-accent dark:text-green-400 hover:underline font-medium">Click to display Container Configuration</button>
 </div>
 <div class="mb-6">
-    <p class="text-sm text-gray-600 dark:text-gray-400 mb-2 font-semibold">Parameters</p>
-    {% if container.parameters_config is none %}<span class="text-gray-800 dark:text-gray-200">Not Available</span>{% else %}<button type="button" data-field="Parameters" data-yaml-data='{{ container.parameters_config | tojson }}' class="yaml-link medperf-accent dark:text-green-400 hover:underline font-medium">Click to display Parameters</button>{% endif %}
+    <p class="text-sm text-gray-600 dark:text-gray-400 mb-2 font-semibold" data-testid="container-parameters-label">Parameters</p>
+    {% if container.parameters_config is none %}<span data-testid="container-parameters-na" class="text-gray-800 dark:text-gray-200">Not Available</span>{% else %}<button type="button" data-testid="container-parameters-yaml-btn" data-field="Parameters" data-yaml-data='{{ container.parameters_config | tojson }}' class="yaml-link medperf-accent dark:text-green-400 hover:underline font-medium">Click to display Parameters</button>{% endif %}
 </div>
 <div class="mb-6">
-    <p class="text-sm text-gray-600 dark:text-gray-400 mb-2 font-semibold">Additional Files</p>
-    {% if container.additional_files_tarball_url %}<a href="{{ container.additional_files_tarball_url }}" class="medperf-accent dark:text-green-400 hover:underline" target="_blank">Click to Download the File</a>{% else %}<span class="text-gray-800 dark:text-gray-200">Not Available</span>{% endif %}
+    <p class="text-sm text-gray-600 dark:text-gray-400 mb-2 font-semibold" data-testid="container-additional-label">Additional Files</p>
+    {% if container.additional_files_tarball_url %}<a data-testid="container-additional-link" href="{{ container.additional_files_tarball_url }}" class="medperf-accent dark:text-green-400 hover:underline" target="_blank">Click to Download the File</a>{% else %}<span data-testid="container-additional-na" class="text-gray-800 dark:text-gray-200">Not Available</span>{% endif %}
 </div>
 {% endmacro %}
 

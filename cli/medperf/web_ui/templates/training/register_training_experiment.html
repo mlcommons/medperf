@@ -10,24 +10,24 @@
 {% set form_data = request.app.state.task.formData %}
 {% endif %}
 <div class="container mx-auto px-4 py-8 max-w-3xl">
-    <h1 class="text-3xl font-bold medperf-accent dark:text-green-400 text-center mb-4">Register New Training Experiment</h1>
+    <h1 data-testid="training-register-header" class="text-3xl font-bold medperf-accent dark:text-green-400 text-center mb-4">Register New Training Experiment</h1>
     <p class="text-center text-gray-700 dark:text-gray-300 mb-8">
         Register a new training experiment with data preparation, FL, and optional FL admin containers.
     </p>
 
     <form id="register-training-form" class="space-y-6" action="/training/register" method="post" data-panel-title="Registering training experiment" data-confirm-message="register this training experiment?">
         <div>
-            <label for="name" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Name</label>
+            <label data-testid="training-register-name-label" for="name" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Name</label>
             <div class="flex flex-wrap items-stretch gap-2">
                 <input name="name" type="text" id="name" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500" placeholder="Training experiment name" {% if task_running %}disabled{% endif %} {% if training_register_running %}value="{{ form_data.get('name', '') }}"{% endif %} maxlength="128">
-                <span class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.register_training_name }}"><i class="fas fa-info-circle text-lg"></i></span>
+                <span data-testid="training-register-name-tooltip" class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.register_training_name }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
         <div>
-            <label for="description" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Description</label>
+            <label data-testid="training-register-description-label" for="description" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Description</label>
             <div class="flex flex-wrap items-stretch gap-2">
                 <textarea name="description" id="description" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500" placeholder="Short description" {% if task_running %}disabled{% endif %} maxlength="256">{% if training_register_running %}{{ form_data.get('description', '') }}{% endif %}</textarea>
-                <span class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.register_training_description }}"><i class="fas fa-info-circle text-lg"></i></span>
+                <span data-testid="training-register-description-tooltip" class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.register_training_description }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
         <div>
@@ -38,7 +38,7 @@
             </div>
         </div>
         <div>
-            <label for="data_preparation_container" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Data Preparation Container</label>
+            <label data-testid="training-register-data-prep-label" for="data_preparation_container" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Data Preparation Container</label>
             <div class="flex flex-wrap items-stretch gap-2">
                 <select name="data_preparation_container" id="data-preparation-container" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500 cursor-pointer" {% if task_running %}disabled{% endif %}>
                     <option value="" disabled selected>Select a Container</option>
@@ -50,11 +50,11 @@
                     <option value="" disabled>No Data Preparation Containers available</option>
                     {% endif %}
                 </select>
-                <span class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.register_training_data_preparation_container }}"><i class="fas fa-info-circle text-lg"></i></span>
+                <span data-testid="training-register-data-prep-tooltip" class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.register_training_data_preparation_container }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
         <div>
-            <label for="fl_container" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">FL Container</label>
+            <label data-testid="training-register-fl-label" for="fl_container" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">FL Container</label>
             <div class="flex flex-wrap items-stretch gap-2">
                 <select name="fl_container" id="fl-container" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500 cursor-pointer" {% if task_running %}disabled{% endif %}>
                     <option value="" disabled selected>Select a Container</option>

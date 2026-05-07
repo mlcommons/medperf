@@ -13,7 +13,7 @@
 <div class="mb-8">
     <div class="flex flex-wrap justify-between items-start gap-4 mb-6">
         <div class="flex items-center mb-3">
-            <h1 class="text-5xl font-bold medperf-accent dark:text-green-400">{{ dataset.name }}</h1>
+            <h1 class="text-5xl font-bold medperf-accent dark:text-green-400" data-testid="dataset-header">{{ dataset.name }}</h1>
         </div>
         <form action="/datasets/export/ui" method="POST" id="redirect-export-form" class="{% if not is_owner %}hidden{% endif %}">
             <input type="hidden" name="entity_id" value="{{ dataset.id }}">
@@ -24,23 +24,23 @@
 
 <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg border-2 border-green-100 dark:border-gray-700 mb-6 {% if ui_mode == request.app.state.EVALUATION_MODE and not dataset.is_valid %}invalid-card{% endif %} overflow-hidden">
     <div class="flex flex-wrap justify-between items-center gap-4 mb-6">
-        <h2 class="text-3xl font-bold medperf-accent dark:text-green-400 flex items-center">
+        <h2 class="text-3xl font-bold medperf-accent dark:text-green-400 flex items-center" data-testid="dataset-details-heading">
             <i class="fas fa-info-circle mr-3"></i>Details
         </h2>
         <div class="flex flex-wrap gap-2">
-            <span class="px-4 py-1 rounded-full text-xs font-bold border-2 {% if dataset_is_operational %}bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 border-green-200 dark:border-green-700{% else %}bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-300 border-yellow-200 dark:border-yellow-700{% endif %}">{% if dataset.state == 'OPERATION' %}OPERATIONAL{% else %}{{ dataset.state }}{% endif %}</span>
-            <span class="px-4 py-1 rounded-full text-xs font-bold border-2 {% if dataset.is_valid %}bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 border-green-200 dark:border-green-700{% else %}bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800{% endif %}">{% if dataset.is_valid %}VALID{% else %}INVALID{% endif %}</span>
+            <span data-testid="dataset-state" class="px-4 py-1 rounded-full text-xs font-bold border-2 {% if dataset_is_operational %}bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 border-green-200 dark:border-green-700{% else %}bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-300 border-yellow-200 dark:border-yellow-700{% endif %}">{% if dataset.state == 'OPERATION' %}OPERATIONAL{% else %}{{ dataset.state }}{% endif %}</span>
+            <span data-testid="dataset-validity" class="px-4 py-1 rounded-full text-xs font-bold border-2 {% if dataset.is_valid %}bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 border-green-200 dark:border-green-700{% else %}bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800{% endif %}">{% if dataset.is_valid %}VALID{% else %}INVALID{% endif %}</span>
         </div>
     </div>
     <div class="info-highlight rounded-xl p-6 mb-6">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-                <p class="text-sm text-gray-600 dark:text-gray-400 mb-1 font-semibold">Dataset ID</p>
-                <p class="text-xl font-bold text-gray-900 dark:text-white">{{ dataset.id }}</p>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-1 font-semibold" data-testid="dataset-id-label">Dataset ID</p>
+                <p class="text-xl font-bold text-gray-900 dark:text-white" data-testid="dataset-id">{{ dataset.id }}</p>
             </div>
             <div>
-                <p class="text-sm text-gray-600 dark:text-gray-400 mb-1 font-semibold">Owner</p>
-                <p class="text-xl font-bold text-gray-900 dark:text-white">
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-1 font-semibold" data-testid="dataset-owner-label">Owner</p>
+                <p class="text-xl font-bold text-gray-900 dark:text-white" data-testid="dataset-owner">
                     <i class="fas fa-user medperf-accent dark:text-green-400 mr-2"></i>{% if is_owner %} You {% else %}{{ dataset.owner }}{% endif %}
                 </p>
             </div>
@@ -55,34 +55,34 @@
         <p class="text-sm text-gray-600 dark:text-gray-400 mb-2 font-semibold">Location</p>
         <p class="text-gray-800 dark:text-gray-200">{{ dataset.location }}</p>
     </div>
-    <div class="mb-6">
-        <p class="text-sm text-gray-600 dark:text-gray-400 mb-2 font-semibold">Data Preparation Container</p>
+    <div class="mb-6" data-testid="dataset-data-prep-section">
+        <p class="text-sm text-gray-600 dark:text-gray-400 mb-2 font-semibold" data-testid="dataset-data-prep-label">Data Preparation Container</p>
         {{ container_macros.container_link(prep_cube) }}
     </div>
     {% if dataset.generated_metadata %}
     <div class="mb-6">
-        <p class="text-sm text-gray-600 dark:text-gray-400 mb-2 font-semibold">Statistics</p>
-        <button type="button" data-field="Statistics" data-yaml-data='{{ dataset.generated_metadata | tojson }}' class="yaml-link medperf-accent dark:text-green-400 hover:underline font-medium">View Statistics</button>
+        <p class="text-sm text-gray-600 dark:text-gray-400 mb-2 font-semibold" data-testid="dataset-statistics-label">Statistics</p>
+        <button type="button" data-testid="dataset-statistics-btn" data-field="Statistics" data-yaml-data='{{ dataset.generated_metadata | tojson }}' class="yaml-link medperf-accent dark:text-green-400 hover:underline font-medium">View Statistics</button>
     </div>
     {% endif %}
     {% if report_exists %}
     <div class="mb-6">
-        <p class="text-sm text-gray-600 dark:text-gray-400 mb-2 font-semibold">Report</p>
-        <button type="button" data-field="Report" data-yaml-data='{{ dataset.report | tojson }}' class="yaml-link medperf-accent dark:text-green-400 hover:underline font-medium">View Report</button>
+        <p class="text-sm text-gray-600 dark:text-gray-400 mb-2 font-semibold" data-testid="dataset-report-label">Report</p>
+        <button type="button" data-testid="dataset-report-btn" data-field="Report" data-yaml-data='{{ dataset.report | tojson }}' class="yaml-link medperf-accent dark:text-green-400 hover:underline font-medium">View Report</button>
     </div>
     {% endif %}
     <div class="mb-6">
-        <p class="text-sm text-gray-600 dark:text-gray-400 mb-2 font-semibold">Is Prepared</p>
-        <p class="text-gray-800 dark:text-gray-200">{{ dataset_is_prepared }}</p>
+        <p class="text-sm text-gray-600 dark:text-gray-400 mb-2 font-semibold" data-testid="dataset-prepared-label">Is Prepared</p>
+        <p class="text-gray-800 dark:text-gray-200" data-testid="dataset-prepared">{{ dataset_is_prepared }}</p>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t-2 border-gray-100 dark:border-gray-700">
         <div>
-            <p class="text-sm text-gray-600 dark:text-gray-400 mb-2 font-semibold">Created</p>
-            <span class="text-gray-800 dark:text-white font-medium" data-date="{{ dataset.created_at }}"></span>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-2 font-semibold" data-testid="dataset-created-label">Created</p>
+            <span class="text-gray-800 dark:text-white font-medium" data-testid="dataset-created" data-date="{{ dataset.created_at }}"></span>
         </div>
         <div>
-            <p class="text-sm text-gray-600 dark:text-gray-400 mb-2 font-semibold">Modified</p>
-            <span class="text-gray-800 dark:text-white font-medium" data-date="{{ dataset.modified_at }}"></span>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-2 font-semibold" data-testid="dataset-modified-label">Modified</p>
+            <span class="text-gray-800 dark:text-white font-medium" data-testid="dataset-modified" data-date="{{ dataset.modified_at }}"></span>
         </div>
     </div>
 </div>

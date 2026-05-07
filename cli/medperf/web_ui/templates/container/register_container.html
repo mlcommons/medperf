@@ -13,36 +13,36 @@
 {% endif %}
 
 <div class="container mx-auto px-4 py-8 max-w-3xl">
-    <h1 class="text-3xl font-bold medperf-accent dark:text-green-400 text-center mb-4">Register a New Container</h1>
+    <h1 class="text-3xl font-bold medperf-accent dark:text-green-400 text-center mb-4" data-testid="container-register-header">Register a New Container</h1>
     <form id="register-container-form" class="space-y-6" action="/containers/register" method="post" data-panel-title="Registering container" data-confirm-message="register this container?">
         <div>
-            <label for="name" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Container name</label>
+            <label for="name" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2" data-testid="container-name-label">Container name</label>
             <div class="flex flex-wrap items-stretch gap-2">
-                <input name="name" type="text" id="name" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500" placeholder="{{ placeholders.register_container_name }}" {% if container_register_running %}value="{{ form_data.get('name', '') }}" disabled{% endif %} maxlength="128">
-                <span class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.register_container_name }}"><i class="fas fa-info-circle text-lg"></i></span>
+                <input name="name" type="text" id="name" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500" placeholder="{{ placeholders.register_container_name }}" {% if task_running %}disabled{% endif %} {% if container_register_running %}value="{{ form_data.get('name', '') }}"{% endif %} maxlength="128">
+                <span data-testid="container-name-tooltip" class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.register_container_name }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
         <div>
-            <label for="container-file" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Container Config File</label>
+            <label for="container-file" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2" data-testid="container-manifest-label">Container Config File</label>
             <div class="flex flex-wrap items-stretch gap-2">
                 <input name="container_file" type="text" id="container-file" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500" placeholder="{{ placeholders.register_container_manifest_file }}" {% if task_running %}disabled{% endif %} {% if container_register_running %}value="{{ form_data.get('container_file', '') }}"{% endif %}>
                 <button type="button" class="px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer" id="browse-container-btn" {% if task_running %}disabled{% endif %}>Browse</button>
-                <span class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.register_container_manifest_file }}"><i class="fas fa-info-circle text-lg"></i></span>
+                <span data-testid="container-manifest-tooltip" class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.register_container_manifest_file }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
         <div>
-            <label for="parameters-file" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Parameters File</label>
+            <label for="parameters-file" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2" data-testid="container-parameters-label">Parameters File</label>
             <div class="flex flex-wrap items-stretch gap-2">
                 <input name="parameters_file" type="text" id="parameters-file" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500" placeholder="{{ placeholders.register_container_parameters_file }}" {% if task_running %}disabled{% endif %} {% if container_register_running %}value="{{ form_data.get('parameters_file', '') }}"{% endif %}>
                 <button type="button" class="px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer" id="browse-parameters-btn" {% if task_running %}disabled{% endif %}>Browse</button>
-                <span class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.register_container_parameters_file }}"><i class="fas fa-info-circle text-lg"></i></span>
+                <span data-testid="container-parameters-tooltip" class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.register_container_parameters_file }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
         <div>
-            <label for="additional-file" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Additional Files URL</label>
+            <label for="additional-file" class="block text-gray-700 dark:text-gray-300 font-semibold mb-2" data-testid="container-additional-label">Additional Files URL</label>
             <div class="flex flex-wrap items-stretch gap-2">
                 <input name="additional_file" type="text" id="additional-file" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500" placeholder="{{ placeholders.register_container_additional_file }}" {% if task_running %}disabled{% endif %} {% if container_register_running %}value="{{ form_data.get('additional_file', '') }}"{% endif %}>
-                <span class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.register_container_additional_file }}"><i class="fas fa-info-circle text-lg"></i></span>
+                <span data-testid="container-additional-tooltip" class="inline-flex items-center px-3 tooltip-icon medperf-accent dark:text-green-400" title="{{ tooltips.register_container_additional_file }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
         {% if ui_mode == request.app.state.EVALUATION_MODE %}

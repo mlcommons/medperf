@@ -121,7 +121,7 @@
 <div class="my-8" data-testid="benchmark-associations">
     <h2 class="text-xl font-bold medperf-accent dark:text-green-400 my-4">Associated Benchmarks</h2>
     {% for assoc in benchmarks_associations.values() %}
-        {{ association_card_macros.association_card(assoc, benchmarks[assoc.benchmark], "benchmark") }}
+        {{ association_card_macros.association_card(assoc, benchmarks[assoc.benchmark], "benchmark", task_running) }}
     {% endfor %}
 </div>
 {% endif %}

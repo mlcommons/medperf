@@ -1,13 +1,13 @@
 {% macro container_link(container) %}
-<span class="inline-flex items-center gap-2 p-2 rounded-lg {% if not container.is_valid %}invalid-card{% endif %}">
+<span class="inline-flex items-center gap-2 p-2 rounded-lg {% if not container.is_valid %}invalid-card{% endif %}" data-testid="container-link-wrapper">
     <strong>
-        <a href="/containers/ui/display/{{ container.id }}" class="medperf-accent dark:text-green-400 hover:underline">{{ container.name }}</a>
+        <a href="/containers/ui/display/{{ container.id }}" class="medperf-accent dark:text-green-400 hover:underline" data-testid="container-link">{{ container.name }}</a>
     </strong>
-    <small class="text-gray-500 dark:text-gray-400" data-date="{{ container.modified_at }}"></small>
+    <small class="text-gray-500 dark:text-gray-400" data-testid="container-link-date" data-date="{{ container.modified_at }}"></small>
     {% if container.state == 'OPERATION' %}
-    <i class="fas fa-check-circle text-green-600 dark:text-green-400"></i>
+    <i class="fas fa-check-circle text-green-600 dark:text-green-400" data-testid="container-link-state"></i>
     {% else %}
-    <i class="fas fa-exclamation-circle text-yellow-600 dark:text-yellow-400"></i>
+    <i class="fas fa-exclamation-circle text-yellow-600 dark:text-yellow-400" data-testid="container-link-state"></i>
     {% endif %}
 </span>
 {% endmacro %}
