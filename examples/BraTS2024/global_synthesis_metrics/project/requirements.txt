@@ -1,0 +1,4 @@
+pyYAML
+numpy
+SimpleITK>=2.1.0
+pandas
