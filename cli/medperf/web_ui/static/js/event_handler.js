@@ -78,30 +78,30 @@ function handleEvents(event, logPanel, stagesList, currentStageElement) {
 
     if (event.type === "print") {
         var p = create_p(cleanMessage);
-        p.className = "font-bold text-lg text-gray-900 dark:text-gray-100";
+        p.className = "font-bold text-lg text-ink";
         if (content) content.appendChild(p);
         if (textContent) { textContent.style.display = ""; textContent.classList.remove("hidden"); }
     } else if (event.type === "warning") {
         var p = create_p(cleanMessage);
-        p.className = "font-bold text-red-600 dark:text-red-400 text-xl";
+        p.className = "font-bold text-danger text-xl";
         if (content) content.appendChild(p);
         if (textContent) { textContent.style.display = ""; textContent.classList.remove("hidden"); }
         scrollToElement("#text-content");
     } else if (event.type === "error") {
         var p = create_p(cleanMessage);
-        p.className = "font-bold text-red-600 dark:text-red-400 text-xl";
+        p.className = "font-bold text-danger text-xl";
         if (content) content.appendChild(p);
         if (textContent) { textContent.style.display = ""; textContent.classList.remove("hidden"); }
         scrollToElement("#text-content");
     } else if (event.type === "highlight") {
         var p = create_p(cleanMessage);
-        p.className = "text-xl text-gray-900 dark:text-gray-100";
+        p.className = "text-xl text-ink";
         if (content) content.appendChild(p);
         if (textContent) { textContent.style.display = ""; textContent.classList.remove("hidden"); }
         scrollToElement("#text-content");
     } else if (event.type === "prompt") {
         var p = create_p(cleanMessage);
-        p.className = "mt-4 text-xl text-red-600 dark:text-red-400 font-bold";
+        p.className = "mt-4 text-xl text-danger font-bold";
         if (promptText) promptText.innerHTML = "";
         if (promptText) promptText.appendChild(p);
         if (promptContainer) { promptContainer.style.display = ""; promptContainer.classList.remove("hidden"); }
@@ -117,19 +117,19 @@ function handleEvents(event, logPanel, stagesList, currentStageElement) {
         a.href = cleanMessage;
         a.target = "_blank";
         a.textContent = cleanMessage;
-        a.className = "text-lg text-gray-900 dark:text-gray-100 medperf-accent dark:text-green-400 hover:underline";
+        a.className = "text-lg text-ink text-brand-accent hover:underline";
         if (content) content.appendChild(a);
         if (textContent) { textContent.style.display = ""; textContent.classList.remove("hidden"); }
     } else if (event.type === "code") {
         var p = create_p(cleanMessage);
-        p.className = "text-xl font-bold mt-4 text-gray-900 dark:text-gray-100";
+        p.className = "text-xl font-bold mt-4 text-ink";
         if (content) content.appendChild(p);
         if (textContent) { textContent.style.display = ""; textContent.classList.remove("hidden"); }
     }
     return currentStageElement;
 }
 
-var STAGE_SPINNER_CLASS = "inline-block w-5 h-5 flex-shrink-0 border-2 border-green-600 dark:border-green-400 border-t-transparent dark:border-t-transparent rounded-full animate-spin";
+var STAGE_SPINNER_CLASS = "inline-block w-5 h-5 flex-shrink-0 border-2 border-brand border-t-transparent dark:border-t-transparent rounded-full animate-spin";
 
 function addNewStage(stageText, stagesList) {
     if (!stagesList) return null;
@@ -153,7 +153,7 @@ function markStageAsComplete(stageElement) {
     if (spinner) {
         spinner.remove();
         var check = document.createElement("i");
-        check.className = "fas fa-check-circle text-green-600 dark:text-green-400 flex-shrink-0";
+        check.className = "fas fa-check-circle text-brand-accent flex-shrink-0";
         check.setAttribute("aria-hidden", "true");
         stageElement.insertBefore(check, stageElement.firstChild);
     }

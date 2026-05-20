@@ -14,13 +14,13 @@
         return document.getElementById(id);
     }
 
-    const dialogBaseClass = "rounded-2xl shadow-xl w-full mx-auto relative bg-white dark:bg-gray-800 border-2 border-green-100 dark:border-gray-700 max-h-[90vh] flex flex-col scale-95 transition-transform duration-300 ease-out";
+    const dialogBaseClass = "rounded-2xl shadow-xl w-full mx-auto relative bg-card dark:bg-card border-2 border-border-brand dark:border-border max-h-[90vh] flex flex-col scale-95 transition-transform duration-300 ease-out";
 
     function resetModal() {
         const dialog = getEl(dialogId);
         const title = getEl(titleId);
         if (dialog) dialog.setAttribute("class", dialogBaseClass + " max-w-md");
-        if (title) title.setAttribute("class", "text-xl font-bold medperf-accent dark:text-green-400");
+        if (title) title.setAttribute("class", "text-xl font-bold text-brand-accent");
         if (getEl(bodyId)) getEl(bodyId).innerHTML = "";
         if (getEl(footerId)) getEl(footerId).innerHTML = "";
     }
@@ -49,10 +49,10 @@
             const sizeClass = (modalClasses || "").trim();
             dialog.setAttribute("class", (sizeClass ? sizeClass + " " : "max-w-md ") + dialogBaseClass);
         }
-        titleEl.setAttribute("class", "text-xl font-bold medperf-accent dark:text-green-400 " + (titleClasses || ""));
+        titleEl.setAttribute("class", "text-xl font-bold text-brand-accent " + (titleClasses || ""));
         titleEl.innerHTML = title;
         bodyEl.innerHTML = body;
-        bodyEl.classList.add("text-gray-900", "dark:text-white");
+        bodyEl.classList.add("text-ink");
         footerEl.innerHTML = footer;
 
         if (typeof extra_func === "function") extra_func();

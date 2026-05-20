@@ -6,7 +6,7 @@ function isValidEmail(email) {
 
 function createEmailChip(email, inputElement) {
     var chip = document.createElement("div");
-    chip.className = "email-chip inline-block bg-gray-200 dark:bg-gray-600 rounded-full py-1 px-3 mr-2 mb-2 text-sm";
+    chip.className = "email-chip inline-block bg-muted-strong rounded-full py-1 px-3 mr-2 mb-2 text-sm";
     chip.textContent = email;
     var remove = document.createElement("span");
     remove.className = "remove-btn ml-2 cursor-pointer font-bold";

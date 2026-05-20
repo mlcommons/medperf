@@ -20,20 +20,20 @@ function loadFolder(path) {
             folderList.innerHTML = "";
             if (response.parent) {
                 var li = document.createElement("li");
-                li.className = response.have_parent ? "folder-item cursor-pointer px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 border-b border-gray-200 dark:border-gray-600" : "folder-item parent-disabled cursor-not-allowed px-4 py-2 text-gray-400";
+                li.className = response.have_parent ? "folder-item cursor-pointer px-4 py-2 hover:bg-muted border-b border-border" : "folder-item parent-disabled cursor-not-allowed px-4 py-2 text-muted-fg";
                 li.setAttribute("data-path", response.parent);
                 li.textContent = ".. (parent)";
                 folderList.appendChild(li);
             }
             (response.folders || []).forEach(function (item) {
                 var li = document.createElement("li");
-                li.className = item.type === "dir" ? "folder-item cursor-pointer px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 border-b border-gray-200 dark:border-gray-600" : "folder-item file-item cursor-pointer px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 border-b border-gray-200 dark:border-gray-600 text-gray-500";
+                li.className = item.type === "dir" ? "folder-item cursor-pointer px-4 py-2 hover:bg-muted border-b border-border" : "folder-item file-item cursor-pointer px-4 py-2 hover:bg-muted border-b border-border text-muted-fg";
                 li.setAttribute("data-path", item.path);
                 li.textContent = item.name;
                 folderList.appendChild(li);
             });
             var titleEl = document.getElementById("folder-picker-modal-title");
-            if (titleEl) titleEl.innerHTML = "Select Path: <code class=\"text-sm bg-gray-100 dark:bg-gray-700 px-1 rounded\">" + currentPath + "</code>";
+            if (titleEl) titleEl.innerHTML = "Select Path: <code class=\"text-sm bg-muted px-1 rounded\">" + currentPath + "</code>";
         });
 }
 
@@ -61,7 +61,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if (clicked.classList.contains("file-item")) {
                 currentPath = clicked.getAttribute("data-path");
                 const titleEl = document.getElementById("folder-picker-modal-title");
-                if (titleEl) titleEl.innerHTML = "<b>Selected File:</b> <code class=\"text-sm bg-gray-100 dark:bg-gray-700 px-1 rounded\">" + currentPath + "</code>";
+                if (titleEl) titleEl.innerHTML = "<b>Selected File:</b> <code class=\"text-sm bg-muted px-1 rounded\">" + currentPath + "</code>";
                 currentPathType = "file";
             } else if (!clicked.classList.contains("parent-disabled")) {
                 currentPath = clicked.getAttribute("data-path");

@@ -99,7 +99,7 @@ function removeAlert(alertEl) {
 }
 
 function clearAlerts() {
-    document.querySelectorAll(".floating-alert, .display-alert").forEach(function (a) { a.remove(); });
+    document.querySelectorAll(".display-alert").forEach(function (a) { a.remove(); });
 }
 
 function onRequestFailure(xhr, status, error, errorMessage) {
@@ -167,7 +167,7 @@ function markAllStagesAsComplete() {
     if (list) list.querySelectorAll(":scope > li").forEach(function (el) { markStageAsComplete(el); });
 }
 
-var STAGE_SPINNER_CLASS = "inline-block w-5 h-5 flex-shrink-0 border-2 border-green-600 dark:border-green-400 border-t-transparent dark:border-t-transparent rounded-full animate-spin";
+var STAGE_SPINNER_CLASS = "inline-block w-5 h-5 flex-shrink-0 border-2 border-brand border-t-transparent dark:border-t-transparent rounded-full animate-spin";
 
 function addSpinner(element) {
     if (!element) return;
@@ -199,15 +199,15 @@ function showErrorModal(errorTitle, response) {
     var responseError = (response && response.error) || "";
     var responseStatus = (response && response.status) || "";
     var errorText = (responseError + (responseError ? "<br>" : "") + responseStatus).replace(/\n/g, "<br>");
-    var modalBody = "<p id=\"error-text\" class=\"text-lg font-bold text-red-600 dark:text-red-400\">" + errorText + "</p><p class=\"text-end mt-3\"><button type=\"button\" class=\"px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 cursor-pointer\" onclick=\"reloadPage();\">Click here to reload</button></p>";
-    var modalFooter = "<button type=\"button\" class=\"px-4 py-2 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 close-modal-btn\">Hide</button>";
+    var modalBody = "<p id=\"error-text\" class=\"text-lg font-bold text-danger\">" + errorText + "</p><p class=\"text-end mt-3\"><button type=\"button\" class=\"btn btn-xs btn-secondary\" onclick=\"reloadPage();\">Click here to reload</button></p>";
+    var modalFooter = "<button type=\"button\" class=\"btn btn-sm btn-danger close-modal-btn\">Hide</button>";
     showModal({ title: errorTitle, body: modalBody, footer: modalFooter });
 }
 
 function showConfirmModal(clickedBtn, callback, message) {
     var modalTitle = "Confirmation Prompt";
     var modalBody = "<p id=\"confirm-text\" class=\"text-lg\">Are you sure you want to " + message + "</p>";
-    var modalFooter = "<button type=\"button\" class=\"px-4 py-2 rounded-xl bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-900 dark:text-white font-semibold close-modal-btn\">Cancel</button><button id=\"confirmation-btn\" type=\"button\" class=\"px-4 py-2 rounded-xl medperf-bg dark:bg-green-600 text-white font-semibold hover:opacity-90 close-modal-btn\">Confirm</button>";
+    var modalFooter = "<button type=\"button\" class=\"btn btn-sm btn-secondary close-modal-btn\">Cancel</button><button id=\"confirmation-btn\" type=\"button\" class=\"btn btn-sm btn-primary close-modal-btn\">Confirm</button>";
     var extra = function () {
         var confirmBtn = document.getElementById("confirmation-btn");
         if (confirmBtn) confirmBtn.addEventListener("click", function () {
@@ -284,9 +284,9 @@ function logout() {
 
 function showCriticalPopup(data) {
     var modalTitle = "Critical Warning";
-    var modalTitleClasses = "font-bold text-red-600 dark:text-red-400";
-    var modalBody = "<p id=\"warning-text\" class=\"text-lg font-bold text-red-600 dark:text-red-400\">" + (data && data.message ? data.message : "") + "</p>";
-    var modalFooter = "<button id=\"acknowledge-btn\" type=\"button\" class=\"px-4 py-2 rounded-xl medperf-bg dark:bg-green-600 text-white font-semibold close-modal-btn\" onclick=\"acknowledgeWarning(this);\" data-event-id=\"" + (data && data.id ? data.id : "") + "\">Acknowledge</button>";
+    var modalTitleClasses = "font-bold text-danger";
+    var modalBody = "<p id=\"warning-text\" class=\"text-lg font-bold text-danger\">" + (data && data.message ? data.message : "") + "</p>";
+    var modalFooter = "<button id=\"acknowledge-btn\" type=\"button\" class=\"btn btn-sm btn-primary close-modal-btn\" onclick=\"acknowledgeWarning(this);\" data-event-id=\"" + (data && data.id ? data.id : "") + "\">Acknowledge</button>";
     var extra = function () {
         document.getElementById("acknowledge-btn");
     };
@@ -434,8 +434,8 @@ function onDomReady() {
             var yamlData = [];
             try { yamlData = JSON.parse(yamlDataStr || "[]"); } catch (_) {}
             var yamlDataPrettified = JSON.stringify(yamlData, null, 2);
-            var modalBody = "<pre id=\"modal-yaml-content\" class=\"language-json overflow-x-auto p-4 rounded-lg bg-gray-100 dark:bg-gray-700\">" + yamlDataPrettified.replace(/</g, "&lt;") + "</pre>";
-            var modalFooter = "<button type=\"button\" class=\"px-4 py-2 rounded-xl medperf-bg dark:bg-green-600 text-white font-semibold close-modal-btn\">Close</button>";
+            var modalBody = "<pre id=\"modal-yaml-content\" class=\"language-json overflow-x-auto p-4 rounded-lg bg-muted\">" + yamlDataPrettified.replace(/</g, "&lt;") + "</pre>";
+            var modalFooter = "<button type=\"button\" class=\"btn btn-sm btn-primary close-modal-btn\">Close</button>";
             var extra = function () {
                 var pre = document.getElementById("modal-yaml-content");
                 if (window.Prism && pre) Prism.highlightElement(pre);
