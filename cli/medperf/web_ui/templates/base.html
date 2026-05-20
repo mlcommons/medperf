@@ -10,31 +10,61 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}MedPerf{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='css/brand-tokens.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style type="text/tailwindcss">
         @theme {
-            --color-medperf: #2e7d32;
-            --color-medperf-light: #4caf50;
-            --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+            --color-page: var(--theme-page);
+            --color-card: var(--theme-card);
+            --color-card-muted: var(--theme-card-muted);
+            --color-muted: var(--theme-muted);
+            --color-muted-strong: var(--theme-muted-strong);
+            --color-border: var(--theme-border);
+            --color-border-strong: var(--theme-border-strong);
+            --color-border-brand: var(--theme-border-brand);
+            --color-ink: var(--theme-text);
+            --color-muted-fg: var(--theme-text-muted);
+            --color-secondary: var(--theme-text-secondary);
+            --color-brand: var(--theme-brand);
+            --color-brand-fg: var(--theme-brand-fg);
+            --color-brand-hover: var(--theme-brand-hover);
+            --color-brand-accent: var(--theme-brand-accent);
+            --color-brand-subtle: var(--theme-brand-subtle);
+            --color-success: var(--theme-success);
+            --color-success-fg: var(--theme-success-text);
+            --color-success-muted: var(--theme-success-bg);
+            --color-danger: var(--theme-danger);
+            --color-danger-fg: var(--theme-danger-text);
+            --color-danger-muted: var(--theme-danger-bg);
+            --color-warning-muted: var(--theme-warning-bg);
+            --color-warning-fg: var(--theme-warning-text);
+            --color-info: var(--theme-info);
+            --color-info-fg: var(--theme-info-text);
+            --color-info-muted: var(--theme-info-bg);
+            --color-nav: var(--theme-nav);
+            --color-nav-fg: var(--theme-nav-fg);
+            --color-nav-muted: var(--theme-nav-muted);
+            --color-warning-border: var(--theme-warning-border);
+            --color-danger-border: var(--theme-danger-border);
+            --color-inverse: var(--theme-inverse);
+            --color-btn-danger: var(--theme-btn-danger);
+            --color-btn-info: var(--theme-btn-info);
+            --color-btn-warning: var(--theme-btn-warning);
+            --font-sans: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
+            --font-serif: "Instrument Serif", ui-serif, Georgia, serif;
         }
         @custom-variant dark (&:where(.dark, .dark *));
     </style>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&display=swap">
     <link rel="stylesheet" href="{{ url_for('static', path='css/font-awesome-5.15.4-all.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', path='css/prism-1.23.0.min.css') }}" id="prism-light-theme">
     <link rel="stylesheet" href="{{ url_for('static', path='css/prism-dark.css') }}" id="prism-dark-theme" disabled>
     <link rel="stylesheet" href="{{ url_for('static', path='css/common.css') }}">
     <link rel="icon" href="{{ url_for('static', path='images/favicon.png') }}">
     <style>
-        body { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
-        .medperf-accent { color: #2e7d32; }
-        .dark .medperf-accent { color: #4ade80; }
-        .medperf-bg { background-color: #2e7d32; }
-        .dark .medperf-bg { background-color: #16a34a; }
-        .medperf-card { border-left: 4px solid #2e7d32; }
-        .dark .medperf-card { border-left-color: rgba(74, 222, 128, 0.5); }
-        .info-highlight { background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border-left: 4px solid #2e7d32; }
-        .dark .info-highlight { background: linear-gradient(135deg, #1f2937 0%, #374151 100%); border-left-color: #4ade80; }
+        body { font-family: var(--font-sans); }
+        h1, h2, h3, .font-display { font-family: var(--font-sans); }
+        .font-data { font-family: var(--font-serif); }
         [x-cloak] { display: none !important; }
         #page-modal.modal-visible { opacity: 1; pointer-events: auto; }
         #page-modal.modal-visible #page-modal-dialog { transform: scale(1); }
@@ -70,7 +100,7 @@
     {% endif %}
     {% block extra_css %} {% endblock extra_css %}
 </head>
-<body class="min-h-screen bg-[#f1f8f4] dark:bg-gray-900">
+<body class="min-h-screen bg-page text-ink">
     {% include "partials/navbar.html" %}
 
     <div class="page-wrap pt-6">
@@ -82,12 +112,12 @@
     <div id="page-modal" class="fixed inset-0 z-50 opacity-0 pointer-events-none transition-opacity duration-300 ease-out" aria-hidden="true" role="dialog" aria-modal="true">
         <div id="page-modal-backdrop" class="absolute inset-0 bg-black/50 transition-opacity duration-300"></div>
         <div class="absolute inset-0 flex items-center justify-center p-4">
-            <div id="page-modal-dialog" class="rounded-2xl shadow-xl max-w-md w-full mx-auto relative bg-white dark:bg-gray-800 border-2 border-green-100 dark:border-gray-700 max-h-[90vh] flex flex-col scale-95 transition-transform duration-300 ease-out">
-                <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-                    <h2 id="page-modal-title" class="text-xl font-bold medperf-accent dark:text-green-400"></h2>
+            <div id="page-modal-dialog" class="rounded-2xl shadow-xl max-w-md w-full mx-auto relative bg-card border-2 border-border-brand max-h-[90vh] flex flex-col scale-95 transition-transform duration-300 ease-out">
+                <div class="flex items-center justify-between p-6 border-b border-border">
+                    <h2 id="page-modal-title" class="text-xl font-bold text-brand-accent"></h2>
                 </div>
-                <div id="page-modal-body" class="p-6 overflow-y-auto flex-1 break-words text-gray-900 dark:text-white"></div>
-                <div id="page-modal-footer" class="p-6 border-t border-gray-200 dark:border-gray-700 flex flex-wrap gap-2 justify-end"></div>
+                <div id="page-modal-body" class="p-6 overflow-y-auto flex-1 break-words text-ink"></div>
+                <div id="page-modal-footer" class="p-6 border-t border-border flex flex-wrap gap-2 justify-end"></div>
             </div>
         </div>
     </div>
