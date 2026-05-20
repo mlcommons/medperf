@@ -10,14 +10,14 @@
     <div class="mb-6">
         <div class="flex flex-wrap items-center justify-between gap-6 mb-6">
             <div>
-                <h1 class="text-5xl font-bold medperf-accent dark:text-green-400 mb-3" data-testid="page-header">Models</h1>
-                <p class="text-gray-700 dark:text-gray-300 text-lg">Manage and explore models</p>
+                <h1 class="text-5xl font-bold text-brand-accent mb-3" data-testid="page-header">Models</h1>
+                <p class="text-secondary text-lg">Manage and explore models</p>
             </div>
             <div class="flex flex-wrap gap-4">
-                <a class="px-8 py-4 medperf-bg dark:bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 dark:hover:bg-green-500 transition-all shadow-lg hover:shadow-xl inline-flex items-center" href="/containers/register/ui" data-testid="reg-model-cont-btn">
+                <a class="btn btn-cta shadow-lg hover:shadow-xl" href="/containers/register/ui" data-testid="reg-model-cont-btn">
                     <i class="fas fa-plus mr-2"></i>Register a New Container Model
                 </a>
-                <a class="px-8 py-4 medperf-bg dark:bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 dark:hover:bg-green-500 transition-all shadow-lg hover:shadow-xl inline-flex items-center" href="/assets/register/ui" data-testid="reg-model-asset-btn">
+                <a class="btn btn-cta shadow-lg hover:shadow-xl" href="/assets/register/ui" data-testid="reg-model-asset-btn">
                     <i class="fas fa-plus mr-2"></i>Register a New Asset Model
                 </a>
             </div>
@@ -34,7 +34,7 @@
         {{ model_macros.model_card(model) }}
         {% endfor %}
         {% else %}
-        <h3 class="col-span-full text-center py-12 text-gray-600 dark:text-gray-400 text-xl" data-testid="no-models-msg">No models yet</h3>
+        <h3 class="col-span-full text-center py-12 text-muted-fg text-xl" data-testid="no-models-msg">No models yet</h3>
         {% endif %}
     </div>
 
