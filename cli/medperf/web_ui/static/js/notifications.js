@@ -1,8 +1,13 @@
 function showToast(title, message, bgClass) {
-    const bgMap = { "text-bg-primary": "bg-blue-500", "text-bg-success": "bg-green-600", "text-bg-danger": "bg-red-600", "text-bg-info": "bg-blue-500" };
-    const bg = bgMap[bgClass] || "bg-gray-700";
+    const toastStyles = {
+        "text-bg-primary": { bg: "bg-info", fg: "text-white" },
+        "text-bg-success": { bg: "bg-brand", fg: "text-ink" },
+        "text-bg-danger": { bg: "bg-danger", fg: "text-white" },
+        "text-bg-info": { bg: "bg-info", fg: "text-white" },
+    };
+    const style = toastStyles[bgClass] || { bg: "bg-muted-strong", fg: "text-ink" };
     const toastHTML = `
-      <div class="toast-item flex items-center gap-3 ${bg} text-white rounded-xl shadow-lg px-4 py-3 border-0" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="toast-item flex items-center gap-3 ${style.bg} ${style.fg} rounded-xl shadow-lg px-4 py-3 border-0" role="alert" aria-live="assertive" aria-atomic="true">
         <div class="flex-1 min-w-0">
           <strong class="block">${title}</strong>
           <span class="text-sm opacity-90">${message}</span>
@@ -38,27 +43,33 @@ function addNotification(notification) {
     if (!list) return;
     if (!list.querySelector(".notification-text")) list.innerHTML = "";
 
-    let bgClass = "bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border-gray-200 dark:border-gray-600";
-    if (notification.type === "success") bgClass = "bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-200 border-green-200 dark:border-green-800";
-    else if (notification.type === "info") bgClass = "bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200 border-blue-200 dark:border-blue-800";
-    else bgClass = "bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-200 border-red-200 dark:border-red-800";
+    let bgClass = "bg-muted text-ink border-border";
+    if (notification.type === "success") {
+        bgClass = "bg-success-muted text-success border-success";
+    } else if (notification.type === "info") {
+        bgClass = "bg-info-muted text-info-fg border-info";
+    } else {
+        bgClass = "bg-danger-muted text-danger-fg border-danger";
+    }
 
     const fontWeight = !notification.read ? "font-bold" : "";
-    const markReadBtn = `<button class="mark-read-btn px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer" data-id="${notification.id}" type="button">Mark as Read</button>`;
-    const deleteBtn = `<button class="delete-notif-btn px-3 py-1.5 rounded-lg border border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 text-sm hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer" data-id="${notification.id}" type="button">Delete</button>`;
+    const markReadBtn = `<button class="mark-read-btn btn btn-xs btn-secondary" data-id="${notification.id}" type="button">Mark as Read</button>`;
+    const deleteBtn = `<button class="delete-notif-btn btn btn-xs btn-danger hover:bg-danger-muted cursor-pointer" data-id="${notification.id}" type="button">Delete</button>`;
     let buttons = "";
     if (!notification.read) buttons += markReadBtn;
-    if (notification.url) buttons += `<a href="${notification.url}" class="px-3 py-1.5 rounded-lg border border-green-300 dark:border-green-700 text-green-700 dark:text-green-400 text-sm hover:bg-green-50 dark:hover:bg-green-900/20 cursor-pointer">Open</a>`;
+    if (notification.url) {
+        buttons += `<a href="${notification.url}" class="btn btn-xs btn-secondary">Open</a>`;
+    }
     buttons += deleteBtn;
 
     const li = document.createElement("li");
-    li.className = "px-4 py-3 border-b border-gray-100 dark:border-gray-700";
+    li.className = "px-4 py-3 border-b border-border";
     li.setAttribute("data-id", notification.id);
     li.setAttribute("data-read", notification.read);
     li.innerHTML = `
       <div class="flex flex-col p-2 rounded-lg border-2 ${bgClass}">
         <div class="${fontWeight} notification-text" data-id="${notification.id}">${notification.message}</div>
-        <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">${timeAgo(notification.timestamp)}</div>
+        <div class="text-xs text-muted-fg mt-1">${timeAgo(notification.timestamp)}</div>
         <div class="mt-2 flex flex-wrap gap-2">${buttons}</div>
       </div>
     `;
@@ -106,7 +117,7 @@ function deleteNotification(notification_id) {
     const list = document.getElementById("notifications-list");
     if (list && !list.querySelector("li[data-id]")) {
         const empty = document.createElement("li");
-        empty.className = "px-4 py-3 text-gray-500 dark:text-gray-400 text-sm";
+        empty.className = "px-4 py-3 text-muted-fg text-sm";
         empty.textContent = "No notifications yet";
         list.appendChild(empty);
     }

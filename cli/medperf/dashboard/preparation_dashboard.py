@@ -16,7 +16,15 @@ from typer import Typer, run, Option
 t_app = Typer()
 
 _DASH_ASSETS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets")
-_MEDPERF_FONT = "'Inter', ui-sans-serif, system-ui, sans-serif"
+_MEDPERF_FONT = "'Instrument Sans', ui-sans-serif, system-ui, sans-serif"
+
+# MLCommons palette (see web_ui/static/css/brand-tokens.css)
+_MLC_INK = "#11141f"
+_MLC_SURFACE = "#f7f8fa"
+_MLC_MINT = "#ccebd4"
+_MLC_GREEN_DARK = "#44644e"
+_MLC_SLATE_MID = "#535869"
+_MLC_BORDER = "#ebeef4"
 
 # Match base.html: html.dark + localStorage medperf-dark (iframe does not inherit parent DOM).
 _MEDPERF_DASH_INDEX_STRING = """<!DOCTYPE html>
@@ -49,26 +57,45 @@ _MEDPERF_DASH_INDEX_STRING = """<!DOCTYPE html>
 </html>"""
 
 _EXEC_STATUS_COLORS = {
-    "finished": "#2e7d32",
-    "NA": "#78909c",
-    "running": "#1565c0",
-    "failed": "#c62828",
+    "finished": "#62826c",
+    "NA": "#535869",
+    "running": "#4e6ba1",
+    "failed": "#b42318",
 }
 
-_PARTICIPATION_COLORS = ["#2e7d32", "#90a4ae"]
+_PARTICIPATION_COLORS = ["#62826c", "#9b9fad"]
 
 
-def _apply_medperf_chart_theme(fig):
-    """Typography and axes styling aligned with MedPerf WebUI."""
+def _apply_medperf_chart_theme(fig, *, dark=False):
+    """Typography and axes styling aligned with MedPerf WebUI brand tokens."""
+    if dark:
+        plot_bg = "#1f2433"
+        font_color = "#e5e7eb"
+        title_color = "#ffffff"
+        legend_bg = "rgba(24,28,40,0.95)"
+        legend_border = "#3d455a"
+        grid = "#3d455a"
+        axis = "#6b7280"
+        zero = "#4b5563"
+    else:
+        plot_bg = _MLC_SURFACE
+        font_color = _MLC_INK
+        title_color = _MLC_INK
+        legend_bg = "rgba(247,248,250,0.95)"
+        legend_border = _MLC_BORDER
+        grid = "#d8dce6"
+        axis = "#9b9fad"
+        zero = "#d8dce6"
+
     fig.update_layout(
-        font=dict(family=_MEDPERF_FONT, size=13, color="#374151"),
+        font=dict(family=_MEDPERF_FONT, size=13, color=font_color),
         paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="#f9fafb",
-        title=dict(font=dict(size=16, color="#1f2937", family=_MEDPERF_FONT)),
+        plot_bgcolor=plot_bg,
+        title=dict(font=dict(size=16, color=title_color, family=_MEDPERF_FONT)),
         legend=dict(
-            font=dict(family=_MEDPERF_FONT, size=12),
-            bgcolor="rgba(249,250,251,0.95)",
-            bordercolor="#e5e7eb",
+            font=dict(family=_MEDPERF_FONT, size=12, color=font_color),
+            bgcolor=legend_bg,
+            bordercolor=legend_border,
             borderwidth=1,
         ),
         autosize=True,
@@ -76,15 +103,17 @@ def _apply_medperf_chart_theme(fig):
     )
     fig.update_xaxes(
         showgrid=True,
-        gridcolor="#e5e7eb",
-        zerolinecolor="#d1d5db",
-        linecolor="#9ca3af",
+        gridcolor=grid,
+        zerolinecolor=zero,
+        linecolor=axis,
+        tickfont=dict(color=font_color),
     )
     fig.update_yaxes(
         showgrid=True,
-        gridcolor="#e5e7eb",
-        zerolinecolor="#d1d5db",
-        linecolor="#9ca3af",
+        gridcolor=grid,
+        zerolinecolor=zero,
+        linecolor=axis,
+        tickfont=dict(color=font_color),
     )
     return fig
 
@@ -96,12 +125,13 @@ def _datatable():
             "fontFamily": _MEDPERF_FONT,
             "fontSize": "14px",
             "padding": "10px 12px",
-            "border": "1px solid #e5e7eb",
+            "border": f"1px solid {_MLC_BORDER}",
             "textAlign": "left",
+            "color": _MLC_INK,
         },
         "style_header": {
-            "backgroundColor": "#e8f5e9",
-            "color": "#1b5e20",
+            "backgroundColor": "#e5f0e8",
+            "color": _MLC_INK,
             "fontWeight": "700",
             "border": "none",
             "fontFamily": _MEDPERF_FONT,
@@ -129,7 +159,7 @@ def participant_dashboard(latest_table: pd.DataFrame, sites: pd.DataFrame):
         text=f"{sum(values)}",
         x=0.5,
         y=0.5,
-        font=dict(size=20, family=_MEDPERF_FONT, color="#1f2937"),
+        font=dict(size=20, family=_MEDPERF_FONT, color=_MLC_INK),
         showarrow=False,
     )
     fig.update_layout(
@@ -211,7 +241,7 @@ def preparation_status_dashboard(latest_table: pd.DataFrame, stages_colors, stag
         text=f"{int(stages_total.round())}",
         x=0.5,
         y=0.5,
-        font=dict(size=20, family=_MEDPERF_FONT, color="#1f2937"),
+        font=dict(size=20, family=_MEDPERF_FONT, color=_MLC_INK),
         showarrow=False,
     )
     stages_fig.update_layout(
