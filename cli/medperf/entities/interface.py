@@ -16,7 +16,7 @@ class Entity(ABC):
 
     def __init__(self):
         self._model: MedperfSchema
-        self._fields = list(self._model.__fields__.keys())
+        self._fields = list(self._model.__class__.model_fields.keys())
         self.for_test = self._model.for_test
         self.id = self._model.id
         self.name = self._model.name
@@ -218,7 +218,7 @@ class Entity(ABC):
         return data
 
     def todict(self) -> dict:
-        return self._model.dict()
+        return self._model.model_dump()
 
     def write(self) -> str:
         """Writes the entity to the local storage

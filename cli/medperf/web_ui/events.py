@@ -51,7 +51,7 @@ def process_event(request: Request, event: EventBase):
 
 
 def sse_frame_event(event: EventBase):
-    return f"id: {event.id}\ndata: {event.json()}\n\n"
+    return f"id: {event.id}\ndata: {event.model_dump_json()}\n\n"
 
 
 def should_process_old(request: Request, stream_old: bool):
@@ -107,11 +107,11 @@ def global_event_generator(request: Request):
         try:
             notification = config.ui.get_notification()
             if notification:
-                yield f"id: {notification.id}\nevent: notification\ndata: {notification.json()}\n\n"
+                yield f"id: {notification.id}\nevent: notification\ndata: {notification.model_dump_json()}\n\n"
 
             event = config.ui.get_global_event()
             if event:
-                yield f"id: {event.id}\nevent: event\ndata: {event.json()}\n\n"
+                yield f"id: {event.id}\nevent: event\ndata: {event.model_dump_json()}\n\n"
 
         except (BrokenPipeError, ConnectionResetError, GeneratorExit):
             break

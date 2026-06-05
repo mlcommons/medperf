@@ -70,13 +70,13 @@ class Model(Entity):
     def container_obj(self):
         if not self.is_container():
             raise MedperfException("Model is not a container")
-        return Cube(**self.container.dict())
+        return Cube(**self.container.model_dump())
 
     @property
     def asset_obj(self):
         if not self.is_asset():
             raise MedperfException("Model is not an asset")
-        return Asset(**self.asset.dict())
+        return Asset(**self.asset.model_dump())
 
     def is_encrypted(self) -> bool:
         return self.is_container() and self.container_obj.is_encrypted()

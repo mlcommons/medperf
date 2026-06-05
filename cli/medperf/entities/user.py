@@ -11,7 +11,7 @@ class User:
     @handle_validation_error
     def __init__(self, **kwargs):
         self._model = UserSchema(**kwargs)
-        self._fields = list(self._model.__fields__.keys())
+        self._fields = list(self._model.__class__.model_fields.keys())
         self.id = self._model.id
         self.username = self._model.username
         self.email = self._model.email

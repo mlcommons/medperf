@@ -21,7 +21,7 @@ class Notification(BaseModel):
         self.read = True
 
     def to_json(self):
-        return self.dict()
+        return self.model_dump()
 
 
 class EventBase(BaseModel):
@@ -29,7 +29,7 @@ class EventBase(BaseModel):
     task_id: Optional[str] = None
 
     def to_json(self):
-        return self.dict()
+        return self.model_dump()
 
 
 class Event(EventBase):
@@ -119,7 +119,7 @@ class WebUITask(BaseModel):
         self.running = running
 
     def to_json(self):
-        return self.dict()
+        return self.model_dump()
 
 
 class GlobalEventsManager:

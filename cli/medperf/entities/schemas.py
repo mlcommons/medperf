@@ -1,5 +1,5 @@
 from datetime import datetime
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 from typing import Optional, Union
 
 from medperf.enums import Status, CryptoKeyType
@@ -7,15 +7,14 @@ from medperf.enums import Status, CryptoKeyType
 
 class MedperfSchema(BaseModel):
     for_test: Optional[bool] = False
-    id: Optional[int]
+    id: Optional[int] = None
     name: str = Field(..., max_length=128)
-    owner: Optional[int]
+    owner: Optional[int] = None
     is_valid: bool = True
-    created_at: Optional[datetime]
-    modified_at: Optional[datetime]
+    created_at: Optional[datetime] = None
+    modified_at: Optional[datetime] = None
 
-    class Config:
-        use_enum_values = True
+    model_config = ConfigDict(use_enum_values=True)
 
 
 class AggregatorSchema(MedperfSchema):
@@ -23,8 +22,9 @@ class AggregatorSchema(MedperfSchema):
     config: dict
     aggregation_mlcube: int
 
-    @validator("config", pre=True, always=True)
-    def check_config(cls, v, *, values, **kwargs):
+    @field_validator("config", mode="before")
+    @classmethod
+    def check_config(cls, v):
         keys = set(v.keys())
         allowed_keys = {"address", "port", "admin_port"}
         if keys != allowed_keys:
@@ -44,13 +44,13 @@ class AssetSchema(MedperfSchema):
 
 class BenchmarkSchema(MedperfSchema):
     state: str = "DEVELOPMENT"
-    approved_at: Optional[datetime]
-    approval_status: Status = None
+    approved_at: Optional[datetime] = None
+    approval_status: Optional[Status] = None
     description: Optional[str] = Field(None, max_length=256)
-    docs_url: Optional[str]
-    demo_dataset_tarball_url: Optional[str]
-    demo_dataset_tarball_hash: Optional[str]
-    demo_dataset_generated_uid: Optional[str]
+    docs_url: Optional[str] = None
+    demo_dataset_tarball_url: Optional[str] = None
+    demo_dataset_tarball_hash: Optional[str] = None
+    demo_dataset_generated_uid: Optional[str] = None
     data_preparation_mlcube: int
     reference_model: int
     data_evaluator_mlcube: int
@@ -70,8 +70,9 @@ class CASchema(MedperfSchema):
     ca_mlcube: int
     config: dict
 
-    @validator("config", pre=True, always=True)
-    def check_config(cls, v, *, values, **kwargs):
+    @field_validator("config", mode="before")
+    @classmethod
+    def check_config(cls, v):
         keys = set(v.keys())
         allowed_keys = {
             "address",
@@ -97,10 +98,10 @@ class CertificateSchema(MedperfSchema):
 class CubeSchema(MedperfSchema):
     state: str = "DEVELOPMENT"
     container_config: dict
-    parameters_config: Optional[dict]
-    image_hash: Optional[str]
-    additional_files_tarball_url: Optional[str]
-    additional_files_tarball_hash: Optional[str]
+    parameters_config: Optional[dict] = None
+    image_hash: Optional[str] = None
+    additional_files_tarball_url: Optional[str] = None
+    additional_files_tarball_hash: Optional[str] = None
     metadata: dict = Field(default_factory=dict)
     user_metadata: dict = Field(default_factory=dict)
 
@@ -112,7 +113,7 @@ class DatasetSchema(MedperfSchema):
     input_data_hash: str
     generated_uid: str
     data_preparation_mlcube: int
-    split_seed: Optional[int]
+    split_seed: Optional[int] = None
     generated_metadata: dict
     user_metadata: dict = {}
     report: dict = {}
@@ -129,13 +130,13 @@ class TrainingEventSchema(MedperfSchema):
     training_exp: int
     participants: dict
     finished: bool = False
-    finished_at: Optional[datetime]
-    report: Optional[dict]
+    finished_at: Optional[datetime] = None
+    report: Optional[dict] = None
 
 
 class ExecutionSchema(MedperfSchema):
-    approved_at: Optional[datetime]
-    approval_status: Status = None
+    approved_at: Optional[datetime] = None
+    approval_status: Optional[Status] = None
     benchmark: int
     model: int
     dataset: int
@@ -145,45 +146,45 @@ class ExecutionSchema(MedperfSchema):
     model_report: dict = {}
     evaluation_report: dict = {}
     finalized: bool = False
-    finalized_at: Optional[datetime]
+    finalized_at: Optional[datetime] = None
 
 
 class ModelSchema(MedperfSchema):
     state: str = "DEVELOPMENT"
     type: str  # ASSET or CONTAINER
-    container: Optional[CubeSchema]
-    asset: Optional[AssetSchema]
+    container: Optional[CubeSchema] = None
+    asset: Optional[AssetSchema] = None
     metadata: dict = {}
     user_metadata: dict = {}
 
 
 class TestReportSchema(MedperfSchema):
     name: Optional[str] = "name"
-    demo_dataset_url: Optional[str]
-    demo_dataset_hash: Optional[str]
-    prepared_data_hash: Optional[str]
-    data_preparation_mlcube: Optional[Union[int, str]]
+    demo_dataset_url: Optional[str] = None
+    demo_dataset_hash: Optional[str] = None
+    prepared_data_hash: Optional[str] = None
+    data_preparation_mlcube: Optional[Union[int, str]] = None
     model: Union[int, str]
     data_evaluator_mlcube: Union[int, str]
-    results: Optional[dict]
+    results: Optional[dict] = None
 
 
 class TrainingExpSchema(MedperfSchema):
-    approved_at: Optional[datetime]
-    approval_status: Status = None
+    approved_at: Optional[datetime] = None
+    approval_status: Optional[Status] = None
     state: str = "DEVELOPMENT"
     description: Optional[str] = Field(None, max_length=256)
-    docs_url: Optional[str]
+    docs_url: Optional[str] = None
     demo_dataset_tarball_url: str
-    demo_dataset_tarball_hash: Optional[str]
-    demo_dataset_generated_uid: Optional[str]
+    demo_dataset_tarball_hash: Optional[str] = None
+    demo_dataset_generated_uid: Optional[str] = None
     data_preparation_mlcube: int
     fl_mlcube: int
-    fl_admin_mlcube: Optional[int]
+    fl_admin_mlcube: Optional[int] = None
     plan: dict = {}
     metadata: dict = {}
     user_metadata: dict = {}
-    aggregator: Optional[int]
+    aggregator: Optional[int] = None
 
 
 class UserSchema(BaseModel):

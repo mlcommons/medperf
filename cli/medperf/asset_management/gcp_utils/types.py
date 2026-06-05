@@ -1,3 +1,4 @@
+from typing import Optional
 from pydantic import BaseModel
 
 
@@ -9,7 +10,7 @@ class CCWorkloadID(BaseModel):
     data_id: int
     model_id: int
     script_id: int
-    execution_id: int = None
+    execution_id: Optional[int] = None
 
     @property
     def id(self):
