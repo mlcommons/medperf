@@ -13,7 +13,7 @@ from medperf.commands.dataset.associate import AssociateDataset
 from medperf.commands.dataset.train import TrainingExecution
 from medperf.commands.dataset.import_dataset import ImportDataset
 from medperf.commands.dataset.export_dataset import ExportDataset
-
+from medperf.commands.dataset.check import DataCheck
 
 app = typer.Typer()
 
@@ -135,6 +135,17 @@ def prepare(
     DataPreparation.run(
         data_uid, approve_sending_reports=approval, use_cached_results=not no_cache
     )
+    ui.print("✅ Done!")
+
+
+@app.command("check")
+@clean_except
+def check(
+    data_uid: str = typer.Option(..., "--data_uid", "-d", help="Dataset UID"),
+):
+    """Checks if the hash of the dataset matches the one registered the server"""
+    ui = config.ui
+    DataCheck.run(data_uid)
     ui.print("✅ Done!")
 
 

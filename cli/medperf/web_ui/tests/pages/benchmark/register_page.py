@@ -8,7 +8,7 @@ class RegBenchmarkPage(BasePage):
     DESCRIPTION = (By.ID, "description")
     REF_DATASET = (By.ID, "reference-dataset-tarball-url")
     DATA_PREP = (By.ID, "data-preparation-container")
-    REF_MODEL = (By.ID, "reference-model-container")
+    REF_MODEL = (By.ID, "reference-model")
     METRICS = (By.ID, "evaluator-container")
     REGISTER = (By.ID, "register-benchmark-btn")
 

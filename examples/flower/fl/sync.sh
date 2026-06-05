@@ -1,0 +1,1 @@
+cp workspace/training_config.yaml workspace_agg/training_config.yaml

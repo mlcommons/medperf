@@ -1,0 +1,89 @@
+container_type: DockerImage
+image: mlcommons/rano-data-prep-mlcube:1.0.11
+tasks:
+  prepare:
+    input_volumes:
+      additional_files:
+        mount_path: /mlcube_io3
+        type: directory
+      data_path:
+        mount_path: /mlcube_io0
+        type: directory
+      labels_path:
+        mount_path: /mlcube_io1
+        type: directory
+      parameters_file:
+        mount_path: /mlcube_io2/parameters.yaml
+        type: file
+    output_volumes:
+      metadata_path:
+        mount_path: /mlcube_io7
+        type: directory
+      output_labels_path:
+        mount_path: /mlcube_io5
+        type: directory
+      output_path:
+        mount_path: /mlcube_io4
+        type: directory
+      report_file:
+        mount_path: /mlcube_io6/report.yaml
+        type: file
+    run_args:
+      command:
+      - prepare
+      - --data_path=/mlcube_io0/
+      - --labels_path=/mlcube_io1/
+      - --parameters_file=/mlcube_io2/parameters.yaml
+      - --models=/mlcube_io3/models
+      - --output_path=/mlcube_io4/
+      - --output_labels_path=/mlcube_io5/
+      - --report_file=/mlcube_io6/report.yaml
+      - --metadata_path=/mlcube_io7/
+  sanity_check:
+    input_volumes:
+      data_path:
+        mount_path: /mlcube_io0
+        type: directory
+      labels_path:
+        mount_path: /mlcube_io1
+        type: directory
+      metadata_path:
+        mount_path: /mlcube_io3
+        type: directory
+      parameters_file:
+        mount_path: /mlcube_io2/parameters.yaml
+        type: file
+    output_volumes: {}
+    run_args:
+      command:
+      - sanity_check
+      - --data_path=/mlcube_io0/
+      - --labels_path=/mlcube_io1/
+      - --parameters_file=/mlcube_io2/parameters.yaml
+      - --metadata_path=/mlcube_io3/
+  statistics:
+    input_volumes:
+      data_path:
+        mount_path: /mlcube_io0
+        type: directory
+      labels_path:
+        mount_path: /mlcube_io1
+        type: directory
+      metadata_path:
+        mount_path: /mlcube_io3
+        type: directory
+      parameters_file:
+        mount_path: /mlcube_io2/parameters.yaml
+        type: file
+    output_volumes:
+      output_path:
+        mount_path: /mlcube_io4/statistics.yaml
+        type: file
+    run_args:
+      command:
+      - statistics
+      - --data_path=/mlcube_io0/
+      - --labels_path=/mlcube_io1/
+      - --parameters_file=/mlcube_io2/parameters.yaml
+      - --metadata_path=/mlcube_io3/
+      - --output_path=/mlcube_io4/statistics.yaml

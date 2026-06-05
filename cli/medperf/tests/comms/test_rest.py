@@ -272,7 +272,7 @@ def test_get_benchmarks_calls_benchmarks_path(mocker, server, body):
 
 def test_get_benchmark_model_associations_calls_expected_functions(mocker, server):
     # Arrange
-    assocs = [{"model_mlcube": uid} for uid in [1, 2, 3]]
+    assocs = [{"model": uid} for uid in [1, 2, 3]]
     spy_list = mocker.patch(
         patch_server.format("REST._REST__get_list"), return_value=assocs
     )
@@ -446,7 +446,7 @@ def test_associate_benchmark_model_posts_association_data(
     # Arrange
     data = {
         "approval_status": Status.PENDING.value,
-        "model_mlcube": cube_uid,
+        "model": cube_uid,
         "benchmark": benchmark_uid,
         "metadata": {},
     }
@@ -479,29 +479,29 @@ def test_update_benchmark_dataset_association_sets_approval(
     spy.assert_called_once_with(exp_url, json=status, error_msg=ANY)
 
 
-@pytest.mark.parametrize("mlcube_uid", [4596, 3530])
+@pytest.mark.parametrize("model_uid", [4596, 3530])
 @pytest.mark.parametrize("benchmark_uid", [3966, 4188])
 @pytest.mark.parametrize("status", [Status.APPROVED.value, Status.REJECTED.value])
 def test_update_benchmark_model_association_sets_approval(
-    mocker, server, mlcube_uid, benchmark_uid, status
+    mocker, server, model_uid, benchmark_uid, status
 ):
     # Arrange
     status = {"approval_status": status}
     res = MockResponse({}, 200)
     spy = mocker.patch(patch_server.format("REST._REST__put"), return_value=res)
-    exp_url = f"{full_url}/mlcubes/{mlcube_uid}/benchmarks/{benchmark_uid}/"
+    exp_url = f"{full_url}/models/{model_uid}/benchmarks/{benchmark_uid}/"
 
     # Act
-    server.update_benchmark_model_association(benchmark_uid, mlcube_uid, status)
+    server.update_benchmark_model_association(benchmark_uid, model_uid, status)
 
     # Assert
     spy.assert_called_once_with(exp_url, json=status, error_msg=ANY)
 
 
-def test_get_cubes_associations_gets_associations(mocker, server):
+def test_get_models_associations_gets_associations(mocker, server):
     # Arrange
     spy = mocker.patch(patch_server.format("REST._REST__get_list"), return_value=[])
-    exp_path = f"{full_url}/me/mlcubes/associations/"
+    exp_path = f"{full_url}/me/models/associations/"
 
     # Act
     server.get_user_benchmarks_models_associations()
@@ -539,20 +539,20 @@ def test_upload_benchmark_returns_benchmark_body(mocker, server, body):
     assert body == exp_body
 
 
-@pytest.mark.parametrize("mlcube_uid", [4596, 3530])
+@pytest.mark.parametrize("model_uid", [4596, 3530])
 @pytest.mark.parametrize("benchmark_uid", [3966, 4188])
 @pytest.mark.parametrize("priority", [2, -10])
 def test_update_benchmark_model_association_sets_priority(
-    mocker, server, mlcube_uid, benchmark_uid, priority
+    mocker, server, model_uid, benchmark_uid, priority
 ):
     # Arrange
     res = MockResponse({}, 200)
     spy = mocker.patch(patch_server.format("REST._REST__auth_put"), return_value=res)
-    exp_url = f"{full_url}/mlcubes/{mlcube_uid}/benchmarks/{benchmark_uid}/"
+    exp_url = f"{full_url}/models/{model_uid}/benchmarks/{benchmark_uid}/"
 
     # Act
     server.update_benchmark_model_association(
-        benchmark_uid, mlcube_uid, {"priority": priority}
+        benchmark_uid, model_uid, {"priority": priority}
     )
 
     # Assert

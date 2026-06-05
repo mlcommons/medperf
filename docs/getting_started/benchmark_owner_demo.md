@@ -24,10 +24,9 @@ In this guide, you will learn how a user can use MedPerf to create a benchmark. 
 
 1. Implement a valid workflow.
 2. Develop a demo dataset.
-3. Test your workflow.
-4. Submitting the Containers to the MedPerf server.
-5. Host the demo dataset.
-6. Submit the benchmark to the MedPerf server.
+3. Submitting the Containers to the MedPerf server.
+4. Host the demo dataset.
+5. Submit the benchmark to the MedPerf server.
 
 It's assumed that you have already set up the general testing environment as explained in the [installation](installation.md) and [setup guide](setup.md).
 
@@ -57,43 +56,9 @@ A demo dataset is a small reference dataset. It contains a few data records and 
 
 For this tutorial, you are provided with a demo dataset for the chest X-ray classification workflow. The dataset can be found in your workspace folder under `demo_data`. It is a small dataset comprising two chest X-ray images and corresponding thoracic disease labels.
 
-You can test the workflow now that you have the three containers and the demo data. Testing the workflow before submitting any asset to the MedPerf server is usually recommended.
+Now that you have the three containers and the demo data, you will learn how to host the necessary benchmark components.
 
-## 3. Test your Workflow
-
-MedPerf provides a single command to test an inference workflow. To test your workflow with local containers and local data, the following need to be passed to the command:
-
-1. Path to the data preparation container config file: `{{ prep_container }}`.
-2. Path to the model container config file: `{{ model_container }}`.
-3. Path to the metrics container config file: `{{ metrics_container }}`.
-4. Path to the demo dataset data records: `medperf_tutorial/demo_data/images`.
-5. Path to the demo dataset data labels. `medperf_tutorial/demo_data/labels`.
-
-Additionally, you will need to provide the parameters files of each container, and the additional files of the model container which include its weights:
-
-1. Path to the data preparation parameters file: `{{ prep_params }}`.
-2. Path to the model parameters file: `{{ model_params }}`.
-3. Path to the metrics parameters file: `{{ metrics_params }}`.
-4. Path to the model additional files: `medperf_tutorial/model_custom_cnn/workspace/additional_files`.
-
-Run the following command to execute the test ensuring you are in MedPerf's root folder:
-
-```bash
-medperf test run \
-   --data_preparator "{{ prep_container }}" \
-   --model "{{ model_container }}" \
-   --evaluator "{{ metrics_container }}" \
-   --data_preparator_parameters "{{ prep_params }}" \
-   --model_parameters "{{ model_params }}" \
-   --evaluator_parameters "{{ metrics_params }}" \
-   --model_additional_files "medperf_tutorial/model_custom_cnn/workspace/additional_files" \
-   --data_path "medperf_tutorial/demo_data/images" \
-   --labels_path "medperf_tutorial/demo_data/labels"
-```
-
-Assuming the test passes successfully, you are ready to host the benchmark assets.
-
-## 4. Host the Demo Dataset
+## 3. Host the Demo Dataset
 
 The demo dataset should be packaged in a specific way as a compressed tarball file. The folder stucture in the workspace currently looks like the following:
 
@@ -150,7 +115,7 @@ For the tutorial to run smoothly, the file is already hosted at the following UR
 
 If you wish to host it by yourself, you can find the list of supported options and details about hosting files in [this page](../concepts/hosting_files.md).
 
-## 5. Submitting the Containers
+## 4. Submitting the Containers
 
 ![Benchmark Committee submits Containers](../tutorial_images/bc-3-bc-submits-mlcubes.png){class="tutorial-sticky-image-content"}
 
@@ -190,10 +155,10 @@ medperf container submit \
     --operational
 ```
 
-#### Reference Model Container
+#### Reference Model
 
 ![Benchmark Committee submits the reference Model Container](../tutorial_images/bc-5-bc-submits-ref-model.png){class="tutorial-sticky-image-content"}
-In this tutorial, for the Reference Model container, the submission should include:
+In this tutorial, for the Reference Model, the submission should include:
 
 - The path to the container configuration file:
 
@@ -216,7 +181,7 @@ In this tutorial, for the Reference Model container, the submission should inclu
 Use the following command to submit:
 
 ```bash
-medperf container submit \
+medperf model submit \
 --name my-refmodel \
 --container-config-file "{{ model_container }}" \
 --parameters-file "{{ model_params }}" \
@@ -259,7 +224,7 @@ medperf container ls --mine
 
 Finally, now after having the containers submitted and the demo dataset hosted, you can submit the benchmark to the MedPerf server.
 
-## 6. Submit your Benchmark
+## 5. Submit your Benchmark
 
 ![Benchmark Committee submits the Benchmark Metadata](../tutorial_images/bc-7-bc-submits-benchmark.png){class="tutorial-sticky-image-content"}
 You need to keep at hand the following information:
@@ -270,7 +235,7 @@ You need to keep at hand the following information:
 {{ demo_url }}
 ```
 
-- The server UIDs of the three containers can be found by running:
+- The server UIDs of the data preparation and metrics containers can be found by running:
 
 ```bash
  medperf container ls
@@ -278,8 +243,16 @@ You need to keep at hand the following information:
 
 - For this tutorial, the UIDs are as follows:
   - Data preparator UID: `1`
-  - Reference model UID: `2`
   - Evaluator UID: `3`
+
+- The server UIDs of the reference model can be found by running:
+
+```bash
+ medperf model ls
+```
+
+- For this tutorial, the UIDs are as follows:
+  - Reference model UID: `1`
 
 You can create and submit your benchmark using the following command:
 
@@ -289,7 +262,7 @@ medperf benchmark submit \
    --description "MedPerf demo bmk" \
    --demo-url "{{ demo_url }}" \
    --data-preparation-container 1 \
-   --reference-model-container 2 \
+   --reference-model 1 \
    --evaluator-container 3 \
    --operational
 ```

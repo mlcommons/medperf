@@ -1,8 +1,8 @@
 # Hosting Files
 
-MedPerf requires some assets to be hosted on the cloud when running machine learning pipelines. Submitting [Containers](../containers/containers.md) to the MedPerf server means submitting their metadata, **and not**, for example, model weights or code. [Container assets](container_assets.md) such as model weights or container image files need to be hosted on the cloud, and the submitted container metadata will only contain URLs (or certain identifiers) for these assets. Another example would be benchmark submission, where [demo datasets](../getting_started/benchmark_owner_demo.md#5-hosting-the-demo-dataset) need to be hosted.
+MedPerf requires some files to be hosted on the cloud when running machine learning pipelines. Submitting [Containers](../containers/containers.md) to the MedPerf server means submitting their metadata, **and not**, for example, model weights or code. [Container files](container_components.md) such as model weights or container image files need to be hosted on the cloud, and the submitted container metadata will only contain URLs (or certain identifiers) for these files. Another example would be benchmark submission, where [demo datasets](../getting_started/benchmark_owner_demo.md#5-hosting-the-demo-dataset) need to be hosted.
 
-The MedPerf client expects assets to be hosted in certain ways. Below are options of how assets can be hosted and how MedPerf identitfies them (e.g. a URL).
+The MedPerf client expects the files to be hosted in certain ways. Below are options of how the files can be hosted and how MedPerf identitfies them (e.g. a URL).
 
 ## File hosting
 

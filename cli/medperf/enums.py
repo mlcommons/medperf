@@ -38,3 +38,13 @@ class ContainerConfigMountKeys(Enum):
     additional_files = "additional_files"
     parameters_file = "parameters_file"
     metadata_path = "metadata_path"
+
+
+class ModelType(Enum):
+    ASSET = "ASSET"
+    CONTAINER = "CONTAINER"
+
+
+class CryptoKeyType(Enum):
+    RSA = "RSA"
+    EC = "EC"

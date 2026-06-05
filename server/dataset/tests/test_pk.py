@@ -49,11 +49,11 @@ class DatasetGetTest(DatasetTest):
         )
         testdataset = self.create_dataset(testdataset).data
         self.testdataset = testdataset
-        self.private_fields = ["owner", "report"]
+        self.private_fields = ["report"]
         self.set_credentials(self.actor)
 
     def __can_see_private_fields(self):
-        return self.actor == "data_owner"
+        return self.actor == "data_owner" or self.actor == "prep_mlcube_owner"
 
     def test_generic_get_dataset(self):
         # Arrange

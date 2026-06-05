@@ -42,7 +42,7 @@ The data provider then can request to participate in the benchmark with their da
 
 ## Step 4. Register Models
 
-Once a benchmark is submitted by the Benchmark Committee, any user can [submit their own Model containers](getting_started/model_owner_demo.md) and [request an association with the benchmark](getting_started/model_owner_demo.md#3-request-participation). This association request executes the benchmark locally with the given model on the benchmark's reference dataset to ensure workflow validity and compatibility. If the model successfully passes the compatibility test, and its association is approved by the Benchmark Committee, it becomes a part of the benchmark.
+Once a benchmark is submitted by the Benchmark Committee, any user can [submit their own Models](getting_started/model_owner_demo.md) and [request an association with the benchmark](getting_started/model_owner_demo.md#3-request-participation). This association request executes the benchmark locally with the given model on the benchmark's reference dataset to ensure workflow validity and compatibility. If the model successfully passes the compatibility test, and its association is approved by the Benchmark Committee, it becomes a part of the benchmark.
 
 ![](./images/submitting_associating_additional_models_1.png)
 

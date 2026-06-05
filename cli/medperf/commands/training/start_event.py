@@ -1,6 +1,11 @@
 from medperf.entities.training_exp import TrainingExp
 from medperf.entities.event import TrainingEvent
-from medperf.utils import approval_prompt, dict_pretty_print, get_participant_label
+from medperf.utils import (
+    approval_prompt,
+    dict_pretty_print,
+    get_participant_label,
+    sanitize_path,
+)
 from medperf.exceptions import CleanExit, InvalidArgumentError
 import yaml
 import os
@@ -27,7 +32,7 @@ class StartEvent:
     ):
         self.training_exp_id = training_exp_id
         self.name = name
-        self.participants_list_file = participants_list_file
+        self.participants_list_file = sanitize_path(participants_list_file)
         self.approved = approval
 
     def prepare(self):

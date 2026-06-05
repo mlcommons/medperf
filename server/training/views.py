@@ -183,7 +183,7 @@ class TrainingExperimentDetail(GenericAPIView):
 
 
 class ParticipantsInfo(GenericAPIView):
-    permission_classes = [IsAdmin | IsExpOwner]
+    permission_classes = [IsAdmin | IsExpOwner | IsAggregatorOwner]
     serializer_class = TrainingExperimentListofDatasetsSerializer
     queryset = ""
 

@@ -1,17 +1,20 @@
-from typing import Optional
 from medperf.entities.execution import Execution
-from pydantic import Field
 
 
 class TestExecution(Execution):
     __test__ = False
-    id: Optional[int] = 1
-    name: str = "name"
-    benchmark: int = 1
-    model: int = 1
-    dataset: int = 1
-    results: dict = Field(default_factory=dict)
+
+    def __init__(self, **kwargs):
+        defaults = {
+            "id": 1,
+            "name": "name",
+            "benchmark": 1,
+            "model": 1,
+            "dataset": 1,
+            "results": {},
+        }
+        defaults.update(kwargs)
+        super().__init__(**defaults)
 
     def upload(self):
-        # self.id = 1
         return self.todict()

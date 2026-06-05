@@ -7,11 +7,33 @@ import yaml
 from medperf.exceptions import MedperfException, InvalidArgumentError
 from medperf.entities.schemas import MedperfSchema
 from typing import Type, TypeVar
+from medperf.account_management import get_medperf_user_data
 
 EntityType = TypeVar("EntityType", bound="Entity")
 
 
-class Entity(MedperfSchema, ABC):
+class Entity(ABC):
+
+    def __init__(self):
+        self._model: MedperfSchema
+        self._fields = list(self._model.__fields__.keys())
+        self.for_test = self._model.for_test
+        self.id = self._model.id
+        self.name = self._model.name
+        self.owner = self._model.owner
+        self.is_valid = self._model.is_valid
+        self.created_at = self._model.created_at
+        self.modified_at = self._model.modified_at
+
+    def __setattr__(self, name, value):
+        if (
+            hasattr(self, "_model")
+            and hasattr(self, "_fields")
+            and name in self._fields
+        ):
+            setattr(self._model, name, value)
+        super().__setattr__(name, value)
+
     @staticmethod
     def get_type() -> str:
         raise NotImplementedError()
@@ -30,6 +52,10 @@ class Entity(MedperfSchema, ABC):
 
     @staticmethod
     def get_comms_uploader() -> Callable[[dict], dict]:
+        raise NotImplementedError()
+
+    @staticmethod
+    def get_comms_counter() -> Callable[[dict, bool], int]:
         raise NotImplementedError()
 
     @property
@@ -191,6 +217,9 @@ class Entity(MedperfSchema, ABC):
 
         return data
 
+    def todict(self) -> dict:
+        return self._model.dict()
+
     def write(self) -> str:
         """Writes the entity to the local storage
 
@@ -229,3 +258,16 @@ class Entity(MedperfSchema, ABC):
             dict: the display dictionary
         """
         raise NotImplementedError
+
+    @classmethod
+    def get_count(cls: Type[EntityType], filters: dict = {}) -> int:
+        """Returns the count of items in the entity
+        Returns:
+            int: count of items
+        """
+        logging.info(f"Retrieving the count of {cls.get_type()} entities")
+        user_data = get_medperf_user_data()
+        is_owner = "owner" in filters and filters["owner"] == user_data["id"]
+        comms_fn = cls.get_comms_counter()
+        count = comms_fn(filters=filters, is_owner=is_owner)
+        return count

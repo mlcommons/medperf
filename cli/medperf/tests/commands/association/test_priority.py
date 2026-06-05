@@ -6,16 +6,16 @@ import pytest
 from medperf.commands.association.priority import AssociationPriority
 
 TEST_ASSOCIATIONS = [
-    generate_benchmarkmodel(priority=0, model_mlcube=1),
-    generate_benchmarkmodel(priority=0, model_mlcube=2),
-    generate_benchmarkmodel(priority=0, model_mlcube=3),
+    generate_benchmarkmodel(priority=0, model=1),
+    generate_benchmarkmodel(priority=0, model=2),
+    generate_benchmarkmodel(priority=0, model=3),
 ]
 
 
 def set_priority_behavior(associations):
     def func(benchmark_uid, mlcube_uid, update_dict):
         for assoc in associations:
-            if assoc["model_mlcube"] == mlcube_uid:
+            if assoc["model"] == mlcube_uid:
                 assoc.update(update_dict)
 
     return func
@@ -63,9 +63,9 @@ class TestRun:
     def test_run_modifies_priority(self, model_uid, priority):
         # Arrange
         expected_associations = [
-            generate_benchmarkmodel(priority=4, model_mlcube=1),
-            generate_benchmarkmodel(priority=0, model_mlcube=2),
-            generate_benchmarkmodel(priority=0, model_mlcube=3),
+            generate_benchmarkmodel(priority=4, model=1),
+            generate_benchmarkmodel(priority=0, model=2),
+            generate_benchmarkmodel(priority=0, model=3),
         ]
 
         # Act

@@ -70,12 +70,14 @@ creds_folder = str(config_storage / ".tokens")
 tokens_db = str(config_storage / ".tokens_db")
 pki_assets = str(config_storage / ".pki_assets")
 container_keys_dir = str(config_storage / ".container_keys")
+cc_artifacts_dir = str(config_storage / ".cc_artifacts")
 webui_host_props = str(config_storage / ".webui_host_props")
 
 # TODO: should we change this?
 safe_root = ""  # Base path to accept input paths from user.
 
-images_folder = ".images"
+hashed_files_folder = ".hashed_files"  # store files by hashes
+images_folder = ".images"  # converted singularity images
 trash_folder = ".trash"
 tmp_folder = ".tmp"
 demo_datasets_folder = "demo"
@@ -87,12 +89,16 @@ datasets_folder = "data"
 experiments_logs_folder = "experiments_logs"
 executions_folder = "executions"
 predictions_folder = "predictions"
+script_result_folder = "script_results"
 tests_folder = "tests"
 training_folder = "training"
 aggregators_folder = "aggregators"
 cas_folder = "cas"
 training_events_folder = "training_events"
 certificates_folder = "certificates"
+dashboards_folder = "dashboards"
+assets_folder = "assets"
+models_folder = "models"
 
 default_base_storage = str(Path.home().resolve() / ".medperf")
 
@@ -104,6 +110,10 @@ storage = {
     "images_folder": {
         "base": default_base_storage,
         "name": images_folder,
+    },
+    "hashed_files_folder": {
+        "base": default_base_storage,
+        "name": hashed_files_folder,
     },
     "trash_folder": {
         "base": default_base_storage,
@@ -141,6 +151,10 @@ storage = {
         "base": default_base_storage,
         "name": predictions_folder,
     },
+    "script_result_folder": {
+        "base": default_base_storage,
+        "name": script_result_folder,
+    },
     "tests_folder": {
         "base": default_base_storage,
         "name": tests_folder,
@@ -165,11 +179,24 @@ storage = {
         "base": default_base_storage,
         "name": certificates_folder,
     },
+    "dashboards_folder": {
+        "base": default_base_storage,
+        "name": dashboards_folder,
+    },
+    "assets_folder": {
+        "base": default_base_storage,
+        "name": assets_folder,
+    },
+    "models_folder": {
+        "base": default_base_storage,
+        "name": models_folder,
+    },
 }
 
 root_folders = [
     "decrypted_files_folder",
     "images_folder",
+    "hashed_files_folder",
     "trash_folder",
     "tmp_folder",
     "demo_datasets_folder",
@@ -181,12 +208,16 @@ server_folders = [
     "experiments_logs_folder",
     "executions_folder",
     "predictions_folder",
+    "script_result_folder",
     "tests_folder",
     "training_folder",
     "aggregators_folder",
     "cas_folder",
     "training_events_folder",
     "certificates_folder",
+    "dashboards_folder",
+    "assets_folder",
+    "models_folder",
 ]
 
 # MedPerf filenames conventions
@@ -200,6 +231,9 @@ training_event_file = "event.yaml"
 cube_metadata_filename = "mlcube-meta.yaml"
 certificate_metadata_filename = "certificate-info.yaml"
 encrypted_key_metadata_filename = "encrypted_key_meta.yaml"
+asset_metadata_filename = "asset-info.yaml"
+model_metadata_filename = "model-info.yaml"
+asset_files_folder = "asset_files"
 log_file = "medperf.log"
 webui_log_file = "medperf_webui.log"
 data_monitor_log_file = "medperf_data_monitor.log"
@@ -224,6 +258,7 @@ metadata_folder = "metadata"
 statistics_filename = "statistics.yaml"
 dataset_raw_paths_file = "raw.yaml"
 ready_flag_file = ".ready"
+asset_local_archive_info_file = "archive_info.yaml"
 partial_flag = ".partial"
 executed_flag = ".executed"
 results_filename = "results.yaml"
@@ -327,3 +362,6 @@ sensitive_tmp_paths = []
 
 # Data Import/Export config
 archive_config_filename = "config.yaml"
+
+# Running containers processes
+running_containers = {}

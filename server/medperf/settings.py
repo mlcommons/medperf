@@ -101,6 +101,8 @@ INSTALLED_APPS = [
     "dataset",
     "benchmarkdataset",
     "mlcube",
+    "asset",
+    "model",
     "benchmarkmodel",
     "user",
     "result",
@@ -246,7 +248,10 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
     "DEFAULT_VERSIONING_CLASS": "rest_framework.versioning.NamespaceVersioning",
-    "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
+    "DEFAULT_FILTER_BACKENDS": [
+        "django_filters.rest_framework.DjangoFilterBackend",
+        "rest_framework.filters.OrderingFilter",
+    ],
     "DEFAULT_PARSER_CLASSES": [
         "rest_framework.parsers.JSONParser",
     ],
@@ -316,3 +321,5 @@ TOKEN_USER_EMAIL_CLAIM = "https://medperf.org/email"
 AUTO_APPROVE_BENCHMARKS_FROM = env("AUTO_APPROVE_BENCHMARKS_FROM", default="").split(
     ","
 )
+
+AUTO_APPROVE_TRAINING_FROM = env("AUTO_APPROVE_TRAINING_FROM", default="").split(",")

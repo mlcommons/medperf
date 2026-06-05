@@ -59,7 +59,7 @@ class GrantAccess:
         msg = (
             f"Please confirm that you wish to give all Data Owners "
             f"registered in Benchmark (UID: {self.benchmark_id}) access to "
-            f"the Model (UID: {self.model_id}).\n"
+            "your Model.\n"
         )
 
         if not self.approved and not approval_prompt(msg):

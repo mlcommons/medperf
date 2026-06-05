@@ -8,7 +8,7 @@ from medperf.entities.report import TestReport
 from medperf.exceptions import InvalidArgumentError
 from medperf.utils import sanitize_path
 from .validate_params import CompatibilityTestParamsValidator
-from .utils import download_demo_data, prepare_cube, create_test_dataset
+from .utils import download_demo_data, prepare_cube, create_test_dataset, prepare_model
 import medperf.config as config
 
 
@@ -20,22 +20,10 @@ class CompatibilityTestExecution:
         data_prep: str = None,
         model: str = None,
         evaluator: str = None,
-        data_path: str = None,
-        labels_path: str = None,
-        demo_dataset_url: str = None,
-        demo_dataset_hash: str = None,
         data_uid: str = None,
         no_cache: bool = False,
-        offline: bool = False,
         skip_data_preparation_step: bool = False,
-        use_local_model_image: bool = False,
         model_decryption_key: Path = None,
-        data_prep_parameters: str = None,
-        model_parameters: str = None,
-        evaluator_parameters: str = None,
-        data_prep_additional: str = None,
-        model_additional: str = None,
-        evaluator_additional: str = None,
     ) -> tuple[str, dict]:
         """Execute a test workflow. Components of a complete workflow should be passed.
         When only the benchmark is provided, it implies the following workflow will be used:
@@ -84,28 +72,17 @@ class CompatibilityTestExecution:
             data_prep,
             model,
             evaluator,
-            data_path,
-            labels_path,
-            demo_dataset_url,
-            demo_dataset_hash,
             data_uid,
             no_cache,
-            offline,
             skip_data_preparation_step,
-            use_local_model_image,
             model_decryption_key=model_decryption_key,
-            data_prep_parameters=data_prep_parameters,
-            model_parameters=model_parameters,
-            evaluator_parameters=evaluator_parameters,
-            data_prep_additional=data_prep_additional,
-            model_additional=model_additional,
-            evaluator_additional=evaluator_additional,
         )
         test_exec.validate()
         test_exec.set_data_source()
         test_exec.process_benchmark()
         with config.ui.interactive():
             test_exec.prepare_cubes()
+            test_exec.prepare_model()
             test_exec.prepare_dataset()
         test_exec.initialize_report()
         results = test_exec.cached_results()
@@ -123,49 +100,25 @@ class CompatibilityTestExecution:
         data_prep: str = None,
         model: str = None,
         evaluator: str = None,
-        data_path: str = None,
-        labels_path: str = None,
-        demo_dataset_url: str = None,
-        demo_dataset_hash: str = None,
         data_uid: str = None,
         no_cache: bool = False,
-        offline: bool = False,
         skip_data_preparation_step: bool = False,
-        use_local_model_image: bool = False,
         model_decryption_key: Path = None,
-        data_prep_parameters: str = None,
-        model_parameters: str = None,
-        evaluator_parameters: str = None,
-        data_prep_additional: str = None,
-        model_additional: str = None,
-        evaluator_additional: str = None,
     ):
         self.benchmark_uid = benchmark
         self.data_prep = data_prep
         self.model = model
         self.evaluator = evaluator
-        self.data_path = data_path
-        self.labels_path = labels_path
-        self.demo_dataset_url = demo_dataset_url
-        self.demo_dataset_hash = demo_dataset_hash
         self.data_uid = data_uid
         self.no_cache = no_cache
-        self.offline = offline
         self.skip_data_preparation_step = skip_data_preparation_step
-        self.use_local_model_image = use_local_model_image
-        self.data_prep_parameters = sanitize_path(data_prep_parameters)
-        self.model_parameters = sanitize_path(model_parameters)
-        self.evaluator_parameters = sanitize_path(evaluator_parameters)
-        self.data_prep_additional = sanitize_path(data_prep_additional)
-        self.model_additional = sanitize_path(model_additional)
-        self.evaluator_additional = sanitize_path(evaluator_additional)
 
         # This property will be set to either "path", "demo", "prepared", or "benchmark"
         self.data_source = None
 
         self.dataset = None
         self.data_prep_cube = None
-        self.model_cube = None
+        self.model_obj = None
         self.evaluator_cube = None
 
         # Decryption key is used for compatibility test of encrypted containers
@@ -176,17 +129,7 @@ class CompatibilityTestExecution:
             self.data_prep,
             self.model,
             self.evaluator,
-            self.data_path,
-            self.labels_path,
-            self.demo_dataset_url,
-            self.demo_dataset_hash,
             self.data_uid,
-            self.data_prep_parameters,
-            self.model_parameters,
-            self.evaluator_parameters,
-            self.data_prep_additional,
-            self.model_additional,
-            self.evaluator_additional,
         )
 
     def validate(self):
@@ -201,10 +144,10 @@ class CompatibilityTestExecution:
         if not self.benchmark_uid:
             return
 
-        benchmark = Benchmark.get(self.benchmark_uid, local_only=self.offline)
+        benchmark = Benchmark.get(self.benchmark_uid)
         if self.data_source != "prepared":
             self.data_prep = self.data_prep or benchmark.data_preparation_mlcube
-        self.model = self.model or benchmark.reference_model_mlcube
+        self.model = self.model or benchmark.reference_model
         self.evaluator = self.evaluator or benchmark.data_evaluator_mlcube
         if self.data_source == "benchmark":
             self.demo_dataset_url = benchmark.demo_dataset_tarball_url
@@ -221,28 +164,15 @@ class CompatibilityTestExecution:
             logging.info(
                 f"Establishing the data preparation container: {self.data_prep}"
             )
-            self.data_prep_cube = prepare_cube(
-                self.data_prep,
-                self.data_prep_parameters,
-                self.data_prep_additional,
-                local_only=self.offline,
-            )
+            self.data_prep_cube = prepare_cube(self.data_prep)
 
-        logging.info(f"Establishing the model container: {self.model}")
-        self.model_cube = prepare_cube(
-            self.model,
-            self.model_parameters,
-            self.model_additional,
-            local_only=self.offline,
-            use_local_container_image=self.use_local_model_image,
-            decryption_key_file_path=self.model_decryption_key,
-        )
         logging.info(f"Establishing the evaluator container: {self.evaluator}")
-        self.evaluator_cube = prepare_cube(
-            self.evaluator,
-            self.evaluator_parameters,
-            self.evaluator_additional,
-            local_only=self.offline,
+        self.evaluator_cube = prepare_cube(self.evaluator)
+
+    def prepare_model(self):
+        logging.info(f"Establishing the model container: {self.model}")
+        self.model_obj = prepare_model(
+            self.model, decryption_key_file_path=self.model_decryption_key
         )
 
     def prepare_dataset(self):
@@ -252,16 +182,9 @@ class CompatibilityTestExecution:
 
         logging.info("Establishing data_uid for test execution")
         if self.data_source != "prepared":
-            if self.data_source == "path":
-                data_path, labels_path = self.data_path, self.labels_path
-                # TODO: this has to be redesigned. Compatibility tests command
-                #       is starting to have a lot of input arguments. For now
-                #       let's not support accepting a metadata path
-                metadata_path = None
-            else:
-                data_path, labels_path, metadata_path = download_demo_data(
-                    self.demo_dataset_url, self.demo_dataset_hash
-                )
+            data_path, labels_path, metadata_path = download_demo_data(
+                self.demo_dataset_url, self.demo_dataset_hash
+            )
 
             self.data_uid = create_test_dataset(
                 data_path,
@@ -271,7 +194,7 @@ class CompatibilityTestExecution:
                 self.skip_data_preparation_step,
             )
 
-        self.dataset = Dataset.get(self.data_uid, local_only=self.offline)
+        self.dataset = Dataset.get(self.data_uid)
 
     def initialize_report(self):
         """Initializes an instance of `TestReport` to hold the current test information."""
@@ -279,11 +202,9 @@ class CompatibilityTestExecution:
         report_data = {
             "demo_dataset_url": self.demo_dataset_url,
             "demo_dataset_hash": self.demo_dataset_hash,
-            "data_path": self.data_path,
-            "labels_path": self.labels_path,
             "prepared_data_hash": self.data_uid,
             "data_preparation_mlcube": self.data_prep_cube.identifier,
-            "model": self.model_cube.identifier,
+            "model": self.model_obj.identifier,
             "data_evaluator_mlcube": self.evaluator_cube.identifier,
         }
         self.report = TestReport(**report_data)
@@ -314,8 +235,9 @@ class CompatibilityTestExecution:
             dict: returns the results of the test execution.
         """
         execution_summary = ExecutionFlow.run(
+            benchmark_id=self.benchmark_uid,
             dataset=self.dataset,
-            model=self.model_cube,
+            model=self.model_obj,
             evaluator=self.evaluator_cube,
             ignore_model_errors=False,
         )

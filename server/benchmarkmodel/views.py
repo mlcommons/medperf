@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from drf_spectacular.utils import extend_schema
 
-from .permissions import IsAdmin, IsMlCubeOwner, IsBenchmarkOwner
+from .permissions import IsAdmin, IsModelOwner, IsBenchmarkOwner
 from .serializers import (
     BenchmarkModelListSerializer,
     ModelApprovalSerializer,
@@ -13,10 +13,10 @@ from .serializers import (
 
 
 class BenchmarkModelList(GenericAPIView):
-    permission_classes = [IsAdmin | IsBenchmarkOwner | IsMlCubeOwner]
+    permission_classes = [IsAdmin | IsBenchmarkOwner | IsModelOwner]
     serializer_class = BenchmarkModelListSerializer
     queryset = ""
-    filterset_fields = ('model_mlcube', 'benchmark', 'initiated_by', 'priority')
+    filterset_fields = ("model", "benchmark", "initiated_by", "priority")
 
     def post(self, request, format=None):
         """
@@ -34,14 +34,15 @@ class BenchmarkModelList(GenericAPIView):
 class ModelBenchmarksList(GenericAPIView):
     serializer_class = BenchmarkModelListSerializer
     queryset = ""
+    permission_classes = [IsAdmin | IsModelOwner]
 
     def get_object(self, pk):
         try:
-            return BenchmarkModel.objects.filter(model_mlcube__id=pk)
+            return BenchmarkModel.objects.filter(model__id=pk)
         except BenchmarkModel.DoesNotExist:
             raise Http404
 
-    @extend_schema(operation_id="mlcubes_benchmarks_retrieve_all")
+    @extend_schema(operation_id="models_benchmarks_retrieve_all")
     def get(self, request, pk, format=None):
         """
         Retrieve all benchmarks associated with a model
@@ -57,7 +58,7 @@ class ModelApproval(GenericAPIView):
     queryset = ""
 
     def get_permissions(self):
-        self.permission_classes = [IsAdmin | IsBenchmarkOwner | IsMlCubeOwner]
+        self.permission_classes = [IsAdmin | IsBenchmarkOwner | IsModelOwner]
         if self.request.method == "PUT" and "priority" in self.request.data:
             self.permission_classes = [IsAdmin | IsBenchmarkOwner]
         elif self.request.method == "DELETE":
@@ -67,7 +68,7 @@ class ModelApproval(GenericAPIView):
     def get_object(self, model_id, benchmark_id):
         try:
             return BenchmarkModel.objects.filter(
-                model_mlcube__id=model_id, benchmark__id=benchmark_id
+                model__id=model_id, benchmark__id=benchmark_id
             )
         except BenchmarkModel.DoesNotExist:
             raise Http404

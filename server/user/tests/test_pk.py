@@ -73,7 +73,6 @@ class PermissionTest(UserTest):
 
     @parameterized.expand(
         [
-            ("user1", status.HTTP_403_FORBIDDEN),
             ("user2", status.HTTP_403_FORBIDDEN),
             (None, status.HTTP_401_UNAUTHORIZED),
         ]

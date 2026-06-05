@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.utils import timezone
+from django.conf import settings
 from .models import TrainingExperiment
 
 
@@ -29,7 +30,8 @@ class WriteTrainingExperimentSerializer(serializers.ModelSerializer):
                     "User cannot mark an experiment as operational"
                     " if its containers are not operational"
                 )
-
+        if owner.email in settings.AUTO_APPROVE_TRAINING_FROM:
+            data["approval_status"] = "APPROVED"
         return data
 
 

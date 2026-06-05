@@ -1,4 +1,5 @@
 import medperf.config as config
+from medperf.entities.aggregator import Aggregator
 from medperf.entities.training_exp import TrainingExp
 from medperf.entities.cube import Cube
 from medperf.utils import remove_path
@@ -29,10 +30,13 @@ class SubmitTrainingExp:
             ui.text = "Getting FL admin Container"
             submission.get_fl_admin_mlcube()
             ui.print("> Completed retrieving FL Container")
+            ui.text = "Checking if an aggregator is provided"
+            submission.get_aggregator()
             ui.text = "Submitting TrainingExp to MedPerf"
             updated_benchmark_body = submission.submit()
         ui.print("Uploaded")
         submission.write(updated_benchmark_body)
+        return submission.training_exp.id
 
     def __init__(self, training_exp_info: dict):
         self.ui = config.ui
@@ -48,11 +52,16 @@ class SubmitTrainingExp:
         if mlcube_id:
             Cube.get(mlcube_id)
 
+    def get_aggregator(self):
+        aggregator_id = self.training_exp.aggregator
+        if aggregator_id:
+            Aggregator.get(aggregator_id)
+
     def submit(self):
         updated_body = self.training_exp.upload()
         return updated_body
 
     def write(self, updated_body):
         remove_path(self.training_exp.path)
-        training_exp = TrainingExp(**updated_body)
-        training_exp.write()
+        self.training_exp = TrainingExp(**updated_body)
+        self.training_exp.write()

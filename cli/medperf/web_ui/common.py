@@ -26,7 +26,6 @@ from medperf.account_management.account_management import (
     read_user_account,
 )
 from medperf.web_ui.schemas import WebUITask
-
 from medperf.web_ui.utils import generate_uuid
 
 templates_folder_path = Path(resources.files("medperf.web_ui")) / "templates"
@@ -34,7 +33,13 @@ templates = Jinja2Templates(directory=templates_folder_path)
 
 logger = logging.getLogger(__name__)
 
-ALLOWED_PATHS = ["/events", "/notifications", "/current_task", "/fetch-yaml"]
+ALLOWED_PATHS = [
+    "/events",
+    "/notifications",
+    "/current_task",
+    "/api/running_tasks",
+    "/api/stop_task",
+]
 
 
 def initialize_state_task(request: Request, task_name: str) -> str:

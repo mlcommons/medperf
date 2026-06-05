@@ -10,10 +10,17 @@ from .serializers import (
     CertificateDetailSerializer,
     CertificateWithOwnerInfoSerializer,
 )
-from .permissions import IsAssociatedModelOwner, IsCertificateOwner, IsAdmin
+from .permissions import (
+    IsAssociatedModelOwner,
+    IsCertificateOwner,
+    IsAdmin,
+    IsBenchmarkOwner,
+)
+from training.permissions import IsExpOwner, IsAggregatorOwner
 from drf_spectacular.utils import extend_schema
 from dataset.models import Dataset
 from benchmark.models import Benchmark
+from training.models import TrainingExperiment
 from django.db.models import OuterRef, Subquery
 from encrypted_key.serializers import EncryptedKeySerializer
 from encrypted_key.models import EncryptedKey
@@ -86,7 +93,7 @@ class CertificateDetail(GenericAPIView):
 
 
 class CertificatesFromBenchmark(GenericAPIView):
-    permission_classes = [IsAdmin | IsAssociatedModelOwner]
+    permission_classes = [IsAdmin | IsAssociatedModelOwner | IsBenchmarkOwner]
 
     def get_object(self, pk):
         try:
@@ -141,4 +148,39 @@ class CertificateEncryptedKeys(GenericAPIView):
         keys = self.filter_queryset(keys)
         keys = self.paginate_queryset(keys)
         serializer = EncryptedKeySerializer(keys, many=True)
+        return self.get_paginated_response(serializer.data)
+
+
+class CertificatesFromTrainingExp(GenericAPIView):
+    permission_classes = [IsAdmin | IsAggregatorOwner | IsExpOwner]
+
+    def get_object(self, pk):
+        try:
+            return TrainingExperiment.objects.get(pk=pk)
+        except TrainingExperiment.DoesNotExist:
+            raise Http404
+
+    def get(self, request: Request, pk: int, format=None):
+        # training experiment -> latest approved dataset associations -> datasets -> owners -> certificates
+        training_exp = self.get_object(pk)
+
+        latest_datasets_assocs_status = (
+            training_exp.experimentdataset_set.all()
+            .filter(dataset__id=OuterRef("id"))
+            .order_by("-created_at")[:1]
+            .values("approval_status")
+        )
+        datasets = (
+            Dataset.objects.all()
+            .annotate(assoc_status=Subquery(latest_datasets_assocs_status))
+            .filter(assoc_status="APPROVED")
+        )
+        owners_ids = datasets.values_list("owner", flat=True).distinct()
+        certificates = Certificate.objects.filter(
+            owner__id__in=owners_ids, is_valid=True
+        )
+
+        certificates = self.paginate_queryset(certificates)
+        serializer = CertificateWithOwnerInfoSerializer(certificates, many=True)
+
         return self.get_paginated_response(serializer.data)

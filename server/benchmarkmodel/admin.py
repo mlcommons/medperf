@@ -4,7 +4,7 @@ from .models import BenchmarkModel
 
 class BenchmarkModelAdmin(admin.ModelAdmin):
     list_display = (
-        "model_mlcube",
+        "model",
         "benchmark",
         "initiated_by",
         "metadata",

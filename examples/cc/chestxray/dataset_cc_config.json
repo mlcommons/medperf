@@ -1,0 +1,10 @@
+{
+    "project_id": "medperf-330914",
+    "project_number": "819939352708",
+    "bucket": "data-owner-bucket-medperf-cc",
+    "keyring_name": "data-owner-keyring",
+    "key_name": "data-owner-key2",
+    "key_location": "us-west1",
+    "wip": "data-owner-wip",
+    "wip_provider": "attestation-verifier"
+}

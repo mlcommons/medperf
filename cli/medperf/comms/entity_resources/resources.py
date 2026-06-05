@@ -77,30 +77,28 @@ def _get_regular_file(url: str, output_path: str, expected_hash: str = None) -> 
     return output_path, hash_value
 
 
-def get_cube_image(url: str, hash_value: str = None) -> str:
-    """Retrieves and stores the image file from the server. Stores images
-    on a shared location, and retrieves a cached image by hash if found locally.
-    Creates a symbolic link to the cube storage.
+def get_hashed_file(url: str, hash_value: str = None) -> str:
+    """Retrieves and stores the file. Stores files
+    on a shared location, and retrieves a cached file by hash if found locally.
 
     Args:
-        url (str): URL where the image file can be downloaded.
-        cube_path (str): Path to cube.
+        url (str): URL where the file can be downloaded.
         hash_value (str, Optional): File hash to store under shared storage. Defaults to None.
 
     Returns:
-        image_cube_file: Location where the image file is stored locally.
+        file_path: Location where the file is stored locally.
         hash_value (str): The hash of the downloaded file
     """
     if hash_value:
-        output_path = os.path.join(config.images_folder, hash_value)
+        output_path = os.path.join(config.hashed_files_folder, hash_value)
         return _get_regular_file(url, output_path, hash_value)
 
     # No hash provided, we need to download the file
     tmp_output_path = generate_tmp_path()
     hash_value = download_resource(url, tmp_output_path)
-    image_path = os.path.join(config.images_folder, hash_value)
-    shutil.move(tmp_output_path, image_path)
-    return image_path, hash_value
+    file_path = os.path.join(config.hashed_files_folder, hash_value)
+    shutil.move(tmp_output_path, file_path)
+    return file_path, hash_value
 
 
 def get_cube_additional(

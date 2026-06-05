@@ -19,17 +19,19 @@ nav:
   - Model Owners: getting_started/model_owner_demo.md
   - Data Owners: getting_started/data_owner_demo.md
   - Full Tutorial (WebUI): getting_started/webui_full_tutorial.md
+  - Training Tutorial (WebUI): getting_started/webui_training.md
 - ADVANCED CONCEPTS:
   - Containers:
     - MedPerf-compatible Containers: containers/containers.md
     # - Creating Model containers from GaNDLF: containers/gandlf_container.md
   - Authentication: concepts/auth.md
   #  - Client Configuration: concepts/profiles.md
-  - Container Assets: concepts/container_assets.md
+  - Container Components: concepts/container_components.md
   - Hosting Files: concepts/hosting_files.md
   - Transferring to another Machine: concepts/import_export_data.md
   - Encrypted Models: concepts/encrypted_models.md
   - Certificates: concepts/certificates.md
+  - Confidential Computing: concepts/confidential_computing.md
   #  - Benchmark Associations: concepts/associations.md
   #  - Model Priority: concepts/priorities.md
   #  - Running Specific Models: concepts/single_run.md

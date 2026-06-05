@@ -11,14 +11,14 @@ class DatasetTest(MedPerfTest):
         data_owner = "data_owner"
         bmk_owner = "bmk_owner"
         bmk_prep_mlcube_owner = "bmk_prep_mlcube_owner"
-        ref_mlcube_owner = "ref_mlcube_owner"
+        ref_model_owner = "ref_model_owner"
         eval_mlcube_owner = "eval_mlcube_owner"
         other_user = "other_user"
 
         self.create_user(data_owner)
         self.create_user(bmk_owner)
         self.create_user(bmk_prep_mlcube_owner)
-        self.create_user(ref_mlcube_owner)
+        self.create_user(ref_model_owner)
         self.create_user(eval_mlcube_owner)
         self.create_user(other_user)
 
@@ -26,7 +26,7 @@ class DatasetTest(MedPerfTest):
         self.set_credentials(bmk_owner)
         prep, _, _, benchmark = self.shortcut_create_benchmark(
             bmk_prep_mlcube_owner,
-            ref_mlcube_owner,
+            ref_model_owner,
             eval_mlcube_owner,
             bmk_owner,
         )
@@ -40,7 +40,7 @@ class DatasetTest(MedPerfTest):
         self.data_owner = data_owner
         self.bmk_owner = bmk_owner
         self.bmk_prep_mlcube_owner = bmk_prep_mlcube_owner
-        self.ref_mlcube_owner = ref_mlcube_owner
+        self.ref_model_owner = ref_model_owner
         self.eval_mlcube_owner = eval_mlcube_owner
         self.other_user = other_user
 
@@ -381,7 +381,7 @@ class PermissionTest(DatasetTest):
     @parameterized.expand(
         [
             ("bmk_prep_mlcube_owner", status.HTTP_403_FORBIDDEN),
-            ("ref_mlcube_owner", status.HTTP_403_FORBIDDEN),
+            ("ref_model_owner", status.HTTP_403_FORBIDDEN),
             ("eval_mlcube_owner", status.HTTP_403_FORBIDDEN),
             ("other_user", status.HTTP_403_FORBIDDEN),
             (None, status.HTTP_401_UNAUTHORIZED),
@@ -400,7 +400,7 @@ class PermissionTest(DatasetTest):
     @parameterized.expand(
         [
             ("bmk_prep_mlcube_owner", status.HTTP_403_FORBIDDEN),
-            ("ref_mlcube_owner", status.HTTP_403_FORBIDDEN),
+            ("ref_model_owner", status.HTTP_403_FORBIDDEN),
             ("eval_mlcube_owner", status.HTTP_403_FORBIDDEN),
             ("other_user", status.HTTP_403_FORBIDDEN),
             (None, status.HTTP_401_UNAUTHORIZED),
@@ -451,7 +451,7 @@ class PermissionTest(DatasetTest):
             ("data_owner", status.HTTP_403_FORBIDDEN),
             ("bmk_owner", status.HTTP_403_FORBIDDEN),
             ("bmk_prep_mlcube_owner", status.HTTP_403_FORBIDDEN),
-            ("ref_mlcube_owner", status.HTTP_403_FORBIDDEN),
+            ("ref_model_owner", status.HTTP_403_FORBIDDEN),
             ("eval_mlcube_owner", status.HTTP_403_FORBIDDEN),
             ("other_user", status.HTTP_403_FORBIDDEN),
             (None, status.HTTP_401_UNAUTHORIZED),

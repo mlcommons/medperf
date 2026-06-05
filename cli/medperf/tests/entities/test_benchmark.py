@@ -40,17 +40,17 @@ def setup(request, mocker, comms, fs):
                 "remote": [721],
                 "models": [
                     {
-                        "model_mlcube": 37,
+                        "model": 37,
                         "approval_status": "APPROVED",
                         "created_at": 1,
                     },
                     {
-                        "model_mlcube": 23,
+                        "model": 23,
                         "approval_status": "APPROVED",
                         "created_at": 2,
                     },
                     {
-                        "model_mlcube": 495,
+                        "model": 495,
                         "approval_status": "PENDING",
                         "created_at": 3,
                     },

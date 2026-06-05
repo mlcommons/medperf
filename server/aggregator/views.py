@@ -5,6 +5,7 @@ from rest_framework import status
 
 from .models import Aggregator
 from .serializers import AggregatorSerializer
+from training.serializers import ReadTrainingExperimentSerializer
 from drf_spectacular.utils import extend_schema
 
 
@@ -31,6 +32,28 @@ class AggregatorList(GenericAPIView):
             serializer.save(owner=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class AggregatorTrainingExperimentList(GenericAPIView):
+    serializer_class = ReadTrainingExperimentSerializer
+    queryset = ""
+
+    def get_object(self, pk):
+        try:
+            return Aggregator.objects.get(pk=pk)
+        except Aggregator.DoesNotExist:
+            raise Http404
+
+    @extend_schema(operation_id="aggregator_training_experiments_list")
+    def get(self, request, pk, format=None):
+        """
+        Retrieve training experiments that have this aggregator set.
+        """
+        aggregator = self.get_object(pk)
+        training_exps = aggregator.training_experiments.all()
+        training_exps = self.paginate_queryset(training_exps)
+        serializer = ReadTrainingExperimentSerializer(training_exps, many=True)
+        return self.get_paginated_response(serializer.data)
 
 
 class AggregatorDetail(GenericAPIView):

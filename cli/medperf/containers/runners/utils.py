@@ -116,7 +116,7 @@ def get_expected_hash(hashes_dict, image_name):
 
 
 def download_image_file(image_url: str, expected_image_hash: str):
-    image_path, computed_image_hash = resources.get_cube_image(
+    image_path, computed_image_hash = resources.get_hashed_file(
         image_url, expected_image_hash
     )  # Hash checking happens in resources
     return image_path, computed_image_hash

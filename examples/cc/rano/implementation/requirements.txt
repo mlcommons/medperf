@@ -1,0 +1,4 @@
+onnx==1.16.2
+git+https://github.com/MIC-DKFZ/nnUNet.git@v1.7.1#egg=nnunet
+numpy==1.26.4
+PyYAML

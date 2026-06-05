@@ -8,9 +8,10 @@ from medperf.exceptions import (
     InvalidCertificateAuthorityError,
 )
 import logging
+from medperf.enums import CryptoKeyType
 
 
-def get_client_cert(ca: CA, email: str, output_path: str):
+def get_client_cert(ca: CA, email: str, output_path: str, key_type: CryptoKeyType):
     """Responsible for getting a user cert"""
     common_name = email
     ca.prepare_config()
@@ -18,8 +19,7 @@ def get_client_cert(ca: CA, email: str, output_path: str):
         "ca_config": ca.config_path,
         "pki_assets": output_path,
     }
-    env = {"MEDPERF_INPUT_CN": common_name}
-
+    env = {"MEDPERF_INPUT_CN": common_name, "MEDPERF_KEY_TYPE": key_type.value}
     mlcube = Cube.get(ca.client_mlcube)
     mlcube.download_run_files()
     mlcube.run(task="get_client_cert", mounts=mounts, env=env, disable_network=False)

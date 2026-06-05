@@ -1,12 +1,13 @@
 from medperf import config
 from medperf.commands.certificate.utils import current_user_certificate_status
+from medperf.enums import CryptoKeyType
 
 
 class CheckUserCertificate:
     @staticmethod
-    def run():
+    def run(key_type: CryptoKeyType):
         """check local cert folder and server certificate object"""
-        status_dict = current_user_certificate_status()
+        status_dict = current_user_certificate_status(key_type=key_type)
 
         if status_dict["no_certs_found"]:
             config.ui.print("No certificates found.")

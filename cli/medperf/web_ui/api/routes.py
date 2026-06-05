@@ -4,11 +4,35 @@ from pathlib import Path
 from fastapi import APIRouter, HTTPException, Form, Depends
 from fastapi.responses import JSONResponse
 
+import medperf.config as config
 from medperf.exceptions import InvalidArgumentError
 from medperf.web_ui.common import check_user_api
 from medperf.utils import sanitize_path
 
 router = APIRouter()
+
+
+@router.get("/running_tasks", response_class=JSONResponse)
+def get_running_tasks(current_user: bool = Depends(check_user_api)):
+    tasks = list(config.running_containers.keys())
+    return {"tasks": tasks}
+
+
+@router.post("/stop_task", response_class=JSONResponse)
+def stop_task(
+    task_name: str = Form(...),
+    current_user: bool = Depends(check_user_api),
+):
+    wrapper = config.running_containers.get(task_name)
+    if wrapper is None:
+        raise HTTPException(
+            status_code=404, detail=f"No running task named '{task_name}'"
+        )
+    try:
+        wrapper.killpg()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    return {"status": "ok"}
 
 
 # TODO: close with token and list in documentation

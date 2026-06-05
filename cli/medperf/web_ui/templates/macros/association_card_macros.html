@@ -1,54 +1,30 @@
-{# ./cli/medperf/web_ui/templates/macros/association_card_macros.html #}
-
 {% macro association_card(assoc, entity, entity_type) %}
-<div class="card association-card {% if assoc.approval_status == 'REJECTED' %}invalid-card{% endif %}">
-    <div class="card-body">
-        <h5 class="card-title">{{ entity.name }}</h5>
-        <h5 class="card-title">
-            <a href="/{{ entity_type }}s/ui/display/{{ entity.id }}" class="text-primary">{{ entity.name }}</a>
-        </h5>
-        <p class="card-text">
-            <strong>Approval Status:</strong> 
-            {{ assoc.approval_status }}
-            {% if assoc.approval_status == "PENDING" and entity_type!="benchmark"%}
-            <br>
-            <button
-                type="button"
-                class="btn btn-danger"
-                data-{{ entity_type }}-id="{{ entity.id }}"
-                data-benchmark-id="{{ assoc.benchmark }}"
-                data-entity-type="{{ entity_type }}"
-                data-action-name="reject"
-                onclick="showConfirmationPrompt(this, '{{ entity_type }}', 'reject')"
-            >Reject</button>
-            <button
-                type="button"
-                class="btn btn-success"
-                data-{{ entity_type }}-id="{{ entity.id }}"
-                data-benchmark-id="{{ assoc.benchmark }}"
-                data-entity-type="{{ entity_type }}"
-                data-action-name="approve"
-                onclick="showConfirmationPrompt(this)"
-            >Approve</button>
-            {% endif %}
-        </p>
-        <p class="card-text">
-            <strong>Approved:</strong>
-            {% if assoc.approval_status == "PENDING" %}
-            <span class="text-muted small">N/A</span>
-            {% else %}
-            <span class="text-muted small" data-date="{{ assoc.approved_at }}"></span>
-            {% endif %}
-        </p>
-        <p class="card-text">
-            <strong>Modified:</strong> 
-            <span class="text-muted small" data-date="{{ assoc.modified_at }}"></span>
-        </p>
-        <p class="card-text">
-            <strong>Initiated By:</strong> 
-            <i class="fas fa-user"></i> 
-            {{ assoc.initiated_by }}
-        </p>
-    </div>
+<div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border-2 border-green-100 dark:border-gray-700 mb-4 {% if assoc.approval_status == 'REJECTED' %}invalid-card{% endif %}" data-testid="associated-benchmark-item">
+    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-3">
+        <a href="/{{ entity_type }}s/ui/display/{{ entity.id }}" class="medperf-accent dark:text-green-400 hover:underline">{{ entity.name }}</a>
+    </h3>
+    <p class="text-gray-700 dark:text-gray-300 mb-2">
+        <strong>Approval Status:</strong>
+        <span class="px-4 py-1 rounded-full text-xs font-bold border-2 {% if assoc.approval_status == 'APPROVED' %}bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 border-green-200 dark:border-green-700{% elif assoc.approval_status == 'REJECTED' %}bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800{% else %}bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-300 border-yellow-200 dark:border-yellow-700{% endif %}">{{ assoc.approval_status }}</span>
+        {% if assoc.approval_status == "PENDING" and entity_type != "benchmark" %}
+        <span class="ml-2 inline-flex gap-2">
+            <form action="/benchmarks/reject" method="post" class="inline benchmark-action-form" data-panel-title="Rejecting association" data-confirm-message="reject this association? This action cannot be undone.">
+                <input type="hidden" name="benchmark_id" value="{{ assoc.benchmark }}">
+                {% if entity_type == "dataset" %}<input type="hidden" name="dataset_id" value="{{ entity.id }}">{% endif %}
+                {% if entity_type == "container" or entity_type == "model" %}<input type="hidden" name="model_id" value="{{ entity.id }}">{% endif %}
+                <button type="submit" class="px-3 py-1.5 rounded-lg bg-red-600 text-white text-sm font-semibold hover:bg-red-700">Reject</button>
+            </form>
+            <form action="/benchmarks/approve" method="post" class="inline benchmark-action-form" data-panel-title="Approving association" data-confirm-message="approve this association? This action cannot be undone.">
+                <input type="hidden" name="benchmark_id" value="{{ assoc.benchmark }}">
+                {% if entity_type == "dataset" %}<input type="hidden" name="dataset_id" value="{{ entity.id }}">{% endif %}
+                {% if entity_type == "container" or entity_type == "model" %}<input type="hidden" name="model_id" value="{{ entity.id }}">{% endif %}
+                <button type="submit" class="px-3 py-1.5 rounded-lg medperf-bg dark:bg-green-600 text-white text-sm font-semibold hover:opacity-90">Approve</button>
+            </form>
+        </span>
+        {% endif %}
+    </p>
+    <p class="text-sm text-gray-600 dark:text-gray-400"><strong>Approved:</strong> {% if assoc.approval_status == "PENDING" %}<span class="text-gray-500">N/A</span>{% else %}<span data-date="{{ assoc.approved_at }}"></span>{% endif %}</p>
+    <p class="text-sm text-gray-600 dark:text-gray-400"><strong>Modified:</strong> <span data-date="{{ assoc.modified_at }}"></span></p>
+    <p class="text-sm text-gray-600 dark:text-gray-400"><strong>Initiated By:</strong> <i class="fas fa-user medperf-accent dark:text-green-400 mr-1"></i>{{ assoc.initiated_by }}</p>
 </div>
 {% endmacro %}

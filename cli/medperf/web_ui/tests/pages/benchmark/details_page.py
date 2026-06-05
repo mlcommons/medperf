@@ -3,17 +3,24 @@ from ..base_page import BasePage
 
 
 class BenchmarkDetailsPage(BasePage):
-    DATASETS_TITLE = (By.ID, "datasets-associations-title")
+    DATASETS_ASSOCIATIONS_BTN = (
+        By.CSS_SELECTOR,
+        "button[data-testid='datasets-associations-btn']",
+    )
     DATASETS_ASSOCIATIONS = (By.ID, "datasets-associations")
 
-    MODELS_TITLE = (By.ID, "models-associations-title")
+    MODELS_ASSOCIATIONS_BTN = (
+        By.CSS_SELECTOR,
+        "button[data-testid='models-associations-btn']",
+    )
     MODELS_ASSOCIATIONS = (By.ID, "models-associations")
 
-    RESULTS_TITLE = (By.ID, "benchmark-results-title")
+    RESULTS_BTN = (By.CSS_SELECTOR, "button[data-testid='benchmark-results-btn']")
     RESULTS = (By.ID, "benchmark-results")
 
-    RESULT_MODAL = (By.ID, "result-modal")
-    CLOSE_BTN = (By.CSS_SELECTOR, 'button[data-bs-dismiss="modal"][aria-label="Close"]')
+    RESULT_MODAL = (By.ID, "page-modal")
+    # New design: result modal uses page-modal, footer has button.close-modal-btn
+    CLOSE_BTN = (By.CSS_SELECTOR, "#page-modal-footer button.close-modal-btn")
 
     RESULT_BTN = (By.CLASS_NAME, "view-result-btn")
 
@@ -25,18 +32,18 @@ class BenchmarkDetailsPage(BasePage):
         )
         self.APPROVE_BTN = (
             By.XPATH,
-            f'//div[contains(@class,"association-card")] [.//h5[contains(text(), "{entity_name}")]]'
-            + ' //button[@data-action-name="approve"]',
+            f'//div[@data-testid="associated-benchmark-item"][.//a[contains(normalize-space(.), "{entity_name}")]]'
+            '//form[contains(@action,"/benchmarks/approve")]//button[normalize-space(text())="Approve"]',
         )
 
     def approve_dataset(self):
-        self.click(self.DATASETS_TITLE)
+        self.click(self.DATASETS_ASSOCIATIONS_BTN)
         associations = self.find(self.DATASETS_ASSOCIATIONS)
         self.wait_for_visibility_element(associations)
         self.click(self.APPROVE_BTN)
 
     def approve_container(self):
-        self.click(self.MODELS_TITLE)
+        self.click(self.MODELS_ASSOCIATIONS_BTN)
         associations = self.find(self.MODELS_ASSOCIATIONS)
         self.wait_for_visibility_element(associations)
         self.click(self.APPROVE_BTN)
@@ -50,8 +57,9 @@ class BenchmarkDetailsPage(BasePage):
         self.wait_for_invisibility_element(view_modal)
 
     def view_results(self):
-        self.click(self.RESULTS_TITLE)
+        self.click(self.RESULTS_BTN)
         associations = self.find(self.RESULTS)
         self.wait_for_visibility_element(associations)
         for result_btn in associations.find_elements(*self.RESULT_BTN):
             self.__view_result(result_btn)
+            self.click(self.RESULTS_BTN)

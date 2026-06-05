@@ -10,6 +10,7 @@ from medperf.storage import (
     override_storage_config_paths,
 )
 from medperf.ui.factory import UIFactory
+from medperf.ui.web_ui import WebUI
 
 
 def initialize(for_webui=False, for_data_monitor=False):
@@ -36,7 +37,14 @@ def initialize(for_webui=False, for_data_monitor=False):
     setup_logging(log_file, config.loglevel)
 
     # Setup UI, COMMS
-    config.ui = UIFactory.create_ui(ui_class)
+    # Preserve existing WebUI instance when only switching profile (for_webui=True).
+    # Replacing it would break in-flight tasks: worker threads use config.ui and
+    # thread-local task_id; a new WebUI would have empty thread-locals and a new
+    # EventsManager, so aggregator/training logs would get task_id=None and be dropped.
+    if for_webui and isinstance(getattr(config, "ui", None), WebUI):
+        pass  # keep existing config.ui (same thread-locals and events_manager)
+    else:
+        config.ui = UIFactory.create_ui(ui_class)
     config.comms = CommsFactory.create_comms(config.comms, config.server)
 
     # Setup auth class

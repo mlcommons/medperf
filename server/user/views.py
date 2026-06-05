@@ -5,7 +5,7 @@ from rest_framework import status
 from django.contrib.auth import get_user_model
 from drf_spectacular.utils import extend_schema
 
-from .serializers import UserSerializer
+from .serializers import UserSerializer, UserMetadataSerializer
 from .permissions import IsAdmin, IsOwnUser, IsOwnerOfUsedMLCube
 
 User = get_user_model()
@@ -34,7 +34,9 @@ class UserDetail(GenericAPIView):
     def get_permissions(self):
         if self.request.method == "GET":
             self.permission_classes = [IsAdmin | IsOwnUser | IsOwnerOfUsedMLCube]
-        elif self.request.method == "DELETE" or self.request.method == "PUT":
+        elif self.request.method == "PUT":
+            self.permission_classes = [IsAdmin | IsOwnUser]
+        elif self.request.method == "DELETE":
             self.permission_classes = [IsAdmin]
         return super(self.__class__, self).get_permissions()
 
@@ -70,3 +72,22 @@ class UserDetail(GenericAPIView):
         user = self.get_object(pk)
         user.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class UserMetadata(GenericAPIView):
+    serializer_class = UserMetadataSerializer
+    queryset = ""
+
+    def get_object(self, pk):
+        try:
+            return User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            raise Http404
+
+    def get(self, request, pk, format=None):
+        """
+        Retrieve a user metadata field.
+        """
+        user = self.get_object(pk)
+        serializer = UserMetadataSerializer(user)
+        return Response(serializer.data)

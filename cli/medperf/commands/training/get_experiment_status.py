@@ -12,6 +12,7 @@ from medperf.utils import (
 import yaml
 import os
 from medperf.certificates import verify_certificate_authority
+from medperf.enums import CryptoKeyType
 
 
 class GetExperimentStatus:
@@ -23,10 +24,11 @@ class GetExperimentStatus:
             training_exp_id (int): Training experiment UID.
         """
         execution = cls(training_exp_id)
-        execution.prepare()
-        execution.prepare_plan()
-        execution.prepare_pki_assets()
         with config.ui.interactive():
+            execution.prepare()
+            execution.validate()
+            execution.prepare_plan()
+            execution.prepare_pki_assets()
             execution.prepare_admin_cube()
             execution.get_experiment_status()
         if not silent:
@@ -43,6 +45,12 @@ class GetExperimentStatus:
         self.user_email: str = get_medperf_user_data()["email"]
         self.status_output = generate_tmp_path()
 
+    def validate(self):
+        if self.training_exp.fl_admin_mlcube is None:
+            raise ValueError(
+                "The training experiment does not have an admin container."
+            )
+
     def prepare_plan(self):
         self.training_exp.prepare_plan()
 
@@ -51,7 +59,9 @@ class GetExperimentStatus:
         verify_certificate_authority(
             ca, expected_fingerprint=config.certificate_authority_fingerprint
         )
-        self.admin_pki_assets = get_pki_assets_path(self.user_email, ca.id)
+        self.admin_pki_assets = get_pki_assets_path(
+            self.user_email, ca.id, CryptoKeyType.EC
+        )
         self.ca = ca
 
     def prepare_admin_cube(self):

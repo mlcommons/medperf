@@ -10,7 +10,7 @@ class BenchmarkTest(MedPerfTest):
         # setup users
         bmk_owner = "bmk_owner"
         prep_mlcube_owner = "prep_mlcube_owner"
-        ref_mlcube_owner = "ref_mlcube_owner"
+        ref_model_owner = "ref_model_owner"
         eval_mlcube_owner = "eval_mlcube_owner"
         data1_owner = "data1_owner"
         data2_owner = "data2_owner"
@@ -18,7 +18,7 @@ class BenchmarkTest(MedPerfTest):
 
         self.create_user(bmk_owner)
         self.create_user(prep_mlcube_owner)
-        self.create_user(ref_mlcube_owner)
+        self.create_user(ref_model_owner)
         self.create_user(eval_mlcube_owner)
         self.create_user(data1_owner)
         self.create_user(data2_owner)
@@ -26,7 +26,7 @@ class BenchmarkTest(MedPerfTest):
 
         # create benchmark and datasets
         prep, _, _, benchmark = self.shortcut_create_benchmark(
-            prep_mlcube_owner, ref_mlcube_owner, eval_mlcube_owner, bmk_owner
+            prep_mlcube_owner, ref_model_owner, eval_mlcube_owner, bmk_owner
         )
         data1 = self.mock_dataset(
             prep["id"], generated_uid="dataset1", state="OPERATION"
@@ -43,7 +43,7 @@ class BenchmarkTest(MedPerfTest):
         # setup globals
         self.bmk_owner = bmk_owner
         self.prep_mlcube_owner = prep_mlcube_owner
-        self.ref_mlcube_owner = ref_mlcube_owner
+        self.ref_model_owner = ref_model_owner
         self.eval_mlcube_owner = eval_mlcube_owner
         self.data1_owner = data1_owner
         self.data2_owner = data2_owner
@@ -126,7 +126,7 @@ class PermissionTest(BenchmarkTest):
     @parameterized.expand(
         [
             ("prep_mlcube_owner", status.HTTP_403_FORBIDDEN),
-            ("ref_mlcube_owner", status.HTTP_403_FORBIDDEN),
+            ("ref_model_owner", status.HTTP_403_FORBIDDEN),
             ("eval_mlcube_owner", status.HTTP_403_FORBIDDEN),
             ("data1_owner", status.HTTP_403_FORBIDDEN),
             ("data2_owner", status.HTTP_403_FORBIDDEN),

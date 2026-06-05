@@ -1,0 +1,177 @@
+{% extends "detail_base.html" %}
+
+{% block title %}Aggregator Details{% endblock %}
+
+{% block detail_panel %}
+{% set aggregator_running = (task_running and request.app.state.task.name == "start_aggregator") %}
+{% if aggregator_running %}
+{% set form_data = request.app.state.task.formData %}
+{% endif %}
+
+<div class="mb-8">
+    <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center mb-3">
+            <h1 class="text-5xl font-bold medperf-accent dark:text-green-400">{{ entity.name }}</h1>
+        </div>
+    </div>
+</div>
+
+<div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg border-2 border-green-100 dark:border-gray-700 mb-6">
+    <div class="flex flex-wrap justify-between items-center gap-4 mb-6">
+        <h2 class="text-3xl font-bold medperf-accent dark:text-green-400 flex items-center">
+            <i class="fas fa-info-circle mr-3"></i>Details
+        </h2>
+    </div>
+    <div class="info-highlight rounded-xl p-6 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-1 font-semibold">Aggregator ID</p>
+                <p class="text-xl font-bold text-gray-900 dark:text-white">{{ entity.id }}</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-1 font-semibold">Owner</p>
+                <p class="text-xl font-bold text-gray-900 dark:text-white">
+                    <i class="fas fa-user medperf-accent dark:text-green-400 mr-2"></i>{% if owner %} You {% else %}{{ entity.owner }}{% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="mb-6">
+        <p class="text-sm text-gray-600 dark:text-gray-400 mb-2 font-semibold">Address</p>
+        <p class="text-xl font-mono text-gray-900 dark:text-white">{{ entity.address }}</p>
+    </div>
+    <div class="mb-6">
+        <p class="text-sm text-gray-600 dark:text-gray-400 mb-2 font-semibold">Port</p>
+        <p class="text-xl font-mono text-gray-900 dark:text-white">{{ entity.port }}</p>
+    </div>
+    <div class="mb-6">
+        <p class="text-sm text-gray-600 dark:text-gray-400 mb-2 font-semibold">Admin Port</p>
+        <p class="text-xl font-mono text-gray-900 dark:text-white">{{ entity.admin_port }}</p>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t-2 border-gray-100 dark:border-gray-700">
+        <div>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-2 font-semibold">Created</p>
+            <span class="text-gray-800 dark:text-white font-medium" data-date="{{ entity.created_at }}"></span>
+        </div>
+        <div>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-2 font-semibold">Modified</p>
+            <span class="text-gray-800 dark:text-white font-medium" data-date="{{ entity.modified_at }}"></span>
+        </div>
+    </div>
+</div>
+
+<div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border-2 border-green-100 dark:border-gray-700 mb-6 overflow-hidden">
+    <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50">
+        <h3 class="mb-0 text-gray-900 dark:text-white font-bold">Training experiments</h3>
+    </div>
+    <div class="p-6">
+        {% if experiments_using_aggregator %}
+        <ul class="space-y-3">
+            {% for exp in experiments_using_aggregator %}
+            <li>
+                <a href="/training/ui/display/{{ exp.id }}" class="medperf-accent dark:text-green-400 hover:underline font-semibold">{{ exp.name }}</a>
+                <span class="text-gray-500 dark:text-gray-400 text-sm ml-2">ID: {{ exp.id }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-gray-600 dark:text-gray-400">No training experiments use this aggregator yet.</p>
+        {% endif %}
+    </div>
+</div>
+
+{% if owner %}
+
+<div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border-2 border-green-100 dark:border-gray-700 mb-6 overflow-hidden">
+    <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50">
+        <h3 class="mb-0 text-gray-900 dark:text-white font-bold">Actions</h3>
+    </div>
+    <div class="p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/30 p-5 flex flex-col min-h-[220px]">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="flex items-center justify-center w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400"><i class="fas fa-certificate"></i></span>
+                    <span class="font-semibold text-gray-900 dark:text-white">Server certificate</span>
+                </div>
+                {% if certificate_exists %}
+                <p class="text-sm text-green-700 dark:text-green-300 mb-2 font-semibold">
+                    <i class="fas fa-check-circle mr-1"></i>Certificate exists for this aggregator.
+                </p>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">A server certificate is already present.</p>
+                {% else %}
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Obtain a server certificate for this aggregator address.</p>
+                <form id="get-server-cert-form" class="space-y-3 mt-auto" action="/aggregators/get_server_certificate" method="post" data-panel-title="Getting server certificate" data-confirm-message="get the server certificate for this aggregator?">
+                    <input type="hidden" name="aggregator_id" value="{{ entity.id }}">
+                    <button type="submit" class="w-full px-4 py-2.5 rounded-xl medperf-bg dark:bg-green-600 text-white font-semibold hover:opacity-90 cursor-pointer" {% if task_running %} disabled {% endif %}>Get certificate</button>
+                </form>
+                {% endif %}
+            </div>
+
+            <div id="aggregator-run-card" class="rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/30 p-5 flex flex-col min-h-[220px] {% if not experiments_using_aggregator or not certificate_exists %}opacity-60 pointer-events-none{% endif %}">
+                <div id="aggregator-running-banner" class="hidden mb-3 px-3 py-2 rounded-lg bg-amber-100 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700 flex items-center justify-between gap-3">
+                    <span class="text-amber-800 dark:text-amber-200 font-semibold"><i class="fas fa-sync-alt fa-spin mr-2"></i>Aggregator is running</span>
+                    <button type="button" id="stop-aggregator-btn" class="px-3 py-1.5 rounded-lg bg-red-600 dark:bg-red-500 text-white text-sm font-semibold hover:opacity-90 cursor-pointer">Stop</button>
+                </div>
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"><i class="fas fa-play-circle"></i></span>
+                    <span class="font-semibold text-gray-900 dark:text-white">Run aggregator</span>
+                </div>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Start the aggregator for a training experiment that uses this aggregator.</p>
+                {% if not certificate_exists %}
+                <p class="text-sm text-amber-600 dark:text-amber-400 mb-4">Get a server certificate first before running this aggregator.</p>
+                {% endif %}
+                {% if not experiments_using_aggregator %}
+                <p class="text-sm text-amber-600 dark:text-amber-400 mb-4">No training experiments use this aggregator. Set this aggregator on a training experiment first.</p>
+                {% endif %}
+                <form id="start-aggregator-form" action="/aggregators/run" method="post" class="space-y-3 mt-auto" data-panel-title="Running aggregator" data-confirm-message="run the aggregator for the selected training experiment?">
+                    <input type="hidden" name="aggregator_id" value="{{ entity.id }}">
+                    <select name="training_exp_id" class="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 cursor-pointer" required {% if not experiments_using_aggregator or not certificate_exists or task_running %}disabled{% endif %}>
+                        <option value="" disabled selected>Select experiment</option>
+                        {% for exp in experiments_using_aggregator %}
+                        <option value="{{ exp.id }}" {% if aggregator_running and form_data.get("training_exp_id") == exp.id | string %}selected{% endif %}>{{ exp.name }} (ID: {{ exp.id }})</option>
+                        {% endfor %}
+                    </select>
+                    <div>
+                        <label for="publish-on-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Publish on</label>
+                        <input type="text" id="publish-on-input" name="publish_on" autocomplete="off" placeholder="127.0.0.1"
+                            class="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white font-mono text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                            value="{% if aggregator_running %}{{ form_data.get('publish_on', '127.0.0.1') }}{% else %}127.0.0.1{% endif %}"
+                            {% if not experiments_using_aggregator or not certificate_exists or task_running %}disabled{% endif %}>
+                        <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">Host or IP the aggregator binds to.</p>
+                    </div>
+                    <button id="run-aggregator-btn" type="submit" class="w-full px-4 py-2.5 rounded-xl medperf-bg dark:bg-green-600 text-white font-semibold hover:opacity-90 cursor-pointer" {% if not experiments_using_aggregator or not certificate_exists or task_running %}disabled{% endif %}>Run aggregator</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% include "partials/panel_container.html" %}
+{% include "partials/text_content_container.html" %}
+{% include "partials/yaml_container.html" %}
+{% include "partials/prompt_container.html" %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
+<script src="{{ url_for('static', path='js/aggregators/aggregator_detail.js') }}"></script>
+{% if request.app.state.task_running %}
+{% if request.app.state.task.formData.get("aggregator_id", "")|string == entity.id|string %}
+{% if request.app.state.task.name == "aggregator_get_server_cert" %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        resumeRunningTask("#get-server-cert-form");
+    });
+</script>
+{% elif request.app.state.task.name == "start_aggregator" %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        startPollingRunningTasks();
+        resumeRunningTask("#start-aggregator-form");
+    });
+</script>
+{% endif %}
+{% endif %}
+{% endif %}
+{% endblock %}

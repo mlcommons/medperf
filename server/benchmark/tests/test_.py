@@ -10,12 +10,12 @@ class BenchmarkTest(MedPerfTest):
         # setup users
         bmk_owner = "bmk_owner"
         prep_mlcube_owner = "prep_mlcube_owner"
-        ref_mlcube_owner = "ref_mlcube_owner"
+        ref_model_owner = "ref_model_owner"
         eval_mlcube_owner = "eval_mlcube_owner"
 
         self.create_user(bmk_owner)
         self.create_user(prep_mlcube_owner)
-        self.create_user(ref_mlcube_owner)
+        self.create_user(ref_model_owner)
         self.create_user(eval_mlcube_owner)
 
         # create mlcubes
@@ -25,13 +25,13 @@ class BenchmarkTest(MedPerfTest):
         )
         prep = self.create_mlcube(prep).data
 
-        self.set_credentials(ref_mlcube_owner)
-        ref_model = self.mock_mlcube(
+        self.set_credentials(ref_model_owner)
+        ref_model = self.mock_model(
             name="ref_model",
             container_config={"ref_model": "ref_model"},
             state="OPERATION",
         )
-        ref_model = self.create_mlcube(ref_model).data
+        ref_model = self.create_model(ref_model).data
 
         self.set_credentials(eval_mlcube_owner)
         eval = self.mock_mlcube(
@@ -42,7 +42,7 @@ class BenchmarkTest(MedPerfTest):
         # setup globals
         self.bmk_owner = bmk_owner
         self.prep_mlcube_owner = prep_mlcube_owner
-        self.ref_mlcube_owner = ref_mlcube_owner
+        self.ref_model_owner = ref_model_owner
         self.eval_mlcube_owner = eval_mlcube_owner
 
         self.prep = prep
@@ -56,7 +56,7 @@ class BenchmarkTest(MedPerfTest):
 @parameterized_class(
     [
         {"actor": "prep_mlcube_owner"},
-        {"actor": "ref_mlcube_owner"},
+        {"actor": "ref_model_owner"},
         {"actor": "eval_mlcube_owner"},
         {"actor": "bmk_owner"},
     ]
@@ -214,13 +214,13 @@ class BenchmarkPostTest(BenchmarkTest):
     def test_creating_operational_benchmark_with_refmodel_in_development(self):
         # Arrange
 
-        self.set_credentials(self.ref_mlcube_owner)
-        devrefmodel = self.mock_mlcube(
+        self.set_credentials(self.ref_model_owner)
+        devrefmodel = self.mock_model(
             name="devrefmodel",
             container_config={"devrefmodel": "devrefmodel"},
             state="DEVELOPMENT",
         )
-        devrefmodel = self.create_mlcube(devrefmodel).data
+        devrefmodel = self.create_model(devrefmodel).data
         self.set_credentials(self.actor)
 
         benchmark = self.mock_benchmark(
@@ -256,7 +256,7 @@ class BenchmarkPostTest(BenchmarkTest):
 @parameterized_class(
     [
         {"actor": "prep_mlcube_owner"},
-        {"actor": "ref_mlcube_owner"},
+        {"actor": "ref_model_owner"},
         {"actor": "eval_mlcube_owner"},
         {"actor": "bmk_owner"},
         {"actor": "other_user"},

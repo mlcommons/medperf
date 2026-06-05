@@ -6,4 +6,5 @@ app_name = "User"
 urlpatterns = [
     path("", views.UserList.as_view()),
     path("<int:pk>/", views.UserDetail.as_view()),
+    path("<int:pk>/metadata/", views.UserMetadata.as_view()),
 ]

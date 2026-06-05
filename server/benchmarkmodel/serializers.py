@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.utils import timezone
 from benchmark.models import Benchmark
-from mlcube.models import MlCube
+from model.models import Model
 
 from .models import BenchmarkModel
 from utils.associations import (
@@ -19,7 +19,7 @@ class BenchmarkModelListSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         bid = self.context["request"].data.get("benchmark")
-        mlcube = self.context["request"].data.get("model_mlcube")
+        mlcube = self.context["request"].data.get("model")
         approval_status = self.context["request"].data.get("approval_status", "PENDING")
 
         benchmark = Benchmark.objects.get(pk=bid)
@@ -31,17 +31,17 @@ class BenchmarkModelListSerializer(serializers.ModelSerializer):
                 "Association requests can be made only on an approved benchmark"
             )
 
-        # mlcube state
-        mlcube_obj = MlCube.objects.get(pk=mlcube)
-        mlcube_state = mlcube_obj.state
-        if mlcube_state != "OPERATION":
+        # model state
+        model_obj = Model.objects.get(pk=mlcube)
+        model_state = model_obj.state
+        if model_state != "OPERATION":
             raise serializers.ValidationError(
                 "Association requests can be made only on an operational model"
             )
 
         # approval status
         last_benchmarkmodel = (
-            BenchmarkModel.objects.filter(benchmark__id=bid, model_mlcube__id=mlcube)
+            BenchmarkModel.objects.filter(benchmark__id=bid, model__id=mlcube)
             .order_by("-created_at")
             .first()
         )
@@ -56,7 +56,7 @@ class BenchmarkModelListSerializer(serializers.ModelSerializer):
         else:
             if should_auto_approve_model(
                 validated_data["benchmark"],
-                validated_data["model_mlcube"],
+                validated_data["model"],
                 self.context["request"].user,
             ):
                 validated_data["approval_status"] = "APPROVED"
@@ -106,4 +106,4 @@ class ModelApprovalSerializer(serializers.ModelSerializer):
 class BenchmarkListofModelsSerializer(serializers.ModelSerializer):
     class Meta:
         model = BenchmarkModel
-        fields = ["model_mlcube", "approval_status", "created_at"]
+        fields = ["model", "approval_status", "created_at"]

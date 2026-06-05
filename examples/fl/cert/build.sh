@@ -1,1 +1,1 @@
-docker build -t mlcommons/medperf-step-cli:0.0.2 -f Dockerfile .
+docker build -t mlcommons/medperf-step-cli:0.0.3 -f Dockerfile .

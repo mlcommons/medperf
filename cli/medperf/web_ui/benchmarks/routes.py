@@ -6,12 +6,12 @@ from fastapi import Request
 from typing import Optional
 
 from medperf.commands.benchmark.submit import SubmitBenchmark
-from medperf.commands.compatibility_test.run import CompatibilityTestExecution
 from medperf.commands.execution.utils import filter_latest_executions
 import medperf.config as config
 from medperf.entities.benchmark import Benchmark
 from medperf.entities.dataset import Dataset
 from medperf.entities.cube import Cube
+from medperf.entities.model import Model
 from medperf.account_management import get_medperf_user_data
 from medperf.entities.execution import Execution
 from medperf.web_ui.common import (
@@ -22,13 +22,19 @@ from medperf.web_ui.common import (
     sort_associations_display,
     check_user_ui,
 )
-from medperf.web_ui.utils import get_container_type
+from medperf.web_ui.utils import (
+    get_container_type,
+    build_listing_filters,
+    build_pagination_context,
+)
 
 from medperf.commands.association.approval import Approval
 from medperf.enums import Status
 from medperf.commands.benchmark.update_associations_poilcy import (
     UpdateAssociationsPolicy,
 )
+
+from medperf.web_ui.utils import mount_dashboard
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -38,25 +44,42 @@ logger = logging.getLogger(__name__)
 def benchmarks_ui(
     request: Request,
     mine_only: bool = False,
+    page: int = 1,
+    page_size: int = 9,
+    ordering: str = "created_at_desc",
     current_user: bool = Depends(check_user_ui),
 ):
+
     filters = {}
     my_user_id = get_medperf_user_data()["id"]
+
     if mine_only:
         filters["owner"] = my_user_id
 
-    benchmarks = Benchmark.all(
-        filters=filters,
+    total_count = Benchmark.get_count(filters=filters)
+
+    filters.update(
+        build_listing_filters(page=page, page_size=page_size, ordering=ordering)
     )
 
-    benchmarks = sorted(benchmarks, key=lambda x: x.created_at, reverse=True)
-    # sort by (mine recent) (mine oldish), (other recent), (other oldish)
-    mine_benchmarks = [d for d in benchmarks if d.owner == my_user_id]
-    other_benchmarks = [d for d in benchmarks if d.owner != my_user_id]
-    benchmarks = mine_benchmarks + other_benchmarks
+    benchmarks = Benchmark.all(filters=filters)
+
+    pagination_context = build_pagination_context(
+        page=page,
+        page_size=page_size,
+        ordering=ordering,
+        total_count=total_count,
+        page_items_count=len(benchmarks),
+    )
+
     return templates.TemplateResponse(
         "benchmark/benchmarks.html",
-        {"request": request, "benchmarks": benchmarks, "mine_only": mine_only},
+        {
+            "request": request,
+            "benchmarks": benchmarks,
+            "mine_only": mine_only,
+            **pagination_context,
+        },
     )
 
 
@@ -68,7 +91,7 @@ def benchmark_detail_ui(
 ):
     benchmark = Benchmark.get(benchmark_id)
     data_preparation_container = Cube.get(cube_uid=benchmark.data_preparation_mlcube)
-    reference_model_container = Cube.get(cube_uid=benchmark.reference_model_mlcube)
+    reference_model = Model.get(benchmark.reference_model)
     metrics_container = Cube.get(cube_uid=benchmark.data_evaluator_mlcube)
     datasets_associations = []
     models_associations = []
@@ -100,9 +123,9 @@ def benchmark_detail_ui(
             if assoc["dataset"]
         }
         models = {
-            assoc["model_mlcube"]: Cube.get(assoc["model_mlcube"])
+            assoc["model"]: Model.get(assoc["model"])
             for assoc in models_associations
-            if assoc["model_mlcube"]
+            if assoc["model"]
         }
 
         # Results
@@ -123,7 +146,7 @@ def benchmark_detail_ui(
             "entity": benchmark,
             "entity_name": benchmark.name,
             "data_preparation_container": data_preparation_container,
-            "reference_model_container": reference_model_container,
+            "reference_model": reference_model,
             "metrics_container": metrics_container,
             "datasets_associations": datasets_associations,  #
             "models_associations": models_associations,  #
@@ -146,12 +169,9 @@ def create_benchmark_ui(
     my_user_id = get_medperf_user_data()["id"]
     filters = {"owner": my_user_id}
 
-    my_containers = Cube.all(
-        filters=filters,
-    )
+    my_containers = Cube.all(filters=filters)
 
     containers = []
-
     for container in my_containers:
         container_obj = {
             "id": container.id,
@@ -160,79 +180,19 @@ def create_benchmark_ui(
         }
         containers.append(container_obj)
     data_prep_containers = [i for i in containers if i["type"] == "data-prep-container"]
-    reference_containers = [i for i in containers if i["type"] == "reference-container"]
     metrics_containers = [i for i in containers if i["type"] == "metrics-container"]
+
+    my_models = Model.all(filters=filters)
+
     return templates.TemplateResponse(
         "benchmark/register_benchmark.html",
         {
             "request": request,
             "data_prep_containers": data_prep_containers,
-            "reference_containers": reference_containers,
+            "reference_models": my_models,
             "metrics_containers": metrics_containers,
         },
     )
-
-
-@router.get("/register/workflow_test", response_class=HTMLResponse)
-def workflow_test_ui(
-    request: Request,
-    current_user: bool = Depends(check_user_ui),
-):
-
-    return templates.TemplateResponse(
-        "benchmark/workflow_test.html", {"request": request}
-    )
-
-
-@router.post("/run_workflow_test", response_class=JSONResponse)
-def test_benchmark(
-    request: Request,
-    data_preparation: str = Form(...),
-    data_preparation_parameters: str = Form(None),
-    data_preparation_additional: str = Form(None),
-    model_path: str = Form(...),
-    model_parameters_path: str = Form(None),
-    model_additional_path: str = Form(None),
-    evaluator_path: str = Form(...),
-    evaluator_parameters_path: str = Form(None),
-    evaluator_additional_path: str = Form(None),
-    data_path: str = Form(...),
-    labels_path: str = Form(...),
-    current_user: bool = Depends(check_user_api),
-):
-    initialize_state_task(request, task_name="benchmark_workflow_test")
-    return_response = {"status": "", "error": "", "results": None}
-    try:
-        _, results = CompatibilityTestExecution.run(
-            data_prep=data_preparation,
-            data_prep_parameters=data_preparation_parameters,
-            data_prep_additional=data_preparation_additional,
-            model=model_path,
-            model_parameters=model_parameters_path,
-            model_additional=model_additional_path,
-            evaluator=evaluator_path,
-            evaluator_parameters=evaluator_parameters_path,
-            evaluator_additional=evaluator_additional_path,
-            data_path=data_path,
-            labels_path=labels_path,
-        )
-        return_response["status"] = "success"
-        return_response["results"] = results
-        notification_message = "Benchmark workflow test succeeded"
-    except Exception as exp:
-        return_response["status"] = "failed"
-        return_response["error"] = str(exp)
-        notification_message = "Benchmark workflow test failed"
-        logger.exception(exp)
-
-    config.ui.end_task(return_response)
-    reset_state_task(request)
-    config.ui.add_notification(
-        message=notification_message,
-        return_response=return_response,
-        url="/benchmarks/register/ui",
-    )
-    return return_response
 
 
 @router.post("/register", response_class=JSONResponse)
@@ -240,11 +200,12 @@ def register_benchmark(
     request: Request,
     name: str = Form(...),
     description: str = Form(...),
-    reference_dataset_tarball_url: str = Form(...),
+    reference_dataset_tarball_url: str = Form(""),
     data_preparation_container: str = Form(...),
-    reference_model_container: str = Form(...),
+    reference_model: str = Form(...),
     evaluator_container: str = Form(...),
     skip_data_preparation_step: bool = Form(...),
+    skip_compatibility_tests: bool = Form(...),
     current_user: bool = Depends(check_user_api),
 ):
 
@@ -255,19 +216,21 @@ def register_benchmark(
         "demo_dataset_tarball_url": reference_dataset_tarball_url,
         "demo_dataset_tarball_hash": "",
         "data_preparation_mlcube": data_preparation_container,
-        "reference_model_mlcube": reference_model_container,
+        "reference_model": reference_model,
         "data_evaluator_mlcube": evaluator_container,
         "state": "OPERATION",
     }
-    initialize_state_task(request, task_name="benchmark_registration")
-    return_response = {"status": "", "error": "", "benchmark_id": None}
+    initialize_state_task(request, task_name="register_benchmark")
+    return_response = {"status": "", "error": "", "entity_id": None}
     benchmark_id = None
     try:
         benchmark_id = SubmitBenchmark.run(
-            benchmark_info, skip_data_preparation_step=skip_data_preparation_step
+            benchmark_info,
+            skip_data_preparation_step=skip_data_preparation_step,
+            skip_compatibility_tests=skip_compatibility_tests,
         )
         return_response["status"] = "success"
-        return_response["benchmark_id"] = benchmark_id
+        return_response["entity_id"] = benchmark_id
         notification_message = "Benchmark successfully registered!"
     except Exception as exp:
         return_response["status"] = "failed"
@@ -289,7 +252,7 @@ def register_benchmark(
 def approve(
     request: Request,
     benchmark_id: int = Form(...),
-    container_id: Optional[int] = Form(None),
+    model_id: Optional[int] = Form(None),
     dataset_id: Optional[int] = Form(None),
     current_user: bool = Depends(check_user_api),
 ):
@@ -300,7 +263,7 @@ def approve(
             benchmark_uid=benchmark_id,
             approval_status=Status.APPROVED,
             dataset_uid=dataset_id,
-            mlcube_uid=container_id,
+            model_uid=model_id,
         )
         return_response["status"] = "success"
         notification_message = "Association successfully approved"
@@ -324,7 +287,7 @@ def approve(
 def reject(
     request: Request,
     benchmark_id: int = Form(...),
-    container_id: Optional[int] = Form(None),
+    model_id: Optional[int] = Form(None),
     dataset_id: Optional[int] = Form(None),
     current_user: bool = Depends(check_user_api),
 ):
@@ -335,7 +298,7 @@ def reject(
             benchmark_uid=benchmark_id,
             approval_status=Status.REJECTED,
             dataset_uid=dataset_id,
-            mlcube_uid=container_id,
+            model_uid=model_id,
         )
         return_response["status"] = "success"
         notification_message = "Association successfully rejected"
@@ -391,3 +354,51 @@ def update_associations_policy(
         url=f"/benchmarks/ui/display/{benchmark_id}",
     )
     return return_response
+
+
+@router.post("/ui/dashboard", response_class=HTMLResponse)
+def preparation_dashboard(
+    request: Request,
+    benchmark_id: int = Form(...),
+    benchmark_name: str = Form(...),
+    stages: str = Form(...),
+    institutions: str = Form(...),
+    force_update: bool = Form(False),
+    current_user: bool = Depends(check_user_ui),
+):
+    errors = False
+    error_message = "Failed to load dashboard: "
+
+    benchmark = Benchmark.get(benchmark_id)
+    is_owner = benchmark.owner == get_medperf_user_data()["id"]
+    if not is_owner:
+        errors = True
+        error_message += "Only the benchmark owner can access the dashboard."
+
+    try:
+        if not errors:
+            mount_dashboard(request, benchmark_id, stages, institutions, force_update)
+    except Exception as exp:
+        logger.exception(exp)
+        errors = True
+        error_message += str(exp)
+
+    if errors:
+        return templates.TemplateResponse(
+            "error.html",
+            {
+                "request": request,
+                "exception": error_message,
+            },
+        )
+
+    return templates.TemplateResponse(
+        "dashboard_wrapper.html",
+        {
+            "request": request,
+            "mount_point": f"/ui/display/{benchmark_id}/dashboard/app",
+            "benchmark_id": benchmark_id,
+            "prev_url": f"/benchmarks/ui/display/{benchmark_id}/",
+            "benchmark_name": benchmark_name,
+        },
+    )

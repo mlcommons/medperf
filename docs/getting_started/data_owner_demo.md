@@ -152,8 +152,8 @@ After running the command, you will receive a summary of the executions. You wil
 ```text
   model    Execution UID  partial result    from cache    error
 -------  ---------------  ----------------  ------------  -------
-      5                2  False             False
-      3                1  False             True
+      2                2  False             False
+      1                1  False             True
 Total number of models: 2
         1 were skipped (already executed), of which 0 have partial results
         0 failed

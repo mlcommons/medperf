@@ -1,0 +1,317 @@
+{% extends "detail_base.html" %}
+{% import 'macros/container_macros.html' as container_macros %}
+{% import "macros/modal_macros.html" as modal_macros %}
+
+{% block title %}Training Experiment Details{% endblock %}
+
+{% block detail_panel %}
+<div class="mb-8">
+    <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center mb-3">
+            <h1 class="text-5xl font-bold medperf-accent dark:text-green-400">{{ entity.name }}</h1>
+        </div>
+    </div>
+</div>
+
+<div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg border-2 border-green-100 dark:border-gray-700 mb-6">
+    <div class="flex flex-wrap justify-between items-center gap-4 mb-6">
+        <h2 class="text-3xl font-bold medperf-accent dark:text-green-400 flex items-center">
+            <i class="fas fa-info-circle mr-3"></i>Details
+        </h2>
+        <div class="flex flex-wrap gap-2">
+            <span class="px-4 py-1 rounded-full text-xs font-bold border-2 {% if entity.state == 'OPERATION' %}bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 border-green-200 dark:border-green-700{% else %}bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-300 border-yellow-200 dark:border-yellow-700{% endif %}">{% if entity.state == 'OPERATION' %}OPERATIONAL{% else %}{{ entity.state }}{% endif %}</span>
+            <span class="px-4 py-1 rounded-full text-xs font-bold border-2 {% if entity.approval_status == 'APPROVED' %}bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 border-green-200 dark:border-green-700{% elif entity.approval_status == 'REJECTED' %}bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800{% else %}bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-300 border-yellow-200 dark:border-yellow-700{% endif %}">{{ entity.approval_status or 'PENDING' }}</span>
+        </div>
+    </div>
+    <div class="info-highlight rounded-xl p-6 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-1 font-semibold">Experiment ID</p>
+                <p class="text-xl font-bold text-gray-900 dark:text-white">{{ entity.id }}</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-1 font-semibold">Owner</p>
+                <p class="text-xl font-bold text-gray-900 dark:text-white">
+                    <i class="fas fa-user medperf-accent dark:text-green-400 mr-2"></i>{% if is_owner %} You {% else %}{{ entity.owner }}{% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="mb-6">
+        <p class="text-sm text-gray-600 dark:text-gray-400 mb-2 font-semibold">Description</p>
+        <p class="text-gray-800 dark:text-gray-200 leading-relaxed">{% if entity.description %}{{ entity.description }}{% else %}—{% endif %}</p>
+    </div>
+    <div class="mb-6">
+        <p class="text-sm text-gray-600 dark:text-gray-400 mb-2 font-semibold">Documentation</p>
+        {% if entity.docs_url %}
+        <a href="{{ entity.docs_url }}" class="medperf-accent dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 font-bold text-lg break-all inline-flex items-center" target="_blank"><i class="fas fa-external-link-alt mr-2"></i>{{ entity.docs_url }}</a>
+        {% else %}
+        <span class="text-gray-500 dark:text-gray-400">Not Available</span>
+        {% endif %}
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t-2 border-gray-100 dark:border-gray-700">
+        <div>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-2 font-semibold">Data Preparation Container</p>
+            {{ container_macros.container_link(prep_cube) }}
+        </div>
+        <div>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-2 font-semibold">FL Container</p>
+            {{ container_macros.container_link(fl_cube) }}
+        </div>
+        {% if fl_admin_cube %}
+        <div>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-2 font-semibold">FL Admin Container</p>
+            {{ container_macros.container_link(fl_admin_cube) }}
+        </div>
+        {% endif %}
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t-2 border-gray-100 dark:border-gray-700">
+        <div>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-2 font-semibold">Created</p>
+            <span class="text-gray-800 dark:text-white font-medium" data-date="{{ entity.created_at }}"></span>
+        </div>
+        <div>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-2 font-semibold">Modified</p>
+            <span class="text-gray-800 dark:text-white font-medium" data-date="{{ entity.modified_at }}"></span>
+        </div>
+    </div>
+</div>
+
+{% if is_owner %}
+<div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border-2 border-green-100 dark:border-gray-700 mb-6 overflow-hidden">
+    <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50">
+        <h3 class="mb-0 text-gray-900 dark:text-white font-bold">Aggregator</h3>
+    </div>
+    <div class="p-6">
+        {% if aggregator %}
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+                <a href="/aggregators/ui/display/{{ aggregator.id }}" class="medperf-accent dark:text-green-400 hover:underline font-semibold text-lg">{{ aggregator.name }}</a>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Address: {{ aggregator.address }}:{{ aggregator.port }}</p>
+            </div>
+        </div>
+        {% else %}
+        <p class="text-gray-600 dark:text-gray-400 mb-4">No aggregator set yet.</p>
+        {% if available_aggregators %}
+        <form id="set-aggregator-form" action="/training/add_aggregator" method="post" class="training-action-form" data-panel-title="Setting aggregator" data-confirm-message="set this aggregator for this training experiment?">
+            <input type="hidden" name="training_exp_id" value="{{ entity.id }}">
+            <div class="flex flex-wrap items-center gap-3">
+                <select name="aggregator_id" class="flex-1 min-w-[200px] px-4 py-2.5 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500 cursor-pointer" required>
+                    <option value="" disabled selected>Select an aggregator</option>
+                    {% for agg in available_aggregators %}
+                    <option value="{{ agg.id }}">{{ agg.name }} ({{ agg.address }}:{{ agg.port }})</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="px-5 py-2.5 rounded-xl medperf-bg dark:bg-green-600 text-white font-semibold hover:opacity-90 cursor-pointer inline-flex items-center gap-2">
+                    <i class="fas fa-link"></i> Set aggregator
+                </button>
+            </div>
+        </form>
+        {% else %}
+        <a href="/aggregators/register/ui" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl medperf-bg dark:bg-green-600 text-white font-semibold hover:opacity-90 cursor-pointer">
+            <i class="fas fa-plus"></i> Register an aggregator
+        </a>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">No aggregators registered. Register an aggregator first, then set it for this experiment.</p>
+        {% endif %}
+        {% endif %}
+    </div>
+</div>
+
+<div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border-2 border-green-100 dark:border-gray-700 mb-6 overflow-hidden">
+    <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50">
+        <h3 class="mb-0 text-gray-900 dark:text-white font-bold">Actions</h3>
+    </div>
+    <div class="p-6">
+        {% if not aggregator %}
+        <p class="text-sm text-amber-600 dark:text-red-400 mb-4 font-bold">Set an aggregator for this experiment first.</p>
+        {% endif %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/30 p-5 col-span-2 flex flex-col {% if not aggregator %}opacity-60{% endif %}">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="flex items-center justify-center w-10 h-10 rounded-lg medperf-bg dark:bg-green-600/20 text-green-600 dark:text-green-400"><i class="fas fa-cog"></i></span>
+                    <span class="font-semibold text-gray-900 dark:text-white">Set training plan</span>
+                </div>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Path to a YAML config file to set the experiment plan.</p>
+                <form id="set-plan-form" action="/training/set_plan" method="post" class="flex flex-col flex-1 gap-3" data-panel-title="Setting training plan" data-confirm-message="set the training plan?">
+                    <input type="hidden" name="training_exp_id" value="{{ entity.id }}">
+                    <fieldset class="flex flex-col flex-1 gap-3 border-0 p-0 m-0 min-w-0" {% if not aggregator %}disabled{% endif %}>
+                        <div class="flex flex-wrap items-stretch gap-2">
+                            <input name="path" type="text" id="set-plan-path" class="flex-1 min-w-0 px-3 py-2.5 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500" placeholder="Path to plan config (e.g. plan.yaml)" required>
+                            <button type="button" class="px-4 py-2.5 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer" id="browse-set-plan-btn">Browse</button>
+                        </div>
+                        <button type="submit" class="cursor-pointer w-full px-4 py-2.5 rounded-xl medperf-bg dark:bg-green-600 text-white font-semibold hover:opacity-90 mt-auto">Set plan</button>
+                    </fieldset>
+                </form>
+            </div>
+
+            <div class="rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/30 p-5 col-span-2 flex flex-col {% if not plan_exists %}opacity-60{% endif %}">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="flex items-center justify-center w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400"><i class="fas fa-edit"></i></span>
+                    <span class="font-semibold text-gray-900 dark:text-white">Update plan</span>
+                </div>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Runtime-update of a scalar field of the training plan.</p>
+                <form id="update-plan-form" action="/training/update_plan" method="post" class="flex flex-col flex-1 gap-3" data-panel-title="Updating training plan" data-confirm-message="update the training plan with this field?">
+                    <input type="hidden" name="training_exp_id" value="{{ entity.id }}">
+                    <fieldset class="flex flex-col flex-1 gap-3 border-0 p-0 m-0 min-w-0" {% if not plan_exists %}disabled{% endif %}>
+                        <div class="flex flex-wrap gap-3">
+                            <input type="text" name="field_name" placeholder="Field name" class="flex-1 min-w-[120px] px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500" required>
+                            <input type="text" name="field_value" placeholder="Value" class="flex-1 min-w-[120px] px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500" required>
+                        </div>
+                        <button type="submit" class="cursor-pointer w-full px-4 py-2.5 rounded-xl medperf-bg dark:bg-green-600 text-white font-semibold hover:opacity-90 mt-auto">Update</button>
+                    </fieldset>
+                </form>
+            </div>
+
+            {% if not has_active_event %}
+            <div class="rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/30 p-5 col-span-2 flex flex-col {% if not plan_exists %}opacity-60{% endif %}">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="flex items-center justify-center w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400"><i class="fas fa-play"></i></span>
+                    <span class="font-semibold text-gray-900 dark:text-white">Start event</span>
+                </div>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Start a new training event for this experiment. Optionally provide a participants list file (YAML).</p>
+                <form id="start-event-form" action="/training/start_event" method="post" class="flex flex-col flex-1 gap-3" data-panel-title="Starting event" data-confirm-message="start this training event?">
+                    <input type="hidden" name="training_exp_id" value="{{ entity.id }}">
+                    <fieldset class="flex flex-col flex-1 gap-3 border-0 p-0 m-0 min-w-0" {% if not plan_exists %}disabled{% endif %}>
+                        <input type="text" name="event_name" placeholder="Event name" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500" required>
+                        <div class="flex flex-wrap items-stretch gap-2">
+                            <input name="participants_list_file" type="text" id="start-event-participants-path" class="flex-1 min-w-0 px-3 py-2.5 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-green-500" placeholder="Participants list file path (optional)">
+                            <button type="button" class="px-4 py-2.5 rounded-xl border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer" id="browse-start-event-participants-btn">Browse</button>
+                        </div>
+                        <button type="submit" class="cursor-pointer w-full px-4 py-2.5 rounded-xl medperf-bg dark:bg-green-600 text-white font-semibold hover:opacity-90 mt-auto">Start event</button>
+                    </fieldset>
+                </form>
+            </div>
+            {% else %}
+            <div class="rounded-xl border-2 border-amber-200 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 p-5 col-span-2 flex flex-col">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="flex items-center justify-center w-10 h-10 rounded-lg bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400"><i class="fas fa-stop-circle"></i></span>
+                    <span class="font-semibold text-gray-900 dark:text-white">Close event</span>
+                </div>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">End the current training event.</p>
+                <form id="close-event-form" action="/training/close_event" method="post" class="flex flex-col flex-1" data-panel-title="Closing event" data-confirm-message="close the current training event?">
+                    <input type="hidden" name="training_exp_id" value="{{ entity.id }}">
+                    <button type="submit" class="cursor-pointer w-full px-4 py-2.5 rounded-xl bg-amber-600 dark:bg-amber-500 text-white font-semibold hover:opacity-90 mt-auto">Close event</button>
+                </form>
+            </div>
+            {% endif %}
+
+            <div class="rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/30 p-5 col-span-2 flex flex-col {% if not plan_exists %}opacity-60{% endif %}">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"><i class="fas fa-chart-line"></i></span>
+                    <span class="font-semibold text-gray-900 dark:text-white">Experiment status</span>
+                </div>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Fetch and display current experiment status.</p>
+                <form id="get-status-form" action="/training/get_experiment_status" method="post" class="flex flex-col flex-1" data-panel-title="Getting experiment status" data-confirm-message="get the experiment status?">
+                    <input type="hidden" name="training_exp_id" value="{{ entity.id }}">
+                    <fieldset class="flex flex-col flex-1 border-0 p-0 m-0 min-w-0" {% if not plan_exists %}disabled{% endif %}>
+                        <button type="submit" class="cursor-pointer w-full px-4 py-2.5 rounded-xl medperf-bg dark:bg-green-600 text-white font-semibold hover:opacity-90 mt-auto">Get status</button>
+                    </fieldset>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border-2 border-green-100 dark:border-gray-700 mb-6 overflow-hidden">
+    <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 flex flex-wrap justify-between items-center gap-2">
+        <h3 class="mb-0 text-gray-900 dark:text-white font-bold">Dataset Associations</h3>
+        {% if dataset_assoc_pending %}<span class="text-sm text-amber-600 dark:text-amber-400 font-semibold">Pending approvals</span>{% endif %}
+    </div>
+    <div class="p-6">
+        {% if dataset_associations %}
+        <ul class="space-y-4">
+            {% for assoc in dataset_associations %}
+            <li class="flex flex-wrap items-center justify-between gap-4 p-4 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/30">
+                <div>
+                    {% if assoc.dataset and assoc.dataset in datasets %}
+                    <a href="/datasets/ui/display/{{ assoc.dataset }}" class="medperf-accent dark:text-green-400 hover:underline font-semibold">{{ datasets[assoc.dataset].name }}</a>
+                    <span class="text-gray-500 dark:text-gray-400 text-sm ml-2">ID: {{ assoc.dataset }}</span>
+                    {% else %}
+                    <span class="font-semibold text-gray-900 dark:text-white">Dataset {{ assoc.dataset }}</span>
+                    {% endif %}
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="px-3 py-1 rounded-full text-xs font-bold {% if assoc.approval_status == 'APPROVED' %}bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300{% elif assoc.approval_status == 'REJECTED' %}bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300{% else %}bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-300{% endif %}">{{ assoc.approval_status }}</span>
+                    {% if assoc.approval_status == 'PENDING' %}
+                    <form action="/training/approve" method="post" class="inline training-approve-reject-form" data-panel-title="Approving association" data-confirm-message="approve this dataset association?">
+                        <input type="hidden" name="training_exp_id" value="{{ entity.id }}">
+                        <input type="hidden" name="dataset_id" value="{{ assoc.dataset }}">
+                        <button type="submit" class="px-3 py-1.5 rounded-lg medperf-bg dark:bg-green-600 text-white text-sm font-semibold hover:opacity-90 cursor-pointer">Approve</button>
+                    </form>
+                    <form action="/training/reject" method="post" class="inline training-approve-reject-form" data-panel-title="Rejecting association" data-confirm-message="reject this dataset association?">
+                        <input type="hidden" name="training_exp_id" value="{{ entity.id }}">
+                        <input type="hidden" name="dataset_id" value="{{ assoc.dataset }}">
+                        <button type="submit" class="px-3 py-1.5 rounded-lg bg-red-600 text-white text-sm font-semibold hover:opacity-90 cursor-pointer">Reject</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-gray-600 dark:text-gray-400">No datasets associated yet.</p>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+{% include "partials/panel_container.html" %}
+{% include "partials/text_content_container.html" %}
+{% include "partials/yaml_container.html" %}
+{% include "partials/prompt_container.html" %}
+
+{{ modal_macros.add_modal(
+    modal_id="folder-picker-modal",
+    modal_body='<ul id="folder-list" class="divide-y divide-gray-200 dark:divide-gray-600 max-h-96 overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-600"></ul>',
+    modal_footer=True,
+    close_button='<button type="button" class="px-4 py-2 rounded-xl bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-900 dark:text-white font-semibold" data-dismiss-modal="folder-picker-modal">Cancel</button>',
+    success_button='<button type="button" class="px-4 py-2 rounded-xl medperf-bg dark:bg-green-600 text-white font-semibold" id="select-folder-btn">Select</button>'
+) }}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
+<script src="{{ url_for('static', path='js/folder_browsing.js') }}"></script>
+<script src="{{ url_for('static', path='js/training/training_detail.js') }}"></script>
+{% if task_running %}
+{% if request.app.state.task.formData.get("training_exp_id", "")|string == entity.id|string %}
+{% if request.app.state.task.name == "set_training_plan" %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        resumeRunningTask("#set-plan-form");
+    });
+</script>
+{% elif request.app.state.task.name == "set_training_aggregator" %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        resumeRunningTask("#set-aggregator-form");
+    });
+</script>
+{% elif request.app.state.task.name == "start_training_event" %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        resumeRunningTask("#start-event-form");
+    });
+</script>
+{% elif request.app.state.task.name == "get_training_status" %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        resumeRunningTask("#get-status-form");
+    });
+</script>
+{% elif request.app.state.task.name == "update_training_plan" %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        resumeRunningTask("#update-plan-form");
+    });
+</script>
+{% elif request.app.state.task.name == "close_training_event" %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        resumeRunningTask("#close-event-form");
+    });
+</script>
+{% endif %}
+{% endif %}
+{% endif %}
+{% endblock %}

@@ -6,6 +6,7 @@ import medperf.config as config
 from medperf.commands.certificate.submit import SubmitCertificate
 from medperf.exceptions import CleanExit, MedperfException
 from medperf.tests.mocks.certificate import TestCertificate
+from medperf.enums import CryptoKeyType
 
 PATCH_SUBMIT = "medperf.commands.certificate.submit.{}"
 
@@ -24,7 +25,7 @@ def submit(mocker, fs):
 
     fs.create_file(f"/pki/{config.certificate_file}", contents=b"certificate-bytes")
 
-    return SubmitCertificate(approved=False)
+    return SubmitCertificate(CryptoKeyType.RSA, approved=False)
 
 
 def test_prepare_raises_if_no_certificate(mocker):
@@ -34,7 +35,7 @@ def test_prepare_raises_if_no_certificate(mocker):
         return_value={"email": "alice@example.com"},
     )
     mocker.patch(PATCH_SUBMIT.format("get_pki_assets_path"), return_value="/missing")
-    sc = SubmitCertificate()
+    sc = SubmitCertificate(CryptoKeyType.RSA)
 
     # Act & Assert
     with pytest.raises(MedperfException):

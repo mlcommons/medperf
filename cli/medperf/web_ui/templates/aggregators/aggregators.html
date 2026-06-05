@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% import 'macros/aggregator_macros.html' as aggregator_macros %}
+
+{% block title %}Aggregators{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-10 sm:py-12">
+    <div class="mb-6">
+        <div class="flex items-center justify-between gap-4 mb-6">
+            <div>
+                <h1 class="text-5xl font-bold medperf-accent dark:text-green-400 mb-3" data-testid="page-header">Aggregators</h1>
+                <p class="text-gray-700 dark:text-gray-300 text-lg">Manage and explore aggregators</p>
+            </div>
+            <a class="px-8 py-4 medperf-bg dark:bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 dark:hover:bg-green-500 transition-all shadow-lg hover:shadow-xl inline-flex items-center" href="/aggregators/register/ui" data-testid="reg-aggregator-btn">
+                <i class="fas fa-plus mr-2"></i>Register New Aggregator
+            </a>
+        </div>
+    </div>
+
+    {% set entity_name = "aggregators" %}
+    {% set has_items = aggregators %}
+    {% include "partials/listing_controls.html" %}
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" data-testid="cards-container">
+        {% if aggregators %}
+        {% for agg in aggregators %}
+        {{ aggregator_macros.aggregator_card(agg) }}
+        {% endfor %}
+        {% else %}
+        <h3 class="col-span-full text-center py-12 text-gray-600 dark:text-gray-400 text-xl" data-testid="no-aggs-msg">No aggregators found</h3>
+        {% endif %}
+    </div>
+
+    {% set has_items = aggregators %}
+    {% set pagination_label = "Aggregators pagination" %}
+    {% include "partials/listing_pagination.html" %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% set listing_ui_path = "/aggregators/ui" %}
+{% include "partials/listing_page_js.html" %}
+{% endblock %}

@@ -1,0 +1,7 @@
+numpy
+PyYAML
+torch
+torchvision
+tqdm
+scikit-learn
+--extra-index-url https://download.pytorch.org/whl/cpu

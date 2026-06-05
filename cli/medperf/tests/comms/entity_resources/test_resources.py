@@ -23,13 +23,13 @@ class TestGetCubeImage:
         "url",
         ["https://localhost:8000/image.sif", "https://test.com/docker_image.tar.gz"],
     )
-    def test_get_cube_image_retrieves_image_if_not_local(self, mocker, url, fs):
+    def test_get_hashed_file_retrieves_image_if_not_local(self, mocker, url, fs):
         # Arrange
-        os.makedirs(config.images_folder, exist_ok=True)
+        os.makedirs(config.hashed_files_folder, exist_ok=True)
 
         # Act
-        file_path, calc_hash = resources.get_cube_image(url, None)
-        exp_file = os.path.join(config.images_folder, calc_hash)
+        file_path, calc_hash = resources.get_hashed_file(url, None)
+        exp_file = os.path.join(config.hashed_files_folder, calc_hash)
 
         # Assert
         assert os.path.exists(exp_file) and exp_file == file_path
@@ -38,14 +38,14 @@ class TestGetCubeImage:
         "url",
         ["https://localhost:8000/image.sif", "https://test.com/docker_image.tar.gz"],
     )
-    def test_get_cube_image_uses_cache_if_available(self, mocker, url, fs):
+    def test_get_hashed_file_uses_cache_if_available(self, mocker, url, fs):
         # Arrange
         spy = mocker.spy(resources, "download_resource")
-        os.makedirs(config.images_folder, exist_ok=True)
+        os.makedirs(config.hashed_files_folder, exist_ok=True)
 
         # Act
-        _, calc_hash = resources.get_cube_image(url, None)
-        resources.get_cube_image(url, calc_hash)
+        _, calc_hash = resources.get_hashed_file(url, None)
+        resources.get_hashed_file(url, calc_hash)
 
         # Assert
         spy.assert_called_once()

@@ -16,7 +16,7 @@ BENCHMARK_INFO = {
     "demo_dataset_tarball_url": "https://test.test/data.tar.gz",
     "demo_dataset_tarball_hash": "",
     "data_preparation_mlcube": 0,
-    "reference_model_mlcube": 0,
+    "reference_model": 0,
     "data_evaluator_mlcube": 0,
 }
 

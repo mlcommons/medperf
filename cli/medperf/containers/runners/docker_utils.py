@@ -9,6 +9,7 @@ import json
 import tarfile
 import logging
 from .utils import check_docker_image_hash
+from docker.auth import resolve_repository_name
 
 
 def get_docker_image_hash(docker_image, timeout: int = None):
@@ -74,6 +75,9 @@ def volumes_to_cli_args(input_volumes: list, output_volumes: list):
 def craft_docker_run_command(run_args: dict):  # noqa: C901
     logging.debug(f"Crafting command from run args: {run_args}")
     command = ["docker", "run"]
+    container_name = run_args.pop("container_name", None)
+    if container_name:
+        command.extend(["--name", container_name])
     remove_container = run_args.pop("remove_container", False)
     if remove_container:
         command.append("--rm")
@@ -192,3 +196,15 @@ def download_docker_image(
     computed_image_hash = get_docker_image_hash(docker_image, get_hash_timeout)
     check_docker_image_hash(computed_image_hash, expected_image_hash)
     return computed_image_hash
+
+
+def full_docker_image_name(image_name: str) -> str:
+    """
+    Returns the full docker image name with registry.
+    If the image name does not contain a registry, it is assumed to be docker.io.
+    """
+    logging.debug(f"Resolving full docker image name for {image_name}")
+    registry, name = resolve_repository_name(image_name)
+    resolved_name = f"{registry}/{name}"
+    logging.debug(f"Resolved docker image name: {resolved_name}")
+    return resolved_name
