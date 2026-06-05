@@ -99,7 +99,7 @@ class CubeSchema(MedperfSchema):
     state: str = "DEVELOPMENT"
     container_config: dict
     parameters_config: Optional[dict] = None
-    image_hash: Optional[str] = None
+    image_hash: Optional[dict] = Field(default_factory=dict)
     additional_files_tarball_url: Optional[str] = None
     additional_files_tarball_hash: Optional[str] = None
     metadata: dict = Field(default_factory=dict)
