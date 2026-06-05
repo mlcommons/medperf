@@ -11,8 +11,8 @@ class MedperfSchema(BaseModel):
     name: str = Field(..., max_length=128)
     owner: Optional[int]
     is_valid: bool = True
-    created_at: Optional[datetime] = None
-    modified_at: Optional[datetime] = None
+    created_at: Optional[datetime]
+    modified_at: Optional[datetime]
 
     class Config:
         use_enum_values = True
