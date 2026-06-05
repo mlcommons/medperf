@@ -5,11 +5,12 @@ from yaspin import yaspin
 from contextlib import contextmanager
 
 from .interface import UI
+from .utils import spinner_color
 
 
 class CLI(UI):
     def __init__(self):
-        self.spinner = yaspin(color="green")
+        self.spinner = yaspin(color=spinner_color())
         self.is_interactive = False
         self.is_parsed_output = False
 

@@ -5,6 +5,7 @@ import typer
 
 from medperf.ui.cli import CLI
 from medperf.web_ui.schemas import Event, EventsManager, GlobalEventsManager
+from .utils import spinner_color
 
 
 class WebUI(CLI):
@@ -12,7 +13,7 @@ class WebUI(CLI):
         super().__init__()
         self.responses: Queue[dict] = Queue()
         self.is_interactive = False
-        self.spinner = yaspin(color="green")
+        self.spinner = yaspin(color=spinner_color())
         self.task_id = None
         self.events_manager = EventsManager()
         self.global_events_manager = GlobalEventsManager()
