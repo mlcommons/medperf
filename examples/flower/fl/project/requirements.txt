@@ -1,5 +1,5 @@
 --extra-index-url https://download.pytorch.org/whl/cpu
-torch==2.8.0
+torch==2.12.1+cpu
 scikit-learn==1.8.0
 numpy==2.4.3
 typer==0.20.1
