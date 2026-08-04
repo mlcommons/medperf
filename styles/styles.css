@@ -1,0 +1,183 @@
+:root, [data-md-color-scheme=default] {
+  --md-card-bg-color: rgb(255, 255, 255);
+  --md-card-box-shadow: 0 10px 20px #282a3017;
+  --md-card-border-color: rgba(0, 0, 0, 0.147);
+  --md-white-color: rgb(255, 255, 255);
+}
+
+:root, [data-md-color-scheme=slate] {
+  --md-card-bg-color: rgba(90, 90, 90, 0.512);
+  --md-card-box-shadow: 0 10px 20px rgba(210, 210, 210, 0.315);
+  --md-card-border-color: rgba(83, 83, 83, 0.581);
+  --md-white-color: rgb(255, 255, 255);
+}
+
+.side-container {
+  min-width: 10rem;
+  max-width: 40rem;
+  align-self: flex-start;
+  flex-shrink: 0;
+  width: 35%;
+  position: sticky;
+  top: 100px;
+  background-color: transparent;
+  z-index: 0 !important;
+}
+
+@media screen and (max-width: 70em) {
+  .side-container {
+    display: none;
+  }
+}
+
+.tutorial-sticky-image {
+  width: 100%;
+  height: 100%;
+  z-index: 0 !important;
+}
+
+.tutorial-sticky-image-content {
+  width: 0;
+  height: 0;
+}
+
+.md-main__inner.md-grid {
+    max-width: 75rem;
+}
+
+
+.md-header__inner {
+  max-width: 70rem !important;
+}
+
+.md-nav__title {
+  text-transform: uppercase;
+  margin-left: 0 !important;
+}
+
+.md-nav__link {
+  margin-left: 15px;
+}
+
+#__nav_6_label, #__nav_5_label {
+  margin-left: 0 !important;
+}
+
+.md-nav__item--section {/* md-nav__item--nested */
+  margin-top: 40px;
+}
+
+.tutorial_card h2 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-weight: 500;
+}
+
+.tutorial_card p {
+  margin: 0;
+}
+
+.md-header__ellipsis {
+  justify-content: space-around;
+}
+
+.header_home_btn {
+  background-color: transparent;
+  top: 10px;
+  margin: 0;
+  margin-left: 215px;
+  font-size: 16px;
+}
+
+.md-header__topic {
+  font-weight: 700;
+}
+
+.tutorial_card_container {
+  justify-content: center;
+  align-items: center;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.tutorial_card_container .card {
+  background-color: var(--md-card-bg-color);
+  border: 1px solid var(--md-card-border-color);
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  transition: all 0.3s ease, border 0.1s ease;
+  flex: 1;
+  align-self: stretch;
+  color: var(--md-typeset-color);
+}
+
+.tutorial_card_container .card:hover {
+  border: 1px solid transparent;
+  box-shadow: var(--md-card-box-shadow);
+  text-decoration: none;
+  color: inherit !important;
+  transform: translateY(-2px);
+}
+
+.tutorial_card_container .card .card_image {
+  background-position: center;
+  background-size: cover;
+  border-radius: 6px;
+  height: 80px;
+  padding: 10px;
+}
+
+.tutorial_card_container .card .image1 {
+  background-image: url('https://raw.githubusercontent.com/gabrielraeder/website/main/docs/static/images/cards/card1_img.png');
+}
+
+.tutorial_card_container .card .image2 {
+  background-image: url('https://raw.githubusercontent.com/gabrielraeder/website/main/docs/static/images/cards/card2_img.png');
+}
+
+.tutorial_card_container .card .image3 {
+  background-image: url('https://raw.githubusercontent.com/gabrielraeder/website/main/docs/static/images/cards/card3_img.png');
+}
+
+.tutorial_card_container .card_text {
+  padding-top: 12px;
+  margin-left: 1px;
+}
+
+.tutorial_card_container .card_title {
+  margin: 5px 0;
+  font-weight: bold;
+  font-size: 16.5px;
+}
+
+.tutorial_card_container .card_text p {
+  margin: 8px 0 0 0;
+  min-height: 40px;
+  height: fit-content;
+}
+
+.tutorial_card_container .card a {
+  border-radius: 15px;
+  font-weight: 700;
+  margin-top: 8px;
+  padding: 3px 0;
+  text-decoration: none;
+  transition: color 0.3s ease;
+  width: fit-content;
+}
+
+.tutorial_card_container .card:hover a {
+  text-decoration: underline !important;
+  color: inherit !important;
+}
+
+.tutorial_card_container .card p {
+  font-size: 14px;
+  line-height: 1.8em;
+  -webkit-font-smoothing: antialiased;
+  margin: 0 0 10px;
+  display: block;
+}

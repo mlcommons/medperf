@@ -1,0 +1,367 @@
+<!-- Custom HTML site displayed as the Home chapter -->
+
+{% extends "main.html" %}
+{% block tabs %}
+{{ super() }}
+<style>
+    .md-main {
+        flex-grow: 0
+    }
+
+    .md-main__inner {
+        display: flex;
+        height: 100%;
+    }
+
+    .tx-container {
+        padding-top: .0rem;
+        background: linear-gradient(to bottom, var(--md-primary-fg-color), hsla(160deg, 47%, 55%, 1) 99%);
+    }
+
+    .tx-hero {
+        margin: 32px 5.4rem;
+        color: var(--md-primary-bg-color);
+        justify-content: start;
+        align-items: start;
+        width: 100%;
+    }
+
+    .tx-hero h1 {
+        margin-bottom: 1rem;
+        color: currentColor;
+        font-weight: 700;
+        font-size: 2.4rem;
+    }
+
+    .tx-hero p {
+        max-width: 40em;
+        text-align: left;
+        line-height: 1.5;
+    }
+
+    .tx-hero__title {
+        left: 0;
+        width: 80%;
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        padding-bottom: 1rem;
+        margin-left: 0 !important;
+    }
+
+    .tx-hero__image {
+        width: 15rem;
+        height: 15rem;
+        padding-right: 2.5rem;
+    }
+
+    .tx-hero .md-button {
+        margin-top: .5rem;
+        margin-right: .5rem;
+        color: var(--md-primary-fg-color);
+        border-radius: 6px;
+    }
+
+    .tx-hero .md-button--primary {
+        background-color: var(--md-primary-bg-color);
+        border-color: var(--md-primary-bg-color)
+    }
+
+    .tx-hero .md-button:focus,
+    .tx-hero .md-button:hover {
+        background-color: rgba(0, 0, 0, 0.184);
+        color: var(--md-white-color);
+        border-color: var(--md-white-color);
+    }
+
+    @media screen and (max-width:30em) {
+        .tx-hero h1 {
+            font-size: 1.4rem
+        }
+    }
+
+    @media screen and (min-width:60em) {
+        .md-sidebar--secondary {
+            display: none
+        }
+
+        .tx-hero {
+            display: flex;
+            align-items: center;
+        }
+
+        .tx-hero__title {
+            margin-top: 3.5rem;
+            margin-bottom: 3.5rem;
+            margin-left: 1.0rem;
+            margin-right: 4.0rem;
+            align-items: center;
+        }
+    }
+
+    @media screen and (min-width:76.25em) {
+        .md-sidebar--primary {
+            display: none;
+        }
+
+        .bottom-hr {
+            margin-top: 10px;
+            width: 100%;
+            display: flex;
+            max-width: 61rem;
+            margin-right: auto;
+            margin-left: auto;
+            padding: 0 .2rem;
+        }
+    }
+
+    .text-center {
+        text-align: center;
+        padding-right: 15px;
+        padding-left: 15px;
+        margin-right: auto;
+        margin-left: auto;
+        margin-top: 15px;
+        font-family: 'Lato', sans-serif;
+        font-size: 23px;
+        font-weight: 300;
+        padding-bottom: 10px;
+    }
+
+    .logos {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-flow: row wrap;
+        margin: 0 auto;
+    }
+
+    .logos img {
+        flex: 1 1 auto;
+        padding: 25px;
+        max-height: 130px;
+        vertical-align: middle;
+    }
+
+    .hr-logos {
+        margin-top: 0;
+        margin-bottom: 30px;
+    }
+
+    .md-footer-meta__inner {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        margin-top: 1.0rem;
+    }
+
+    .md-footer-social {
+        padding-top: 20px;
+    }
+
+    .shelf {
+        width: 70%;
+        margin: auto;
+        margin-top: 30px;
+    }
+
+    .last_shelf {
+        margin-bottom: 50px;
+    }
+
+    .shelf h1 {
+        margin-bottom: 0;
+        border-bottom: 1px solid var(--md-card-border-color);
+        padding-bottom: 5px;
+    }
+
+    .cards_container {
+        display: flex;
+        justify-content: center;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .card {
+        /* background-color: rgba(255, 255, 255, 0.971); */
+        background-color: var(--md-card-bg-color);
+        border: 1px solid var(--md-card-border-color);
+        border-radius: 6px;
+        /* color: black; */
+        display: flex;
+        flex-direction: column;
+        flex-grow: 0;
+        flex-shrink: 0;
+        margin: 16px;
+        padding: 16px;
+        transition: all 0.3s ease, border 0.1s ease;
+        width: 408px !important;
+        flex: 1;
+        align-self: stretch;
+    }
+
+    .card:hover {
+        border: 1px solid transparent;
+        box-shadow: var(--md-card-box-shadow);
+        text-decoration: none;
+        transform: translateY(-2px);
+    }
+
+    .card .card_image {
+        background-position: center;
+        background-size: cover;
+        border-radius: 6px;
+        height: 120px;
+        padding: 10px;
+    }
+
+    .cards_container .card .image1 {
+        background-image: url('https://raw.githubusercontent.com/gabrielraeder/website/main/docs/static/images/cards/card1_img.png');
+    }
+
+    .cards_container .card .image2 {
+        background-image: url('https://raw.githubusercontent.com/gabrielraeder/website/main/docs/static/images/cards/card2_img.png');
+    }
+
+    .cards_container .card .image3 {
+        background-image: url('https://raw.githubusercontent.com/gabrielraeder/website/main/docs/static/images/cards/card3_img.png');
+    }
+
+    .cards_container .card_text {
+        padding-top: 16px;
+        margin-left: 1px;
+    }
+
+    .cards_container .card_text h3 {
+        height: 24px;
+        margin: 0;
+        margin-top: 5px;
+    }
+
+    .cards_container .card_text p {
+        margin: 8px 0 0 0;
+        min-height: 40px;
+        height: fit-content;
+    }
+
+    .cards_container .card a {
+        border-radius: 15px;
+        font-weight: 700;
+        margin-top: 8px;
+        padding: 3px 0;
+        text-decoration: none;
+        transition: color 0.3s ease;
+        width: fit-content;
+    }
+
+    .cards_container .card:hover a {
+        text-decoration: underline !important;
+        color: var(--transpara-highlights-color2) !important;
+    }
+
+    .card p {
+        font-size: 14px;
+        line-height: 1.8em;
+        -webkit-font-smoothing: antialiased;
+        margin: 0 0 10px;
+        display: block;
+    }
+
+    .md-main__inner {
+        display: none;
+    }
+</style>
+
+<!-- Main site Entry button descriptions -->
+<section class="tx-container">
+    <div class="md-grid md-typeset">
+        <div class="tx-hero">
+            <div class="tx-hero__title">
+                <img class="tx-hero__image" src="../images/homepage/logo.svg" alt="">
+                <div class="tx-hero__content">
+                    <p>Explore our documentation hub to understand everything you need to get started with MedPerf,
+                        including definitions, setup, tutorials, advanced concepts, and more.</p>
+                    <!-- <a href="what_is_medperf" title="{{ page.next_page.title | striptags }}"
+                        class="md-button md-button--primary">
+                        Get started
+                    </a> -->
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Main site box descriptions -->
+<div class="shelf">
+    <h1>Overview</h1>
+    <div class="cards_container">
+
+        <a class="card" href="what_is_medperf">
+            <div class="card_image image1">
+            </div>
+            <div class="card_text">
+                <h2 class='card_title'>What is MedPerf?</h2>
+                <p>Click here to see understand what is MedPerf.</p>
+            </div>
+        </a>
+
+        <a class="card" href="roles">
+            <div class="card_image image2">
+            </div>
+            <div class="card_text">
+                <h2 class='card_title'>Roles</h2>
+                <p>Click here to see the documentation on User Roles and Responsibilities.</p>
+            </div>
+        </a>
+
+        <a class="card" href="workflow">
+            <div class="card_image image3">
+            </div>
+            <div class="card_text">
+                <h2 class='card_title'>Workflow</h2>
+                <p>Click here to see the documentation on MedPerf Benchmarking Workflow.</p>
+            </div>
+        </a>
+
+    </div>
+</div>
+
+<div class="shelf last_shelf">
+    <h1>Tutorials</h1>
+    <div class="cards_container">
+
+        <a class="card" href="getting_started/benchmark_owner_demo/">
+            <div class="card_image image1">
+            </div>
+            <div class="card_text">
+                <h2 class='card_title'>Benchmark Owner</h2>
+                <p>Click here to see the documentation specifically for benchmark owners.</p>
+            </div>
+        </a>
+
+        <a class="card" href="getting_started/model_owner_demo/">
+            <div class="card_image image2">
+            </div>
+            <div class="card_text">
+                <h2 class='card_title'>Model Owner</h2>
+                <p>Click here to see the documentation specifically for model owners.</p>
+            </div>
+        </a>
+
+        <a class="card" href="getting_started/data_owner_demo/">
+            <div class="card_image image3">
+            </div>
+            <div class="card_text">
+                <h2 class='card_title'>Data Owner</h2>
+                <p>Click here to see the documentation specifically for data owners.</p>
+            </div>
+        </a>
+
+    </div>
+</div>
+
+
+
+{% endblock %}
+{% block content %}{% endblock %}
+{% block footer %}{% endblock %}

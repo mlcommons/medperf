@@ -1,0 +1,1925 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://medperf.com/getting_started/webui_cc_tutorial/">
+      
+      
+        <link rel="prev" href="../webui_training/">
+      
+      
+        <link rel="next" href="../../containers/containers/">
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.18">
+    
+    
+      
+        <title>Confidential Computing Tutorial (WebUI) - MedPerf</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.26e3688c.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ecc896b0.min.css">
+      
+      
+  
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+  
+  <style>:root{--md-admonition-icon--note:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M1 7.775V2.75C1 1.784 1.784 1 2.75 1h5.025c.464 0 .91.184 1.238.513l6.25 6.25a1.75 1.75 0 0 1 0 2.474l-5.026 5.026a1.75 1.75 0 0 1-2.474 0l-6.25-6.25A1.752 1.752 0 0 1 1 7.775Zm1.5 0c0 .066.026.13.073.177l6.25 6.25a.25.25 0 0 0 .354 0l5.025-5.025a.25.25 0 0 0 0-.354l-6.25-6.25a.25.25 0 0 0-.177-.073H2.75a.25.25 0 0 0-.25.25ZM6 5a1 1 0 1 1 0 2 1 1 0 0 1 0-2Z"/></svg>');--md-admonition-icon--abstract:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M2.5 1.75v11.5c0 .138.112.25.25.25h3.17a.75.75 0 0 1 0 1.5H2.75A1.75 1.75 0 0 1 1 13.25V1.75C1 .784 1.784 0 2.75 0h8.5C12.216 0 13 .784 13 1.75v7.736a.75.75 0 0 1-1.5 0V1.75a.25.25 0 0 0-.25-.25h-8.5a.25.25 0 0 0-.25.25Zm13.274 9.537v-.001l-4.557 4.45a.75.75 0 0 1-1.055-.008l-1.943-1.95a.75.75 0 0 1 1.062-1.058l1.419 1.425 4.026-3.932a.75.75 0 1 1 1.048 1.074ZM4.75 4h4.5a.75.75 0 0 1 0 1.5h-4.5a.75.75 0 0 1 0-1.5ZM4 7.75A.75.75 0 0 1 4.75 7h2a.75.75 0 0 1 0 1.5h-2A.75.75 0 0 1 4 7.75Z"/></svg>');--md-admonition-icon--info:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"/></svg>');--md-admonition-icon--tip:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M3.499.75a.75.75 0 0 1 1.5 0v.996C5.9 2.903 6.793 3.65 7.662 4.376l.24.202c-.036-.694.055-1.422.426-2.163C9.1.873 10.794-.045 12.622.26 14.408.558 16 1.94 16 4.25c0 1.278-.954 2.575-2.44 2.734l.146.508.065.22c.203.701.412 1.455.476 2.226.142 1.707-.4 3.03-1.487 3.898C11.714 14.671 10.27 15 8.75 15h-6a.75.75 0 0 1 0-1.5h1.376a4.484 4.484 0 0 1-.563-1.191 3.835 3.835 0 0 1-.05-2.063 4.647 4.647 0 0 1-2.025-.293.75.75 0 0 1 .525-1.406c1.357.507 2.376-.006 2.698-.318l.009-.01a.747.747 0 0 1 1.06 0 .748.748 0 0 1-.012 1.074c-.912.92-.992 1.835-.768 2.586.221.74.745 1.337 1.196 1.621H8.75c1.343 0 2.398-.296 3.074-.836.635-.507 1.036-1.31.928-2.602-.05-.603-.216-1.224-.422-1.93l-.064-.221c-.12-.407-.246-.84-.353-1.29a2.425 2.425 0 0 1-.507-.441 3.075 3.075 0 0 1-.633-1.248.75.75 0 0 1 1.455-.364c.046.185.144.436.31.627.146.168.353.305.712.305.738 0 1.25-.615 1.25-1.25 0-1.47-.95-2.315-2.123-2.51-1.172-.196-2.227.387-2.706 1.345-.46.92-.27 1.774.019 3.062l.042.19a.884.884 0 0 1 .01.05c.348.443.666.949.94 1.553a.75.75 0 1 1-1.365.62c-.553-1.217-1.32-1.94-2.3-2.768L6.7 5.527c-.814-.68-1.75-1.462-2.692-2.619a3.737 3.737 0 0 0-1.023.88c-.406.495-.663 1.036-.722 1.508.116.122.306.21.591.239.388.038.797-.06 1.032-.19a.75.75 0 0 1 .728 1.31c-.515.287-1.23.439-1.906.373-.682-.067-1.473-.38-1.879-1.193L.75 5.677V5.5c0-.984.48-1.94 1.077-2.664.46-.559 1.05-1.055 1.673-1.353V.75Z"/></svg>');--md-admonition-icon--success:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"/></svg>');--md-admonition-icon--question:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.92 6.085h.001a.749.749 0 1 1-1.342-.67c.169-.339.436-.701.849-.977C6.845 4.16 7.369 4 8 4a2.756 2.756 0 0 1 1.637.525c.503.377.863.965.863 1.725 0 .448-.115.83-.329 1.15-.205.307-.47.513-.692.662-.109.072-.22.138-.313.195l-.006.004a6.24 6.24 0 0 0-.26.16.952.952 0 0 0-.276.245.75.75 0 0 1-1.248-.832c.184-.264.42-.489.692-.661.103-.067.207-.132.313-.195l.007-.004c.1-.061.182-.11.258-.161a.969.969 0 0 0 .277-.245C8.96 6.514 9 6.427 9 6.25a.612.612 0 0 0-.262-.525A1.27 1.27 0 0 0 8 5.5c-.369 0-.595.09-.74.187a1.01 1.01 0 0 0-.34.398ZM9 11a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"/></svg>');--md-admonition-icon--warning:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575Zm1.763.707a.25.25 0 0 0-.44 0L1.698 13.132a.25.25 0 0 0 .22.368h12.164a.25.25 0 0 0 .22-.368Zm.53 3.996v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0ZM9 11a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"/></svg>');--md-admonition-icon--failure:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M2.344 2.343h-.001a8 8 0 0 1 11.314 11.314A8.002 8.002 0 0 1 .234 10.089a8 8 0 0 1 2.11-7.746Zm1.06 10.253a6.5 6.5 0 1 0 9.108-9.275 6.5 6.5 0 0 0-9.108 9.275ZM6.03 4.97 8 6.94l1.97-1.97a.749.749 0 0 1 1.275.326.749.749 0 0 1-.215.734L9.06 8l1.97 1.97a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215L8 9.06l-1.97 1.97a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734L6.94 8 4.97 6.03a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018Z"/></svg>');--md-admonition-icon--danger:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M9.504.43a1.516 1.516 0 0 1 2.437 1.713L10.415 5.5h2.123c1.57 0 2.346 1.909 1.22 3.004l-7.34 7.142a1.249 1.249 0 0 1-.871.354h-.302a1.25 1.25 0 0 1-1.157-1.723L5.633 10.5H3.462c-1.57 0-2.346-1.909-1.22-3.004L9.503.429Zm1.047 1.074L3.286 8.571A.25.25 0 0 0 3.462 9H6.75a.75.75 0 0 1 .694 1.034l-1.713 4.188 6.982-6.793A.25.25 0 0 0 12.538 7H9.25a.75.75 0 0 1-.683-1.06l2.008-4.418.003-.006a.036.036 0 0 0-.004-.009l-.006-.006-.008-.001c-.003 0-.006.002-.009.004Z"/></svg>');--md-admonition-icon--bug:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M4.72.22a.75.75 0 0 1 1.06 0l1 .999a3.488 3.488 0 0 1 2.441 0l.999-1a.748.748 0 0 1 1.265.332.75.75 0 0 1-.205.729l-.775.776c.616.63.995 1.493.995 2.444v.327c0 .1-.009.197-.025.292.408.14.764.392 1.029.722l1.968-.787a.75.75 0 0 1 .556 1.392L13 7.258V9h2.25a.75.75 0 0 1 0 1.5H13v.5c0 .409-.049.806-.141 1.186l2.17.868a.75.75 0 0 1-.557 1.392l-2.184-.873A4.997 4.997 0 0 1 8 16a4.997 4.997 0 0 1-4.288-2.427l-2.183.873a.75.75 0 0 1-.558-1.392l2.17-.868A5.036 5.036 0 0 1 3 11v-.5H.75a.75.75 0 0 1 0-1.5H3V7.258L.971 6.446a.75.75 0 0 1 .558-1.392l1.967.787c.265-.33.62-.583 1.03-.722a1.677 1.677 0 0 1-.026-.292V4.5c0-.951.38-1.814.995-2.444L4.72 1.28a.75.75 0 0 1 0-1.06Zm.53 6.28a.75.75 0 0 0-.75.75V11a3.5 3.5 0 1 0 7 0V7.25a.75.75 0 0 0-.75-.75ZM6.173 5h3.654A.172.172 0 0 0 10 4.827V4.5a2 2 0 1 0-4 0v.327c0 .096.077.173.173.173Z"/></svg>');--md-admonition-icon--example:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M5 5.782V2.5h-.25a.75.75 0 0 1 0-1.5h6.5a.75.75 0 0 1 0 1.5H11v3.282l3.666 5.76C15.619 13.04 14.543 15 12.767 15H3.233c-1.776 0-2.852-1.96-1.899-3.458Zm-2.4 6.565a.75.75 0 0 0 .633 1.153h9.534a.75.75 0 0 0 .633-1.153L12.225 10.5h-8.45ZM9.5 2.5h-3V6c0 .143-.04.283-.117.403L4.73 9h6.54L9.617 6.403A.746.746 0 0 1 9.5 6Z"/></svg>');--md-admonition-icon--quote:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M1.75 2.5h10.5a.75.75 0 0 1 0 1.5H1.75a.75.75 0 0 1 0-1.5Zm4 5h8.5a.75.75 0 0 1 0 1.5h-8.5a.75.75 0 0 1 0-1.5Zm0 5h8.5a.75.75 0 0 1 0 1.5h-8.5a.75.75 0 0 1 0-1.5ZM2.5 7.75v6a.75.75 0 0 1-1.5 0v-6a.75.75 0 0 1 1.5 0Z"/></svg>');}</style>
+
+
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../styles/styles.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+
+  <script id="__analytics">function __md_analytics(){function n(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],n("js",new Date),n("config","G-QNE8JMYY88"),document.addEventListener("DOMContentLoaded",function(){document.forms.search&&document.forms.search.query.addEventListener("blur",function(){this.value&&n("event","search",{search_term:this.value})}),document$.subscribe(function(){var a=document.forms.feedback;if(void 0!==a)for(var e of a.querySelectorAll("[type=submit]"))e.addEventListener("click",function(e){e.preventDefault();var t=document.location.pathname,e=this.getAttribute("data-md-value");n("event","feedback",{page:t,data:e}),a.firstElementChild.disabled=!0;e=a.querySelector(".md-feedback__note [data-md-value='"+e+"']");e&&(e.hidden=!1)}),a.hidden=!1}),location$.subscribe(function(e){n("config","G-QNE8JMYY88",{page_path:e.pathname})})});var e=document.createElement("script");e.async=!0,e.src="https://www.googletagmanager.com/gtag/js?id=G-QNE8JMYY88",document.getElementById("__analytics").insertAdjacentElement("afterEnd",e)}</script>
+
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="indigo">
+  
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&"object"==typeof palette.color)for(var key of Object.keys(palette.color))document.body.setAttribute("data-md-color-"+key,palette.color[key])</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#confidential-federated-evaluation-tutorial-webui-version" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      <!--
+  Copyright (c) 2016-2022 Martin Donath <martin.donath@squidfunk.com>
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to
+  deal in the Software without restriction, including without limitation the
+  rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+  sell copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+  IN THE SOFTWARE.
+-->
+
+<!-- Determine class according to configuration -->
+
+
+
+<!-- Header -->
+<header class="md-header" data-md-component="header">
+  <nav
+    class="md-header__inner md-grid"
+    aria-label=""
+  >
+
+    <!-- Link to home -->
+    <a
+      href="../.."
+      title="MedPerf"
+      class="md-header__button md-logo"
+      aria-label="MedPerf"
+      data-md-component="logo"
+    >
+      
+  <img src="../../assets/logo.png" alt="logo">
+
+    </a>
+
+    <!-- Button to open drawer -->
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+
+    <!-- Header title -->
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MedPerf
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            MedPerf
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Color palette -->
+    
+      <form class="md-header__option" data-md-component="palette">
+        
+          
+          
+          <input
+            class="md-option"
+            data-md-color-media="(prefers-color-scheme: light)"
+            data-md-color-scheme="default"
+            data-md-color-primary="teal"
+            data-md-color-accent=""
+            
+              aria-label="Switch to dark mode"
+            
+            type="radio"
+            name="__palette"
+            id="__palette_1"
+          />
+          
+            <label
+              class="md-header__button md-icon"
+              title="Switch to dark mode"
+              for="__palette_2"
+              hidden
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 6H7c-3.31 0-6 2.69-6 6s2.69 6 6 6h10c3.31 0 6-2.69 6-6s-2.69-6-6-6zm0 10H7c-2.21 0-4-1.79-4-4s1.79-4 4-4h10c2.21 0 4 1.79 4 4s-1.79 4-4 4zM7 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+            </label>
+          
+        
+          
+          
+          <input
+            class="md-option"
+            data-md-color-media="(prefers-color-scheme: dark)"
+            data-md-color-scheme="slate"
+            data-md-color-primary="teal"
+            data-md-color-accent=""
+            
+              aria-label="Switch to light mode"
+            
+            type="radio"
+            name="__palette"
+            id="__palette_2"
+          />
+          
+            <label
+              class="md-header__button md-icon"
+              title="Switch to light mode"
+              for="__palette_1"
+              hidden
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5m0 8a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3Z"/></svg>
+            </label>
+          
+        
+      </form>
+    
+
+    <!-- Site language selector -->
+    
+
+    <!-- Button to open search modal -->
+    
+
+    <!-- Repository information -->
+    
+      <div class="md-header__source">
+        <a href="https://github.com/mlcommons/medperf" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    mlcommons/medperf
+  </div>
+</a>
+      </div>
+    
+  </nav>
+
+  <!-- Navigation tabs (sticky) -->
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="MedPerf" class="md-nav__button md-logo" aria-label="MedPerf" data-md-component="logo">
+      
+  <img src="../../assets/logo.png" alt="logo">
+
+    </a>
+    MedPerf
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/mlcommons/medperf" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    mlcommons/medperf
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../what_is_medperf/" class="md-nav__link">
+        What is Medperf?
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roles/" class="md-nav__link">
+        Benchmark Roles
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../workflow/" class="md-nav__link">
+        Benchmark Workflow
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../medperf_components/" class="md-nav__link">
+        Components
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+          GETTING STARTED
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_5">
+          <span class="md-nav__icon md-icon"></span>
+          GETTING STARTED
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../signup/" class="md-nav__link">
+        Create an Account
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation/" class="md-nav__link">
+        Installation
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../setup/" class="md-nav__link">
+        Setup
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+      
+      
+      
+        <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+          TUTORIAL
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+        <label class="md-nav__title" for="__nav_6">
+          <span class="md-nav__icon md-icon"></span>
+          TUTORIAL
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials_overview/" class="md-nav__link">
+        Introduction
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../benchmark_owner_demo/" class="md-nav__link">
+        Bechmark Committee
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../model_owner_demo/" class="md-nav__link">
+        Model Owners
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data_owner_demo/" class="md-nav__link">
+        Data Owners
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../webui_full_tutorial/" class="md-nav__link">
+        Full Tutorial (WebUI)
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../webui_training/" class="md-nav__link">
+        Training Tutorial (WebUI)
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Confidential Computing Tutorial (WebUI)
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Confidential Computing Tutorial (WebUI)
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    Overview
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#google-cloud-setup" class="md-nav__link">
+    Google Cloud Setup
+  </a>
+  
+    <nav class="md-nav" aria-label="Google Cloud Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#create-the-model-owner-resources" class="md-nav__link">
+    Create the Model Owner Resources
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#create-the-data-owner-resources" class="md-nav__link">
+    Create the Data Owner Resources
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#install-google-cloud-cli-on-your-machine" class="md-nav__link">
+    Install google cloud CLI on your machine
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#medperf-setup" class="md-nav__link">
+    MedPerf setup
+  </a>
+  
+    <nav class="md-nav" aria-label="MedPerf setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prepare-the-local-medperf-server" class="md-nav__link">
+    Prepare the Local MedPerf Server
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#download-the-necessary-files" class="md-nav__link">
+    Download the Necessary files
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run-medperf-webui-local-client" class="md-nav__link">
+    Run Medperf WebUI Local client
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configure-the-client" class="md-nav__link">
+    Configure the client
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#about-the-tutorial" class="md-nav__link">
+    About the tutorial
+  </a>
+  
+    <nav class="md-nav" aria-label="About the tutorial">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#outline" class="md-nav__link">
+    Outline
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#benchmark-script" class="md-nav__link">
+    Benchmark script
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-benchmark-owner-register-the-containers-and-the-benchmark" class="md-nav__link">
+    1. Benchmark Owner: Register the containers and the benchmark
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Benchmark Owner: Register the containers and the benchmark">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#defining-the-benchmark-components" class="md-nav__link">
+    Defining the benchmark components
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#register-the-data-preparator-container" class="md-nav__link">
+    Register the Data Preparator Container
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#register-the-reference-model-inference-container" class="md-nav__link">
+    Register the Reference Model Inference Container
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#register-the-metrics-container" class="md-nav__link">
+    Register the Metrics Container
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#register-the-benchmark" class="md-nav__link">
+    Register the benchmark
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-model-owner-register-a-model" class="md-nav__link">
+    2. Model Owner: Register a model
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Model Owner: Register a model">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#register-your-model" class="md-nav__link">
+    Register your model
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-model-owner-request-participation-in-the-benchmark" class="md-nav__link">
+    3. Model Owner: Request participation in the benchmark
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-data-owner-get-and-submit-a-certificate" class="md-nav__link">
+    4. Data Owner: Get and submit a certificate
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-data-owner-register-a-dataset" class="md-nav__link">
+    5. Data Owner: Register a dataset
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-data-owner-run-data-preparation-and-set-operational" class="md-nav__link">
+    6. Data Owner: Run data preparation and set operational
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-data-owner-request-participation" class="md-nav__link">
+    7. Data Owner: Request participation
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-benchmark-owner-approve-the-participation-requests" class="md-nav__link">
+    8. Benchmark Owner: Approve the participation requests
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-model-owner-configure-the-model-for-confidential-computing" class="md-nav__link">
+    9. Model Owner: Configure the model for confidential computing
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-data-owner-configure-the-dataset-for-confidential-computing" class="md-nav__link">
+    10. Data Owner: Configure the dataset for confidential computing
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-data-owner-set-up-the-confidential-computing-operator" class="md-nav__link">
+    11. Data Owner: Set up the confidential computing operator
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-data-owner-run-the-benchmark" class="md-nav__link">
+    12. Data Owner: Run the benchmark
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-data-owner-submit-the-results" class="md-nav__link">
+    13. Data Owner: Submit the results
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-benchmark-owner-view-the-results" class="md-nav__link">
+    14. Benchmark Owner: View the results
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#15-cleanup-resources" class="md-nav__link">
+    15. Cleanup resources
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+          ADVANCED CONCEPTS
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_7">
+          <span class="md-nav__icon md-icon"></span>
+          ADVANCED CONCEPTS
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_1" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_7_1" id="__nav_7_1_label" tabindex="0">
+          Containers
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_1_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_7_1">
+          <span class="md-nav__icon md-icon"></span>
+          Containers
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../containers/containers/" class="md-nav__link">
+        MedPerf-compatible Containers
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/auth/" class="md-nav__link">
+        Authentication
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/container_components/" class="md-nav__link">
+        Container Components
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/hosting_files/" class="md-nav__link">
+        Hosting Files
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/import_export_data/" class="md-nav__link">
+        Transferring to another Machine
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/encrypted_models/" class="md-nav__link">
+        Encrypted Models
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/certificates/" class="md-nav__link">
+        Certificates
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/confidential_computing/" class="md-nav__link">
+        Confidential Computing
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    Overview
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#google-cloud-setup" class="md-nav__link">
+    Google Cloud Setup
+  </a>
+  
+    <nav class="md-nav" aria-label="Google Cloud Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#create-the-model-owner-resources" class="md-nav__link">
+    Create the Model Owner Resources
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#create-the-data-owner-resources" class="md-nav__link">
+    Create the Data Owner Resources
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#install-google-cloud-cli-on-your-machine" class="md-nav__link">
+    Install google cloud CLI on your machine
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#medperf-setup" class="md-nav__link">
+    MedPerf setup
+  </a>
+  
+    <nav class="md-nav" aria-label="MedPerf setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prepare-the-local-medperf-server" class="md-nav__link">
+    Prepare the Local MedPerf Server
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#download-the-necessary-files" class="md-nav__link">
+    Download the Necessary files
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run-medperf-webui-local-client" class="md-nav__link">
+    Run Medperf WebUI Local client
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configure-the-client" class="md-nav__link">
+    Configure the client
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#about-the-tutorial" class="md-nav__link">
+    About the tutorial
+  </a>
+  
+    <nav class="md-nav" aria-label="About the tutorial">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#outline" class="md-nav__link">
+    Outline
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#benchmark-script" class="md-nav__link">
+    Benchmark script
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-benchmark-owner-register-the-containers-and-the-benchmark" class="md-nav__link">
+    1. Benchmark Owner: Register the containers and the benchmark
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Benchmark Owner: Register the containers and the benchmark">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#defining-the-benchmark-components" class="md-nav__link">
+    Defining the benchmark components
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#register-the-data-preparator-container" class="md-nav__link">
+    Register the Data Preparator Container
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#register-the-reference-model-inference-container" class="md-nav__link">
+    Register the Reference Model Inference Container
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#register-the-metrics-container" class="md-nav__link">
+    Register the Metrics Container
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#register-the-benchmark" class="md-nav__link">
+    Register the benchmark
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-model-owner-register-a-model" class="md-nav__link">
+    2. Model Owner: Register a model
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Model Owner: Register a model">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#register-your-model" class="md-nav__link">
+    Register your model
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-model-owner-request-participation-in-the-benchmark" class="md-nav__link">
+    3. Model Owner: Request participation in the benchmark
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-data-owner-get-and-submit-a-certificate" class="md-nav__link">
+    4. Data Owner: Get and submit a certificate
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-data-owner-register-a-dataset" class="md-nav__link">
+    5. Data Owner: Register a dataset
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-data-owner-run-data-preparation-and-set-operational" class="md-nav__link">
+    6. Data Owner: Run data preparation and set operational
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-data-owner-request-participation" class="md-nav__link">
+    7. Data Owner: Request participation
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-benchmark-owner-approve-the-participation-requests" class="md-nav__link">
+    8. Benchmark Owner: Approve the participation requests
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-model-owner-configure-the-model-for-confidential-computing" class="md-nav__link">
+    9. Model Owner: Configure the model for confidential computing
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-data-owner-configure-the-dataset-for-confidential-computing" class="md-nav__link">
+    10. Data Owner: Configure the dataset for confidential computing
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-data-owner-set-up-the-confidential-computing-operator" class="md-nav__link">
+    11. Data Owner: Set up the confidential computing operator
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-data-owner-run-the-benchmark" class="md-nav__link">
+    12. Data Owner: Run the benchmark
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-data-owner-submit-the-results" class="md-nav__link">
+    13. Data Owner: Submit the results
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-benchmark-owner-view-the-results" class="md-nav__link">
+    14. Benchmark Owner: View the results
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#15-cleanup-resources" class="md-nav__link">
+    15. Cleanup resources
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+<h1 id="confidential-federated-evaluation-tutorial-webui-version">Confidential Federated Evaluation Tutorial (WebUI version)<a class="headerlink" href="#confidential-federated-evaluation-tutorial-webui-version" title="Permanent link">&para;</a></h1>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>This tutorial simulates the scenario running a confidential model on a dataset in a confidential VM. There are three roles that you will play in this tutorial:</p>
+<ul>
+<li>
+<p>Benchmark owner: an entity that will define the benchmark by implementing a data preparation container, an inference container, and a metrics container. A dataset participating in the benchmark will run these three stages sequentially: data preparation, then inference, and finally metrics calculation. The inference will happen on the cloud in a confidential VM, while the data preparation and the metrics will happen on-prem. The inference container will take as an input the data owner's dataset and the model owner's model weights.</p>
+</li>
+<li>
+<p>Model owner: an entity that owns sensitive pretrained model weights and wishes to benchmark them.</p>
+</li>
+<li>Data owner: an entity that owns senstitive clinical dataset and wishes to run a benchmark on it.</li>
+</ul>
+<p>In addition to these roles, you will play the role of the data owner's organization cloud admin and the model owner's organization cloud admin, since you will be setting up the necessary google cloud resources. <strong>Note that running this tutorial requires you to use google cloud with billing enabled, so this will cost some money.</strong></p>
+<h2 id="google-cloud-setup">Google Cloud Setup<a class="headerlink" href="#google-cloud-setup" title="Permanent link">&para;</a></h2>
+<p>We assume that you already have a google cloud account, you have set up a google cloud project, and you have full privileges on the project. We recommend that you use a separate new project for this tutorial, so that cleanup can be easy (i.e., deleting the resources at the end). You will be playing the two roles of being a GCP admin for the model owner and also the GCP admin for the data owner. You can use the same GCP project ID for both in this tutorial, or you can use two separate projects; it is up to you. However, if you choose to not use the same project, you will need to alternate between projects throughout the tutorial. So it is recommended to use one project for simplicity.</p>
+<h3 id="create-the-model-owner-resources">Create the Model Owner Resources<a class="headerlink" href="#create-the-model-owner-resources" title="Permanent link">&para;</a></h3>
+<p>You will now play the role of the model owner cloud administrator.</p>
+<ol>
+<li>Read <a href="https://github.com/mlcommons/medperf/tree/main/examples/cc/admin_scripts/README_model_admin.md">this file</a> to understand what you will be creating.</li>
+<li>Edit <a href="https://github.com/mlcommons/medperf/tree/main/examples/cc/admin_scripts/model_admin.sh">this script</a> to fill its configuration variables with correct information.</li>
+<li>Open a cloud shell in your google cloud console and run the edited script.</li>
+<li>The script will print at the end some configuration variables summary. Save these somewhere; you will be using them in a later step.</li>
+</ol>
+<h3 id="create-the-data-owner-resources">Create the Data Owner Resources<a class="headerlink" href="#create-the-data-owner-resources" title="Permanent link">&para;</a></h3>
+<p>You will now play the role of the data owner cloud administrator.</p>
+<ol>
+<li>Read <a href="https://github.com/mlcommons/medperf/tree/main/examples/cc/admin_scripts/README_data_admin.md">this file</a> to understand what you will be creating.</li>
+<li>Edit <a href="https://github.com/mlcommons/medperf/tree/main/examples/cc/admin_scripts/data_admin_cpu.sh">this script</a> to fill its configuration variables with correct information.</li>
+<li>Open a cloud shell in your google cloud console and run the edited script.</li>
+<li>The script will print at the end some configuration variables summary. Save these somewhere; you will be using them in a later step.</li>
+</ol>
+<p><strong>Make sure you don't use the same resources you used for the model owner.</strong></p>
+<h3 id="install-google-cloud-cli-on-your-machine">Install google cloud CLI on your machine<a class="headerlink" href="#install-google-cloud-cli-on-your-machine" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Install the gcloud CLI (<a href="https://docs.cloud.google.com/sdk/docs/install-sdk#latest-version">https://docs.cloud.google.com/sdk/docs/install-sdk#latest-version</a>). Follow only the two sections about installing the CLI and initializing google cloud.</li>
+<li>Run <code>gcloud auth list</code> and make sure your account is active (an asterisk should be next to your account email)</li>
+<li>Set the project ID by running the command <code>gcloud config set project PROJECT_ID</code> where <code>PROJECT_ID</code> is the project ID you got from your cloud admin.</li>
+<li>Run the following command <code>gcloud auth application-default login</code> and follow the required steps.</li>
+</ol>
+<p><strong>Note that if you chose to use two separate projects for this tutorial, you will need to run steps 3 and 4 again when you switch between the model owner and the data owner users.</strong></p>
+<p>Next, you will be setting up MedPerf.</p>
+<h2 id="medperf-setup">MedPerf setup<a class="headerlink" href="#medperf-setup" title="Permanent link">&para;</a></h2>
+<p>To start experimenting with MedPerf through this tutorial on your local machine, you need to start by following these quick steps:</p>
+<ol>
+<li><strong><a href="../installation">Install Medperf</a></strong></li>
+<li><strong><a href="../setup">Set up Medperf</a></strong></li>
+</ol>
+<h3 id="prepare-the-local-medperf-server">Prepare the Local MedPerf Server<a class="headerlink" href="#prepare-the-local-medperf-server" title="Permanent link">&para;</a></h3>
+<p>For the purpose of the tutorial, you have to initialize a local MedPerf server with a fresh database and then create the necessary entities that you will be interacting with. To do so, run the following: (make sure you are in MedPerf's root folder)</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nb">cd</span><span class="w"> </span>server
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>sh<span class="w"> </span>reset_db.sh
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>python<span class="w"> </span>seed.py<span class="w"> </span>--demo<span class="w"> </span>benchmark
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="nb">cd</span><span class="w"> </span>..
+</span></code></pre></div>
+<h3 id="download-the-necessary-files">Download the Necessary files<a class="headerlink" href="#download-the-necessary-files" title="Permanent link">&para;</a></h3>
+<p>A script is provided to download all the necessary files so that you follow the tutorial smoothly. Run the following: (make sure you are in MedPerf's root folder)</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>sh<span class="w"> </span>tutorials_scripts/setup_webui_cc_tutorial.sh
+</span></code></pre></div>
+<p>This will create a workspace folder <code>medperf_tutorial</code> where all necessary files are downloaded.</p>
+<h3 id="run-medperf-webui-local-client">Run Medperf WebUI Local client<a class="headerlink" href="#run-medperf-webui-local-client" title="Permanent link">&para;</a></h3>
+<p>In your terminal, run the following command to start the local webUI:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>medperf_webui
+</span></code></pre></div>
+<p>You will see a long URL in the terminal. Click on the URL (CTRL + Click) to open the web UI in the browser.</p>
+<h3 id="configure-the-client">Configure the client<a class="headerlink" href="#configure-the-client" title="Permanent link">&para;</a></h3>
+<p>Navigate to the settings page and change the <code>profile</code> to <code>local</code>. This way, the client will communicate with the local MedPerf server for tutorial's sake rather than the real MedPerf server.</p>
+<h2 id="about-the-tutorial">About the tutorial<a class="headerlink" href="#about-the-tutorial" title="Permanent link">&para;</a></h2>
+<h3 id="outline">Outline<a class="headerlink" href="#outline" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Benchmark Owner: Register the benchmark components, then register the benchmark.</li>
+<li>Model Owner: Register a model (weights).</li>
+<li>Model Owner: Request participation in the benchmark.</li>
+<li>Data Owner: Get and submit a certificate.</li>
+<li>Data Owner: Register a dataset, prepare it, and set it operational.</li>
+<li>Data Owner: Request participation.</li>
+<li>Benchmark Owner: Approve the participation requests.</li>
+<li>Model Owner: Configure the model for confidential computing.</li>
+<li>Data Owner: Configure the dataset for confidential computing.</li>
+<li>Data Owner: Set up the confidential computing operator.</li>
+<li>Data Owner: Run the benchmark and submit the results.</li>
+<li>Benchmark Owner: View the results.</li>
+</ol>
+<p>The tutorial components are located in your workspace under <code>medperf_tutorial</code>:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>medperf_tutorial/
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>├── data_preparator/                          # Data preparation container
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>├── cc_chestxray/                             # Confidential VM inference container
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>├── metrics/                                  # Metrics container (scores predictions locally)
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>├── sample_raw_data/                          # Raw chest X-ray data (images + labels)
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>└── cnn_weights.tar.gz                        # Model owner&#39;s weights tarball
+</span></code></pre></div>
+<h3 id="benchmark-script">Benchmark script<a class="headerlink" href="#benchmark-script" title="Permanent link">&para;</a></h3>
+<p>The benchmark inference container is the script that runs inside the confidential VM. As a benchmark owner, you build it from a template so that it conforms to the interface MedPerf expects (it receives the input data, the input labels, and the model files, and writes its output to a results directory).</p>
+<p>For this tutorial you do not need to build anything. A ready-made implementation is provided at <code>medperf_tutorial/cc_chestxray</code> and is what will be used in the walkthrough below.</p>
+<h2 id="1-benchmark-owner-register-the-containers-and-the-benchmark">1. Benchmark Owner: Register the containers and the benchmark<a class="headerlink" href="#1-benchmark-owner-register-the-containers-and-the-benchmark" title="Permanent link">&para;</a></h2>
+<p>First, login as the benchmark owner:</p>
+<ul>
+<li>Navigate to the <code>Login</code> page and use the email <code>testbo@example.com</code>.</li>
+</ul>
+<h3 id="defining-the-benchmark-components">Defining the benchmark components<a class="headerlink" href="#defining-the-benchmark-components" title="Permanent link">&para;</a></h3>
+<p>The benchmark is built from three components:</p>
+<ul>
+<li>
+<p><strong>Data Preparator Container:</strong> Transforms raw data into a format ready to be ingested by the model. In this tutorial it turns chest X-ray images and labels into numpy arrays. Its implementation is in <code>medperf_tutorial/data_preparator</code>.</p>
+</li>
+<li>
+<p><strong>Reference Model Inference Container:</strong> The container that runs inside the confidential VM. It loads model weights, runs inference on the data, and outputs predictions. This is the container implemented in <code>medperf_tutorial/cc_chestxray</code>.</p>
+</li>
+<li>
+<p><strong>Metrics Container:</strong> An evaluator container that runs locally to score the predictions produced by the VM against the ground-truth labels (computing Accuracy and AUC). Its implementation is in <code>medperf_tutorial/metrics</code>.</p>
+</li>
+</ul>
+<h3 id="register-the-data-preparator-container">Register the Data Preparator Container<a class="headerlink" href="#register-the-data-preparator-container" title="Permanent link">&para;</a></h3>
+<p>Navigate to the <code>Containers</code> tab at the top, and click on the <code>Register a New Container</code> button.</p>
+<p>For the Data Preparator container, fill in:</p>
+<ul>
+<li>A container name, e.g. <code>cc-prep</code>.</li>
+<li>
+<p>The path to the container configuration file (type it or use <code>Browse</code>):</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>medperf_tutorial/data_preparator/container_config.yaml
+</span></code></pre></div>
+</li>
+<li>
+<p>The path to the parameters file:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>medperf_tutorial/data_preparator/workspace/parameters.yaml
+</span></code></pre></div>
+</li>
+</ul>
+<p>Leave <code>Additional Files URL</code> empty, keep <code>Not Encrypted</code> selected, and click <code>Register container</code>.</p>
+<h3 id="register-the-reference-model-inference-container">Register the Reference Model Inference Container<a class="headerlink" href="#register-the-reference-model-inference-container" title="Permanent link">&para;</a></h3>
+<p>The reference model inference container is the inference script that will run inside the confidential VM.</p>
+<p>Navigate to the <code>Containers</code> tab at the top, and click on the <code>Register a New Container</code> button.</p>
+<p>Fill in:</p>
+<ul>
+<li>A container name, e.g. <code>cc-inference-script</code>.</li>
+<li>
+<p>The path to the container configuration file:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>medperf_tutorial/cc_chestxray/container_config_modelonly.yaml
+</span></code></pre></div>
+</li>
+</ul>
+<p>Leave <code>Parameters File</code> empty, <code>Additional Files URL</code> empty, keep <code>Not Encrypted</code> selected, and click <code>Register container</code>.</p>
+<h3 id="register-the-metrics-container">Register the Metrics Container<a class="headerlink" href="#register-the-metrics-container" title="Permanent link">&para;</a></h3>
+<p>Navigate back to the <code>Containers</code> tab, and click on the <code>Register a New Container</code> button.</p>
+<p>For the metrics container, fill in:</p>
+<ul>
+<li>A container name, e.g. <code>cc-metrics</code>.</li>
+<li>
+<p>The path to the container configuration file:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>medperf_tutorial/metrics/container_config.yaml
+</span></code></pre></div>
+</li>
+<li>
+<p>The path to the parameters file:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>medperf_tutorial/metrics/workspace/parameters.yaml
+</span></code></pre></div>
+</li>
+</ul>
+<p>Leave <code>Additional Files URL</code> empty, keep <code>Not Encrypted</code> selected, and click <code>Register container</code>.</p>
+<h3 id="register-the-benchmark">Register the benchmark<a class="headerlink" href="#register-the-benchmark" title="Permanent link">&para;</a></h3>
+<p>Navigate to the <code>Benchmarks</code> tab at the top, and click on the <code>Register Benchmark</code> button.</p>
+<p>Fill in the form:</p>
+<ul>
+<li>Select <code>Skip Compatibility Tests</code>.</li>
+<li><strong>Benchmark Name</strong>: e.g. <code>cc-bmk</code>.</li>
+<li><strong>Description</strong>: e.g. <code>CC benchmark test</code>.</li>
+<li><strong>Data Preparation Container</strong>: select <code>cc-prep</code> from the dropdown.</li>
+<li><strong>Reference Model</strong>: select <code>cc-inference-script</code> from the dropdown.</li>
+<li><strong>Metrics Container</strong>: select <code>cc-metrics</code> from the dropdown.</li>
+</ul>
+<p>Click <code>Register Benchmark</code>.</p>
+<h2 id="2-model-owner-register-a-model">2. Model Owner: Register a model<a class="headerlink" href="#2-model-owner-register-a-model" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Logout (via the user icon at the top right), then login with the email <code>testmo@example.com</code> to login as the model owner.</li>
+</ul>
+<p>As the model owner, you contribute a confidential model as a set of <strong>weights</strong> registered as an asset. These weights are loaded into the benchmark's inference script container when it runs inside the confidential VM. In this tutorial, the weights tarball is available locally in your workspace at <code>medperf_tutorial/cnn_weights.tar.gz</code>.</p>
+<h3 id="register-your-model">Register your model<a class="headerlink" href="#register-your-model" title="Permanent link">&para;</a></h3>
+<p>Navigate to the <code>Models</code> tab at the top, and click on the <code>Register a New Asset Model</code> button.</p>
+<p>Fill in:</p>
+<ul>
+<li>An asset name, e.g. <code>cc-mobilenet-weights</code>.</li>
+<li>Select <code>Local Asset</code>.</li>
+<li>
+<p>In the <code>Asset Path</code> field, enter (or <code>Browse</code> to) the path to your weights tarball:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>medperf_tutorial/cnn_weights.tar.gz
+</span></code></pre></div>
+</li>
+</ul>
+<p>Click <code>Register</code>.</p>
+<h2 id="3-model-owner-request-participation-in-the-benchmark">3. Model Owner: Request participation in the benchmark<a class="headerlink" href="#3-model-owner-request-participation-in-the-benchmark" title="Permanent link">&para;</a></h2>
+<p>You must request to associate your model with the benchmark in order to be part of it.</p>
+<p>Navigate to the <code>Models</code> tab, open your model's detail page (<code>cc-mobilenet-weights</code>), and click on the <code>Associate with Benchmark</code> button. In the dropdown, find the target benchmark (<code>cc-bmk</code>) and click <code>Request</code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The benchmark owner will need to approve this request (in step 8) before your model can be run.</p>
+</div>
+<h2 id="4-data-owner-get-and-submit-a-certificate">4. Data Owner: Get and submit a certificate<a class="headerlink" href="#4-data-owner-get-and-submit-a-certificate" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Logout, then login with the email <code>testdo@example.com</code> to login as the data owner.</li>
+</ul>
+<p>Confidential computing uses a certificate to identify you and to secure the predictions the confidential VM produces for you. The VM encrypts the predictions with your public key, and only you can decrypt them with your private key. You only need to do this once.</p>
+<ol>
+<li>Navigate to the <code>Settings</code> page by clicking on the user icon at the top right.</li>
+<li>Scroll down to the <code>Certificate Settings</code> section.</li>
+<li>Click <code>Get User Certificate</code> and follow the prompts. The status will change to <code>to be uploaded</code>.</li>
+<li>Click <code>Submit Certificate</code> to upload it to the MedPerf server.</li>
+</ol>
+<h2 id="5-data-owner-register-a-dataset">5. Data Owner: Register a dataset<a class="headerlink" href="#5-data-owner-register-a-dataset" title="Permanent link">&para;</a></h2>
+<p>Navigate to the <code>Datasets</code> tab at the top, and click on the <code>Register a New Dataset</code> button.</p>
+<p>You will be registering the dataset located at <code>medperf_tutorial/sample_raw_data</code>. Fill in:</p>
+<ul>
+<li><strong>Select Benchmark</strong>: choose the benchmark you want to participate in (<code>cc-bmk</code>). This ensures your data will be prepared using the benchmark's data preparation container.</li>
+<li><strong>Dataset Name</strong>: e.g. <code>cc_dataset_a</code>.</li>
+<li><strong>Description</strong>: e.g. <code>CC mock dataset a</code>.</li>
+<li><strong>Location</strong>: e.g. <code>mock-location-a</code> (for example, a hospital name).</li>
+<li>
+<p><strong>Data Folder</strong>: the path to the data records:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>medperf_tutorial/sample_raw_data/images
+</span></code></pre></div>
+</li>
+<li>
+<p><strong>Labels Folder</strong>: the path to the labels:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>medperf_tutorial/sample_raw_data/labels
+</span></code></pre></div>
+</li>
+</ul>
+<p>Leave <code>Submit as Prepared</code> off, then click <code>Register Dataset</code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You will be submitting general information about the data, not the data itself.</p>
+</div>
+<h2 id="6-data-owner-run-data-preparation-and-set-operational">6. Data Owner: Run data preparation and set operational<a class="headerlink" href="#6-data-owner-run-data-preparation-and-set-operational" title="Permanent link">&para;</a></h2>
+<p>Open your dataset's detail page. In the <code>Actions</code> section:</p>
+<ol>
+<li>Click the <code>Prepare</code> button. This runs data preprocessing and sanity checks locally.</li>
+<li>Once preparation completes, click the <code>Set operational</code> button to mark your dataset as ready for benchmarking. This also uploads some statistics calculated on the dataset according to the benchmark owner's requirement (here, the number of cases and the label counts).</li>
+</ol>
+<h2 id="7-data-owner-request-participation">7. Data Owner: Request participation<a class="headerlink" href="#7-data-owner-request-participation" title="Permanent link">&para;</a></h2>
+<p>Still on your dataset's detail page, in the <code>Actions</code> section, click the <code>Associate with benchmark</code> button. In the dropdown, find <code>cc-bmk</code> and click <code>Request</code>.</p>
+<p>You won't be able to run the benchmark until the benchmark owner approves your association request.</p>
+<h2 id="8-benchmark-owner-approve-the-participation-requests">8. Benchmark Owner: Approve the participation requests<a class="headerlink" href="#8-benchmark-owner-approve-the-participation-requests" title="Permanent link">&para;</a></h2>
+<p>Logout, then login as the benchmark owner (<code>testbo@example.com</code>). Navigate to your benchmark's detail page (<code>cc-bmk</code>).</p>
+<ul>
+<li>Expand the <code>Datasets Associations</code> panel and approve the request from the data owner.</li>
+<li>Expand the <code>Models Associations</code> panel and approve the request from the model owner.</li>
+</ul>
+<h2 id="9-model-owner-configure-the-model-for-confidential-computing">9. Model Owner: Configure the model for confidential computing<a class="headerlink" href="#9-model-owner-configure-the-model-for-confidential-computing" title="Permanent link">&para;</a></h2>
+<p>Logout, then login as the model owner (<code>testmo@example.com</code>). Open your model's detail page (<code>cc-mobilenet-weights</code>) and scroll down to the <code>Confidential Computing Preferences</code> section.</p>
+<ol>
+<li>Turn on the <code>Configure model for Confidential Computing</code> toggle.</li>
+<li>
+<p>Fill in the cloud environment information your cloud administrator gave you (the values produced by <code>model_admin.sh</code> in the setup section. The ones below are just examples.):</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Example value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GCP Project ID</td>
+<td><code>proj30914</code></td>
+</tr>
+<tr>
+<td>GCP Project Number</td>
+<td><code>819939352708</code></td>
+</tr>
+<tr>
+<td>GCP Bucket Name</td>
+<td><code>model-owner-bucket-medperf</code></td>
+</tr>
+<tr>
+<td>GCP KMS Keyring Name</td>
+<td><code>model-owner-keyring</code></td>
+</tr>
+<tr>
+<td>GCP KMS Key Name</td>
+<td><code>model-owner-key</code></td>
+</tr>
+<tr>
+<td>GCP KMS Key Location</td>
+<td><code>us-west1</code></td>
+</tr>
+<tr>
+<td>GCP Workload Identity Pool Name</td>
+<td><code>model-owner-wip</code></td>
+</tr>
+<tr>
+<td>GCP Workload Identity Pool Provider</td>
+<td><code>attestation-verifier</code></td>
+</tr>
+</tbody>
+</table>
+</li>
+<li>
+<p>Click <code>Configure</code>.</p>
+</li>
+<li>A <code>Sync CC policy</code> button will appear. Click it to publish your model's confidential computing policy to the server.</li>
+</ol>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This step encrypts the model weights, uploads them to your cloud resources, and defines the policy that the confidential VM must satisfy before the weights can be decrypted.</p>
+</div>
+<h2 id="10-data-owner-configure-the-dataset-for-confidential-computing">10. Data Owner: Configure the dataset for confidential computing<a class="headerlink" href="#10-data-owner-configure-the-dataset-for-confidential-computing" title="Permanent link">&para;</a></h2>
+<p>Logout, then login as the data owner (<code>testdo@example.com</code>). Open your dataset's detail page (<code>cc_dataset_a</code>) and scroll down to the <code>Confidential Computing Preferences</code> section.</p>
+<ol>
+<li>Turn on the <code>Configure dataset for Confidential Computing</code> toggle.</li>
+<li>
+<p>Fill in the cloud environment information your cloud administrator gave you ( part of the values produced by <code>data_admin_cpu.sh</code> in the setup section. The ones below are just examples.):</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Example value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GCP Project ID</td>
+<td><code>proj30914</code></td>
+</tr>
+<tr>
+<td>GCP Project Number</td>
+<td><code>819939352708</code></td>
+</tr>
+<tr>
+<td>GCP Bucket Name</td>
+<td><code>data-owner-bucket-medperf-cc</code></td>
+</tr>
+<tr>
+<td>GCP KMS Keyring Name</td>
+<td><code>data-owner-keyring</code></td>
+</tr>
+<tr>
+<td>GCP KMS Key Name</td>
+<td><code>data-owner-key2</code></td>
+</tr>
+<tr>
+<td>GCP KMS Key Location</td>
+<td><code>us-west1</code></td>
+</tr>
+<tr>
+<td>GCP Workload Identity Pool Name</td>
+<td><code>data-owner-wip</code></td>
+</tr>
+<tr>
+<td>GCP Workload Identity Pool Provider</td>
+<td><code>attestation-verifier</code></td>
+</tr>
+</tbody>
+</table>
+</li>
+<li>
+<p>Click <code>Configure</code>.</p>
+</li>
+<li>Click the <code>Sync CC policy</code> button that appears.</li>
+</ol>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This step encrypts the data, uploads them to your cloud resources, and defines the policy that the confidential VM must satisfy before the data can be decrypted.</p>
+</div>
+<h2 id="11-data-owner-set-up-the-confidential-computing-operator">11. Data Owner: Set up the confidential computing operator<a class="headerlink" href="#11-data-owner-set-up-the-confidential-computing-operator" title="Permanent link">&para;</a></h2>
+<p>The data owner also acts as the <strong>operator</strong> who owns the confidential VM where the execution runs.</p>
+<ol>
+<li>Navigate to the <code>Settings</code> page (user icon at the top right).</li>
+<li>Scroll down to the <code>Confidential Computing Operator Settings</code> section.</li>
+<li>Turn on the <code>Configure Confidential Computing</code> toggle.</li>
+<li>
+<p>Fill in the operator information your cloud administrator gave you (Part of the values produced by <code>data_admin_cpu.sh</code> in the setup section. The ones below are just examples.):</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Example value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GCP Project ID</td>
+<td><code>proj30914</code></td>
+</tr>
+<tr>
+<td>GCP Service Account Name</td>
+<td><code>cc-workload-operator</code></td>
+</tr>
+<tr>
+<td>GCP Bucket Name</td>
+<td><code>data-owner-bucket-medperf-cc</code></td>
+</tr>
+<tr>
+<td>VM Zone</td>
+<td><code>us-west1-b</code></td>
+</tr>
+<tr>
+<td>VM Name</td>
+<td><code>testvm</code></td>
+</tr>
+</tbody>
+</table>
+</li>
+<li>
+<p>Click <code>Configure</code>.</p>
+</li>
+</ol>
+<h2 id="12-data-owner-run-the-benchmark">12. Data Owner: Run the benchmark<a class="headerlink" href="#12-data-owner-run-the-benchmark" title="Permanent link">&para;</a></h2>
+<p>Navigate to the <code>Datasets</code> tab and open your dataset's detail page (<code>cc_dataset_a</code>). Scroll down to the section for the approved benchmark (<code>cc-bmk</code>), where the associated models are listed.</p>
+<p>Each confidential model shows a <code>Confidential Computing Model</code> label together with a <code>Ready</code> / <code>Not Ready</code> status. After completing steps 9–11, the model should be <code>Ready</code>.</p>
+<p>Click the <code>Run</code> button next to a model to launch the confidential execution. Behind the scenes, MedPerf:</p>
+<ol>
+<li>Starts the confidential VM, which attests itself and, if the policies are satisfied, is allowed to decrypt the model weights and your data.</li>
+<li>Runs the reference inference container inside the VM to produce <strong>predictions</strong>.</li>
+<li>Encrypts the predictions with your public key and uploads them; your machine downloads and decrypts them.</li>
+<li>Runs the <code>cc-metrics</code> container <strong>locally</strong> to score the predictions and produce the metrics.</li>
+</ol>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If a model shows <code>Not Ready</code>, hover over the status to see what is missing (for example, the model's or dataset's CC policy has not been synced yet, or the operator is not configured).</p>
+</div>
+<h2 id="13-data-owner-submit-the-results">13. Data Owner: Submit the results<a class="headerlink" href="#13-data-owner-submit-the-results" title="Permanent link">&para;</a></h2>
+<p>Once an execution finishes, a <code>View Result</code> button appears so you can inspect the metrics locally. When you are ready to share them, click the <code>Submit</code> button next to the model to upload the result to the MedPerf server, so that the benchmark owner can view it.</p>
+<h2 id="14-benchmark-owner-view-the-results">14. Benchmark Owner: View the results<a class="headerlink" href="#14-benchmark-owner-view-the-results" title="Permanent link">&para;</a></h2>
+<p>Logout, then login as the benchmark owner (<code>testbo@example.com</code>). Navigate to your benchmark's detail page (<code>cc-bmk</code>) and expand the <code>Results</code> panel to see the submitted results.</p>
+<h2 id="15-cleanup-resources">15. Cleanup resources<a class="headerlink" href="#15-cleanup-resources" title="Permanent link">&para;</a></h2>
+<p><strong>Make sure you delete all resources you created on google cloud to avoid additional costs.</strong></p>
+<p><strong>This concludes our tutorial!</strong></p>
+
+
+  
+
+
+
+  <form class="md-feedback" name="feedback" hidden>
+    <fieldset>
+      <legend class="md-feedback__title">
+        Was this page helpful?
+      </legend>
+      <div class="md-feedback__inner">
+        <div class="md-feedback__list">
+          
+            <button class="md-feedback__icon md-icon" type="submit" title="This page was helpful" data-md-value="1">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M5 9v12H1V9h4m4 12a2 2 0 0 1-2-2V9c0-.55.22-1.05.59-1.41L14.17 1l1.06 1.06c.27.27.44.64.44 1.05l-.03.32L14.69 8H21a2 2 0 0 1 2 2v2c0 .26-.05.5-.14.73l-3.02 7.05C19.54 20.5 18.83 21 18 21H9m0-2h9.03L21 12v-2h-8.79l1.13-5.32L9 9.03V19Z"/></svg>
+            </button>
+          
+            <button class="md-feedback__icon md-icon" type="submit" title="This page could be improved" data-md-value="0">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 15V3h4v12h-4M15 3a2 2 0 0 1 2 2v10c0 .55-.22 1.05-.59 1.41L9.83 23l-1.06-1.06c-.27-.27-.44-.64-.44-1.06l.03-.31.95-4.57H3a2 2 0 0 1-2-2v-2c0-.26.05-.5.14-.73l3.02-7.05C4.46 3.5 5.17 3 6 3h9m0 2H5.97L3 12v2h8.78l-1.13 5.32L15 14.97V5Z"/></svg>
+            </button>
+          
+        </div>
+        <div class="md-feedback__note">
+          
+            <div data-md-value="1" hidden>
+              
+              
+                
+              
+              Thanks for your feedback!
+            </div>
+          
+            <div data-md-value="0" hidden>
+              
+              
+                
+              
+              Thanks for your feedback! Help us improve this page by using our <a href="https://github.com/mlcommons/medperf/issues/new?title=[Feedback]+Confidential%20Computing%20Tutorial%20%28WebUI%29+-+/getting_started/webui_cc_tutorial/" target="_blank" rel="noopener">feedback form</a>.
+            </div>
+          
+        </div>
+      </div>
+    </fieldset>
+  </form>
+
+
+                
+              </article>
+            </div>
+          
+          
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["search.suggest", "search.highlight", "search.share", "content.code.annotate", "content.code.copy", "navigation.sections"], "search": "../../assets/javascripts/workers/search.74e28a9f.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.220ee61c.min.js"></script>
+      
+        
+          <script src="../../scripts/script.js"></script>
+        
+      
+    
+  </body>
+</html>
