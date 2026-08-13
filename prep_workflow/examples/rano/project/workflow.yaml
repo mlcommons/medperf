@@ -1,0 +1,85 @@
+# RANO data-preparation control graph (in-container). Per-subject stages fan out
+# and pipeline independently; a human-review branch can loop (wait), roll back, or
+# proceed; barriers join all subjects; a manual-approval gate precedes the final
+# consolidation.
+max_workers: 4
+
+steps:
+  - id: setup
+    step: Setup
+    per_subject: false
+    next: make_csv
+
+  - id: make_csv
+    step: MakeCsv
+    per_subject: true
+    next: convert_nifti
+
+  - id: convert_nifti
+    step: ConvertNifti
+    per_subject: true
+    next: brain_extraction
+
+  - id: brain_extraction
+    step: BrainExtraction
+    per_subject: true
+    limit: 2
+    next: tumor_extraction
+
+  - id: tumor_extraction
+    step: TumorExtraction
+    per_subject: true
+    limit: 2
+    next: manual_review
+
+  - id: manual_review
+    step: PrepareForReview
+    per_subject: true
+    next:
+      if:
+        - condition: AnnotationDone
+          target: segmentation_comparison
+        - condition: BrainMaskChanged
+          target: rollback
+      else: manual_review        # wait for the annotator, then re-check
+      wait: 60
+    on_error: stop
+
+  - id: rollback
+    step: Rollback
+    per_subject: true
+    next: brain_extraction       # cycle: re-extract with the corrected brain mask
+
+  - id: segmentation_comparison
+    step: SegmentationComparison
+    per_subject: true
+    next: calculate_changed_voxels
+
+  - id: calculate_changed_voxels
+    step: CalculateChangedVoxels
+    per_subject: false           # barrier: waits for every subject
+    next: final_confirmation
+
+  - id: final_confirmation
+    type: manual_approval        # blocks until the approval marker appears
+    next: move_labeled_files
+
+  - id: move_labeled_files
+    step: MoveLabeledFiles
+    per_subject: false
+    next: consolidate
+
+  - id: consolidate
+    step: Consolidate
+    per_subject: false
+    next: sanity_check
+
+  - id: sanity_check
+    step: SanityCheck
+    per_subject: false
+    next: statistics
+
+  - id: statistics
+    step: Statistics
+    per_subject: false
+    next: null

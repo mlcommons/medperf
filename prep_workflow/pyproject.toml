@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "prep-workflow"
+version = "0.1.0"
+description = "In-container workflow orchestrator for MedPerf multi-step data preparation"
+requires-python = ">=3.9"
+dependencies = ["PyYAML>=5.4"]
+
+[project.optional-dependencies]
+test = ["pytest>=7.0"]
+
+[tool.setuptools.packages.find]
+include = ["prep_workflow*"]
+
+[project.scripts]
+prep-workflow = "prep_workflow.main:main"

@@ -100,11 +100,6 @@ def configurable(func: Callable) -> Callable:
             "--prepare_timeout",
             help="Maximum time in seconds before interrupting prepare task",
         ),
-        sanity_check_timeout: int = typer.Option(
-            config.sanity_check_timeout,
-            "--sanity_check_timeout",
-            help="Maximum time in seconds before interrupting sanity_check task",
-        ),
         statistics_timeout: int = typer.Option(
             config.statistics_timeout,
             "--statistics_timeout",
@@ -185,11 +180,6 @@ def add_inline_parameters(func: Callable) -> Callable:
             config.prepare_timeout,
             "--prepare_timeout",
             help="Maximum time in seconds before interrupting prepare task",
-        ),
-        sanity_check_timeout: int = typer.Option(
-            config.sanity_check_timeout,
-            "--sanity_check_timeout",
-            help="Maximum time in seconds before interrupting sanity_check task",
         ),
         statistics_timeout: int = typer.Option(
             config.statistics_timeout,

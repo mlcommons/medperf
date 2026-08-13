@@ -1,0 +1,64 @@
+# HEMnet histopathology pipeline. Slides are registered as subjects, then each
+# flows through the per-subject registration/masking/tiling stages in parallel;
+# barrier steps normalise up front and consolidate/clean up at the end.
+max_workers: 4
+
+steps:
+  - id: setup
+    step: DiscoverSlides
+    per_subject: false
+    next: create_normalisation
+
+  - id: create_normalisation
+    step: CreateNormalisation
+    per_subject: false
+    next: image_registration
+
+  - id: image_registration
+    step: ImageRegistration
+    per_subject: true
+    next: affine_registration
+
+  - id: affine_registration
+    step: AffineRegistration
+    per_subject: true
+    limit: 1
+    next: bspline_registration
+
+  - id: bspline_registration
+    step: BsplineRegistration
+    per_subject: true
+    limit: 1
+    next: generate_masks
+
+  - id: generate_masks
+    step: GenerateMasks
+    per_subject: true
+    limit: 2
+    next: save_tiles
+
+  - id: save_tiles
+    step: SaveTiles
+    per_subject: true
+    limit: 2
+    next: consolidate_metrics
+
+  - id: consolidate_metrics
+    step: ConsolidateMetrics
+    per_subject: false
+    next: cleanup
+
+  - id: cleanup
+    step: Cleanup
+    per_subject: false
+    next: sanity_check
+
+  - id: sanity_check
+    step: SanityCheck
+    per_subject: false
+    next: statistics
+
+  - id: statistics
+    step: Statistics
+    per_subject: false
+    next: null
