@@ -1,5 +1,7 @@
 import logging
 import threading
+from collections import deque
+from datetime import datetime
 from typing import Optional
 
 from fastapi import APIRouter, Depends, Form, Request
@@ -29,6 +31,33 @@ from medperf.web_ui.listing import fetch_listing_page
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
+
+
+def _auto_access_key(model_id: int, benchmark_id: int) -> str:
+    return f"{model_id}-{benchmark_id}"
+
+
+def _format_auto_access_log_line(message: str) -> str:
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    return f"[{timestamp}] {message}"
+
+
+def _running_auto_access_for_container(
+    model_auto_give_access: dict, container_id: int
+) -> dict:
+    running = {}
+    for key, state in model_auto_give_access.items():
+        try:
+            model_id_str, benchmark_id_str = key.split("-", 1)
+            if int(model_id_str) == container_id:
+                running[int(benchmark_id_str)] = {
+                    "name": state["name"],
+                    "emails": state["emails"],
+                    "interval": state["interval"],
+                }
+        except (ValueError, IndexError):
+            continue
+    return running
 
 
 @router.get("/ui", response_class=HTMLResponse)
@@ -219,6 +248,14 @@ def container_access_ui(
             if cert_id in certs_mapping:
                 existing_keys[key_id] = certs_mapping[cert_id]
 
+    running_auto_access = _running_auto_access_for_container(
+        request.app.state.model_auto_give_access, container_id
+    )
+    running_benchmarks = [
+        {"id": benchmark_id, "name": state["name"]}
+        for benchmark_id, state in running_auto_access.items()
+    ]
+
     return templates.TemplateResponse(
         "container/container_access.html",
         {
@@ -228,6 +265,8 @@ def container_access_ui(
             "is_owner": is_owner,
             "benchmark_allowed_ids": benchmark_allowed_ids,
             "keys": existing_keys,
+            "running_auto_access": running_auto_access,
+            "running_benchmarks": running_benchmarks,
         },
     )
 
@@ -237,7 +276,7 @@ def grant_access(
     request: Request,
     benchmark_id: int = Form(...),
     model_id: int = Form(...),
-    emails: str = Form(...),
+    emails: str = Form(""),
     current_user: bool = Depends(check_user_api),
 ):
 
@@ -266,19 +305,23 @@ def grant_access(
 
 
 def grant_access_worker(
-    benchmark_id, model_id, emails, interval, stop_event: threading.Event
+    benchmark_id, model_id, emails, interval, stop_event: threading.Event, logs: deque
 ):
     interval_in_seconds = interval * 60
     while not stop_event.is_set():
         try:
-            GrantAccess.run(
-                benchmark_id=benchmark_id,
-                model_id=model_id,
-                emails=emails,
-                approved=True,
-            )
-        except Exception:
-            pass
+            with config.ui.capture() as messages:
+                GrantAccess.run(
+                    benchmark_id=benchmark_id,
+                    model_id=model_id,
+                    approved=True,
+                    allowed_emails=emails,
+                )
+        except Exception as exp:
+            messages.append(f"Error: {exp}")
+            logger.exception(exp)
+        for message in messages:
+            logs.append(_format_auto_access_log_line(message))
         if stop_event.wait(interval_in_seconds):
             break
 
@@ -289,26 +332,36 @@ def start_auto_access(
     benchmark_id: int = Form(...),
     model_id: int = Form(...),
     interval: int = Form(...),
-    emails: str = Form(...),
+    emails: str = Form(""),
     current_user: bool = Depends(check_user_api),
 ):
-    if request.app.state.model_auto_give_access["running"]:
-        bmk = request.app.state.model_auto_give_access["benchmark"]
-        model = request.app.state.model_auto_give_access["model"]
+    model_auto_give_access = request.app.state.model_auto_give_access
+    key = _auto_access_key(model_id, benchmark_id)
+    if key in model_auto_give_access:
         return {
             "status": "failed",
-            "error": f"Auto give access is already running for benchmark: {bmk}, model: {model}",
+            "error": "Auto give access is already running for the selected container and benchmark.",
         }
 
     return_response = {"status": "", "error": ""}
     try:
+        benchmark_name = Benchmark.get(benchmark_id).name
         event = threading.Event()
+        logs = deque(maxlen=config.webui_max_log_messages)
         auto_access_worker = threading.Thread(
             target=grant_access_worker,
-            args=(benchmark_id, model_id, emails, interval, event),
+            args=(benchmark_id, model_id, emails, interval, event, logs),
             daemon=True,
         )
         auto_access_worker.start()
+        model_auto_give_access[key] = {
+            "worker": auto_access_worker,
+            "event": event,
+            "name": benchmark_name,
+            "emails": emails,
+            "interval": interval,
+            "logs": logs,
+        }
         return_response["status"] = "success"
         notification_message = "Successfully started automatic grant access."
     except Exception as exp:
@@ -322,16 +375,6 @@ def start_auto_access(
         return_response=return_response,
         url=f"/containers/ui/display/{model_id}/access",
     )
-
-    request.app.state.model_auto_give_access = {
-        "running": True,
-        "worker": auto_access_worker,
-        "event": event,
-        "benchmark": benchmark_id,
-        "model": model_id,
-        "emails": emails,
-        "interval": interval,
-    }
     return return_response
 
 
@@ -339,9 +382,12 @@ def start_auto_access(
 def stop_auto_access(
     request: Request,
     model_id: int = Form(...),
+    benchmark_id: int = Form(...),
     current_user: bool = Depends(check_user_api),
 ):
-    if not request.app.state.model_auto_give_access["running"]:
+    model_auto_give_access = request.app.state.model_auto_give_access
+    key = _auto_access_key(model_id, benchmark_id)
+    if key not in model_auto_give_access:
         return {
             "status": "failed",
             "error": "Auto give access is not started, nothing to stop.",
@@ -349,8 +395,9 @@ def stop_auto_access(
 
     return_response = {"status": "", "error": ""}
     try:
-        request.app.state.model_auto_give_access["event"].set()
-        request.app.state.model_auto_give_access["worker"].join()
+        model_auto_give_access[key]["event"].set()
+        model_auto_give_access[key]["worker"].join()
+        del model_auto_give_access[key]
         return_response["status"] = "success"
         notification_message = "Successfully stopped automatic grant access."
     except Exception as exp:
@@ -364,18 +411,26 @@ def stop_auto_access(
         return_response=return_response,
         url=f"/containers/ui/display/{model_id}/access",
     )
-
-    request.app.state.model_auto_give_access = {
-        "running": False,
-        "worker": None,
-        "event": None,
-        "benchmark": 0,
-        "model": 0,
-        "emails": "",
-        "interval": 0,
-    }
-
     return return_response
+
+
+@router.get("/auto_access_logs", response_class=JSONResponse)
+def auto_access_logs(
+    request: Request,
+    model_id: int,
+    benchmark_id: int,
+    current_user: bool = Depends(check_user_api),
+):
+    model_auto_give_access = request.app.state.model_auto_give_access
+    key = _auto_access_key(model_id, benchmark_id)
+    if key not in model_auto_give_access:
+        return {
+            "status": "failed",
+            "error": "Auto give access is not running for the selected container and benchmark.",
+            "logs": [],
+        }
+
+    return {"status": "success", "error": "", "logs": list(model_auto_give_access[key]["logs"])}
 
 
 @router.post("/revoke_user_access", response_class=JSONResponse)

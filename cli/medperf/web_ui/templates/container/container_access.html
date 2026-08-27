@@ -3,14 +3,6 @@
 {% block title %}Manage Container Access{% endblock %}
 
 {% block detail_panel %}
-{% set auto_access_running = request.app.state.model_auto_give_access["running"] %}
-{% set auto_access_for_this_model = auto_access_running and request.app.state.model_auto_give_access["model"] == entity.id %}
-{% if auto_access_for_this_model %}
-    {% set selected_benchmark = request.app.state.model_auto_give_access["benchmark"] %}
-    {% set selected_interval = request.app.state.model_auto_give_access["interval"] %}
-    {% set selected_emails = request.app.state.model_auto_give_access["emails"] %}
-{% endif %}
-
 <div class="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
     <a href="/containers/ui/display/{{ entity.id }}" class="text-muted-fg hover:underline">← Back to Container Details</a>
     <h1 class="text-2xl font-bold mt-4 text-ink">Manage Access | {{ entity_name }}</h1>
@@ -44,9 +36,18 @@
         </div>
     </form>
 
-    <div class="bg-card dark:bg-card rounded-2xl p-6 shadow-lg border-2 border-border-brand dark:border-border mb-6">
+    <div id="auto-access-panel" class="bg-card dark:bg-card rounded-2xl p-6 shadow-lg border-2 border-border-brand dark:border-border mb-6" data-model-id="{{ entity.id }}" data-running-auto-access='{{ running_auto_access | tojson }}'>
         <h3 class="text-lg font-bold text-ink mb-2">Automatic Access</h3>
         <p class="text-muted-fg mb-4">Automatically grant access to new data owners associated to a benchmark.</p>
+        {% if running_benchmarks %}
+        <p class="text-sm text-muted-fg mb-4">Currently running for:
+            {% for benchmark in running_benchmarks %}
+            <a href="/benchmarks/ui/display/{{ benchmark.id }}" class="font-bold text-brand-accent hover:underline">{{ benchmark.name }}</a>{% if not loop.last %}, {% endif %}
+            {% endfor %}
+        </p>
+        <p class="text-sm text-muted-fg mb-4">Note: select the benchmark below to stop it or view its logs.</p>
+        {% endif %}
+
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
                 <label for="benchmark-auto" class="block text-secondary font-semibold mb-2">Benchmark</label>
@@ -55,28 +56,26 @@
                 {% set input_id = "benchmark-auto" %}
                 {% set placeholder = "Search approved benchmarks…" %}
                 {% set allowed_ids = benchmark_allowed_ids %}
-                {% set selected_value = selected_benchmark if auto_access_for_this_model else '' %}
-                {% set disabled = auto_access_for_this_model %}
+                {% set required = false %}
+                {% set disabled = task_running %}
                 {% include "partials/searchable_select.html" %}
             </div>
             <div>
                 <label for="interval-auto" class="block text-secondary font-semibold mb-2">Interval (minutes)</label>
-                <input type="number" id="interval-auto" class="w-full px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" min="5" max="60" value="{% if auto_access_for_this_model %}{{ selected_interval }}{% else %}5{% endif %}" {% if auto_access_for_this_model %}disabled{% endif %}>
+                <input type="number" id="interval-auto" class="w-full px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" min="5" max="60" value="5" disabled>
             </div>
         </div>
         <div class="mb-4" id="email-chip-container-auto">
             <label for="email-input-auto" class="block text-secondary font-semibold mb-2">Allow list emails</label>
-            <div class="email-container" id="allowed-email-list-auto" data-allowed-list='{% if auto_access_for_this_model %}{{ selected_emails }}{% else %}{}{% endif %}'>
-                <input type="text" name="emails" id="email-input-auto" class="email-input w-full px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink mt-2 focus:outline-none focus:border-brand-accent" placeholder="Type email then hit Enter, comma, or space" {% if task_running %}disabled{% endif %}>
+            <div class="email-container" id="allowed-email-list-auto" data-allowed-list='[]'>
+                <input type="text" name="emails" id="email-input-auto" class="email-input w-full px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink mt-2 focus:outline-none focus:border-brand-accent" placeholder="Type email then hit Enter, comma, or space" disabled>
             </div>
         </div>
-        <div class="text-center">
-            {% if auto_access_for_this_model %}
-            <button type="button" class="btn btn-danger step-btn" id="stop-auto-access-btn" data-model-id="{{ entity.id }}">Stop Automatic Access</button>
-            <span id="running-badge" class="px-3 py-1 rounded-full text-sm font-bold bg-success-muted text-success ml-3 align-middle inline-block">Running</span>
-            {% else %}
-            <button type="button" class="btn btn-info step-btn" id="start-auto-access-btn" data-model-id="{{ entity.id }}">Start Automatic Access</button>
-            {% endif %}
+        <div id="auto-access-actions" class="text-center hidden">
+            <button type="button" class="btn btn-info step-btn hidden" id="start-auto-access-btn" {% if task_running %}disabled{% endif %}>Start Automatic Access</button>
+            <button type="button" class="btn btn-danger step-btn hidden" id="stop-auto-access-btn" {% if task_running %}disabled{% endif %}>Stop Automatic Access</button>
+            <button type="button" class="btn btn-secondary step-btn hidden" id="view-auto-access-logs-btn">View Logs</button>
+            <span id="running-badge" class="hidden px-3 py-1 rounded-full text-sm font-bold bg-success-muted text-success ml-3 align-middle inline-block">Running</span>
         </div>
     </div>
 

@@ -1,3 +1,4 @@
+import threading
 from queue import Queue
 from contextlib import contextmanager
 from yaspin import yaspin
@@ -16,6 +17,39 @@ class WebUI(CLI):
         self.task_id = None
         self.events_manager = EventsManager()
         self.global_events_manager = GlobalEventsManager()
+        self._silenced = threading.local()
+
+    @property
+    def _is_silenced(self) -> bool:
+        return getattr(self._silenced, "value", False)
+
+    @property
+    def _captured_messages(self):
+        return getattr(self._silenced, "captured", None)
+
+    @contextmanager
+    def capture(self):
+        """Run a block without emitting task-log events or touching the
+        shared spinner/interactive state, scoped to the calling thread only,
+        collecting any messages that would have been emitted instead.
+
+        Used by background workers (e.g. the auto grant access worker) that
+        call into commands reporting progress via this UI, so they don't
+        get attributed to - or interrupt - whichever foreground task
+        currently owns the task-log stream, while still keeping a record of
+        what happened. Callers not interested in the messages can simply
+        ignore the yielded list.
+
+        Yields:
+            list[str]: messages emitted during the block, in arrival order.
+        """
+        self._silenced.value = True
+        self._silenced.captured = []
+        try:
+            yield self._silenced.captured
+        finally:
+            self._silenced.captured = None
+            self._silenced.value = False
 
     def print_error(self, msg: str):
         """Display an error message on the command line
@@ -37,6 +71,12 @@ class WebUI(CLI):
         self._print(msg, "warning")
 
     def _print(self, msg: str = "", type: str = "print"):
+        if self._is_silenced:
+            captured = self._captured_messages
+            if captured is not None:
+                captured.append(msg)
+            return
+
         if self.is_interactive:
             self.spinner.write(msg)
         else:
@@ -70,7 +110,10 @@ class WebUI(CLI):
         Yields:
             CLI: Yields the current CLI instance with an interactive session initialized
         """
-        if self.is_interactive:
+        if self._is_silenced:
+            # don't touch the shared spinner/interactive state
+            yield self
+        elif self.is_interactive:
             # if already interactive, do nothing
             yield self
         else:
@@ -96,6 +139,12 @@ class WebUI(CLI):
         """
         # if not self.is_interactive:
         #     self.print(msg)
+
+        if self._is_silenced:
+            captured = self._captured_messages
+            if captured is not None:
+                captured.append(msg)
+            return
 
         self.set_event(
             Event(

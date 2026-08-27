@@ -199,6 +199,7 @@ function showErrorModal(errorTitle, response) {
     var responseError = (response && response.error) || "";
     var responseStatus = (response && response.status) || "";
     var errorText = (responseError + (responseError ? "<br>" : "") + responseStatus).replace(/\n/g, "<br>");
+    if (!errorText) errorText = "Something went wrong. Please try again.";
     var modalBody = "<p id=\"error-text\" class=\"text-lg font-bold text-danger\">" + errorText + "</p><p class=\"text-end mt-3\"><button type=\"button\" class=\"btn btn-xs btn-secondary\" onclick=\"reloadPage();\">Click here to reload</button></p>";
     var modalFooter = "<button type=\"button\" class=\"btn btn-sm btn-danger close-modal-btn\">Hide</button>";
     showModal({ title: errorTitle, body: modalBody, footer: modalFooter });

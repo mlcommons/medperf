@@ -102,6 +102,12 @@ def logout(
     request: Request,
     current_user: bool = Depends(check_user_api),
 ):
+    if request.app.state.model_auto_give_access:
+        return {
+            "status": "failed",
+            "error": "Automatic grant access is currently running. Stop it before logging out.",
+        }
+
     initialize_state_task(request, task_name="medperf_logout")
     return_response = {"status": "", "error": ""}
 

@@ -6,8 +6,9 @@ from medperf.logging.utils import log_machine_details
 
 import typer
 from starlette.middleware.base import BaseHTTPMiddleware
-from fastapi import FastAPI, Request
-from fastapi.responses import RedirectResponse
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from medperf import config
@@ -91,15 +92,8 @@ def startup_event():
     # List of [schemas.Notification] will appear in the notifications tab
     web_app.state.notifications = []
 
-    # Container auto grant access initial values
-    web_app.state.model_auto_give_access = {
-        "running": False,
-        "worker": None,
-        "benchmark": 0,
-        "model": 0,
-        "emails": "",
-        "interval": 0,
-    }
+    # Dictionary for tracking auto give access status for each model and benchmark combination
+    web_app.state.model_auto_give_access = {}
 
     # Set default UI mode to evaluation on startup, will be updated by NavModeMiddleware on each request based on cookie
     web_app.state.ui_mode = UI_MODE_EVALUATION
@@ -127,6 +121,26 @@ def not_authenticated_exception_handler(
     request: Request, exc: NotAuthenticatedException
 ):
     return RedirectResponse(url=exc.redirect_url)
+
+
+@web_app.exception_handler(HTTPException)
+def http_exception_handler(request: Request, exc: HTTPException):
+    # Reshape into the {"status", "error"} format for consistency with other error responses,
+    # instead of FastAPI's default {"detail": ...} body.
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"status": "failed", "error": exc.detail},
+    )
+
+
+@web_app.exception_handler(RequestValidationError)
+def validation_exception_handler(request: Request, exc: RequestValidationError):
+    messages = []
+    for error in exc.errors():
+        field = ".".join(str(p) for p in error.get("loc", []) if p != "body")
+        messages.append(f"{field}: {error['msg']}" if field else error["msg"])
+    message = "\n".join(messages) if messages else "Invalid request data."
+    return JSONResponse(status_code=422, content={"status": "failed", "error": message})
 
 
 @web_app.get("/", include_in_schema=False)

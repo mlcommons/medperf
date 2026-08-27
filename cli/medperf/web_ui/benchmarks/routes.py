@@ -1,5 +1,7 @@
 import logging
 
+import anyio
+
 from fastapi import APIRouter, Depends, Form
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi import Request
@@ -288,11 +290,17 @@ def update_associations_policy(
     request: Request,
     benchmark_id: int = Form(...),
     dataset_mode: Optional[str] = Form(None),
-    dataset_emails: Optional[str] = Form(None),
     model_mode: Optional[str] = Form(None),
-    model_emails: Optional[str] = Form(None),
     current_user: bool = Depends(check_user_api),
 ):
+    # dataset_emails/model_emails are read from the raw form instead of via
+    # FastAPI's Form(None): an empty-string value there is indistinguishable
+    # from the field being absent, which breaks "explicitly clear the allow
+    # list" (as opposed to "the field wasn't part of this submission at all").
+    form_data = anyio.from_thread.run(lambda: request.form())
+    dataset_emails = form_data.get("dataset_emails")
+    model_emails = form_data.get("model_emails")
+
     initialize_state_task(request, task_name="update_associations_policy")
     return_response = {"status": "", "error": ""}
     try:
@@ -325,7 +333,7 @@ def update_associations_policy(
 def update_committee_members(
     request: Request,
     benchmark_id: int = Form(...),
-    committee_emails: Optional[str] = Form(None),
+    committee_emails: str = Form(""),
     current_user: bool = Depends(check_user_api),
 ):
     initialize_state_task(request, task_name="update_committee_members")

@@ -48,24 +48,23 @@ function showErrorToast(message) {
     showToast("Validation Error", message, "text-bg-danger");
 }
 
-function checkUpdateAssociationsPolicyForm() {
+function buildAssociationsPolicyConfirmMessage(message) {
     var datasetModeEl = document.getElementById("dataset-auto-approve-mode");
     var modelModeEl = document.getElementById("model-auto-approve-mode");
-    var datasetApproveMode = datasetModeEl ? datasetModeEl.value : "NEVER";
-    var modelApproveMode = modelModeEl ? modelModeEl.value : "NEVER";
-    var isDatasetValid = (datasetApproveMode === "NEVER" || datasetApproveMode === "ALWAYS");
-    var isModelValid = (modelApproveMode === "NEVER" || modelApproveMode === "ALWAYS");
-    if (!isDatasetValid) {
+    var warnings = [];
+    if (datasetModeEl && datasetModeEl.value === "ALLOWLIST") {
         var datasetAllowListArr = getEmailsList(document.getElementById("dataset-allow-list-emails"));
-        if (datasetAllowListArr.length) isDatasetValid = true;
-        else showErrorToast("Make sure that the dataset allow list is not empty");
+        if (!datasetAllowListArr.length) warnings.push("dataset");
     }
-    if (!isModelValid) {
+    if (modelModeEl && modelModeEl.value === "ALLOWLIST") {
         var modelAllowListArr = getEmailsList(document.getElementById("model-allow-list-emails"));
-        if (modelAllowListArr.length) isModelValid = true;
-        else showErrorToast("Make sure that the model allow list is not empty");
+        if (!modelAllowListArr.length) warnings.push("model");
     }
-    return isDatasetValid && isModelValid;
+    if (!warnings.length) return message;
+    var listWord = warnings.length > 1 ? "allow lists are" : "allow list is";
+    return message + " <strong>Note: the " + warnings.join(" and ") + " " + listWord + " empty " +
+        "- no " + warnings.join("/") + " associations will be auto-approved until " +
+        "you add emails.</strong>";
 }
 
 function onUpdateAssociationsPolicySuccess(response) {
@@ -168,7 +167,8 @@ function initBenchmarkDetail() {
 
     var savePolicyBtn = document.getElementById("save-policy-btn");
     if (savePolicyBtn) savePolicyBtn.addEventListener("click", function (e) {
-        if (checkUpdateAssociationsPolicyForm()) showConfirmModal(e.currentTarget, updateAssociationsPolicy, "update benchmark associations policy?");
+        var message = buildAssociationsPolicyConfirmMessage("update benchmark associations policy?");
+        showConfirmModal(e.currentTarget, updateAssociationsPolicy, message);
     });
 
     var saveCommitteeBtn = document.getElementById("save-committee-members-btn");

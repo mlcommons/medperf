@@ -61,6 +61,11 @@ class GrantAccess:
             f"registered in Benchmark (UID: {self.benchmark_id}) access to "
             "your Model.\n"
         )
+        if not self.allowed_emails:
+            msg += (
+                "No allow list was provided, so ALL eligible Data Owners will "
+                "be granted access (no email filtering).\n"
+            )
 
         if not self.approved and not approval_prompt(msg):
             raise CleanExit("Access granting operation cancelled")
@@ -104,7 +109,7 @@ class GrantAccess:
         self.cert_user_info = cert_user_info
 
     def filter_certificates(self):
-        if self.allowed_emails is None:
+        if not self.allowed_emails:
             return
         logging.debug("Filtering certificates based on allowed emails list")
         filtered_certificates = []
