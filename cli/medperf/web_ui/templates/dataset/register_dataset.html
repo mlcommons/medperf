@@ -15,8 +15,8 @@
 
     <form id="register-dataset-form" class="space-y-6" action="/datasets/register" method="post" data-panel-title="Registering dataset" data-confirm-message="register this dataset?">
         {% if request.app.state.ui_mode == request.app.state.EVALUATION_MODE %}
-        <div>
-            <label for="benchmark" class="block text-secondary font-semibold mb-2">Select Benchmark</label>
+        <div data-testid="dataset-register-evaluation-section">
+            <label data-testid="dataset-register-benchmark-label" for="benchmark" class="block text-secondary font-semibold mb-2">Select Benchmark</label>
             {% set entity_type = "benchmark" %}
             {% set input_name = "benchmark" %}
             {% set input_id = "benchmark" %}
@@ -28,8 +28,8 @@
             {% include "partials/searchable_select.html" %}
         </div>
         {% else %}
-        <div>
-            <label for="prep_cube_uid" class="block text-secondary font-semibold mb-2">Data Preparation Container</label>
+        <div data-testid="dataset-register-training-section">
+            <label data-testid="dataset-register-data-prep-label" for="prep_cube_uid" class="block text-secondary font-semibold mb-2">Data Preparation Container</label>
             <div class="flex flex-wrap items-stretch gap-2">
                 {% set entity_type = "container" %}
                 {% set container_type = "data-prep-container" %}

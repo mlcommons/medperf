@@ -14,7 +14,7 @@
     {% if required %}data-required="true"{% endif %}
     {% if extra_class %}data-extra-class="{{ extra_class }}"{% endif %}
 >
-    <input type="hidden" id="{{ input_id }}" {% if input_name %}name="{{ input_name }}"{% endif %} value="{{ selected_value | default('', true) }}">
+    <input type="hidden" id="{{ input_id }}" {% if input_name %}name="{{ input_name }}"{% endif %} value="{{ selected_value | default('', true) }}" {% if disabled %}disabled{% endif %}>
     <div class="searchable-select-control relative">
         <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-muted-fg" aria-hidden="true">
             <i class="fas fa-search text-sm"></i>

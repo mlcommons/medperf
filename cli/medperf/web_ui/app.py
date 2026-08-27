@@ -22,7 +22,6 @@ from medperf.web_ui.assets.routes import router as assets_router
 from medperf.web_ui.schemas import WebUITask
 from medperf.web_ui.training.routes import router as training_router
 from medperf.web_ui.aggregators.routes import router as aggregators_router
-from medperf.web_ui.yaml_fetch.routes import router as yaml_fetch_router
 from medperf.web_ui.api.routes import router as api_router
 from medperf.web_ui.security_check import router as login_router
 from medperf.web_ui.events import router as events_router
@@ -60,7 +59,6 @@ web_app.include_router(models_router, prefix="/models")
 web_app.include_router(assets_router, prefix="/assets")
 web_app.include_router(training_router, prefix="/training")
 web_app.include_router(aggregators_router, prefix="/aggregators")
-web_app.include_router(yaml_fetch_router)
 web_app.include_router(api_router, prefix="/api")
 web_app.include_router(login_router)
 web_app.include_router(events_router)

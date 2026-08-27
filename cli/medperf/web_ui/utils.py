@@ -69,7 +69,7 @@ def build_pagination_context(
 def get_container_type(container: Cube):
     # todo: use container parser.
     container_config = container.container_config
-    container_tasks = container_config.get("tasks", []).keys()
+    container_tasks = container_config.get("tasks", {}).keys()
 
     if "prepare" in container_tasks and "sanity_check" in container_tasks:
         return "data-prep-container"

@@ -19,14 +19,14 @@
                 </a>
                 <div class="hidden md:flex gap-6">
                     {% if is_training_mode %}
-                    <a href="/training/ui" class="nav-main-link {% if nav_training %}is-active{% endif %}">Experiments</a>
-                    <a href="/aggregators/ui" class="nav-main-link {% if nav_aggregators %}is-active{% endif %}">Aggregators</a>
+                    <a data-testid="navbar-link-experiments" href="/training/ui" class="nav-main-link {% if nav_training %}is-active{% endif %}">Experiments</a>
+                    <a data-testid="navbar-link-aggregators" href="/aggregators/ui" class="nav-main-link {% if nav_aggregators %}is-active{% endif %}">Aggregators</a>
                     {% else %}
-                    <a href="/benchmarks/ui" class="nav-main-link {% if nav_benchmarks %}is-active{% endif %}">Benchmarks</a>
-                    <a href="/models/ui" class="nav-main-link {% if nav_models %}is-active{% endif %}">Models</a>
+                    <a data-testid="navbar-link-benchmarks" href="/benchmarks/ui" class="nav-main-link {% if nav_benchmarks %}is-active{% endif %}">Benchmarks</a>
+                    <a data-testid="navbar-link-models" href="/models/ui" class="nav-main-link {% if nav_models %}is-active{% endif %}">Models</a>
                     {% endif %}
-                    <a href="/containers/ui" class="nav-main-link {% if nav_containers %}is-active{% endif %}">Containers</a>
-                    <a href="/datasets/ui" class="nav-main-link {% if nav_datasets %}is-active{% endif %}">Datasets</a>
+                    <a data-testid="navbar-link-containers" href="/containers/ui" class="nav-main-link {% if nav_containers %}is-active{% endif %}">Containers</a>
+                    <a data-testid="navbar-link-datasets" href="/datasets/ui" class="nav-main-link {% if nav_datasets %}is-active{% endif %}">Datasets</a>
                 </div>
             </div>
 
@@ -34,11 +34,11 @@
                 <div class="hidden md:flex nav-mode-group items-center gap-2.5" role="group" aria-label="Application mode">
                     <span class="nav-mode-label">Mode</span>
                     <div class="nav-mode-switch flex rounded-full p-1 gap-0.5" role="tablist" aria-label="Switch between Evaluation and Training">
-                        <a href="/set_mode?mode={{evaluation_mode}}" class="nav-mode-link {% if not is_training_mode %}is-active{% endif %}" role="tab" {% if not is_training_mode %}aria-selected="true"{% else %}aria-selected="false"{% endif %}>
+                        <a data-testid="navbar-mode-evaluation" href="/set_mode?mode={{evaluation_mode}}" class="nav-mode-link {% if not is_training_mode %}is-active{% endif %}" role="tab" {% if not is_training_mode %}aria-selected="true"{% else %}aria-selected="false"{% endif %}>
                             <i class="fas fa-chart-line nav-mode-icon" aria-hidden="true"></i>
                             <span>Evaluation</span>
                         </a>
-                        <a href="/set_mode?mode={{training_mode}}" class="nav-mode-link {% if is_training_mode %}is-active{% endif %}" role="tab" {% if is_training_mode %}aria-selected="true"{% else %}aria-selected="false"{% endif %}>
+                        <a data-testid="navbar-mode-training" href="/set_mode?mode={{training_mode}}" class="nav-mode-link {% if is_training_mode %}is-active{% endif %}" role="tab" {% if is_training_mode %}aria-selected="true"{% else %}aria-selected="false"{% endif %}>
                             <i class="fas fa-flask nav-mode-icon" aria-hidden="true"></i>
                             <span>Training</span>
                         </a>

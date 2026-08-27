@@ -1,6 +1,8 @@
 REDIRECT_BASE = "/aggregators/ui/display/";
 
 function checkAggregatorFormValidity() {
+    var form = document.getElementById("aggregator-register-form");
+    var taskRunning = form && form.dataset.taskRunning === "1";
     var nameEl = document.getElementById("name");
     var addressEl = document.getElementById("address");
     var portEl = document.getElementById("port");
@@ -13,7 +15,7 @@ function checkAggregatorFormValidity() {
     var cubeValue = cubeEl && cubeEl.value ? parseInt(cubeEl.value, 10) : 0;
     var isValid = nameValue.length > 0 && addressValue.length > 0 && portValue > 0 && portValue <= 65535 && adminPortValue > 0 && adminPortValue <= 65535 && cubeValue > 0;
     var btn = document.getElementById("register-aggregator-btn");
-    if (btn) btn.disabled = !isValid;
+    if (btn) btn.disabled = taskRunning || !isValid;
 }
 
 function init() {

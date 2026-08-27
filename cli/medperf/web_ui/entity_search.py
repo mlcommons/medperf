@@ -98,9 +98,8 @@ def search_entities(  # noqa
         }
 
     filters = {"search": query, "limit": limit, "offset": 0, "ordering": "name"}
-    my_user_id = get_medperf_user_data()["id"]
     if mine_only:
-        filters["owner"] = my_user_id
+        filters["owner"] = get_medperf_user_data()["id"]
 
     items = entity_cls.all(filters=filters)
     items = _apply_allowed_ids(items, allowed_ids)

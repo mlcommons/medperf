@@ -2,7 +2,7 @@ import time
 from medperf.web_ui.tests.pages.base_page import BasePage
 
 
-def login(page: BasePage, url: str, email: str):
+def login(page: BasePage, url: str, email: str, training=False):
     page.open(url)
 
     assert "/medperf_login?redirected=true" in page.current_url
@@ -30,7 +30,10 @@ def login(page: BasePage, url: str, email: str):
     page.wait_for_staleness_element(page_modal)
     page.wait_for_url_change(old_url)
 
-    assert "/benchmarks/ui" in page.current_url
+    if training:
+        assert "/training/ui" in page.current_url
+    else:
+        assert "/benchmarks/ui" in page.current_url
 
     page.find(page.USER_DROPDOWN)
 
