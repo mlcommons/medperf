@@ -21,11 +21,16 @@ from google.cloud import secretmanager
 BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 env = environ.Env()
+
 env_file = os.path.join(BASE_DIR, ".env")
+# Fallback for pip installs, where BASE_DIR is inside site-packages/
+medperf_dev_env_file = os.path.expanduser("~/.medperf_dev/.env")
+if not os.path.isfile(env_file) and os.path.isfile(medperf_dev_env_file):
+    env_file = medperf_dev_env_file
 
 if os.path.isfile(env_file):
     # Use a local secret file, if provided
-    print("Loading env from .env file")
+    print(f"Loading env from {env_file}")
     env.read_env(env_file)
 else:
     # Attempt to load the Project ID into the environment, safely failing on error.
@@ -33,7 +38,10 @@ else:
         _, os.environ["GOOGLE_CLOUD_PROJECT"] = google.auth.default()
     except google.auth.exceptions.DefaultCredentialsError:
         raise Exception(
-            "No local .env or GOOGLE_CLOUD_PROJECT detected. No secrets found."
+            "No local .env or GOOGLE_CLOUD_PROJECT detected. No secrets found. "
+            "For local development, run `medperf_server set_config "
+            "<postgresql|sqlite|online-auth>` to create ~/.medperf_dev/.env. "
+            "For GCP deployments, ensure Application Default Credentials are configured."
         )
 
     # Pull secrets from Secret Manager
@@ -190,6 +198,10 @@ if os.getenv("USE_CLOUD_SQL_AUTH_PROXY", None):
     DATABASES["default"]["HOST"] = "127.0.0.1"
     DATABASES["default"]["PORT"] = 5432
 
+if DATABASES["default"]["ENGINE"] == "django.db.backends.sqlite3":
+    # ~ isn't expanded in .env values (see AUTH_VERIFYING_KEY_FILE below)
+    DATABASES["default"]["NAME"] = os.path.expanduser(DATABASES["default"]["NAME"])
+
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
@@ -289,13 +301,20 @@ USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 # Validating public key config
+verifying_key_file = env("AUTH_VERIFYING_KEY_FILE", default=None)
 verifying_key = env("AUTH_VERIFYING_KEY", default=None)
 jwk_url = env("AUTH_JWK_URL", default=None)
 
+if verifying_key_file:
+    # django-environ doesn't expand ~ in .env values
+    verifying_key_file = os.path.expanduser(verifying_key_file)
+
+if verifying_key_file and os.path.exists(verifying_key_file):
+    with open(verifying_key_file) as f:
+        verifying_key = f.read()
+
 if verifying_key and jwk_url:
-    raise ValueError(
-        "Only one of ['AUTH_VERIFYING_KEY', 'AUTH_JWK_URL'] must be specified"
-    )
+    raise ValueError("Only one of ['AUTH_VERIFYING_KEY', 'AUTH_JWK_URL'] must be specified")
 if not verifying_key and not jwk_url:
     raise ValueError("One of ['AUTH_VERIFYING_KEY', 'AUTH_JWK_URL'] must be specified")
 
@@ -319,8 +338,6 @@ SIMPLE_JWT = {
 TOKEN_USER_EMAIL_CLAIM = "https://medperf.org/email"
 
 # Comma-separated list of emails
-AUTO_APPROVE_BENCHMARKS_FROM = env("AUTO_APPROVE_BENCHMARKS_FROM", default="").split(
-    ","
-)
+AUTO_APPROVE_BENCHMARKS_FROM = env("AUTO_APPROVE_BENCHMARKS_FROM", default="").split(",")
 
 AUTO_APPROVE_TRAINING_FROM = env("AUTO_APPROVE_TRAINING_FROM", default="").split(",")

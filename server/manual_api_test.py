@@ -4,6 +4,7 @@ import argparse
 from pathlib import Path
 
 REPO_BASE_DIR = Path(__file__).resolve().parent.parent
+MOCK_TOKENS_DIR = Path.home().resolve() / ".medperf_dev" / "mock_tokens"
 
 
 def do_test(args):
@@ -29,7 +30,7 @@ def do_test(args):
 
 if __name__ == "__main__":
     default_cert_file = str(REPO_BASE_DIR / "server" / "cert.crt")
-    default_tokens_file = str(REPO_BASE_DIR / "mock_tokens" / "tokens.json")
+    default_tokens_file = str(MOCK_TOKENS_DIR / "tokens.json")
 
     parser = argparse.ArgumentParser()
     parser.add_argument(

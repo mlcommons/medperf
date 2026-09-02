@@ -1,0 +1,117 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "medperf"
+description = "CLI Tool for federated benchmarking on medical private data"
+readme = "README.md"
+license = { file = "LICENSE.md" }
+authors = [{ name = "MLCommons" }]
+requires-python = "==3.11.*"
+keywords = [
+    "federated evaluation",
+    "federated learning",
+    "medical ai",
+    "benchmarking",
+    "healthcare",
+    "medperf",
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Environment :: Web Environment",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Healthcare Industry",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS :: MacOS X",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Medical Science Apps.",
+    "Topic :: System :: Distributed Computing",
+]
+dependencies = [
+    "typer~=0.12.0",
+    "rich~=13.7.0",
+    "PyYAML==6.0.1",
+    "requests>=2.26.0",
+    "pydantic==1.10.13",
+    "yaspin==2.1.0",
+    "tabulate==0.9.0",
+    "pexpect==4.8.0",
+    "colorama==0.4.4",
+    "validators==0.18.2",
+    "merge-args==0.1.5",
+    "synapseclient==4.1.1",
+    "schema==0.7.5",
+    "email-validator==2.0.0",
+    "auth0-python==4.3.0",
+    "pandas==2.1.0",
+    "numpy==1.26.4",
+    "watchdog==3.0.0",
+    "GitPython==3.1.41",
+    "psutil==5.9.8",
+    "semver==3.0.4",
+    "cookiecutter==2.1.1",
+    "uvicorn==0.30.1",
+    "fastapi==0.111.1",
+    "fastapi-login==1.10.2",
+    "cryptography==46.0.3",
+    "click==8.1.8",
+    "dash==2.16",
+    "plotly==5.20",
+    "dash-bootstrap-components==1.5",
+    "docker==7.1.0",
+    "google-auth==2.49.1",
+    "google-cloud-storage==3.9.0",
+    "google-cloud-iam==2.21.0",
+    "google-cloud-kms==3.11.0",
+    "google-cloud-compute==1.46.0",
+    "google-api-python-client==2.192.0",
+    "tqdm==4.67.3",
+    "packaging>=21.0",
+]
+dynamic = ["version"]
+
+[project.optional-dependencies]
+dev = [
+    "time-machine==2.4.0",
+    "pytest-mock==3.14.0",
+    "pyfakefs==5.8.0",
+    "pytest-dependency==0.6.0",
+    "selenium==4.23.1",
+    "webdriver-manager==4.0.2",
+    "pytest",
+    "flake8",
+]
+
+[project.scripts]
+medperf = "medperf.__main__:app"
+medperf_webui = "medperf.webui_main:app"
+medperf_dashboard = "medperf.dashboard.__main__:t_app"
+
+[project.urls]
+Homepage = "https://github.com/mlcommons/medperf"
+Repository = "https://github.com/mlcommons/medperf"
+Issues = "https://github.com/mlcommons/medperf/issues"
+Documentation = "https://docs.medperf.org"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["medperf*"]
+exclude = ["medperf.tests*", "medperf.web_ui.tests*"]
+namespaces = false
+
+[tool.setuptools.package-data]
+medperf = [
+    "web_ui/templates/**/*",
+    "web_ui/static/**/*",
+    "templates/**/*",
+    "dashboard/assets/**/*",
+    "logging/*.sh",
+]
+
+[tool.setuptools.dynamic]
+version = { attr = "medperf._version.__version__" }

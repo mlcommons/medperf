@@ -21,8 +21,8 @@ For the purpose of the tutorial, you have to initialize a local MedPerf server w
 
 ```bash
 cd server
-sh reset_db.sh
-python seed.py --demo {{page.meta.tutorial_id}}
+python -m medperf_server reset_db
+python -m medperf_server seed --demo {{page.meta.tutorial_id}}
 cd ..
 ```
 

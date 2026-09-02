@@ -10,10 +10,10 @@ jobs:
       IMAGE_NAME: medperf-api:test
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v7
 
     - name: Set up Python 3.11
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v7
       with:
         python-version: '3.11'
 
@@ -38,29 +38,32 @@ jobs:
       working-directory: .
       run: |
         python -m pip install --upgrade pip
-        pip install -r cli/test-requirements.txt
-        pip install -r server/requirements.txt
-        pip install -r server/test-requirements.txt
-        pip install -e cli/
+        pip install -r server/requirements.txt -r server/test-requirements.txt
+        pip install -e "./cli[dev]"
+
+    - name: Generate local mock login credentials
+      working-directory: ./server
+      run: python -m medperf_server gen_credentials
 
     - name: Set server environment vars
       working-directory: ./server
-      run: cp .env.local.local-auth.sqlite .env
+      run: cp medperf_server/env_templates/.env.local.docker .env
 
     - name: Generate SSL certificate
       working-directory: ./server
-      run: sh setup-dev-server.sh -c cert.crt -k cert.key -d 0
+      run: python -m medperf_server gen_cert --regenerate
 
     - name: Build container image
       working-directory: ./server
       run: |
-        cp ../mock_tokens/tokens.json tokens.json
+        cp $HOME/.medperf_dev/mock_tokens/tokens.json tokens.json
+        cp $HOME/.medperf_dev/keys/public_key.pem public_key.pem
         cp -r ../examples/chestxray_tutorial/ .
         docker build -t ${{ env.IMAGE_NAME }} -f Dockerfile.gha .
 
     - name: Run server in background
       working-directory: ./server
-      run: PORT=8080 && docker run --name medperf_api -d -p 8000:${PORT} -e PORT=${PORT} -e SSL_FLAGS="--certfile=cert.crt --keyfile=cert.key" ${{ env.IMAGE_NAME }}
+      run: PORT=8080 && docker run --name medperf_api -d -p 8000:${PORT} -e PORT=${PORT} -e SSL_FLAGS="--certfile=cert.crt --keyfile=cert.key" -e AUTH_VERIFYING_KEY_FILE=/app/public_key.pem ${{ env.IMAGE_NAME }}
 
     - name: Run server integration tests
       working-directory: ./server

@@ -2,8 +2,6 @@ from ._version import __version__
 from pathlib import Path
 from os import getenv
 
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
-
 major_version, minor_version, patch_version = __version__.split(".")
 
 # MedPerf server
@@ -11,7 +9,6 @@ server = "https://api.medperf.org"
 certificate = None
 
 local_server = "https://localhost:8000"
-local_certificate = str(BASE_DIR / "server" / "cert.crt")
 
 comms = "REST"
 
@@ -44,8 +41,6 @@ token_absolute_expiry = 2592000  # Refresh token absolute expiration time (secon
 access_token_storage_id = "medperf_access_token"
 refresh_token_storage_id = "medperf_refresh_token"
 
-local_tokens_path = BASE_DIR / "mock_tokens" / "tokens.json"
-
 # Certificate Authority
 certificate_authority_id = 1
 certificate_authority_fingerprint = (
@@ -71,6 +66,17 @@ pki_assets = str(config_storage / ".pki_assets")
 container_keys_dir = str(config_storage / ".container_keys")
 cc_artifacts_dir = str(config_storage / ".cc_artifacts")
 webui_host_props = str(config_storage / ".webui_host_props")
+update_check_cache_file = str(config_storage / ".update_check_cache.json")
+
+# Local/testauth dev-profile artifacts, issued by the dev server (see
+# medperf_server gen_credentials). Not config_storage-relative on purpose:
+# MEDPERF_CONFIG_STORAGE profiles must all share one local-dev identity.
+local_dev_dir = Path.home().resolve() / ".medperf_dev"
+local_tokens_path = str(local_dev_dir / "mock_tokens" / "tokens.json")
+# Recorded unconditionally: profiles are written once, on first run, which may
+# be before the dev server has generated its cert. comms/rest.py falls back to
+# normal verification while the file is absent.
+local_certificate = str(local_dev_dir / "cert.crt")
 
 # TODO: should we change this?
 safe_root = ""  # Base path to accept input paths from user.
@@ -303,6 +309,9 @@ webui_max_log_messages = 200  # Max nb of messages that will appear in LogPanel 
 webui_max_chunk_age = 2.0  # Max 2 seconds as age of a chunk
 webui_max_chunk_length = 20  # Max 20 events in a chunk
 webui_max_chunk_size = 64 * 1024  # Max 64 Bytes as chunk size
+# How often the Web UI re-checks PyPI for a newer MedPerf release (seconds).
+# 4 Hours. This number was chosen arbitrarily, but it should be enough to avoid unnecessary requests to PyPI.
+webui_update_check_interval_seconds = 4 * 60 * 60
 
 
 default_profile_name = "default"

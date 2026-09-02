@@ -25,7 +25,8 @@ import medperf.commands.model.model as model_cmds
 import medperf.commands.cc.cc as cc_cmds
 import medperf.commands.storage as storage
 import medperf.web_ui.app as web_ui
-from medperf.utils import check_for_updates, get_webui_properties
+from medperf.update_manager import UpdateManager
+from medperf.utils import get_webui_properties
 from medperf.logging.utils import log_machine_details
 
 app = typer.Typer()
@@ -128,6 +129,6 @@ def main(
     logging.info(f"Running MedPerf v{__version__} on {loglevel} logging level")
     logging.info(f"Executed command: {' '.join(sys.argv[1:])}")
     log_machine_details()
-    check_for_updates()
+    UpdateManager().check_for_updates()
 
     config.ui.print(f"MedPerf {__version__}")

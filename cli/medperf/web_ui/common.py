@@ -39,6 +39,8 @@ ALLOWED_PATHS = [
     "/current_task",
     "/api/running_tasks",
     "/api/stop_task",
+    "/api/update_check",
+    "/api/update_status",
 ]
 
 
@@ -146,12 +148,16 @@ def check_user_api(
     request_path = request.url.path
 
     request.app.state.logged_in = is_logged_in()
-    if request.app.state.task_running:
+    if request.app.state.task_running or request.app.state.update_in_progress:
         if not any(request_path.startswith(path) for path in ALLOWED_PATHS):
-            raise HTTPException(
-                status_code=400,
-                detail="A task is currently running, please wait until it is finished",
-            )
+            if request.app.state.task_running:
+                detail = "A task is currently running, please wait until it is finished"
+            else:
+                # Blocks new tasks/containers from starting once an update is
+                # triggered: otherwise the restart could kill one that started
+                # after the initial /api/update precondition check.
+                detail = "A MedPerf update is in progress, please wait until it is finished"
+            raise HTTPException(status_code=400, detail=detail)
     if token == security_token:
         return True
 

@@ -7,10 +7,23 @@ from medperf.account_management import (
     delete_credentials,
 )
 import json
+import os
 
 
 class Local(Auth):
+    """Logs in with mock tokens minted by the local dev server.
+
+    The server owns the mock signing keypair and issues these tokens, mirroring
+    how the real auth provider does it; the client only ever reads them.
+    """
+
     def __init__(self):
+        if not os.path.exists(config.local_tokens_path):
+            raise InvalidArgumentError(
+                f"No local mock tokens found at {config.local_tokens_path}. "
+                "Generate them from your MedPerf checkout with: "
+                "cd server && python -m medperf_server gen_credentials"
+            )
         with open(config.local_tokens_path) as f:
             self.tokens = json.load(f)
 

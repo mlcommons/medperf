@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 cd /workspaces/medperf/server
-bash ./setup-dev-server.sh < /dev/null &>server.log &
+python -m medperf_server start < /dev/null &>server.log &
 sleep 10
 
 docker pull mlcommons/chestxray-tutorial-prep:0.0.1
 docker pull mlcommons/medperf-flower-fl:1.0.0
 
-python seed.py --demo tutorial &>/dev/null
+python -m medperf_server seed --demo tutorial &>/dev/null
 cd ..
 # Create three instances of web UI
 MEDPERF_CONFIG_STORAGE=/workspaces/.medperf_config1 medperf_webui --port 8001 &>/dev/null &

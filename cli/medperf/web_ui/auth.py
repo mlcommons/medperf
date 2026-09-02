@@ -5,7 +5,13 @@ from typing import Callable
 from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
 
-security_token = binascii.hexlify(os.urandom(24)).decode("ascii")
+# Carried across the Web UI's self-restart (UpdateManager.schedule_webui_update)
+# so the browser session survives the update. Popped immediately so it is never
+# inherited by container subprocesses.
+RESTART_TOKEN_ENV = "MEDPERF_WEBUI_RESTART_TOKEN"
+
+_generated_token = binascii.hexlify(os.urandom(24)).decode("ascii")
+security_token = os.environ.pop(RESTART_TOKEN_ENV, None) or _generated_token
 AUTH_COOKIE_NAME = "auth_token"
 API_KEY_NAME = "access_token"
 

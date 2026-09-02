@@ -1,18 +1,101 @@
 # medperf/web_ui/api/routes.py
+import logging
 import os
 from pathlib import Path
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException, Form, Depends, Query
+from fastapi import APIRouter, HTTPException, Form, Depends, Request, Query, Body
 from fastapi.responses import JSONResponse
 
 import medperf.config as config
-from medperf.exceptions import InvalidArgumentError
+from medperf.exceptions import (
+    EditableInstallUpdateError,
+    InvalidArgumentError,
+    UpdateNotNeededError,
+)
 from medperf.web_ui.common import check_user_api
 from medperf.web_ui.entity_search import search_entities
+from medperf.update_manager import UpdateManager
 from medperf.utils import sanitize_path
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
+
+
+@router.get("/update_status", response_class=JSONResponse, include_in_schema=False)
+def update_status(request: Request, current_user: bool = Depends(check_user_api)):
+    # Polled by waitForRestart() (update_banner.js) across the restart; the
+    # session token is carried over, so the cookie stays valid throughout.
+    updater = UpdateManager()
+    payload = {
+        "status": "ok",
+        "version": updater.get_installed_version(),
+    }
+
+    if getattr(request.app.state, "update_in_progress", False):
+        payload["update_in_progress"] = True
+
+    update_error = getattr(request.app.state, "update_error", None)
+    if update_error:
+        payload["status"] = "update_failed"
+        payload["error"] = update_error
+        # Reported once, so a past failure doesn't mask later healthy polls
+        request.app.state.update_error = None
+    return payload
+
+
+@router.get("/update_check", response_class=JSONResponse)
+def update_check(
+    request: Request,
+    refresh: bool = Query(False),
+    current_user: bool = Depends(check_user_api),
+):
+    updater = UpdateManager()
+    info = updater.get_update_info(force_refresh=refresh)
+    request.app.state.update_check = info
+    message = updater.format_update_check_message(info)
+    return {**info, "message": message}
+
+
+@router.post("/update", response_class=JSONResponse)
+def update_medperf(
+    request: Request,
+    body: dict = Body(default_factory=dict),
+    current_user: bool = Depends(check_user_api),
+):
+    if request.app.state.task_running:
+        raise HTTPException(
+            status_code=400,
+            detail="A task is currently running. Wait for it to finish before updating.",
+        )
+
+    if config.running_containers:
+        raise HTTPException(
+            status_code=400,
+            detail="Containers are still running. Stop them before updating.",
+        )
+
+    if getattr(request.app.state, "update_in_progress", False):
+        raise HTTPException(status_code=409, detail="Update already in progress.")
+
+    updater = UpdateManager()
+    try:
+        installed_version = updater.validate_update(
+            latest_version=body.get("latest_version"),
+            current_version=body.get("current_version"),
+        )
+    except (UpdateNotNeededError, EditableInstallUpdateError) as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    host_props = getattr(request.app.state, "host_props", None) or {}
+    port = host_props.get("port", 8100)
+    request.app.state.update_in_progress = True
+    request.app.state.update_error = None
+
+    updater.schedule_webui_update(port, request.app.state)
+    logger.info("Scheduled MedPerf update (installed %s) via PyPI", installed_version)
+
+    return JSONResponse(status_code=202, content={"status": "started"})
 
 
 @router.get("/entity_search", response_class=JSONResponse)

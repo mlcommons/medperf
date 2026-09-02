@@ -14,7 +14,8 @@ rm -fr medperf_tutorial
 
 ```bash
 cd server
-sh reset_db.sh
+python -m medperf_server reset_db
+cd ..
 ```
 
 - To cleanup the test storage:

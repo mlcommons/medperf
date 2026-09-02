@@ -91,6 +91,7 @@
         window.ui_mode = "{{ request.app.state.ui_mode }}";
         window.evaluation_mode = "{{ request.app.state.EVALUATION_MODE }}";
         window.notifications = {{ notifications | tojson }};
+        window.updateCheck = {{ (request.app.state.update_check or {}) | tojson }};
         window.maxLogMessages = Number("{{ request.app.state.MAXLOGMESSAGES }}");
         window.evSource = null;
     </script>
@@ -103,6 +104,7 @@
 </head>
 <body class="min-h-screen bg-page text-ink">
     {% include "partials/navbar.html" %}
+    {% include "partials/update_banner.html" %}
 
     <div class="page-wrap pt-6">
         <div class="main-content">
@@ -125,6 +127,28 @@
 
     <div id="toast-container" class="fixed top-20 left-1/2 -translate-x-1/2 z-[60] flex flex-col gap-2 pointer-events-none"></div>
 
+    <div id="client-update-overlay"
+         class="hidden fixed inset-0 z-[70] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+         role="alertdialog"
+         aria-modal="true"
+         aria-labelledby="client-update-overlay-title"
+         aria-describedby="client-update-overlay-message">
+        <div class="w-full max-w-md rounded-2xl bg-card border-2 border-border-brand shadow-2xl p-8 text-center">
+            <div class="inline-flex h-14 w-14 items-center justify-center rounded-full bg-brand-subtle text-brand-accent mb-4" aria-hidden="true">
+                <i id="client-update-overlay-icon" class="fas fa-sync-alt fa-spin text-2xl"></i>
+            </div>
+            <h2 id="client-update-overlay-title" class="text-xl font-bold text-ink mb-2">Updating MedPerf</h2>
+            <p id="client-update-overlay-message" class="text-sm text-secondary mb-6">
+                Downloading the latest release and restarting the Web UI. This may take a few minutes.
+            </p>
+            <button type="button"
+                    id="client-update-overlay-dismiss"
+                    class="hidden px-4 py-2 rounded-xl border-2 border-border text-ink font-semibold hover:bg-muted">
+                Close
+            </button>
+        </div>
+    </div>
+
     {% include "partials/footer.html" %}
 
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.3/dist/cdn.min.js"></script>
@@ -133,6 +157,7 @@
     <script src="{{ url_for('static', path='js/prism-json-1.29.0.min.js') }}"></script>
     <script src="{{ url_for('static', path='js/modal-queue.js') }}"></script>
     <script src="{{ url_for('static', path='js/notifications.js') }}"></script>
+    <script src="{{ url_for('static', path='js/update_banner.js') }}"></script>
     <script src="{{ url_for('static', path='js/common.js') }}"></script>
 
     {% if task_running %}

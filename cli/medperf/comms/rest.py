@@ -1,5 +1,6 @@
 from typing import List
 from urllib.parse import urlencode
+import os
 import requests
 import logging
 
@@ -18,8 +19,8 @@ class REST(Comms):
     def __init__(self, source: str):
         self.server_url = self.parse_url(source)
         self.cert = config.certificate
-        if self.cert is None:
-            # No certificate provided, default to normal verification
+        if self.cert is None or not os.path.isfile(self.cert):
+            # No certificate available, default to normal verification
             self.cert = True
 
     @classmethod

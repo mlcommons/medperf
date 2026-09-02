@@ -66,7 +66,14 @@
                     <div x-show="userOpen" x-cloak x-transition class="absolute right-0 mt-2 min-w-56 max-w-[20rem] w-64 bg-card dark:bg-card rounded-xl shadow-xl border-2 border-border py-2 z-50 overflow-hidden" style="display: none;">
                         <div class="px-4 py-2 text-muted-fg text-sm border-b border-border min-w-0">
                             Logged in as:<br><strong class="block truncate text-ink" title="{{ request.app.state.user_email }}">{{ request.app.state.user_email }}</strong>
+                            {% set installed_version = (request.app.state.update_check or {}).get('current_version') %}
+                            {% if installed_version %}
+                            <span class="block mt-1 text-xs text-muted-fg">MedPerf {{ installed_version }}</span>
+                            {% endif %}
                         </div>
+                        <button type="button" class="check-for-updates-btn w-full text-left flex items-center px-4 py-2 text-secondary hover:bg-muted cursor-pointer" data-testid="check-for-updates-menu">
+                            <i class="fas fa-sync-alt mr-2 text-brand-accent"></i> Check for updates
+                        </button>
                         <a href="/settings" class="flex items-center px-4 py-2 text-secondary hover:bg-muted">
                             <i class="fas fa-cog mr-2 text-brand-accent"></i> Settings
                         </a>
@@ -76,6 +83,13 @@
                     </div>
                 </div>
                 {% else %}
+                <button type="button"
+                        class="check-for-updates-btn nav-icon-btn inline-flex items-center gap-2 px-3 py-2 rounded-lg font-semibold transition-colors cursor-pointer shrink-0"
+                        title="Check for updates"
+                        data-testid="check-for-updates-navbar">
+                    <i class="fas fa-sync-alt" aria-hidden="true"></i>
+                    <span>Check for updates</span>
+                </button>
                 <a href="/medperf_login" class="nav-login-link px-4 py-2 rounded-lg">Login</a>
                 <a href="/settings" class="nav-icon-btn p-2 rounded-lg">
                     <i class="fas fa-cog" aria-hidden="true"></i>
@@ -114,6 +128,11 @@
             <a href="/models/ui" class="nav-mobile-link block py-2">Models</a>
             <a href="/containers/ui" class="nav-mobile-link block py-2">Containers</a>
             <a href="/datasets/ui" class="nav-mobile-link block py-2">Datasets</a>
+            {% endif %}
+            {% if not logged_in %}
+            <button type="button" class="check-for-updates-btn w-full text-left py-2 text-white/90 hover:text-white font-semibold cursor-pointer md:hidden" data-testid="check-for-updates-mobile">
+                <i class="fas fa-sync-alt mr-2" aria-hidden="true"></i> Check for updates
+            </button>
             {% endif %}
         </div>
     </div>

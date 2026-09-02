@@ -1,4 +1,3 @@
-from pathlib import Path
 import sys
 import requests
 import json
@@ -95,8 +94,6 @@ class Server:
 def set_user_as_admin(api_server, access_token):
     user_id = api_server.request("/me/", "GET", access_token, {}, out_field="id")
 
-    cwd = os.getcwd()
-    os.chdir(Path(__file__).parent)
     os.environ["DJANGO_SETTINGS_MODULE"] = "medperf.settings"
     django.setup()
     User = get_user_model()
@@ -105,8 +102,6 @@ def set_user_as_admin(api_server, access_token):
     user.is_staff = True
     user.is_superuser = True
     user.save()
-
-    os.chdir(cwd)
 
 
 def create_benchmark(api_server, benchmark_owner_token, assets_path):
