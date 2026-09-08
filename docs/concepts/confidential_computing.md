@@ -184,8 +184,8 @@ provider for each:
 
 | Service | What it is | Choices |
 | --- | --- | --- |
-| `storage` | where your asset's ciphertext lives | `gcp`, `medperf_kbs`, `mock` |
-| `vault` | who may have the key that opens it | `gcp`, `medperf_kbs`, `mock` |
+| `storage` | where your asset's ciphertext lives | `gcp`, `mock` |
+| `vault` | who may have the key that opens it | `gcp`, `mock` |
 | `runner` | what starts the confidential workload | `gcp`, `mock` |
 | `result_store` | where the results are written, and whose it is | `gcp`, `mock` |
 
@@ -206,7 +206,8 @@ Name one backend at the top level and it serves everything:
 ```
 
 Or give a service a section of its own, which inherits the shared settings and
-overrides what it needs:
+overrides what it needs — the backend included, so an asset's ciphertext and
+the key that opens it need not be with the same provider:
 
 ```json
 {
@@ -214,10 +215,8 @@ overrides what it needs:
     "project_id": "...",
     "bucket": "...",
     "vault": {
-        "backend": "medperf_kbs",
-        "url": "https://kbs.hospital.example:8200",
-        "audience": "https://kbs.hospital.example",
-        "admin_token": "..."
+        "keyring_name": "...",
+        "key_location": "..."
     }
 }
 ```
@@ -225,22 +224,8 @@ overrides what it needs:
 There is no default. A configuration that names no backend is refused rather
 than guessed.
 
-### Why you might not want the cloud to hold your key
-
-Follow the key material in the `gcp` setup: the ciphertext is in a bucket, the
-wrapped key is in a bucket, and the wrapping key is in KMS. Google holds
-everything needed to decrypt your asset, and what stops it is Google enforcing
-its own IAM against itself.
-
-If that is not a trust you want to make, run your own key broker and select
-`medperf_kbs` for the vault. See
-[`kbs/README.md`](https://github.com/mlcommons/medperf/blob/main/kbs/README.md).
-The admin token stays on your machine: what the confidential VM is told is built
-field by field and does not include it.
-
-Backends are chosen per asset, so a broker-backed dataset and a KMS-backed model
-can take part in the same execution — as long as the benchmark script supports
-both.
+Backends are chosen per asset, so two assets configured differently can take
+part in the same execution — as long as the benchmark script supports both.
 
 ### Trying it without a cloud account
 
@@ -281,7 +266,7 @@ self-destruct.
 
 ### What a proof does and does not establish
 
-It establishes which script ran, on which inputs, producing exactly these bytes,
+It establishes which script ran, on which inputs, producing exactly these metrics,
 inside genuine confidential hardware. It does **not** establish that the script
 computed the metric correctly — attestation pins which code ran, never that the
 code is right. What mitigates that is the script being public with a pinned
@@ -292,7 +277,7 @@ It is also topology dependent:
 | Topology | What the proof covers |
 | --- | --- |
 | `end_to_end_script` | the reported metric, computed inside the VM — end to end |
-| `inference_script` | the predictions only; the metric is scored on-prem afterwards |
+| `inference_script` | nothing you can check: the metric is scored on-prem afterwards, and the VM attested to no metric of its own |
 | `byo_inference_script` | nothing; no confidential VM is involved |
 
 ## What's next?

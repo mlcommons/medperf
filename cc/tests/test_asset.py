@@ -128,10 +128,15 @@ def test_a_mixed_configuration_tells_the_workload_about_both(tmp_path):
         "backend": MOCK,
         "root": str(tmp_path / "cc"),
         "vault": {
-            "backend": "medperf_kbs",
-            "url": "https://kbs.example/",
-            "audience": "https://kbs.example",
-            "admin_token": "secret",
+            "backend": "gcp",
+            "project_id": "p",
+            "project_number": "42",
+            "bucket": "b",
+            "keyring_name": "ring",
+            "key_name": "key",
+            "key_location": "us-west1",
+            "wip": "pool",
+            "wip_provider": "provider",
         },
     }
 
@@ -140,16 +145,16 @@ def test_a_mixed_configuration_tells_the_workload_about_both(tmp_path):
     ).workload_config()
 
     assert told["storage"]["backend"] == MOCK
-    assert told["vault"]["backend"] == "medperf_kbs"
+    assert told["vault"]["backend"] == "gcp"
 
 
-def test_no_secret_reaches_the_workload(tmp_path):
+def test_nothing_the_owner_configured_reaches_the_workload_unasked(tmp_path):
     """What the workload is told travels to the VM as environment the operator
-    can read"""
+    can read, so each backend names the fields it hands over rather than
+    passing on whatever happens to be in the owner's configuration"""
     config = {
-        "backend": "medperf_kbs",
-        "url": "https://kbs.example",
-        "audience": "https://kbs.example",
+        "backend": MOCK,
+        "root": str(tmp_path / "cc"),
         "admin_token": "the-admin-token",
     }
 

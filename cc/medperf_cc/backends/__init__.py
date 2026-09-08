@@ -6,15 +6,14 @@ what answers is whatever that configuration selected.
 
 Configuration is read in two layers. Keys at the top level are shared by every
 service, because one provider usually wants the same account and project for
-all of them, and a section named after a service adds to or overrides them:
+all of them, and a section named after a service adds to or overrides them --
+including the backend itself, so an asset's two halves need not be with the
+same provider:
 
     {"backend": "gcp", "project_id": "p", "bucket": "b", ...}
 
     {"backend": "gcp", "project_id": "p", "bucket": "b",
-     "vault": {"backend": "medperf_kbs", "url": "https://kbs.example"}}
-
-The first selects one provider for everything. The second keeps the ciphertext
-in cloud storage but releases the key from an on-prem broker.
+     "vault": {"keyring_name": "medperf", "key_location": "us-west1"}}
 """
 
 from typing import Dict

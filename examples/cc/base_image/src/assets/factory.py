@@ -1,8 +1,8 @@
 """Choosing where an asset's bytes, its key, and the results come from.
 
-Each service names its own backend, so one run can mix them: a dataset held
-by an on-prem key broker and a model held in cloud storage, with the results
-going back to wherever the operator asked for them.
+Each service names its own backend, so one run can mix them: an asset's
+ciphertext in one provider and the key that opens it in another, with the
+results going back to wherever the operator asked for them.
 
     {"storage": {"backend": ...}, "vault": {"backend": ...}}
 """
@@ -10,15 +10,13 @@ going back to wherever the operator asked for them.
 from .gcp.result import GCPResult
 from .gcp.storage import GCPStorage
 from .gcp.vault import GCPVault
-from .medperf_kbs.client import KBSStorage, KBSVault
 from .mock.backend import MockResult, MockStorage, MockVault
 
 GCP = "gcp"
-MEDPERF_KBS = "medperf_kbs"
 MOCK = "mock"
 
-STORAGES = {GCP: GCPStorage, MEDPERF_KBS: KBSStorage, MOCK: MockStorage}
-VAULTS = {GCP: GCPVault, MEDPERF_KBS: KBSVault, MOCK: MockVault}
+STORAGES = {GCP: GCPStorage, MOCK: MockStorage}
+VAULTS = {GCP: GCPVault, MOCK: MockVault}
 RESULTS = {GCP: GCPResult, MOCK: MockResult}
 
 

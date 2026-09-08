@@ -11,9 +11,9 @@ from medperf_cc.backends import backend_of, service_config, settings_of
 from medperf_cc.errors import ConfigurationError
 from medperf_cc.runner import RUNNERS, get_runner
 from medperf_cc.storage import STORAGES, get_storage
-from medperf_cc.storage.mock import MockStorage
+from medperf_cc.storage.gcp import GCPStorage
 from medperf_cc.vault import VAULTS, get_vault
-from medperf_cc.vault.medperf_kbs import KBSVault
+from medperf_cc.vault.mock import MockVault
 from medperf_cc.identity import AssetKind
 from tests.conftest import any_policy
 
@@ -27,10 +27,10 @@ def test_one_backend_at_the_top_level_serves_every_service():
 
 
 def test_a_service_section_overrides_the_shared_level():
-    config = {**SHARED, "vault": {"backend": "medperf_kbs", "url": "https://kbs"}}
+    config = {**SHARED, "vault": {"backend": "mock", "root": "/tmp/x"}}
 
     assert service_config(config, "storage")["backend"] == "gcp"
-    assert service_config(config, "vault")["backend"] == "medperf_kbs"
+    assert service_config(config, "vault")["backend"] == "mock"
 
 
 def test_a_section_still_sees_the_shared_settings():
@@ -42,7 +42,7 @@ def test_a_section_still_sees_the_shared_settings():
 
 
 def test_no_service_section_leaks_into_a_backend():
-    config = {**SHARED, "vault": {"backend": "medperf_kbs"}}
+    config = {**SHARED, "vault": {"backend": "mock"}}
 
     assert "vault" not in service_config(config, "storage")
 
@@ -70,17 +70,19 @@ def test_the_name_that_chose_a_backend_is_not_passed_on_to_it():
 
 
 def test_each_service_resolves_on_its_own():
-    """A dataset can live in cloud storage while its key is released on-prem"""
-    storage = get_storage({"backend": "mock", "root": "/tmp/x"}, "dataset1")
+    """An asset's two halves need not be with the same provider"""
+    storage = get_storage(
+        {**SHARED, "wip": "pool", "wip_provider": "provider"}, "dataset1"
+    )
     vault = get_vault(
-        {"backend": "medperf_kbs", "url": "https://kbs", "audience": "a"},
+        {"backend": "mock", "root": "/tmp/x"},
         "dataset1",
         any_policy().scope(AssetKind.DATA),
         any_policy(),
     )
 
-    assert isinstance(storage, MockStorage)
-    assert isinstance(vault, KBSVault)
+    assert isinstance(storage, GCPStorage)
+    assert isinstance(vault, MockVault)
 
 
 def test_a_runner_resolves_the_same_way():

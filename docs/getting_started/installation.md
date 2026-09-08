@@ -67,8 +67,7 @@ If using Docker, make sure [you can run Docker as a non-root user.](https://docs
     ```
 
     `./cc` holds MedPerf's confidential computing components. They are a
-    separate package so that they can be used on their own — the key broker in
-    `./kbs` depends on them and on nothing else from MedPerf — and they are not
+    separate package so that they can be used on their own, and they are not
     published to PyPI, which is why they are installed from source first.
 
 4. Verify the installation:

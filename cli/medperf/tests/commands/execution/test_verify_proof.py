@@ -117,32 +117,24 @@ def test_the_reported_metrics_are_what_gets_checked(execution, verify):
     assert verify.call_args.args[1].results == {"auc": 0.91}
 
 
-def test_result_files_are_only_checked_where_they_still_are(execution, verify):
-    """Anyone verifying an execution they did not run has no files to hash"""
+def test_nothing_this_machine_happens_to_hold_is_an_expectation(fs, execution, verify):
+    """Everything checked comes off the server, so a verification means the
+    same for whoever ran the execution and for whoever only read the number"""
     # Arrange
     execution.integrity_proof = PROOF
-
-    # Act
-    VerifyExecutionProof.run(execution.id)
-
-    # Assert
-    assert verify.call_args.args[1].results_path is None
-
-
-def test_a_downloaded_copy_of_the_results_is_found_if_present(fs, execution, verify):
-    """A confidential execution downloads into a directory per attempt, and
-    the latest one is this machine's copy"""
-    # Arrange
-    execution.integrity_proof = PROOF
+    execution.results = {"auc": 0.91}
     runs = os.path.join(config.script_result_folder, str(execution.id))
-    fs.create_file(os.path.join(runs, "1700000000_0", "results.yaml"))
     fs.create_file(os.path.join(runs, "1700000001_0", "results.yaml"))
 
     # Act
     VerifyExecutionProof.run(execution.id)
 
     # Assert
-    assert verify.call_args.args[1].results_path == os.path.join(runs, "1700000001_0")
+    expectations = verify.call_args.args[1]
+    assert not any(
+        isinstance(value, str) and runs in value
+        for value in vars(expectations).values()
+    )
 
 
 def test_the_server_copy_of_the_proof_is_preferred(fs, execution, verify):

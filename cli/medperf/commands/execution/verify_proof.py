@@ -9,7 +9,6 @@ import os
 
 import yaml
 
-from medperf import config
 from medperf.cc.errors import as_medperf_error
 from medperf.commands.execution.plan import resolve_plan
 from medperf.entities.benchmark import Benchmark
@@ -93,25 +92,4 @@ class VerifyExecutionProof:
             # command starts reporting "reported metrics do not match the
             # proof", suspect them before suspecting the operator.
             results=self.execution.results,
-            results_path=self.__results_path(),
         )
-
-    def __results_path(self):
-        """Where this machine's copy of the result files is, if it has one.
-
-        Absent for anyone verifying an execution they did not run, which is the
-        common case: the metrics themselves are still checked, and they are what
-        the reported number actually is."""
-        runs = os.path.join(config.script_result_folder, str(self.execution.id))
-        if not os.path.isdir(runs):
-            return None
-
-        # A confidential execution downloads into a directory per attempt.
-        attempts = [
-            os.path.join(runs, name)
-            for name in os.listdir(runs)
-            if os.path.isdir(os.path.join(runs, name))
-        ]
-        if not attempts:
-            return None
-        return max(attempts, key=os.path.getmtime)

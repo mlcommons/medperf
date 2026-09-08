@@ -30,8 +30,8 @@ class ModelBenchmarkRun:
     the benchmark's compatibility fixture, not somebody's data, and running
     against it proves nothing about this benchmark's participants.
 
-    Only an `end_to_end_script` benchmark can be run from this side at all. An
-    `inference_script` one scores its predictions on-prem, against ground truth
+    Only an `end_to_end_script` benchmark can be run from this side at all.
+    Every other topology scores its predictions on-prem, against ground truth
     labels only the data owner holds.
     """
 
@@ -120,7 +120,7 @@ class ModelBenchmarkRun:
                 " benchmark."
             )
 
-        if self.plan.topology is BenchmarkTopology.INFERENCE_SCRIPT:
+        if self.plan.topology is not BenchmarkTopology.END_TO_END_SCRIPT:
             raise InvalidArgumentError(
                 f"Benchmark {self.benchmark_uid} scores predictions on-prem,"
                 " against ground truth labels only the data owner holds, so"

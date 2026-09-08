@@ -35,8 +35,8 @@ mounted volumes, with none of the above.
 ## Backends
 
 Each service names its own backend, so one run can mix them. The image ships
-`gcp`, `medperf_kbs` and `mock`, and a benchmark owner who supports fewer says
-so by leaving them out of the registries in `src/assets/factory.py`.
+`gcp` and `mock`, and a benchmark owner who supports fewer says so by leaving
+them out of the registries in `src/assets/factory.py`.
 
 `mock` reads what `medperf_cc`'s mock backends wrote in a directory on the host.
 It exists for developing and testing without a cloud account, and gives no
@@ -59,10 +59,9 @@ operator can read.
 
 ```json
 {
-    "storage": {"backend": "medperf_kbs", "url": "...", "asset_id": "...",
-                "audience": "...", "verify_tls": true},
-    "vault": {"backend": "medperf_kbs", "url": "...", "asset_id": "...",
-              "audience": "...", "verify_tls": true}
+    "storage": {"backend": "mock", "root": "...", "asset_name": "..."},
+    "vault": {"backend": "mock", "root": "...", "asset_name": "...",
+              "terms": ["script", "data", "model", "collector"]}
 }
 ```
 

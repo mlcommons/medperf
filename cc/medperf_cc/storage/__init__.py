@@ -3,14 +3,11 @@
 from medperf_cc.backends import backend_of, settings_of
 from medperf_cc.storage.base import AssetStorage
 from medperf_cc.storage.gcp import GCP_STORAGE, GCPStorage
-from medperf_cc.storage.medperf_kbs import KBSStorage
 from medperf_cc.storage.mock import MockStorage
-from medperf_cc.backends.medperf_kbs import MEDPERF_KBS
 from medperf_cc.backends.mock import MOCK
 
 STORAGES = {
     GCP_STORAGE: GCPStorage,
-    MEDPERF_KBS: KBSStorage,
     MOCK: MockStorage,
 }
 

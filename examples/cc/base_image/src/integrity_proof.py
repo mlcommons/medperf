@@ -42,7 +42,6 @@ from statement import (
     STATEMENT_VERSION,
     TOKEN_FILE,
     canonical_hash,
-    results_files_hash,
     statement_hash,
 )
 
@@ -75,7 +74,6 @@ def build_statement(results_path: str) -> dict:
     return {
         "version": STATEMENT_VERSION,
         "results_sha256": results_hash(results_path),
-        "results_files_sha256": results_files_hash(results_path),
         "data_sha256": measured.get("data_sha256"),
         "model_sha256": measured.get("model_sha256"),
     }

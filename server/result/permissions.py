@@ -4,10 +4,6 @@ from dataset.models import Dataset
 from model.models import Model
 from .models import ModelResult
 
-# A benchmark whose script computes the metrics inside the confidential VM, so
-# nothing but the encrypted results ever leaves it.
-END_TO_END_TOPOLOGY = "end_to_end_script"
-
 
 class IsAdmin(BasePermission):
     def has_permission(self, request, view):
@@ -46,7 +42,7 @@ class IsConfidentialEndToEndExecution(BasePermission):
     """Anybody may create an execution a confidential VM computes end to end.
 
     Such a result comes back attested: which script ran, on which inputs,
-    producing exactly these bytes, inside genuine confidential hardware. That
+    producing exactly these metrics, inside genuine confidential hardware. That
     is what makes the identity of whoever submitted it beside the point, and so
     the dataset owner no longer has to be the party holding the CLI.
 
@@ -74,7 +70,7 @@ class IsConfidentialEndToEndExecution(BasePermission):
         if not benchmark or not model:
             return False
 
-        if benchmark.topology != END_TO_END_TOPOLOGY:
+        if not benchmark.is_end_to_end_topology:
             return False
         return model.is_local_asset
 

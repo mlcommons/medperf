@@ -20,8 +20,8 @@ statement    what a workload attests to, and how it is hashed
 proof        checking that attestation against what you expected
 asset        an asset's ciphertext, its key, and who may have them
 
-storage/     service: where the ciphertext lives   gcp · medperf_kbs · mock
-vault/       service: who may have the key         gcp · medperf_kbs · mock
+storage/     service: where the ciphertext lives   gcp · mock
+vault/       service: who may have the key         gcp · mock
 runner/      service: running the workload         gcp · mock
 result_store/  service: where the results land       gcp · mock
 backends/    choosing one, and the plumbing they share, a folder each
@@ -33,7 +33,9 @@ outside `backends/` and those folders mentions one.
 ## Configuration
 
 A configuration selects its own backends. Keys at the top level are shared by
-every service, and a section named after a service adds to or overrides them:
+every service, and a section named after a service adds to or overrides them —
+the backend included, so an asset's two halves need not be with the same
+provider:
 
 ```json
 {"backend": "gcp", "project_id": "p", "bucket": "b", "keyring_name": "..."}
@@ -41,11 +43,8 @@ every service, and a section named after a service adds to or overrides them:
 
 ```json
 {"backend": "gcp", "project_id": "p", "bucket": "b",
- "vault": {"backend": "medperf_kbs", "url": "https://kbs.hospital.example"}}
+ "vault": {"keyring_name": "medperf", "key_location": "us-west1"}}
 ```
-
-The first puts everything with one provider. The second keeps the ciphertext in
-cloud storage but releases the key from an on-prem broker.
 
 No backend is a default. An unnamed one is refused rather than guessed, because
 guessing would send an asset somewhere its owner never chose — and because one
@@ -96,8 +95,6 @@ pip install -e cc/
 ```
 
 Not published to PyPI, so anything depending on it installs it from source.
-That includes the key broker in `kbs/`, which needs this package and nothing
-else from MedPerf.
 
 ## Tests
 

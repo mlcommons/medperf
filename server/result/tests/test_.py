@@ -260,7 +260,7 @@ class ConfidentialResultsPostTest(ResultsTest):
     """Test module for POST /results of a confidential end-to-end execution
 
     Its result comes back attested -- which script ran, on which inputs,
-    producing exactly these bytes -- so whoever operated it may report it, and
+    producing exactly these metrics -- so whoever operated it may report it, and
     the dataset owner no longer has to be the party holding the CLI.
     """
 

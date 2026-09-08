@@ -112,7 +112,10 @@ def test_every_dataset_is_listed_whether_or_not_it_can_be_run(benchmark_datasets
     leaving it out would say the dataset does not exist"""
     # Act
     listed = datasets_to_run(
-        configured(confidential_model()), [BENCHMARK_UID], operator(True)
+        configured(confidential_model()),
+        {BENCHMARK_UID: TestBenchmark(id=BENCHMARK_UID, name="bmk")},
+        [BENCHMARK_UID],
+        operator(True),
     )
 
     # Assert
@@ -145,7 +148,10 @@ def test_an_execution_that_produced_nothing_readable_is_not_a_result(
 
     # Act
     listed = datasets_to_run(
-        configured(confidential_model()), [BENCHMARK_UID], operator(True)
+        configured(confidential_model()),
+        {BENCHMARK_UID: TestBenchmark(id=BENCHMARK_UID, name="bmk")},
+        [BENCHMARK_UID],
+        operator(True),
     )
 
     # Assert

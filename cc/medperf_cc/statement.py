@@ -22,35 +22,22 @@ that MedPerf stays installable without these components. The two must agree: a
 result the client mapped one way and a workload attested to another way could
 not be verified against its own proof.
 
-## The two result hashes
-
-`results_files_sha256` covers every file the workload produced, and deliberately
-*not* the two proof files, which do not exist yet when it is computed:
-
-    sha256 of each file's content, hex
-    excluding integrity_statement.json and integrity_token.jwt
-    sorted as strings
-    concatenated utf-8 and hashed again
-
-It depends on file contents only, never on names or paths, so it survives the
-tar and untar the results go through on their way out of the VM. Only somebody
-holding those files can check it.
+## The result hash
 
 `results_sha256` covers the metrics as a *value*: `results.yaml` parsed, then
 hashed canonically. That is what MedPerf uploads to its server and serves back
-as JSON, so anybody holding nothing but the reported numbers can recompute this.
-Hashing the file's bytes would not do -- YAML formatting and key order would
-have to survive a round trip through a database to match.
+as JSON, so anybody holding nothing but the reported numbers can recompute this
+-- which is the point, since the output files themselves stay with whoever ran
+the workload. Hashing the file's bytes would not do either: YAML formatting and
+key order would have to survive a round trip through a database to match.
 """
 
 import hashlib
 import json
 import math
-import os
 
 STATEMENT_FILE = "integrity_statement.json"
 TOKEN_FILE = "integrity_token.jwt"
-PROOF_FILES = {STATEMENT_FILE, TOKEN_FILE}
 
 # The one file MedPerf reads a benchmark's metrics out of. Absent for a topology
 # whose workload produces predictions rather than a score.
@@ -64,29 +51,6 @@ PROOF_AUDIENCE = "https://medperf.org/integrity-proof"
 # They live together so that raising one without the other is visible here.
 STATEMENT_VERSION = 2
 SUPPORTED_STATEMENT_VERSIONS = {2}
-
-
-def results_files_hash(results_path: str) -> str:
-    """Hashes every file the workload produced, proof artifacts excluded."""
-    hashes = []
-    for root, _, files in os.walk(results_path):
-        for name in files:
-            if name in PROOF_FILES:
-                continue
-            hashes.append(file_hash(os.path.join(root, name)))
-
-    digest = hashlib.sha256()
-    for each in sorted(hashes):
-        digest.update(each.encode("utf-8"))
-    return digest.hexdigest()
-
-
-def file_hash(path: str) -> str:
-    digest = hashlib.sha256()
-    with open(path, "rb") as f:
-        for chunk in iter(lambda: f.read(65536), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
 
 
 def json_safe(value):

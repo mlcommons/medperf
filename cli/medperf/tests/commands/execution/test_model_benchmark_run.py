@@ -25,8 +25,8 @@ PLAIN_DATASET = 21
 def mock_benchmark(mocker, state_variables):
     """A benchmark of the given topology, with the containers it calls for.
 
-    Both topologies a confidential model can take part in have a benchmark
-    script; only the one that scores separately has an evaluator."""
+    Each topology fixes which of the two it has, and the server refuses one
+    carrying a container its topology does not use."""
     topology = BenchmarkTopology(state_variables["topology"])
 
     def __get_side_effect(id):
@@ -35,7 +35,7 @@ def mock_benchmark(mocker, state_variables):
             name="bmk name",
             reference_model=2,
             topology=topology.value,
-            benchmark_script=9,
+            benchmark_script=9 if topology.requires_benchmark_script else None,
             data_evaluator_mlcube=3 if topology.requires_evaluator else None,
         )
 
@@ -161,12 +161,17 @@ def test_a_model_not_approved_for_the_benchmark_is_refused(setup):
 
 @pytest.mark.parametrize(
     "setup",
-    [{"topology": BenchmarkTopology.INFERENCE_SCRIPT.value}],
+    [
+        {"topology": BenchmarkTopology.INFERENCE_SCRIPT.value},
+        {"topology": BenchmarkTopology.BYO_INFERENCE_SCRIPT.value},
+    ],
     indirect=True,
 )
 def test_a_benchmark_scored_on_prem_cannot_be_run_from_this_side(setup):
     """Its predictions are scored against ground truth only the data owner
-    holds, so only they can operate one"""
+    holds, so only they can operate one. End to end is the one topology that
+    does not, which is why this side asks for that rather than ruling out the
+    topologies it knows about"""
     # Act & Assert
     with pytest.raises(InvalidArgumentError, match="on-prem"):
         ModelBenchmarkRun.run(BENCHMARK_UID, MODEL_UID)

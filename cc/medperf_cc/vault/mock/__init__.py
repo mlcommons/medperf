@@ -49,7 +49,6 @@ class MockVault(AssetVault):
             "root": self.store.config.root,
             "asset_name": self.store.name,
             # Which terms the permitted identities are written over, so the
-            # workload can project its own the same way. A real broker is told
-            # this too -- see the `medperf_kbs` vault's policy document.
+            # workload can project its own the same way.
             "terms": self.scope.terms,
         }

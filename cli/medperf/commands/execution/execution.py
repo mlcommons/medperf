@@ -193,8 +193,6 @@ def verify(
 
     for check in verdict.checks:
         config.ui.print(f"  \u2713 {check}")
-    for skipped in verdict.skipped:
-        config.ui.print_warning(f"  - {skipped}")
     for failure in verdict.failures:
         config.ui.print_error(f"  \u2717 {failure}")
 

@@ -2,7 +2,7 @@
 
 A workload writes a statement naming what it consumed and what it produced, and
 an attestation token whose nonce is that statement's hash. Together they
-establish which script ran, on which inputs, producing exactly these bytes,
+establish which script ran, on which inputs, producing exactly these metrics,
 inside genuine confidential hardware -- without trusting whoever reported them.
 
 Not established: that the script computed the metric correctly. Attestation
@@ -32,7 +32,6 @@ from medperf_cc.statement import (
     SUPPORTED_STATEMENT_VERSIONS,
     TOKEN_FILE,
     canonical_hash,
-    results_files_hash,
     statement_hash,
 )
 
@@ -80,10 +79,9 @@ class ProofExpectations:
     """What the results are supposed to be, according to the caller's records.
 
     Taking any of these from the proof itself would establish nothing, so they
-    come from whoever is asking. All but `results_path` are required: a
-    verification missing one of them is refused rather than passed with fewer
-    checks, because "nothing to compare against" is not the same answer as
-    "matches".
+    come from whoever is asking. All of them are required: a verification
+    missing one is refused rather than passed with fewer checks, because
+    "nothing to compare against" is not the same answer as "matches".
     """
 
     script_image_hash: Optional[str] = None
@@ -92,13 +90,9 @@ class ProofExpectations:
     # The metrics as a value -- what the server holds, and what anybody can
     # check without having run anything.
     results: Optional[dict] = None
-    # Where the whole output directory is, for whoever still has it.
-    results_path: Optional[str] = None
 
 
-# Everything a verification has to compare the proof against. `results_path` is
-# not here: only whoever ran the workload keeps the output files, and the
-# metrics are checked either way.
+# Everything a verification has to compare the proof against.
 REQUIRED_EXPECTATIONS = ("script_image_hash", "data_hash", "model_hash", "results")
 
 
@@ -107,7 +101,6 @@ class ProofVerdict:
     verified: bool
     checks: List[str] = field(default_factory=list)
     failures: List[str] = field(default_factory=list)
-    skipped: List[str] = field(default_factory=list)
     token: Optional[AttestationToken] = None
 
     @property
@@ -194,45 +187,29 @@ def __check_statement_version(statement: dict, verdict: ProofVerdict):
 def __check_results(
     statement: dict, expectations: ProofExpectations, verdict: ProofVerdict
 ):
-    """Two independent claims about the output, checkable by different people.
+    """That the reported metrics are the ones the workload computed.
 
-    Whoever holds the files can check all of them. Whoever holds nothing but the
-    reported metrics -- anybody reading them off the server -- can still check
-    that those are the metrics the workload computed."""
-    if expectations.results is not None:
-        attested = statement.get("results_sha256")
-        actual = results_hash(expectations.results)
-        if attested is None:
-            verdict.failures.append(
-                "The workload attested to no metrics, so the reported ones"
-                " cannot be checked against it"
-            )
-        elif actual != attested:
-            verdict.failures.append(
-                "Reported metrics do not match the proof: the statement attests"
-                f" to {attested}, these metrics hash to {actual}"
-            )
-        else:
-            verdict.checks.append(
-                "Reported metrics are exactly the ones the workload computed"
-            )
+    Checked as a value, so anybody reading the numbers off the server can do it
+    -- no output files, no knowledge of how they were written."""
+    if expectations.results is None:
+        return
 
-    if expectations.results_path is None:
-        verdict.skipped.append(
-            "Result files were not checked: no copy of them on this machine"
+    attested = statement.get("results_sha256")
+    actual = results_hash(expectations.results)
+    if attested is None:
+        verdict.failures.append(
+            "The workload attested to no metrics, so the reported ones"
+            " cannot be checked against it"
+        )
+    elif actual != attested:
+        verdict.failures.append(
+            "Reported metrics do not match the proof: the statement attests"
+            f" to {attested}, these metrics hash to {actual}"
         )
     else:
-        attested = statement.get("results_files_sha256")
-        actual = results_files_hash(expectations.results_path)
-        if actual != attested:
-            verdict.failures.append(
-                "Result files do not match the proof: the statement attests to"
-                f" {attested}, these files hash to {actual}"
-            )
-        else:
-            verdict.checks.append(
-                "Result files are exactly the bytes the workload produced"
-            )
+        verdict.checks.append(
+            "Reported metrics are exactly the ones the workload computed"
+        )
 
 
 def __check_script(

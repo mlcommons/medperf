@@ -92,7 +92,7 @@ def test_the_producer_takes_the_contract_from_this_package(producer):
     assert producer.STATEMENT_FILE is contract.STATEMENT_FILE
     assert producer.PROOF_AUDIENCE is contract.PROOF_AUDIENCE
     assert producer.statement_hash is contract.statement_hash
-    assert producer.results_files_hash is contract.results_files_hash
+    assert producer.canonical_hash is contract.canonical_hash
 
 
 def test_the_version_it_writes_is_one_the_verifier_supports():
@@ -113,7 +113,6 @@ def test_the_statement_carries_everything_the_verifier_checks(
     assert set(statement) == {
         "version",
         "results_sha256",
-        "results_files_sha256",
         "data_sha256",
         "model_sha256",
     }

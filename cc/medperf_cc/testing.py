@@ -135,7 +135,7 @@ def confidential_space_claims(**overrides) -> dict:
     now = int(time.time())
     claims = {
         "iss": "https://confidentialcomputing.googleapis.com",
-        "aud": "https://kbs.example.org",
+        "aud": "https://relying-party.example.org",
         "iat": now,
         "exp": now + 3600,
         "swname": "CONFIDENTIAL_SPACE",
