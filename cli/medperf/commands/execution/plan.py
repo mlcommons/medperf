@@ -16,9 +16,11 @@ container image is the one that actually runs.
 from dataclasses import dataclass
 from typing import Optional
 
+import medperf.config as medperf_config
 from medperf.account_management import get_medperf_user_data, is_user_logged_in
 from medperf.entities.benchmark import Benchmark
 from medperf.entities.cube import Cube
+from medperf.entities.dataset import Dataset
 from medperf.entities.model import Model
 from medperf.enums import BenchmarkTopology, ExecutionMedium
 from medperf.exceptions import InvalidArgumentError
@@ -83,11 +85,34 @@ def resolve_plan(benchmark: Benchmark) -> BenchmarkPlan:
     )
 
 
-def resolve_execution_medium(model: Model) -> ExecutionMedium:
+def download_plan_containers(plan: BenchmarkPlan) -> None:
+    """Fetches the run files of whichever containers this plan has.
+
+    The benchmark's own containers, needed by both sides of a run and by
+    neither more than the other. A model's container, if it has one, is
+    fetched per experiment instead -- see the execution flow.
+    """
+    ui = medperf_config.ui
+    containers = ((plan.evaluator, "Evaluator"), (plan.script, "Benchmark script"))
+    for container, name in containers:
+        if container is None:
+            continue
+        ui.text = f"Retrieving {name} container '{container.name}'"
+        container.download_run_files()
+        ui.print(f"> {name} Container '{container.name}' download complete")
+
+
+def resolve_execution_medium(model: Model, dataset: Dataset) -> ExecutionMedium:
     """Decides whether a model runs locally or in a confidential VM.
 
-    A model owner always runs their own model locally: they already hold the
-    weights, so there is nothing to protect them from.
+    A confidential VM protects two things at once, and running locally is only
+    safe when neither needs protecting. The model owner already holds the
+    weights, so the model is not at risk from them -- but the dataset still is,
+    unless it is their own or a demo one nobody minds them reading.
+
+    So a model owner runs locally only against a demo dataset, which is what a
+    compatibility test uses, or against their own. Against somebody else's real
+    data they go through a confidential VM like anyone else.
     """
     if not model.requires_cc():
         return ExecutionMedium.LOCAL
@@ -95,7 +120,8 @@ def resolve_execution_medium(model: Model) -> ExecutionMedium:
     user_is_model_owner = (
         is_user_logged_in() and model.owner == get_medperf_user_data()["id"]
     )
-    if user_is_model_owner:
+    nobody_elses_data = dataset.for_test or dataset.owner == model.owner
+    if user_is_model_owner and nobody_elses_data:
         return ExecutionMedium.LOCAL
 
     return ExecutionMedium.CONFIDENTIAL

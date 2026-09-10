@@ -1,4 +1,5 @@
 {
+    "backend": "gcp",
     "project_id": "medperf-330914",
     "project_number": "819939352708",
     "bucket": "data-owner-bucket-medperf-cc",

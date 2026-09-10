@@ -1,29 +1,22 @@
-import base64
-
-from medperf.asset_management.gcp_utils import CCWorkloadID
 from medperf.commands.execution.plan import BenchmarkPlan
+from medperf.entities.benchmark import Benchmark
 from medperf.entities.model import Model
 from medperf.entities.dataset import Dataset
 from medperf.entities.execution import Execution
-from medperf.entities.certificate import Certificate
 import medperf.config as config
-from medperf.exceptions import DecryptionError, ExecutionError
+from medperf.exceptions import ExecutionError
 
 from medperf.account_management import get_medperf_user_object
-from medperf.asset_management.asset_management import (
+from medperf.cc.collector import resolve_collector
+from medperf.cc.config import runner_for
+from medperf.cc.run import ConfidentialRun
+from medperf.cc.operator import (
     run_workload,
-    download_results,
-    workload_results_exists,
+    workload_configs,
     wait_for_workload,
 )
-from medperf.utils import get_string_hash
-from medperf.commands.certificate.utils import (
-    current_user_certificate_status,
-    load_user_private_key,
-)
+from medperf.cc.results import download_result_files, results_exist
 from medperf.commands.execution.container_execution import ContainerExecution
-from medperf.containers.runners.docker_utils import full_docker_image_name
-from medperf.enums import CryptoKeyType
 
 
 class ConfidentialModelContainerExecution:
@@ -39,7 +32,7 @@ class ConfidentialModelContainerExecution:
         plan: BenchmarkPlan,
         dataset: Dataset,
         model: Model,
-        execution: Execution = None,
+        execution: Execution,
         ignore_model_errors=False,
     ):
         """Benchmark execution flow.
@@ -55,7 +48,6 @@ class ConfidentialModelContainerExecution:
             execution_flow.get_operator()
             execution_flow.validate()
             execution_flow.prepare()
-            execution_flow.setup_workload()
             if not execution_flow.results_exist():
                 execution_flow.run_workload()
                 execution_flow.wait_for_workload_completion()
@@ -69,7 +61,7 @@ class ConfidentialModelContainerExecution:
         plan: BenchmarkPlan,
         dataset: Dataset,
         model: Model,
-        execution: Execution = None,
+        execution: Execution,
         ignore_model_errors=False,
     ):
         self.comms = config.comms
@@ -83,9 +75,10 @@ class ConfidentialModelContainerExecution:
         self.execution = execution
         self.ignore_model_errors = ignore_model_errors
         self.operator = None
+        self.runner = None
+        self.confidential_run = None
         self.dataset_cc_config = None
         self.model_cc_config = None
-        self.operator_cc_config = None
         self.local_execution_flow = None
 
     def setup_local_environment(self):
@@ -110,91 +103,68 @@ class ConfidentialModelContainerExecution:
             raise ExecutionError(
                 f"Model {self.model.id} is not configured for confidential computing."
             )
-        if not self.operator.is_cc_configured():
+        if not self.operator.cc_operator.configured:
             raise ExecutionError(
                 "User does not have a configuration to operate a confidential execution."
             )
+        if self.dataset.owner != self.operator.id:
+            raise ExecutionError(
+                "An inference_script benchmark scores the predictions on-prem,"
+                " against ground truth labels only the data owner holds."
+                " This execution must be operated by the data owner."
+            )
 
     def prepare(self):
-        self.dataset_cc_config = self.dataset.get_cc_config()
-        self.model_cc_config = self.model.get_cc_config()
-        self.operator_cc_config = self.operator.get_cc_config()
-        self.asset = self.model.asset_obj
-
-    def setup_workload(self):
-        if self.dataset.owner == self.operator.id:
-            status_dict = current_user_certificate_status(CryptoKeyType.RSA)
-            user_cert = None
-            if status_dict["should_be_submitted"]:
-                user_cert = Certificate.get_local_user_certificate(CryptoKeyType.RSA)
-            elif status_dict["no_action_required"]:
-                user_cert = status_dict["user_cert_object"]
-
-            if not user_cert:
-                raise ExecutionError(
-                    "User must have a certificate to run the confidential model"
-                )
-            cert_obj = user_cert
-        else:
-            datasets_certs, _ = Certificate.get_benchmark_datasets_certificates(
-                self.benchmark_id
-            )
-            for cert in datasets_certs:
-                if cert.owner == self.dataset.owner:
-                    cert_obj = cert
-                    break
-            else:
-                raise ExecutionError(
-                    "Dataset not associated. Can't find data owner certificate."
-                )
-
-        public_key_bytes = cert_obj.public_key()
-        result_collector_public_key = base64.b64encode(public_key_bytes)
-        workload = CCWorkloadID(
-            data_hash=self.dataset.generated_uid,
-            model_hash=self.asset.asset_hash,
-            script_hash=self.plan.script_hash,
-            result_collector_hash=get_string_hash(result_collector_public_key),
-            data_id=self.dataset.id,
-            model_id=self.model.id,
-            script_id=self.plan.script_id,
-            execution_id=self.execution.id,
+        self.dataset_cc_config, self.model_cc_config = workload_configs(
+            self.dataset, self.model
         )
-
-        self.workload = workload
-        self.result_collector_public_key = result_collector_public_key
+        # An inference_script run is always collected by the data owner, who
+        # validate() has just required to be the operator. Resolving still
+        # runs, to refuse a pair of policies that would release the
+        # predictions to somebody else, or to nobody.
+        collector = resolve_collector(
+            Benchmark.get(self.benchmark_id), self.dataset, self.model
+        )
+        if collector.user_id != self.operator.id:
+            raise ExecutionError(
+                "An inference_script benchmark scores the predictions on-prem,"
+                " but its policies release them to the"
+                f" {collector.party.value}. Only the data owner can collect"
+                " an execution they have to score themselves."
+            )
+        self.confidential_run = ConfidentialRun.resolve(
+            self.plan, self.dataset, self.model, self.execution, collector
+        )
+        self.runner = runner_for(self.operator)
 
     def results_exist(self):
-        return workload_results_exists(self.operator_cc_config, self.workload)
+        return results_exist(self.confidential_run.result_store, self.confidential_run.workload)
 
     def run_workload(self):
         config.ui.text = "Starting Confidential VM"
-        docker_image = self.script.parser.get_setup_args()
-        docker_image = full_docker_image_name(docker_image)
+        docker_image = self.script.full_docker_image_name
         run_workload(
+            self.runner,
             docker_image,
-            self.workload,
+            self.confidential_run.workload,
             self.dataset_cc_config,
             self.model_cc_config,
-            self.operator_cc_config,
-            self.result_collector_public_key.decode("utf-8"),
+            self.confidential_run.store_config,
+            self.confidential_run.collector_public_key,
         )
 
     def wait_for_workload_completion(self):
         config.ui.text = "Waiting for workload completion"
-        wait_for_workload(self.workload, self.operator_cc_config)
+        wait_for_workload(self.runner, self.confidential_run.workload)
         if not self.results_exist():
             raise ExecutionError("Workload did not complete successfully.")
 
     def download_predictions(self):
         config.ui.text = "Downloading inference predictions"
-        results_path = self.local_execution_flow.preds_path
-        private_key_bytes = load_user_private_key(CryptoKeyType.RSA)
-        if private_key_bytes is None:
-            raise DecryptionError("Missing Private Key")
-
-        download_results(
-            self.operator_cc_config, self.workload, private_key_bytes, results_path
+        download_result_files(
+            self.confidential_run.result_store,
+            self.confidential_run.workload,
+            self.local_execution_flow.preds_path,
         )
 
     def run_evaluation(self):

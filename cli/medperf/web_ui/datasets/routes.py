@@ -3,6 +3,7 @@ import logging
 from typing import List, Optional
 
 from fastapi.responses import HTMLResponse, JSONResponse
+import anyio
 from fastapi import Request, APIRouter, Depends, Form
 
 from medperf import config
@@ -14,11 +15,12 @@ from medperf.commands.dataset.import_dataset import ImportDataset
 from medperf.commands.dataset.prepare import DataPreparation
 from medperf.commands.dataset.set_operational import DatasetSetOperational
 from medperf.commands.dataset.submit import DataCreation
-from medperf.commands.execution.create import BenchmarkExecution
+from medperf.commands.execution.dataset_benchmark_run import DatasetBenchmarkRun
 from medperf.commands.execution.submit import ResultSubmission
 from medperf.commands.execution.utils import filter_latest_executions
 from medperf.commands.cc.dataset_configure_for_cc import DatasetConfigureForCC
 from medperf.commands.cc.dataset_update_cc_policy import DatasetUpdateCCPolicy
+from medperf.commands.cc.download_cc_results import DownloadCCResults
 from medperf.entities.cube import Cube
 from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
@@ -28,6 +30,7 @@ from medperf.entities.training_exp import TrainingExp
 from medperf.commands.association.utils import get_user_associations
 from medperf.commands.dataset.associate_training import AssociateTrainingDataset
 from medperf.commands.dataset.train import TrainingExecution
+from medperf.cc.collector import collects_results
 from medperf.web_ui.common import (
     templates,
     check_user_ui,
@@ -35,7 +38,14 @@ from medperf.web_ui.common import (
     initialize_state_task,
     reset_state_task,
 )
+from medperf.web_ui.cc_forms import (
+    backend_settings_from_form,
+    service_settings,
+    field_label,
+    selected_backend,
+)
 from medperf.web_ui.listing import fetch_listing_page
+from medperf_cc import asset_backends
 
 logger = logging.getLogger(__name__)
 
@@ -96,6 +106,7 @@ def dataset_detail_ui(  # noqa
     ui_mode = request.app.state.ui_mode
 
     cc_config_defaults = dataset.get_cc_config()
+    cc_policy = dataset.get_cc_policy()
     cc_configured = dataset.is_cc_configured()
     cc_initialized = dataset.is_cc_initialized()
     cc_last_synced = dataset.get_last_synced()
@@ -108,6 +119,17 @@ def dataset_detail_ui(  # noqa
         "is_owner": is_owner,
         "report_exists": report_exists,
         "cc_config_defaults": cc_config_defaults,
+        "cc_policy": cc_policy,
+        "cc_backends": asset_backends(),
+        "cc_backend": {
+            service: selected_backend(cc_config_defaults, service)
+            for service in ("storage", "vault")
+        },
+        "cc_settings": {
+            service: service_settings(cc_config_defaults, service)
+            for service in ("storage", "vault")
+        },
+        "cc_field_label": field_label,
         "cc_configured": cc_configured,
         "cc_initialized": cc_initialized,
         "cc_last_synced": cc_last_synced,
@@ -136,7 +158,14 @@ def dataset_detail_ui(  # noqa
         results = []
         if benchmark_assocs:
             user_id = user_obj.id
-            results = Execution.all(filters={"owner": user_id})
+            if is_owner:
+                # Every execution on this dataset, whoever operated it. A
+                # confidential run somebody else operated is recorded as
+                # theirs, so it is missing from the owner-scoped listing --
+                # this is the one the server answers to a dataset's owner.
+                results = Execution.all(filters={"dataset": dataset_id})
+            else:
+                results = Execution.all(filters={"owner": user_id})
             results = filter_latest_executions(results)
 
         # Fetch models associated with each benchmark
@@ -166,13 +195,20 @@ def dataset_detail_ui(  # noqa
                     elif not model.is_cc_initialized():
                         reason = "Wait for model owner to configure their CC settings"
                         can_run = False
-                    elif not user_obj.is_cc_initialized():
+                    elif not user_obj.cc_operator.initialized:
                         reason = "You haven't configured your workload run settings for CC yet"
                         can_run = False
                     else:
                         reason = ""
                         can_run = True
                     model.cc_run_status = {"can_run": can_run, "reason": reason}
+                    # An execution somebody else operated leaves nothing here.
+                    model.cc_can_collect = collects_results(
+                        my_user_id,
+                        valid_benchmarks[assoc["benchmark"]],
+                        dataset,
+                        model,
+                    )
                 model.result = None
                 for result in results:
                     if (
@@ -181,11 +217,16 @@ def dataset_detail_ui(  # noqa
                         and result.model == model.id
                     ):
                         model.result = result.todict()
-                        model.result["results_exist"] = (
-                            result.is_executed() or result.finalized
-                        )
-                        if model.result["results_exist"]:
-                            model.result["results"] = result.read_results()
+                        ran = result.is_executed() or result.finalized
+                        try:
+                            model.result["results"] = (
+                                result.read_results() if ran else {}
+                            )
+                        except OSError:
+                            model.result["results"] = {}
+                        # A run released to somebody else leaves a finished
+                        # execution with nothing readable in it.
+                        model.result["results_exist"] = bool(model.result["results"])
 
         context.update(
             {
@@ -465,7 +506,7 @@ def run(
     return_response = {"status": "", "error": ""}
 
     try:
-        BenchmarkExecution.run(
+        DatasetBenchmarkRun.run(
             benchmark_id,
             entity_id,
             model_ids,
@@ -478,6 +519,36 @@ def run(
         return_response["status"] = "failed"
         return_response["error"] = str(exp)
         notification_message = "Error during execution"
+        logger.exception(exp)
+
+    config.ui.end_task(return_response)
+    reset_state_task(request)
+    config.ui.add_notification(
+        message=notification_message,
+        return_response=return_response,
+        url=f"/datasets/ui/display/{entity_id}",
+    )
+    return return_response
+
+
+@router.post("/download_cc_results", response_class=JSONResponse)
+def download_cc_results(
+    request: Request,
+    entity_id: int = Form(...),
+    execution_id: int = Form(...),
+    current_user: bool = Depends(check_user_api),
+):
+    initialize_state_task(request, task_name="download_cc_results")
+    return_response = {"status": "", "error": ""}
+
+    try:
+        DownloadCCResults.run(execution_id)
+        return_response["status"] = "success"
+        notification_message = "Results successfully collected"
+    except Exception as exp:
+        return_response["status"] = "failed"
+        return_response["error"] = str(exp)
+        notification_message = "Failed to collect results"
         logger.exception(exp)
 
     config.ui.end_task(return_response)
@@ -628,32 +699,31 @@ def edit_cc_config(
     request: Request,
     entity_id: int = Form(...),
     configure_cc: bool = Form(False),
-    project_id: str = Form(""),
-    project_number: str = Form(""),
-    bucket: str = Form(""),
-    keyring_name: str = Form(""),
-    key_name: str = Form(""),
-    key_location: str = Form(""),
-    wip: str = Form(""),
-    wip_provider: str = Form(""),
+    bind_peer_asset: bool = Form(False),
+    allowed_result_collectors: List[str] = Form([]),
     current_user: bool = Depends(check_user_api),
 ):
+    # Read as posted rather than declared field by field: which settings there
+    # are depends on the backends chosen, and only medperf_cc knows them.
+    form = anyio.from_thread.run(lambda: request.form())
+    backends = asset_backends()
     args = {
-        "project_id": project_id,
-        "project_number": project_number,
-        "bucket": bucket,
-        "keyring_name": keyring_name,
-        "key_name": key_name,
-        "key_location": key_location,
-        "wip": wip,
-        "wip_provider": wip_provider,
+        "storage": backend_settings_from_form(form, backends["storage"], "storage_"),
+        "vault": backend_settings_from_form(form, backends["vault"], "vault_"),
+    }
+    # An unchecked box is simply absent from the form, so both choices are read
+    # as stated rather than left to the asset kind's default.
+    policy = {
+        "bind_peer_asset": bind_peer_asset,
+        "allowed_result_collectors": allowed_result_collectors,
     }
     if not configure_cc:
         args = {}
+        policy = {}
     initialize_state_task(request, task_name="data_update_cc_config")
     return_response = {"status": "", "error": ""}
     try:
-        DatasetConfigureForCC.run(entity_id, args, {})
+        DatasetConfigureForCC.run(entity_id, args, policy)
         return_response["status"] = "success"
         notification_message = "Successfully updated dataset CC config!"
     except Exception as exp:

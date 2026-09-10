@@ -338,6 +338,9 @@ echo "Setup CC operator (data owner is operator)"
 echo "====================================="
 print_eval medperf confidential setup_cc_operator -c $OPERATOR_CC_CONFIG
 checkFailed "Setup CC operator failed"
+
+print_eval medperf confidential setup_cc_collector -c $COLLECTOR_CC_CONFIG
+checkFailed "Setup CC result collector failed"
 ##########################################################
 
 echo "\n"

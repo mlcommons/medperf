@@ -87,3 +87,46 @@ def test_write_writes_results_using_entity(mocker, submission, result, fs):
 
     # Assert
     spy.assert_called()
+
+
+def test_the_integrity_proof_goes_up_with_the_results(mocker, ui):
+    """Otherwise the server holds a number nobody but its collector could ever
+    check, and verifying it needs the machine that collected it"""
+    # Arrange
+    execution = TestExecution(id=1)
+    mocker.patch(PATCH_SUBMISSION.format("Execution.get"), return_value=execution)
+    mocker.patch.object(execution, "read_results", return_value={"auc": 0.9})
+    mocker.patch.object(execution, "is_partial", return_value=False)
+    mocker.patch.object(execution, "is_executed", return_value=True)
+    mocker.patch.object(
+        execution, "read_integrity_proof", return_value={"statement": {}, "token": "t"}
+    )
+    mocker.patch.object(execution, "write")
+    update = mocker.patch(PATCH_SUBMISSION.format("config.comms.update_execution"))
+
+    # Act
+    ResultSubmission.run(1, approved=True)
+
+    # Assert
+    body = update.call_args.args[1]
+    assert body["integrity_proof"] == {"statement": {}, "token": "t"}
+
+
+def test_an_execution_without_a_proof_sends_no_proof_field(mocker, ui):
+    """An unverifiable execution says so by the field being absent, not by an
+    empty one that looks like a proof that failed"""
+    # Arrange
+    execution = TestExecution(id=1)
+    mocker.patch(PATCH_SUBMISSION.format("Execution.get"), return_value=execution)
+    mocker.patch.object(execution, "read_results", return_value={"auc": 0.9})
+    mocker.patch.object(execution, "is_partial", return_value=False)
+    mocker.patch.object(execution, "is_executed", return_value=True)
+    mocker.patch.object(execution, "read_integrity_proof", return_value={})
+    mocker.patch.object(execution, "write")
+    update = mocker.patch(PATCH_SUBMISSION.format("config.comms.update_execution"))
+
+    # Act
+    ResultSubmission.run(1, approved=True)
+
+    # Assert
+    assert "integrity_proof" not in update.call_args.args[1]

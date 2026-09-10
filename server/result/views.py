@@ -6,7 +6,14 @@ from drf_spectacular.utils import extend_schema
 
 from .models import ModelResult
 from .serializers import ModelResultSerializer, ModelResultDetailSerializer
-from .permissions import IsAdmin, IsBenchmarkOwner, IsCommitteeMember, IsDatasetOwner
+from .permissions import (
+    IsAdmin,
+    IsBenchmarkOwner,
+    IsCommitteeMember,
+    IsConfidentialEndToEndExecution,
+    IsDatasetOwner,
+    IsExecutionOwner,
+)
 
 
 class ModelResultList(GenericAPIView):
@@ -26,7 +33,9 @@ class ModelResultList(GenericAPIView):
         if self.request.method == "GET":
             self.permission_classes = [IsAdmin]
         elif self.request.method == "POST":
-            self.permission_classes = [IsAdmin | IsDatasetOwner]
+            self.permission_classes = [
+                IsAdmin | IsDatasetOwner | IsConfidentialEndToEndExecution
+            ]
         return super(self.__class__, self).get_permissions()
 
     @extend_schema(operation_id="results_retrieve_all")
@@ -57,11 +66,19 @@ class ModelResultDetail(GenericAPIView):
 
     def get_permissions(self):
         if self.request.method == "PUT":
-            self.permission_classes = [IsAdmin | IsDatasetOwner]
+            self.permission_classes = [
+                IsAdmin | IsExecutionOwner | IsDatasetOwner
+            ]
         elif self.request.method == "DELETE":
             self.permission_classes = [IsAdmin]
         elif self.request.method == "GET":
-            self.permission_classes = [IsAdmin | IsDatasetOwner | IsBenchmarkOwner | IsCommitteeMember]
+            self.permission_classes = [
+                IsAdmin
+                | IsExecutionOwner
+                | IsDatasetOwner
+                | IsBenchmarkOwner
+                | IsCommitteeMember
+            ]
         return super(self.__class__, self).get_permissions()
 
     def get_object(self, pk):

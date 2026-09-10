@@ -16,6 +16,8 @@ class RegBenchmarkPage(BasePage):
     REF_MODEL = (By.ID, "reference-model")
     METRICS = (By.ID, "evaluator-container")
     BENCHMARK_SCRIPT = (By.ID, "benchmark-script")
+    SKIP_TESTS = (By.ID, "skip-tests")
+    REQUIRE_TESTS = (By.ID, "noskip-tests")
     REGISTER = (By.ID, "register-benchmark-btn")
 
     @staticmethod
@@ -47,6 +49,7 @@ class RegBenchmarkPage(BasePage):
         metrics=None,
         benchmark_script=None,
         topology="byo_inference_script",
+        skip_compatibility_tests=False,
     ):
         self.select_topology(topology)
 
@@ -60,5 +63,9 @@ class RegBenchmarkPage(BasePage):
             self.select_searchable_entity(self.METRICS, metrics)
         if benchmark_script is not None:
             self.select_searchable_entity(self.BENCHMARK_SCRIPT, benchmark_script)
+
+        # Recorded on the benchmark, so it decides the association tests too,
+        # not just this submission.
+        self.click(self.SKIP_TESTS if skip_compatibility_tests else self.REQUIRE_TESTS)
 
         self.click(self.REGISTER)

@@ -1,15 +1,21 @@
 from dataclasses import dataclass
-from google.auth.credentials import Credentials
-from google.auth import load_credentials_from_dict
 import os
 
+from google.auth import load_credentials_from_dict
+from google.auth.credentials import Credentials
 
-def get_credentials(wippro: str) -> Credentials:
+
+def get_credentials(pool_provider: str) -> Credentials:
+    """Federates this workload's attestation into Google credentials.
+
+    The launcher writes the attested claims token to a well known path; Google
+    exchanges it for a short lived credential matching whatever principal the
+    workload identity pool derives from it."""
     if os.getenv("DRY_RUN", None):
         return
     info = {
         "type": "external_account",
-        "audience": f"//iam.googleapis.com/{wippro}",
+        "audience": f"//iam.googleapis.com/{pool_provider}",
         "subject_token_type": "urn:ietf:params:oauth:token-type:jwt",
         "token_url": "https://sts.googleapis.com/v1/token",
         "credential_source": {
@@ -21,29 +27,25 @@ def get_credentials(wippro: str) -> Credentials:
 
 
 @dataclass
-class GCPAssetConfig:
-    project_id: str
-    project_number: str
+class GCPStorageConfig:
+    backend: str
     bucket: str
-    encrypted_asset_bucket_file: str
-    encrypted_key_bucket_file: str
-    keyring_name: str
+    object_path: str
+    workload_identity_pool_provider: str
+
+
+@dataclass
+class GCPVaultConfig:
+    backend: str
+    bucket: str
+    wrapped_key_path: str
     key_name: str
-    key_location: str
-    wip: str
-    wip_provider: str
-
-    @property
-    def full_key_name(self) -> str:
-        return f"projects/{self.project_id}/locations/{self.key_location}/keyRings/{self.keyring_name}/cryptoKeys/{self.key_name}"
-
-    @property
-    def full_wip_name(self) -> str:
-        return f"projects/{self.project_number}/locations/global/workloadIdentityPools/{self.wip}/providers/{self.wip_provider}"
+    workload_identity_pool_provider: str
 
 
 @dataclass
 class GCPResultConfig:
+    backend: str
     bucket: str
     encrypted_result_bucket_file: str
     encrypted_key_bucket_file: str

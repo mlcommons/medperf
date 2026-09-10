@@ -33,6 +33,10 @@ bash $SCRIPT_DIR/benchmark/entrypoint.sh \
     --model-files $MODEL_FILES \
     --output-results $RESULT_FILES
 
+# attest to what was computed, before the results are packed up
+python3 $SCRIPT_DIR/integrity_proof.py \
+    --result-files $RESULT_FILES
+
 # store results
 python3 $SCRIPT_DIR/store_results.py \
     --result-files $RESULT_FILES

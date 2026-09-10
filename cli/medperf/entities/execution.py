@@ -54,6 +54,7 @@ class Execution(Entity):
         self.user_metadata = self._model.user_metadata
         self.model_report = self._model.model_report
         self.evaluation_report = self._model.evaluation_report
+        self.integrity_proof = self._model.integrity_proof
         self.finalized = self._model.finalized
         self.finalized_at = self._model.finalized_at
 
@@ -61,6 +62,9 @@ class Execution(Entity):
 
     def _set_helper_attributes(self):
         self.results_path = os.path.join(self.path, config.results_filename)
+        self.integrity_proof_path = os.path.join(
+            self.path, config.integrity_proof_filename
+        )
         self.local_outputs_path = os.path.join(self.path, config.local_metrics_outputs)
 
     @property
@@ -80,14 +84,32 @@ class Execution(Entity):
         with open(flag_file, "w"):
             pass
 
-    def save_results(self, results, partial):
+    def save_results(self, results, partial, integrity_proof=None):
         with open(self.results_path, "w") as f:
             yaml.safe_dump(results, f)
+
+        if integrity_proof:
+            self.integrity_proof = integrity_proof
+            with open(self.integrity_proof_path, "w") as f:
+                yaml.safe_dump(integrity_proof, f)
 
         if partial:
             flag_file = os.path.join(self.path, config.partial_flag)
             with open(flag_file, "w"):
                 pass
+
+    def read_integrity_proof(self):
+        """What the workload attested about these results, if it produced one.
+
+        Written beside the results when they were collected. Read back here so
+        that reporting the results reports the proof with them -- otherwise
+        only whoever collected them could ever check it."""
+        if self.integrity_proof:
+            return self.integrity_proof
+        if not os.path.exists(self.integrity_proof_path):
+            return {}
+        with open(self.integrity_proof_path) as f:
+            return yaml.safe_load(f) or {}
 
     def read_results(self):
         if self.finalized:
@@ -133,6 +155,19 @@ class Execution(Entity):
                 return config.comms.get_benchmark_executions(bmk, *args, **kwargs)
 
             comms_fn = get_benchmark_executions
+        elif "dataset" in filters and filters["dataset"] is not None:
+            # A dataset owner's own listing leaves out an execution somebody
+            # else operated on their data -- it belongs to whoever ran it. The
+            # dataset-scoped listing is the one that shows them all of them.
+            dataset = filters["dataset"]
+            del filters["dataset"]
+
+            def get_dataset_executions(*args, **kwargs):
+                # Decorate the dataset results remote function so it has the same signature
+                # as all the comms_fns
+                return config.comms.get_dataset_executions(dataset, *args, **kwargs)
+
+            comms_fn = get_dataset_executions
 
         return comms_fn
 

@@ -5,10 +5,12 @@ import medperf.config as config
 from medperf.decorators import clean_except
 from medperf.commands.view import EntityView
 from medperf.entities.execution import Execution
+from medperf.exceptions import InvalidArgumentError
 from medperf.commands.list import EntityList
-from medperf.commands.execution.create import BenchmarkExecution
+from medperf.commands.execution.dataset_benchmark_run import DatasetBenchmarkRun
 from medperf.commands.execution.submit import ResultSubmission
 from medperf.commands.execution.show_local_results import ShowLocalResults
+from medperf.commands.execution.verify_proof import VerifyExecutionProof
 
 app = typer.Typer()
 
@@ -45,7 +47,7 @@ def create(
     ),
 ):
     """Runs the benchmark execution step for a given benchmark, prepared dataset and model"""
-    BenchmarkExecution.run(
+    DatasetBenchmarkRun.run(
         benchmark_uid,
         data_uid,
         [model_uid],
@@ -170,3 +172,30 @@ def show_local_results(
 ):
     """Displays the information of one or more results"""
     ShowLocalResults.run(result_id, format, output)
+
+
+@app.command("verify")
+@clean_except
+def verify(
+    execution_uid: int = typer.Option(
+        ..., "--execution", "-e", help="UID of the execution to verify"
+    ),
+):
+    """Verifies the integrity proof of a confidential execution.
+
+    Establishes, without trusting whoever reported them, that these results were
+    produced by the benchmark's own script, on this dataset, with this model,
+    inside genuine confidential hardware. It does not establish that the script
+    computed the metric correctly: attestation pins which code ran, never that
+    the code is right.
+    """
+    verdict = VerifyExecutionProof.run(execution_uid)
+
+    for check in verdict.checks:
+        config.ui.print(f"  \u2713 {check}")
+    for failure in verdict.failures:
+        config.ui.print_error(f"  \u2717 {failure}")
+
+    if not verdict.verified:
+        raise InvalidArgumentError(verdict.summary)
+    config.ui.print(f"\u2705 {verdict.summary}")

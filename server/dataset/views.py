@@ -4,6 +4,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from drf_spectacular.utils import extend_schema
 
+from result.serializers import ModelResultSerializer
+
 from .models import Dataset
 from .permissions import IsAdmin, IsDatasetOwner
 from .serializers import (
@@ -38,6 +40,38 @@ class DatasetList(SearchableOrderingListMixin, GenericAPIView):
             serializer.save(owner=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class DatasetResultList(GenericAPIView):
+    """The executions run against one dataset, listed to its owner.
+
+    An execution belongs to whoever operated it, and the two are the same
+    person for everything but a confidential run somebody else operated. Those
+    appear in no listing their dataset's owner can read -- `/me/results/` is
+    scoped to the creator and `/benchmarks/<pk>/results/` to the benchmark
+    owner -- even though `/results/<pk>/` would let them read each one, had
+    they any way to learn its id. This is that way.
+    """
+
+    permission_classes = [IsAdmin | IsDatasetOwner]
+    serializer_class = ModelResultSerializer
+    queryset = ""
+
+    def get_object(self, pk):
+        try:
+            return Dataset.objects.get(pk=pk)
+        except Dataset.DoesNotExist:
+            raise Http404
+
+    def get(self, request, pk, format=None):
+        """
+        Retrieve results associated with a dataset instance.
+        """
+        dataset = self.get_object(pk)
+        results = dataset.modelresult_set.all()
+        results = self.paginate_queryset(results)
+        serializer = ModelResultSerializer(results, many=True)
+        return self.get_paginated_response(serializer.data)
 
 
 class DatasetDetail(GenericAPIView):

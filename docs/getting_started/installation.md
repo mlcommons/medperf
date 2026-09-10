@@ -62,8 +62,13 @@ If using Docker, make sure [you can run Docker as a non-root user.](https://docs
 3. Install MedPerf from source:
 
     ```bash
+    pip install -e ./cc
     pip install -e ./cli
     ```
+
+    `./cc` holds MedPerf's confidential computing components. They are a
+    separate package so that they can be used on their own, and they are not
+    published to PyPI, which is why they are installed from source first.
 
 4. Verify the installation:
 

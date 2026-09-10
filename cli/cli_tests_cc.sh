@@ -34,6 +34,18 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
+echo "Resetting the mock confidential backends"
+echo "====================================="
+# Where the mock storage, vault and runner keep their state. Cleared so a stale
+# asset from an earlier run cannot stand in for one this run should publish.
+rm -rf $CC_MOCK_ROOT
+mkdir -p $CC_MOCK_ROOT
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
 echo "Retrieving mock datasets"
 echo "====================================="
 echo "downloading files to $DIRECTORY"
@@ -202,6 +214,27 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
+echo "get and submit a client certificate for the model owner"
+echo "====================================="
+# Needed whoever operates: an asset owner pins the collector's key, so that key
+# has to exist and be visible to the other party before either can sync.
+print_eval medperf profile activate testmodel
+checkFailed "testmodel profile activation failed"
+
+print_eval medperf certificate get_client_certificate --key_type RSA
+checkFailed "get certificate failed"
+
+print_eval medperf certificate submit_client_certificate --key_type RSA -y
+checkFailed "Failed to submit Model Owner Certificate"
+
+print_eval medperf profile activate testdata
+checkFailed "testdata profile activation failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
 echo "Running data submission step"
 echo "====================================="
 print_eval medperf dataset submit -p $PREP_UID -d $DIRECTORY/sample_raw_data/images -l $DIRECTORY/sample_raw_data/labels --name='cc_dataset_a' --description='cc-mock-dataset-a' --location='mock-location-a' -y
@@ -334,8 +367,28 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Setup CC operator (data owner is operator)"
+echo "Setup where the results are received (by $CC_COLLECTOR_PROFILE)"
 echo "====================================="
+# Configured by whoever the policies release results to, not by whoever runs
+# the workload: it is their storage and their key. Both scenarios release to
+# the data owner, so in the modelowner one this is a different person from the
+# operator -- which is the case the split exists for.
+print_eval medperf profile activate $CC_COLLECTOR_PROFILE
+checkFailed "$CC_COLLECTOR_PROFILE profile activation failed"
+
+print_eval medperf confidential setup_cc_collector -c $COLLECTOR_CC_CONFIG
+checkFailed "Setup CC result collector failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Setup CC operator ($CC_OPERATOR is operator)"
+echo "====================================="
+print_eval medperf profile activate $CC_OPERATOR_PROFILE
+checkFailed "$CC_OPERATOR_PROFILE profile activation failed"
+
 print_eval medperf confidential setup_cc_operator -c $OPERATOR_CC_CONFIG
 checkFailed "Setup CC operator failed"
 ##########################################################
@@ -344,10 +397,50 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Run benchmark execution (data owner is operator)"
+echo "Run benchmark execution ($CC_OPERATOR is operator)"
 echo "====================================="
-print_eval medperf benchmark run -b $BMK_UID -d $DSET_UID
+if [ "$CC_OPERATOR" = "modelowner" ]; then
+  # The model owner's own command: their one model against the benchmark's
+  # datasets. The mirror of the data owner's, minus a counterpart to the
+  # reference model -- that one is the benchmark's, and running it against
+  # somebody else's dataset is the dataset owner's to do.
+  print_eval medperf model run_benchmark -b $BMK_UID -m $MOBILENET_MODEL_UID 2>&1 | tee "$DIRECTORY/cc_run.log"
+else
+  print_eval medperf dataset run_benchmark -b $BMK_UID -d $DSET_UID
+fi
 checkFailed "Benchmark execution failed"
+##########################################################
+
+echo "\n"
+
+##########################################################
+echo "====================================="
+echo "Collect the results (by $CC_COLLECTOR_PROFILE)"
+echo "====================================="
+if [ "$CC_OPERATOR" = "modelowner" ]; then
+  # The operator never held the key, so the results are still sealed in the
+  # collector's storage. The id is read back from what the operator was told to
+  # hand over, which is the only way they learn of it today.
+  EXECUTION_UID=$(grep -o "download_cc_results -e [0-9]*" "$DIRECTORY/cc_run.log" | tail -n 1 | tr -s " " | cut -d " " -f 3)
+  echo "EXECUTION_UID=$EXECUTION_UID"
+  if [ -z "$EXECUTION_UID" ]; then
+    echo "The operator was not told which execution to hand over"
+    exit 1
+  fi
+
+  print_eval medperf profile activate $CC_COLLECTOR_PROFILE
+  checkFailed "$CC_COLLECTOR_PROFILE profile activation failed"
+
+  print_eval medperf confidential download_cc_results -e $EXECUTION_UID
+  checkFailed "Collecting the results failed"
+
+  # Reporting them is the ordinary command: being collected by a second party
+  # does not make this execution a special case once the results are in hand.
+  print_eval medperf result submit -r $EXECUTION_UID -y
+  checkFailed "Submitting the collected results failed"
+else
+  echo "The operator collected their own results inline."
+fi
 ##########################################################
 
 echo "\n"

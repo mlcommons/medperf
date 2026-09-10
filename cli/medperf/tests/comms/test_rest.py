@@ -593,3 +593,27 @@ def test_get_mlcube_datasets_calls_auth_get_for_expected_path(mocker, server):
         f"{full_url}/mlcubes/{cube_id}/datasets/", filters={}, error_msg=ANY
     )
     assert exp_datasets == datasets
+
+
+def test_get_user_metadata_unwraps_what_the_endpoint_returns(mocker, server):
+    """The endpoint answers with the field wrapped in an object; a caller asked
+    for the metadata, and returning the wrapper looks like an empty one"""
+    # Arrange
+    stored = {"cc": {"collector": {"backend": "gcp", "bucket": "theirs"}}}
+    mocker.patch(
+        patch_server.format("REST._REST__get"), return_value={"metadata": stored}
+    )
+
+    # Act
+    metadata = server.get_user_metadata(7)
+
+    # Assert
+    assert metadata == stored
+
+
+def test_get_user_metadata_of_a_user_who_stored_none(mocker, server):
+    # Arrange
+    mocker.patch(patch_server.format("REST._REST__get"), return_value={})
+
+    # Act & Assert
+    assert server.get_user_metadata(7) == {}

@@ -365,20 +365,27 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Running model2"
+echo "Running model2, and reporting its result"
 echo "====================================="
-print_eval medperf run -b $BMK_UID -d $DSET_A_UID -m $MODEL2_UID -y
+print_eval medperf run -b $BMK_UID -d $DSET_A_UID -m $MODEL2_UID
 checkFailed "Model2 run failed"
+
+# Running leaves the results here; reporting them is its own command.
+print_eval medperf result submit -b $BMK_UID -d $DSET_A_UID -m $MODEL2_UID -y
+checkFailed "Model2 result submission failed"
 ##########################################################
 
 echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Running model3 (with singularity)"
+echo "Running model3 (with singularity), and reporting its result"
 echo "====================================="
-print_eval medperf --platform=singularity run -b $BMK_UID -d $DSET_A_UID -m $MODEL3_UID -y
+print_eval medperf --platform=singularity run -b $BMK_UID -d $DSET_A_UID -m $MODEL3_UID
 checkFailed "Model3 run failed"
+
+print_eval medperf result submit -b $BMK_UID -d $DSET_A_UID -m $MODEL3_UID -y
+checkFailed "Model3 result submission failed"
 ##########################################################
 
 echo "\n"
@@ -397,7 +404,7 @@ echo "\n"
 echo "====================================="
 echo "Running model3 (This should fail since access is not granted yet)"
 echo "====================================="
-print_eval medperf --platform=singularity run -b $BMK_UID -d $DSET_B_UID -m $MODEL3_UID -y
+print_eval medperf --platform=singularity run -b $BMK_UID -d $DSET_B_UID -m $MODEL3_UID
 checkSucceeded "Model3 run should fail"
 ##########################################################
 
@@ -497,7 +504,7 @@ echo "\n"
 echo "====================================="
 echo "Running model3 (This should fail since access was revoked)"
 echo "====================================="
-print_eval medperf run -b $BMK_UID -d $DSET_A_UID -m $MODEL3_UID --no-cache --new-result -y
+print_eval medperf run -b $BMK_UID -d $DSET_A_UID -m $MODEL3_UID --no-cache --new-result
 checkSucceeded "Model3 run should fail"
 ##########################################################
 

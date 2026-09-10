@@ -7,7 +7,7 @@ from medperf.entities.benchmark import Benchmark
 from medperf.commands.list import EntityList
 from medperf.commands.view import EntityView
 from medperf.commands.benchmark.submit import SubmitBenchmark
-from medperf.commands.execution.create import BenchmarkExecution
+from medperf.commands.execution.dataset_benchmark_run import DatasetBenchmarkRun
 from medperf.commands.benchmark.update_associations_poilcy import (
     UpdateAssociationsPolicy,
 )
@@ -185,8 +185,12 @@ def run(
         help="Execute even if results have been already uploaded (this will create new records)",
     ),
 ):
-    """Runs the benchmark execution step for a given benchmark, prepared dataset and model"""
-    BenchmarkExecution.run(
+    """Runs a benchmark's models against one of your datasets.
+
+    Also reachable as `medperf dataset run_benchmark`, which is the same
+    command under the noun a data owner thinks in.
+    """
+    DatasetBenchmarkRun.run(
         benchmark_uid,
         data_uid,
         models_uids=None,

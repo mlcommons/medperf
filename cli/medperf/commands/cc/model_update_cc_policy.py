@@ -1,56 +1,29 @@
 from medperf import config
 from medperf.account_management.account_management import get_medperf_user_object
-from medperf.asset_management.asset_management import update_model_cc_policy
-from medperf.asset_management.gcp_utils import CCWorkloadID
-from medperf.commands.cc.utils import (
-    dedup_workloads,
-    get_associated_benchmarks,
-    get_confidential_plan,
-    sync_cc_metadata,
-)
+from medperf.cc.assets import set_permitted_grants, sync_cc_metadata
+from medperf.cc.workloads import get_model_grants
 from medperf.entities.model import Model
 from medperf.exceptions import MedperfException
-
-
-def get_permitted_workloads(model: Model):
-    """The workloads a model owner authorizes to load their weights.
-
-    A model-side grant pins only the benchmark script and the model, so it does
-    not name datasets or result collectors: it says "this image may load my
-    weights", and leaves it to each data owner's own policy to decide which
-    data that image is allowed to see."""
-    user_obj = get_medperf_user_object()
-    if model.owner != user_obj.id:
-        raise MedperfException("User must be model owner")
-    asset = model.asset_obj
-
-    permitted_workloads = []
-    for benchmark in get_associated_benchmarks(model.id, "model"):
-        plan = get_confidential_plan(benchmark)
-        if plan is None:
-            continue
-        permitted_workloads.append(
-            CCWorkloadID.for_model_policy(
-                model_hash=asset.asset_hash,
-                script_hash=plan.script_hash,
-                model_id=model.id,
-                script_id=plan.script_id,
-            )
-        )
-
-    return dedup_workloads(permitted_workloads, for_model=True)
+from medperf_cc import AssetKind
 
 
 class ModelUpdateCCPolicy:
+    """Republishes which workloads may load this model's weights.
+
+    Whatever a sync leaves out stops being able to decrypt, which is the whole
+    of how a grant is taken away."""
+
     @classmethod
     def run(cls, model_uid: int):
         model = Model.get(model_uid)
+        if model.owner != get_medperf_user_object().id:
+            raise MedperfException("User must be model owner")
         if not model.is_cc_configured():
             raise MedperfException(
                 f"Model {model.id} is not configured for confidential computing."
             )
         with config.ui.interactive():
             config.ui.text = "Updating model confidential computing policy"
-            permitted_workloads = get_permitted_workloads(model)
-            update_model_cc_policy(model, permitted_workloads)
+            grants = get_model_grants(model)
+            set_permitted_grants(model, AssetKind.MODEL, grants)
             sync_cc_metadata(model, config.comms.update_model)

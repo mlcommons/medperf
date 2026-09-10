@@ -1,0 +1,3 @@
+This benchmark has no labels. The benchmark service holds the prompts,
+runs the annotators and computes the grades; the workload answers prompts
+and nothing else. See ../data/connection.yaml.

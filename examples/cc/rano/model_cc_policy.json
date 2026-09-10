@@ -1,1 +1,4 @@
-{}
+{
+    "bind_peer_asset": false,
+    "allowed_result_collectors": []
+}

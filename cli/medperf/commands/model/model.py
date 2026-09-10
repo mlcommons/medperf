@@ -1,5 +1,5 @@
 import typer
-from typing import Optional
+from typing import List, Optional
 
 import medperf.config as config
 from medperf.decorators import clean_except
@@ -8,6 +8,7 @@ from medperf.commands.list import EntityList
 from medperf.commands.view import EntityView
 from medperf.commands.model.submit import SubmitModel
 from medperf.commands.model.associate import AssociateModel
+from medperf.commands.execution.model_benchmark_run import ModelBenchmarkRun
 from medperf.commands.model.grant_access import GrantAccess
 from medperf.commands.model.check_access import CheckAccess
 from medperf.commands.mlcube.revoke_user_access import RevokeUserAccess
@@ -27,8 +28,8 @@ def submit(
         False, "--operational", help="Submit the model as OPERATIONAL"
     ),
     # Container-backed model options
-    container_config_file: str = typer.Option(
-        ...,
+    container_config_file: Optional[str] = typer.Option(
+        None,
         "--container-config-file",
         "-m",
         help="Container Config file.",
@@ -149,6 +150,71 @@ def associate(
 ):
     """Associates a model to a benchmark"""
     AssociateModel.run(model_uid, benchmark_uid, approved=approval, no_cache=no_cache)
+    config.ui.print("✅ Done!")
+
+
+@app.command("run_benchmark")
+@clean_except
+def run_benchmark(
+    benchmark_uid: int = typer.Option(
+        ..., "--benchmark", "-b", help="UID of the desired benchmark"
+    ),
+    model_uid: int = typer.Option(
+        ..., "--model_uid", "-m", help="UID of your model to execute"
+    ),
+    data_uids: Optional[List[int]] = typer.Option(
+        None,
+        "--data_uid",
+        "-d",
+        help="""Registered Dataset UID to run against. Repeat the flag to give\n
+        several. If none are given, every dataset the benchmark approved is\n
+        used""",
+    ),
+    file: str = typer.Option(
+        None,
+        "--datasets-from-file",
+        "-f",
+        help="""A file containing the dataset UIDs to run against.\n
+        The file should contain a single line as a list of\n
+        comma-separated integers corresponding to the dataset UIDs""",
+    ),
+    ignore_model_errors: bool = typer.Option(
+        False,
+        "--ignore-model-errors",
+        help="Ignore failing models, allowing for possibly submitting partial results",
+    ),
+    no_cache: bool = typer.Option(
+        False,
+        "--no-cache",
+        help="Execute even if results already exist",
+    ),
+    rerun_finalized: bool = typer.Option(
+        False,
+        "--rerun-finalized",
+        help="Execute even if results have been already uploaded (this will create new records)",
+    ),
+):
+    """Runs your own model against a benchmark's datasets.
+
+    The mirror of `medperf benchmark run`, for the other side of a benchmark.
+    Only the model's owner can run this, only for a model that runs inside a
+    confidential VM, and only against datasets configured for one -- you never
+    see the data, so the workload runs where neither of you can read the other.
+
+    Running and reporting are separate steps, and results released to somebody
+    else are theirs to collect: see `medperf confidential download_cc_results`.
+    """
+    ModelBenchmarkRun.run(
+        benchmark_uid,
+        model_uid,
+        data_uids=list(data_uids) if data_uids else None,
+        datasets_input_file=file,
+        ignore_model_errors=ignore_model_errors,
+        no_cache=no_cache,
+        show_summary=True,
+        ignore_failed_experiments=True,
+        rerun_finalized_executions=rerun_finalized,
+    )
     config.ui.print("✅ Done!")
 
 

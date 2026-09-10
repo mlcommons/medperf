@@ -8,6 +8,7 @@ app_name = "Dataset"
 urlpatterns = [
     path("", views.DatasetList.as_view()),
     path("<int:pk>/", views.DatasetDetail.as_view()),
+    path("<int:pk>/results/", views.DatasetResultList.as_view()),
     path("benchmarks/", bviews.BenchmarkDatasetList.as_view()),
     path("<int:pk>/benchmarks/<int:bid>/", bviews.DatasetApproval.as_view()),
     path("<int:pk>/benchmarks/", bviews.DatasetBenchmarksList.as_view()),

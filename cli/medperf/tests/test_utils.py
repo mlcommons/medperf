@@ -317,20 +317,57 @@ def test_get_folders_hash_returns_expected_hash(mocker, filesystem):
     assert hash == "b7e9365f1e796ba29e9e6b1b94b5f4cc7238530601fad8ec96ece9fee68c3d7f"
 
 
-@pytest.mark.parametrize(
-    "encode_pair",
-    [(float("nan"), "nan"), (float("inf"), "Infinity"), (float("-inf"), "-Infinity")],
-)
-def test_sanitize_json_encodes_invalid_nums(mocker, encode_pair):
+@pytest.mark.parametrize("invalid_num", [float("nan"), float("inf"), float("-inf")])
+def test_sanitize_json_nulls_invalid_nums(mocker, invalid_num):
+    """Nothing else spells them: the server rejects a bare NaN, and null is what
+    a strict store holds after the round trip anyway"""
     # Arrange
-    val, exp_encoding = encode_pair
-    body = {"test": val}
+    body = {"test": invalid_num}
 
     # Act
     sanitized_dict = utils.sanitize_json(body)
 
     # Assert
-    assert sanitized_dict["test"] == exp_encoding
+    assert sanitized_dict["test"] is None
+
+
+def test_sanitize_json_reaches_invalid_nums_wherever_they_sit():
+    # Arrange
+    body = {"metrics": [float("nan"), {"auc": float("inf")}]}
+
+    # Act
+    sanitized_dict = utils.sanitize_json(body)
+
+    # Assert
+    assert sanitized_dict == {"metrics": [None, {"auc": None}]}
+
+
+def test_sanitize_json_leaves_strings_that_merely_say_nan_alone():
+    """It reads values, not serialized text"""
+    # Arrange
+    body = {"note": "the value is NaN", "name": "Infinity Metrics Ltd"}
+
+    # Act
+    sanitized_dict = utils.sanitize_json(body)
+
+    # Assert
+    assert sanitized_dict == body
+
+
+def test_sanitize_json_agrees_with_what_a_confidential_workload_attests_to():
+    """A result mapped one way here and another way in the proof contract could
+    not be verified against its own proof. The two are written out separately so
+    that MedPerf stays installable without the CC components, which is exactly
+    why they need pinning together"""
+    # Arrange
+    statement = pytest.importorskip("medperf_cc.statement")
+    results = {"AUC": float("nan"), "Accuracy": 0.93, "curve": [float("inf"), 1.0]}
+
+    # Act
+    submitted = utils.sanitize_json(results)
+
+    # Assert
+    assert submitted == statement.json_safe(results)
 
 
 @pytest.mark.parametrize(

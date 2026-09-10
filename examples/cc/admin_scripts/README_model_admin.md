@@ -22,4 +22,4 @@ You will be creating:
 
 ### Creating resources
 
-A script `model_admin.sh` can be found in this folder. You can configure the constants (e.g., project id, names of the resources to be created, etc...), run the script in cloud shell, and you are done. It will print at the end the information needed to be passed to the user. You can also export the constants and then run the commands one by one.
+The Terraform configurations in `terraform/` create everything. This user needs `asset_owner` only. See `terraform/README.md`.

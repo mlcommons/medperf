@@ -22,6 +22,7 @@ jobs:
         pip install -r cli/test-requirements.txt
         pip install -r server/requirements.txt
         pip install -r server/test-requirements.txt
+        pip install -e cc/
         pip install -e cli/
 
     - name: Set server environment vars

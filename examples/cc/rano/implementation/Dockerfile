@@ -1,4 +1,4 @@
-FROM mlcommons/medperf-confidential-benchmark-base:0.0.0
+FROM mlcommons/medperf-confidential-benchmark-base:0.0.1
 
 ENV CUDA_VISIBLE_DEVICES="0"
 

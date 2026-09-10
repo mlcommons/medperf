@@ -9,7 +9,6 @@ import pytest
 from medperf import config
 import yaml
 
-
 PATCH_EXECUTION_FLOW = "medperf.commands.execution.container_execution.{}"
 
 

@@ -9,6 +9,7 @@ from medperf.comms.entity_resources import resources
 from medperf.account_management import get_medperf_user_data, is_user_logged_in
 from medperf.containers.runners import load_runner
 from medperf.containers.parsers import load_parser
+from medperf.containers.runners.docker_utils import full_docker_image_name
 import yaml
 from medperf.utils import (
     generate_tmp_path,
@@ -94,6 +95,16 @@ class Cube(Entity):
         if self._runner is None:
             self._runner = load_runner(self.parser)
         return self._runner
+
+    @property
+    def full_docker_image_name(self) -> str:
+        """This container's image, registry included.
+
+        What the container config names may be a bare `org/image:tag`, which
+        means docker.io without saying so. Anything comparing images -- an
+        attested digest against the script that was meant to run -- needs the
+        resolved form."""
+        return full_docker_image_name(self.parser.get_setup_args())
 
     @property
     def local_id(self):

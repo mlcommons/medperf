@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import math
 import re
 import os
 import signal
@@ -12,7 +13,6 @@ import logging
 import tarfile
 import requests
 from glob import glob
-import json
 from pathlib import Path
 import shutil
 from pexpect import spawn
@@ -411,8 +411,45 @@ def log_storage():
         logging.debug(list_files(folder))
 
 
+def _json_safe(value):
+    """Recurses so that a non-finite float is caught wherever it sits.
+
+    !! This function has a twin: `json_safe` in `medperf_cc/statement.py`, which
+    !! is what a confidential workload attests to and what the base image runs a
+    !! copy of. THE TWO MUST AGREE, VALUE FOR VALUE. Results are mapped here on
+    !! their way to the server and read back from the server when a proof is
+    !! verified, so a mapping that differs by one value makes `medperf result
+    !! verify` report the results as not matching their proof -- which reads
+    !! like tampering rather than like a bug. Exactly that happened once: this
+    !! mapped NaN to the string "nan" while the contract mapped it to null.
+    !!
+    !! They are written out twice rather than shared so that MedPerf stays
+    !! installable without the confidential computing components. Change one and
+    !! you must change the other.
+    """
+    if isinstance(value, float) and not math.isfinite(value):
+        return None
+    if isinstance(value, dict):
+        return {key: _json_safe(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_json_safe(item) for item in value]
+    return value
+
+
 def sanitize_json(data: dict) -> dict:
     """Makes sure the input data is JSON compliant.
+
+    Non-finite floats are what a metric like an undefined AUC comes out as.
+    Python writes them as bare `NaN` and `Infinity`, which no other JSON reader
+    accepts -- the server's database rejects them outright -- so they become
+    null, which is what survives the round trip anyway.
+
+    This is deliberately the same mapping as `medperf_cc.statement.json_safe`,
+    which is what a confidential workload attests to. A result whose metrics
+    were mapped one way here and another way there could not be verified
+    against its own proof. The two are written out separately rather than
+    shared so that MedPerf stays installable without the confidential computing
+    components; change one and you have to change the other.
 
     Args:
         data (dict): dictionary containing data to be represented as JSON.
@@ -420,11 +457,7 @@ def sanitize_json(data: dict) -> dict:
     Returns:
         dict: sanitized dictionary
     """
-    json_string = json.dumps(data)
-    json_string = re.sub(r"\bNaN\b", '"nan"', json_string)
-    json_string = re.sub(r"(-?)\bInfinity\b", r'"\1Infinity"', json_string)
-    data = json.loads(json_string)
-    return data
+    return _json_safe(data)
 
 
 def log_response_error(res, warn=False):

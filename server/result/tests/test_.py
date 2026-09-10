@@ -36,6 +36,93 @@ class ResultsTest(MedPerfTest):
         self.url = self.api_prefix + "/results/"
         self.set_credentials(None)
 
+    def confidential_setup(self, topology="end_to_end_script", asset_url="local"):
+        """A benchmark whose script computes the metrics inside a confidential
+        VM, over a model whose weights are not public.
+
+        Both are what make an execution's result attested, and so submittable by
+        somebody other than the dataset owner. The arguments exist so a test can
+        take one of them away."""
+        self.set_credentials(self.bmk_prep_mlcube_owner)
+        prep = self.create_mlcube(
+            self.mock_mlcube(
+                name="ccprep",
+                container_config={"ccprep": "ccprep"},
+                state="OPERATION",
+            )
+        ).data
+
+        self.set_credentials(self.ref_model_owner)
+        ref_model = self.create_model(
+            self.mock_asset_model(name="cc_ref_model", state="OPERATION")
+        ).data
+
+        self.set_credentials(self.eval_mlcube_owner)
+        # Every topology but end_to_end_script scores the predictions in a
+        # container of its own.
+        evaluator = None
+        if topology != "end_to_end_script":
+            evaluator = self.create_mlcube(
+                self.mock_mlcube(
+                    name="cceval",
+                    container_config={"cceval": "cceval"},
+                    state="OPERATION",
+                )
+            ).data["id"]
+
+        self.set_credentials(self.bmk_owner)
+        script = self.create_mlcube(
+            self.mock_mlcube(
+                name="ccscript",
+                container_config={"ccscript": "ccscript"},
+                state="OPERATION",
+            )
+        ).data
+        benchmark = self.create_benchmark(
+            self.mock_benchmark(
+                prep["id"],
+                ref_model["id"],
+                evaluator,
+                name="ccbenchmark",
+                topology=topology,
+                benchmark_script=script["id"],
+            )
+        ).data
+
+        self.set_credentials(self.data_owner)
+        dataset = self.create_dataset(
+            self.mock_dataset(
+                data_preparation_mlcube=prep["id"],
+                state="OPERATION",
+                name="ccdataset",
+                generated_uid="ccdataset",
+            )
+        ).data
+        self.create_dataset_association(
+            self.mock_dataset_association(
+                benchmark["id"], dataset["id"], approval_status="APPROVED"
+            ),
+            self.data_owner,
+            self.bmk_owner,
+        )
+
+        self.set_credentials(self.model_owner)
+        model = self.create_model(
+            self.mock_asset_model(
+                name="cc_model", state="OPERATION", asset_url=asset_url
+            )
+        ).data
+        self.create_model_association(
+            self.mock_model_association(
+                benchmark["id"], model["id"], approval_status="APPROVED"
+            ),
+            self.model_owner,
+            self.bmk_owner,
+        )
+
+        self.set_credentials(None)
+        return benchmark, dataset, model
+
 
 @parameterized_class(
     [
@@ -161,6 +248,60 @@ class GenericResultsPostTest(ResultsTest):
             self.assertNotEqual(
                 val, response.data[key], f"readonly field {key} was modified"
             )
+
+
+@parameterized_class(
+    [
+        {"actor": "other_user"},
+        {"actor": "data_owner"},
+    ],
+)
+class ConfidentialResultsPostTest(ResultsTest):
+    """Test module for POST /results of a confidential end-to-end execution
+
+    Its result comes back attested -- which script ran, on which inputs,
+    producing exactly these metrics -- so whoever operated it may report it, and
+    the dataset owner no longer has to be the party holding the CLI.
+    """
+
+    def setUp(self):
+        super(ConfidentialResultsPostTest, self).setUp()
+        self.generic_setup()
+        self.benchmark, self.dataset, self.model = self.confidential_setup()
+        self.set_credentials(self.actor)
+
+    def test_execution_is_created_and_owned_by_whoever_ran_it(self):
+        # Arrange
+        testresult = self.mock_result(
+            self.benchmark["id"], self.model["id"], self.dataset["id"]
+        )
+
+        # Act
+        response = self.client.post(self.url, testresult, format="json")
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["owner"], self.create_user(self.actor)["id"])
+
+    def test_an_unassociated_model_is_still_refused(self):
+        """Being allowed to submit is not being allowed to submit anything"""
+        # Arrange
+        self.set_credentials(self.model_owner)
+        unassociated = self.create_model(
+            self.mock_asset_model(
+                name="unassociated", state="OPERATION", asset_url="local"
+            )
+        ).data
+        self.set_credentials(self.actor)
+        testresult = self.mock_result(
+            self.benchmark["id"], unassociated["id"], self.dataset["id"]
+        )
+
+        # Act
+        response = self.client.post(self.url, testresult, format="json")
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
 @parameterized_class(
@@ -522,3 +663,27 @@ class PermissionTest(ResultsTest):
 
         # Assert
         self.assertEqual(response.status_code, exp_status)
+
+    @parameterized.expand(
+        [
+            # a topology whose metrics are not computed inside the VM
+            ("inference_script", "local"),
+            # weights anybody can download are not run confidentially
+            ("end_to_end_script", "https://example.com/weights.tar.gz"),
+        ]
+    )
+    def test_post_permissions_when_the_execution_is_not_confidential(
+        self, topology, asset_url
+    ):
+        """Take either half away and the dataset owner is the only one who may
+        create an execution, exactly as before"""
+        # Arrange
+        benchmark, dataset, model = self.confidential_setup(topology, asset_url)
+        testresult = self.mock_result(benchmark["id"], model["id"], dataset["id"])
+        self.set_credentials(self.other_user)
+
+        # Act
+        response = self.client.post(self.url, testresult, format="json")
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

@@ -1,0 +1,45 @@
+{# The settings one backend takes, as `medperf_cc` describes them.
+
+   Nothing here knows what any provider is called or what it needs: the
+   selector offers whatever the package supports, and each backend's fields are
+   namespaced by its name so switching does not post a half-filled form for
+   another one. #}
+{% macro backend_selector(backends, selected, defaults, label, field_label, task_running=false, prefix="") %}
+<div>
+    <label for="{{ prefix }}backend" class="block text-secondary font-semibold mb-1">{{ label }}</label>
+    <select id="{{ prefix }}backend" name="{{ prefix }}backend"
+            class="cc-backend-select w-full px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent"
+            data-prefix="{{ prefix }}" {% if task_running %}disabled{% endif %}>
+        <option value="">Select a backend</option>
+        {% for backend in backends|sort %}
+        <option value="{{ backend }}" {% if backend == selected %}selected{% endif %}>{{ backend }}</option>
+        {% endfor %}
+    </select>
+</div>
+{% for backend, fields in backends.items() %}
+<div class="cc-backend-fields space-y-4" data-prefix="{{ prefix }}" data-backend="{{ backend }}"
+     {% if backend != selected %}hidden{% endif %}>
+    {% for field in fields %}
+    <div>
+        <label for="{{ prefix }}{{ backend }}__{{ field.name }}" class="block text-secondary font-semibold mb-1">
+            {{ field_label(field.name) }}{% if not field.required %} <span class="text-muted-fg font-normal">(optional)</span>{% endif %}
+        </label>
+        <input type="text" id="{{ prefix }}{{ backend }}__{{ field.name }}" name="{{ prefix }}{{ backend }}__{{ field.name }}"
+               class="w-full px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent"
+               value="{{ defaults.get(field.name, '') if backend == selected else '' }}" {% if task_running %}disabled{% endif %}>
+    </div>
+    {% endfor %}
+</div>
+{% endfor %}
+<script>
+    document.querySelectorAll('.cc-backend-select').forEach(function (select) {
+        select.addEventListener('change', function () {
+            document.querySelectorAll(
+                '.cc-backend-fields[data-prefix="' + select.dataset.prefix + '"]'
+            ).forEach(function (group) {
+                group.hidden = group.dataset.backend !== select.value;
+            });
+        });
+    });
+</script>
+{% endmacro %}

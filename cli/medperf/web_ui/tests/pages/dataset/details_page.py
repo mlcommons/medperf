@@ -37,6 +37,11 @@ class DatasetDetailsPage(BasePage):
             f'//div[.//h4//a/strong[contains(normalize-space(.), "{benchmark}")]]'
             + '//form[contains(@action,"submit_result")]//button',
         )
+        self.COLLECT_FORMS = (
+            By.XPATH,
+            f'//div[.//h4//a/strong[contains(normalize-space(.), "{benchmark}")]]'
+            + '//form[contains(@action,"download_cc_results")]',
+        )
 
         self.ASSOCIATE_BTN = (
             By.XPATH,
@@ -78,3 +83,23 @@ class DatasetDetailsPage(BasePage):
 
     def get_submit_buttons(self):
         return self.driver.find_elements(*self.SUBMIT_BTNS)
+
+    def collect_results(self, collect_form, execution_id):
+        """Asks for the results of a confidential execution somebody else ran.
+
+        The id is typed rather than picked from the page: an execution is
+        recorded as its operator's, so a collector who did not operate it has
+        nothing to list. The operator is told the number when their run ends
+        and hands it over -- the same number the CLI's `-e` takes.
+        """
+        field = collect_form.find_element(By.NAME, "execution_id")
+        self.ensure_element_ready(field)
+        field.clear()
+        field.send_keys(str(execution_id))
+
+        submit_btn = collect_form.find_element(By.CSS_SELECTOR, "button[type='submit']")
+        self.ensure_element_ready(submit_btn)
+        submit_btn.click()
+
+    def get_collect_forms(self):
+        return self.driver.find_elements(*self.COLLECT_FORMS)

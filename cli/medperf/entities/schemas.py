@@ -177,6 +177,7 @@ class ExecutionSchema(MedperfSchema):
     user_metadata: dict = {}
     model_report: dict = {}
     evaluation_report: dict = {}
+    integrity_proof: dict = {}
     finalized: bool = False
     finalized_at: Optional[datetime]
 

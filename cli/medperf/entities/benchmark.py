@@ -136,6 +136,29 @@ class Benchmark(Entity):
         return models_uids
 
     @classmethod
+    def get_datasets_uids(cls, benchmark_uid: int) -> List[int]:
+        """Retrieves the list of datasets associated to the benchmark
+
+        Readable by the benchmark's owner, its committee, and the model owners
+        taking part: it is what tells a model owner which datasets there are to
+        run against.
+
+        Args:
+            benchmark_uid (int): UID of the benchmark.
+
+        Returns:
+            List[int]: List of dataset uids
+        """
+        associations = get_experiment_associations(
+            experiment_id=benchmark_uid,
+            experiment_type="benchmark",
+            component_type="dataset",
+            approval_status="APPROVED",
+        )
+        datasets_uids = [assoc["dataset"] for assoc in associations]
+        return datasets_uids
+
+    @classmethod
     def get_datasets_with_users(cls, benchmark_uid: int) -> List[dict]:
         """Retrieves the list of datasets and their owner info, associated to the benchmark
 

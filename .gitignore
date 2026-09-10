@@ -162,3 +162,5 @@ server/keys
 cli/last_env.sh
 cli/last_test_root.sh
 cli/tmp_test.sh
+
+ruff.toml

@@ -14,8 +14,14 @@ from medperf.commands.dataset.train import TrainingExecution
 from medperf.commands.dataset.import_dataset import ImportDataset
 from medperf.commands.dataset.export_dataset import ExportDataset
 from medperf.commands.dataset.check import DataCheck
+from medperf.commands.benchmark.benchmark import run as run_benchmark
 
 app = typer.Typer()
+
+# The same command as `medperf benchmark run`, registered here too: running a
+# benchmark is something a data owner does to one of their datasets, and this
+# is the noun they start from.
+app.command("run_benchmark")(run_benchmark)
 
 
 @app.command("ls")

@@ -25,6 +25,7 @@ class ModelResult(models.Model):
     )
     is_valid = models.BooleanField(default=True)
     model_report = models.JSONField(default=dict, blank=True, null=True)
+    integrity_proof = models.JSONField(default=dict, blank=True, null=True)
     evaluation_report = models.JSONField(default=dict, blank=True, null=True)
     finalized_at = models.DateTimeField(null=True, blank=True)
     approved_at = models.DateTimeField(null=True, blank=True)

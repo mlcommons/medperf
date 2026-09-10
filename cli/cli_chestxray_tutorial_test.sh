@@ -203,9 +203,12 @@ echo "\n"
 echo "====================================="
 echo "Running benchmark execution step - Public"
 echo "====================================="
-# Create results
-print_eval medperf run -b 1 -d $DSET_UID -m 1 -y
+# Create results, then report them: running and reporting are separate steps
+print_eval medperf run -b 1 -d $DSET_UID -m 1
 checkFailed "Benchmark execution step failed (public)"
+
+print_eval medperf result submit -b 1 -d $DSET_UID -m 1 -y
+checkFailed "Result submission failed (public)"
 ##########################################################
 
 echo "\n"
@@ -215,8 +218,11 @@ echo "====================================="
 echo "Running benchmark execution step - Private"
 echo "====================================="
 # Create results
-print_eval medperf run -b 1 -d $DSET_UID -m $PMODEL_UID -y
+print_eval medperf run -b 1 -d $DSET_UID -m $PMODEL_UID
 checkFailed "Benchmark execution step failed (private)"
+
+print_eval medperf result submit -b 1 -d $DSET_UID -m $PMODEL_UID -y
+checkFailed "Result submission failed (private)"
 ##########################################################
 
 echo "\n"

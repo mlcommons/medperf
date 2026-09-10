@@ -53,7 +53,7 @@ def test_requests_approval_from_user(mocker, comms, ui, dataset, benchmark):
     result = TestExecution()
     spy = mocker.patch(PATCH_ASSOC.format("approval_prompt"), return_value=True)
     exec_ret = [result]
-    mocker.patch(PATCH_ASSOC.format("BenchmarkExecution.run"), return_value=exec_ret)
+    mocker.patch(PATCH_ASSOC.format("DatasetBenchmarkRun.run"), return_value=exec_ret)
     mocker.patch.object(result, "read_results", return_value={})
 
     # Act
@@ -75,7 +75,7 @@ def test_associates_if_approved(
     assoc_func = "associate_benchmark_dataset"
     mocker.patch(PATCH_ASSOC.format("approval_prompt"), return_value=True)
     exec_ret = [result]
-    mocker.patch(PATCH_ASSOC.format("BenchmarkExecution.run"), return_value=exec_ret)
+    mocker.patch(PATCH_ASSOC.format("DatasetBenchmarkRun.run"), return_value=exec_ret)
     mocker.patch.object(result, "read_results", return_value={})
     spy = mocker.patch.object(comms, assoc_func)
     dataset.id = data_uid
@@ -93,7 +93,7 @@ def test_stops_if_not_approved(mocker, comms, ui, dataset, benchmark):
     # Arrange
     result = TestExecution()
     exec_ret = [result]
-    mocker.patch(PATCH_ASSOC.format("BenchmarkExecution.run"), return_value=exec_ret)
+    mocker.patch(PATCH_ASSOC.format("DatasetBenchmarkRun.run"), return_value=exec_ret)
     spy = mocker.patch(PATCH_ASSOC.format("approval_prompt"), return_value=False)
     assoc_spy = mocker.patch.object(comms, "associate_benchmark_dataset")
     mocker.patch.object(result, "read_results", return_value={})
@@ -117,7 +117,7 @@ def test_associate_calls_allows_cache_by_default(mocker, comms, ui, dataset, ben
     mocker.patch(PATCH_ASSOC.format("approval_prompt"), return_value=True)
     exec_ret = [result]
     spy = mocker.patch(
-        PATCH_ASSOC.format("BenchmarkExecution.run"), return_value=exec_ret
+        PATCH_ASSOC.format("DatasetBenchmarkRun.run"), return_value=exec_ret
     )
     mocker.patch.object(result, "read_results", return_value={})
     mocker.patch.object(comms, assoc_func)

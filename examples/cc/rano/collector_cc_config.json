@@ -1,0 +1,4 @@
+{
+    "backend": "gcp",
+    "bucket": "data-owner-bucket-medperf-cc"
+}

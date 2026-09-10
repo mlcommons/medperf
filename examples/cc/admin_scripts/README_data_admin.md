@@ -31,4 +31,4 @@ Additionally, `a3-highgpu-1g` machines use Nvidia H100 GPUs. Visit <https://docs
 
 ### Creating resources
 
-Scripts `data_admin_cpu.sh` and `data_admin_gpu.sh` can be found in this folder. You can configure the constants (e.g., project id, names of the resources to be created, etc...), run the script in cloud shell, and you are done. It will print at the end the information needed to be passed to the user. You can also export the constants and then run the commands one by one. Choose the relevant script according to whether you plan to give the user a CPU or a GPU confidential VM.
+The Terraform configurations in `terraform/` create everything. This user needs three: `asset_owner`, `result_collector`, and either `operator_cpu` or `operator_gpu` according to which kind of confidential VM you plan to give them. See `terraform/README.md`.

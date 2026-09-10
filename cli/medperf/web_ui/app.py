@@ -91,6 +91,10 @@ def startup_event():
     # List of [schemas.Notification] will appear in the notifications tab
     web_app.state.notifications = []
 
+    # check_user_ui refreshes this; the security check and the error page do
+    # not go through it and render base.html anyway.
+    web_app.state.global_events = []
+
     # Container auto grant access initial values
     web_app.state.model_auto_give_access = {
         "running": False,

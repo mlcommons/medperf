@@ -7,8 +7,7 @@ from medperf import __version__
 import medperf.config as config
 from medperf.decorators import clean_except, add_inline_parameters
 from medperf.commands.execution import execution
-from medperf.commands.execution.create import BenchmarkExecution
-from medperf.commands.execution.submit import ResultSubmission
+from medperf.commands.execution.dataset_benchmark_run import DatasetBenchmarkRun
 import medperf.commands.mlcube.mlcube as mlcube
 import medperf.commands.dataset.dataset as dataset
 import medperf.commands.auth.auth as auth
@@ -61,7 +60,6 @@ def execute(
     model_uid: int = typer.Option(
         ..., "--model_uid", "-m", help="UID of model to execute"
     ),
-    approval: bool = typer.Option(False, "-y", help="Skip approval step"),
     ignore_model_errors: bool = typer.Option(
         False,
         "--ignore-model-errors",
@@ -81,8 +79,12 @@ def execute(
         ),
     ),
 ):
-    """Runs the benchmark execution step for a given benchmark, prepared dataset and model"""
-    execution = BenchmarkExecution.run(
+    """Runs the benchmark execution step for a given benchmark, prepared dataset and model.
+
+    Running and reporting are separate steps: this leaves the results on this
+    machine, and `medperf result submit` is what sends them to the server.
+    """
+    execution = DatasetBenchmarkRun.run(
         benchmark_uid,
         data_uid,
         [model_uid],
@@ -90,7 +92,9 @@ def execute(
         no_cache=no_cache,
         rerun_finalized_executions=new_result,
     )[0]
-    ResultSubmission.run(execution.id, approved=approval)
+    config.ui.print(
+        f"Submit the results with `medperf result submit -r {execution.id}`."
+    )
     config.ui.print("✅ Done!")
 
 

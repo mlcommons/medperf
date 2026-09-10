@@ -1,0 +1,4 @@
+{
+    "backend": "gcp",
+    "bucket": "result-collector-bucket-medperf-cc"
+}

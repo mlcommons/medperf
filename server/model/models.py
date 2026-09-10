@@ -33,6 +33,17 @@ class Model(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
 
+    @property
+    def is_local_asset(self):
+        """Weights that are not public: there is no URL to fetch them from.
+
+        This is what makes running the model require confidential computing."""
+        return (
+            self.type == "ASSET"
+            and self.asset is not None
+            and self.asset.is_local
+        )
+
     def clean(self):
         if self.type == "CONTAINER":
             if not self.container:
@@ -45,7 +56,7 @@ class Model(models.Model):
                 )
         elif self.type == "ASSET":
             if not self.asset:
-                raise ValidationError("Asset must be set for FILE type models.")
+                raise ValidationError("Asset must be set for ASSET type models.")
             if self.container:
                 raise ValidationError("Container must not be set for FILE type models.")
 

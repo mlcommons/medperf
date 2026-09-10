@@ -1012,7 +1012,9 @@ class REST(Comms):
         """
         url = f"{self.server_url}/users/{user_id}/metadata/"
         error_msg = "Could not retrieve user metadata"
-        return self.__get(url, error_msg)
+        # The endpoint answers with the field wrapped in an object; what a
+        # caller asked for is the metadata itself.
+        return self.__get(url, error_msg).get("metadata", {})
 
     def get_benchmark_executions(self, benchmark_id: int, filters=dict()) -> dict:
         """Retrieves all executions for a given benchmark
@@ -1025,6 +1027,23 @@ class REST(Comms):
         """
         url = f"{self.server_url}/benchmarks/{benchmark_id}/results/"
         error_msg = "Could not get benchmark executions"
+        return self.__get_list(url, filters=filters, error_msg=error_msg)
+
+    def get_dataset_executions(self, dataset_id: int, filters=dict()) -> dict:
+        """Retrieves all executions run against a given dataset
+
+        An execution belongs to whoever operated it, so a dataset owner's own
+        listing leaves out a confidential run somebody else operated on their
+        data. This is where they find those.
+
+        Args:
+            dataset_id (int): dataset ID to retrieve executions from
+
+        Returns:
+            dict: dictionary with the contents of each execution on the specified dataset
+        """
+        url = f"{self.server_url}/datasets/{dataset_id}/results/"
+        error_msg = "Could not get dataset executions"
         return self.__get_list(url, filters=filters, error_msg=error_msg)
 
     def get_mlcube_datasets(self, mlcube_id: int, filters=dict()) -> dict:
@@ -1129,6 +1148,16 @@ class REST(Comms):
         """Retrieves certificates of Data Owners associated with a given benchmark"""
         url = f"{self.server_url}/benchmarks/{benchmark_id}/datasets_certificates/"
         error_msg = f"Could not retrieve certificates from Benchmark {benchmark_id}"
+        return self.__get_list(url=url, filters=filters, error_msg=error_msg)
+
+    def get_benchmark_models_certificates(
+        self, benchmark_id: int, filters=dict()
+    ) -> List[dict]:
+        """Retrieves certificates of Model Owners associated with a given benchmark"""
+        url = f"{self.server_url}/benchmarks/{benchmark_id}/models_certificates/"
+        error_msg = (
+            f"Could not retrieve model certificates from Benchmark {benchmark_id}"
+        )
         return self.__get_list(url=url, filters=filters, error_msg=error_msg)
 
     def get_certificate_encrypted_keys(

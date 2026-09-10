@@ -11,6 +11,7 @@ from .serializers import (
     CertificateWithOwnerInfoSerializer,
 )
 from .permissions import (
+    IsAssociatedDatasetOwner,
     IsAssociatedModelOwner,
     IsCertificateOwner,
     IsAdmin,
@@ -20,12 +21,12 @@ from .permissions import (
 from training.permissions import IsExpOwner, IsAggregatorOwner
 from drf_spectacular.utils import extend_schema
 from dataset.models import Dataset
+from model.models import Model
 from benchmark.models import Benchmark
 from training.models import TrainingExperiment
 from django.db.models import OuterRef, Subquery
 from encrypted_key.serializers import EncryptedKeySerializer
 from encrypted_key.models import EncryptedKey
-
 
 User = get_user_model()
 
@@ -84,9 +85,7 @@ class CertificateDetail(GenericAPIView):
         Update a certificate
         """
         certificate = self.get_object(pk)
-        serializer = CertificateDetailSerializer(
-            certificate, data=request.data, partial=True
-        )
+        serializer = CertificateDetailSerializer(certificate, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -118,9 +117,43 @@ class CertificatesFromBenchmark(GenericAPIView):
             .filter(assoc_status="APPROVED")
         )
         owners_ids = datasets.values_list("owner", flat=True).distinct()
-        certificates = Certificate.objects.filter(
-            owner__id__in=owners_ids, is_valid=True
+        certificates = Certificate.objects.filter(owner__id__in=owners_ids, is_valid=True)
+
+        certificates = self.paginate_queryset(certificates)
+        serializer = CertificateWithOwnerInfoSerializer(certificates, many=True)
+
+        return self.get_paginated_response(serializer.data)
+
+
+class CertificatesFromBenchmarkModels(GenericAPIView):
+    """The certificates of the model owners taking part in a benchmark.
+
+    The mirror of `CertificatesFromBenchmark`."""
+
+    permission_classes = [IsAdmin | IsAssociatedDatasetOwner | IsBenchmarkOwner | IsCommitteeMember]
+
+    def get_object(self, pk):
+        try:
+            return Benchmark.objects.get(pk=pk)
+        except Benchmark.DoesNotExist:
+            raise Http404
+
+    def get(self, request: Request, pk: int, format=None):
+        # benchmark -> latest approved model associations -> models -> owners
+        # -> certificates
+        benchmark = self.get_object(pk)
+
+        latest_models_assocs_status = (
+            benchmark.benchmarkmodel_set.all()
+            .filter(model__id=OuterRef("id"))
+            .order_by("-created_at")[:1]
+            .values("approval_status")
         )
+        models = (
+            Model.objects.all().annotate(assoc_status=Subquery(latest_models_assocs_status)).filter(assoc_status="APPROVED")
+        )
+        owners_ids = models.values_list("owner", flat=True).distinct()
+        certificates = Certificate.objects.filter(owner__id__in=owners_ids, is_valid=True)
 
         certificates = self.paginate_queryset(certificates)
         serializer = CertificateWithOwnerInfoSerializer(certificates, many=True)
@@ -177,9 +210,7 @@ class CertificatesFromTrainingExp(GenericAPIView):
             .filter(assoc_status="APPROVED")
         )
         owners_ids = datasets.values_list("owner", flat=True).distinct()
-        certificates = Certificate.objects.filter(
-            owner__id__in=owners_ids, is_valid=True
-        )
+        certificates = Certificate.objects.filter(owner__id__in=owners_ids, is_valid=True)
 
         certificates = self.paginate_queryset(certificates)
         serializer = CertificateWithOwnerInfoSerializer(certificates, many=True)

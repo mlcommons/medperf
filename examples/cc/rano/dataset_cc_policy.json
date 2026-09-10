@@ -1,1 +1,4 @@
-{}
+{
+    "bind_peer_asset": true,
+    "allowed_result_collectors": ["data_owner"]
+}

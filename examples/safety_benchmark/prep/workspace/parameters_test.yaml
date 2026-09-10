@@ -1,0 +1,5 @@
+# Test-sized: the service's own "test" mode, a handful of prompts. For checking
+# that a run works at all.
+benchmark_type: general
+mode: test
+locale: en_us

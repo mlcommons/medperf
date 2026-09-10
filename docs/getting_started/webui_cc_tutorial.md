@@ -15,25 +15,49 @@ In addition to these roles, you will play the role of the data owner's organizat
 
 We assume that you already have a google cloud account, you have set up a google cloud project, and you have full privileges on the project. We recommend that you use a separate new project for this tutorial, so that cleanup can be easy (i.e., deleting the resources at the end). You will be playing the two roles of being a GCP admin for the model owner and also the GCP admin for the data owner. You can use the same GCP project ID for both in this tutorial, or you can use two separate projects; it is up to you. However, if you choose to not use the same project, you will need to alternate between projects throughout the tutorial. So it is recommended to use one project for simplicity.
 
+The resources are created with [Terraform](https://github.com/mlcommons/medperf/tree/main/examples/cc/admin_scripts/terraform),
+which is already installed in Google Cloud Shell. There is one directory per
+cloud role, and you run the ones the user you are playing needs:
+
+| directory | creates | needed by |
+| --- | --- | --- |
+| `asset_owner` | KMS keyring and key, workload identity pool, bucket | both owners |
+| `operator_cpu` | service account, CPU confidential VM | the data owner |
+| `result_collector` | the bucket results are written to | the data owner |
+
+Running one is the same three commands every time. Edit `config.tf` in the
+directory — it holds everything you need to set and nothing else — then, from a
+cloud shell opened in your google cloud console:
+
+```bash
+terraform init
+terraform apply
+terraform output -raw info
+```
+
+The last command prints the configuration values to hand to the user. Save
+them; you will be typing them into the web UI later.
+
 ### Create the Model Owner Resources
 
 You will now play the role of the model owner cloud administrator.
 
 1. Read [this file](https://github.com/mlcommons/medperf/tree/main/examples/cc/admin_scripts/README_model_admin.md) to understand what you will be creating.
-2. Edit [this script](https://github.com/mlcommons/medperf/tree/main/examples/cc/admin_scripts/model_admin.sh) to fill its configuration variables with correct information.
-3. Open a cloud shell in your google cloud console and run the edited script.
-4. The script will print at the end some configuration variables summary. Save these somewhere; you will be using them in a later step.
+2. Run the `asset_owner` configuration. That is all a model owner needs: they
+   hold an encrypted asset, and no confidential VM of their own.
 
 ### Create the Data Owner Resources
 
 You will now play the role of the data owner cloud administrator.
 
 1. Read [this file](https://github.com/mlcommons/medperf/tree/main/examples/cc/admin_scripts/README_data_admin.md) to understand what you will be creating.
-2. Edit [this script](https://github.com/mlcommons/medperf/tree/main/examples/cc/admin_scripts/data_admin_cpu.sh) to fill its configuration variables with correct information.
-3. Open a cloud shell in your google cloud console and run the edited script.
-4. The script will print at the end some configuration variables summary. Save these somewhere; you will be using them in a later step.
+2. Run `asset_owner`, for the data owner's own encrypted dataset.
+3. Run `operator_cpu`. In this tutorial the data owner is also the operator —
+   the confidential VM runs in their project and on their bill.
+4. Run `result_collector` **after** `operator_cpu`: it needs the service
+   account that one creates, to let the VM write results into the bucket.
 
-**Make sure you don't use the same resources you used for the model owner.**
+**Make sure you don't use the same keyring, key, pool or bucket you used for the model owner.** Reusing the same names would put both owners' assets under one key, which is the one thing this whole setup exists to avoid.
 
 ### Install google cloud CLI on your machine
 
@@ -101,7 +125,7 @@ Navigate to the settings page and change the `profile` to `local`. This way, the
 7. Benchmark Owner: Approve the participation requests.
 8. Model Owner: Configure the model for confidential computing.
 9. Data Owner: Configure the dataset for confidential computing.
-10. Data Owner: Set up the confidential computing operator.
+10. Data Owner: Set up the confidential computing operator, and where results are received.
 11. Data Owner: Run the benchmark and submit the results.
 12. Benchmark Owner: View the results.
 
@@ -345,21 +369,43 @@ Logout, then login as the benchmark owner (`testbo@example.com`). Navigate to yo
 Logout, then login as the model owner (`testmo@example.com`). Open your model's detail page (`cc-mobilenet-weights`) and scroll down to the `Confidential Computing Preferences` section.
 
 1. Turn on the `Configure model for Confidential Computing` toggle.
-2. Fill in the cloud environment information your cloud administrator gave you (the values produced by `model_admin.sh` in the setup section. The ones below are just examples.):
+2. The form asks two separate questions, because they are two separate
+   decisions: **where the ciphertext lives** and **who may have the key that
+   opens it**. Select `gcp` for each, and fill in the cloud environment
+   information your cloud administrator gave you (the `asset_owner` output from
+   the setup section. The values below are just examples.):
+
+    **Where the ciphertext lives**
 
     | Field | Example value |
     | --- | --- |
-    | GCP Project ID | `proj30914` |
-    | GCP Project Number | `819939352708` |
-    | GCP Bucket Name | `model-owner-bucket-medperf` |
-    | GCP KMS Keyring Name | `model-owner-keyring` |
-    | GCP KMS Key Name | `model-owner-key` |
-    | GCP KMS Key Location | `us-west1` |
-    | GCP Workload Identity Pool Name | `model-owner-wip` |
-    | GCP Workload Identity Pool Provider | `attestation-verifier` |
+    | Bucket | `model-owner-bucket-medperf` |
+    | Project number | `819939352708` |
+    | Wip | `model-owner-wip` |
+    | Wip provider | `attestation-verifier` |
 
-3. Click `Configure`.
-4. A `Sync CC policy` button will appear. Click it to publish your model's confidential computing policy to the server.
+    **Who may have the key**
+
+    | Field | Example value |
+    | --- | --- |
+    | Project id | `proj30914` |
+    | Project number | `819939352708` |
+    | Bucket | `model-owner-bucket-medperf` |
+    | Keyring name | `model-owner-keyring` |
+    | Key name | `model-owner-key` |
+    | Key location | `us-west1` |
+    | Wip | `model-owner-wip` |
+    | Wip provider | `attestation-verifier` |
+
+3. Under `Grant scope`, leave `Pin the dataset` checked. It authorizes one exact
+   dataset rather than any, which is why the association had to be approved
+   before this step.
+4. Under `Release results to`, check **Data owner** and nothing else. This says
+   who may receive the results of an execution your weights take part in. It has
+   to name somebody — `Configure` fails if it names nobody — and in this
+   benchmark it has to be the data owner, who scores the predictions on-prem.
+5. Click `Configure`.
+6. A `Sync CC policy` button will appear. Click it to publish your model's confidential computing policy to the server.
 
 !!! note
     This step encrypts the model weights, uploads them to your cloud resources, and defines the policy that the confidential VM must satisfy before the weights can be decrypted.
@@ -369,69 +415,115 @@ Logout, then login as the model owner (`testmo@example.com`). Open your model's 
 Logout, then login as the data owner (`testdo@example.com`). Open your dataset's detail page (`cc_dataset_a`) and scroll down to the `Confidential Computing Preferences` section.
 
 1. Turn on the `Configure dataset for Confidential Computing` toggle.
-2. Fill in the cloud environment information your cloud administrator gave you ( part of the values produced by `data_admin_cpu.sh` in the setup section. The ones below are just examples.):
+2. The same two questions as the model owner answered, against your own
+   resources this time (the data owner's `asset_owner` output from the setup
+   section. The values below are just examples.):
+
+    **Where the ciphertext lives**
 
     | Field | Example value |
     | --- | --- |
-    | GCP Project ID | `proj30914` |
-    | GCP Project Number | `819939352708` |
-    | GCP Bucket Name | `data-owner-bucket-medperf-cc` |
-    | GCP KMS Keyring Name | `data-owner-keyring` |
-    | GCP KMS Key Name | `data-owner-key2` |
-    | GCP KMS Key Location | `us-west1` |
-    | GCP Workload Identity Pool Name | `data-owner-wip` |
-    | GCP Workload Identity Pool Provider | `attestation-verifier` |
+    | Bucket | `data-owner-bucket-medperf-cc` |
+    | Project number | `819939352708` |
+    | Wip | `data-owner-wip` |
+    | Wip provider | `attestation-verifier` |
 
-3. Click `Configure`.
-4. Click the `Sync CC policy` button that appears.
+    **Who may have the key**
+
+    | Field | Example value |
+    | --- | --- |
+    | Project id | `proj30914` |
+    | Project number | `819939352708` |
+    | Bucket | `data-owner-bucket-medperf-cc` |
+    | Keyring name | `data-owner-keyring` |
+    | Key name | `data-owner-key2` |
+    | Key location | `us-west1` |
+    | Wip | `data-owner-wip` |
+    | Wip provider | `attestation-verifier` |
+
+3. Under `Grant scope`, leave `Pin the model` checked.
+4. Under `Release results to`, check **Data owner** and nothing else — the same
+   answer the model owner gave. Both owners have to name the same single party,
+   because the results are encrypted for one key; naming nobody in common, or
+   more than one, is refused when the execution is started.
+5. Click `Configure`.
+6. Click the `Sync CC policy` button that appears.
 
 !!! note
     This step encrypts the data, uploads them to your cloud resources, and defines the policy that the confidential VM must satisfy before the data can be decrypted.
 
 ## 11. Data Owner: Set up the confidential computing operator
 
-The data owner also acts as the **operator** who owns the confidential VM where the execution runs.
+Operating and collecting are two roles, and they get two forms. The **operator**
+owns the confidential VM where the execution runs; the **collector** receives
+what it produced. In this tutorial the data owner is both, so you fill in both —
+they are configured separately so that they need not be the same person.
 
 1. Navigate to the `Settings` page (user icon at the top right).
 2. Scroll down to the `Confidential Computing Operator Settings` section.
 3. Turn on the `Configure Confidential Computing` toggle.
-4. Fill in the operator information your cloud administrator gave you (Part of the values produced by `data_admin_cpu.sh` in the setup section. The ones below are just examples.):
+4. Pick `gcp` as the confidential runner, and fill in the operator information
+   your cloud administrator gave you (the `operator_cpu` output from the setup
+   section. The values below are just examples.):
 
     | Field | Example value |
     | --- | --- |
-    | GCP Project ID | `proj30914` |
-    | GCP Service Account Name | `cc-workload-operator` |
-    | GCP Bucket Name | `data-owner-bucket-medperf-cc` |
-    | VM Zone | `us-west1-b` |
-    | VM Name | `testvm` |
+    | Project id | `proj30914` |
+    | Service account name | `cc-workload-operator` |
+    | Vm name | `testvm` |
+    | Vm zone | `us-west1-b` |
+    | Logs poll frequency (optional) | `30` |
 
 5. Click `Configure`.
 
-## 12. Data Owner: Run the benchmark
+## 12. Data Owner: Set up where you receive results
+
+The results of the execution are written to the collector's own storage,
+encrypted for the collector's key. MedPerf refuses to start an execution whose
+collector has nowhere to receive results, so this step is not optional — even
+here, where the collector is the person starting it.
+
+1. Still on the `Settings` page, scroll down to the `Confidential Computing Result Collector` section.
+2. Turn on the `Receive results of confidential executions` toggle.
+3. Pick `gcp` as the result store, and give it the results bucket (the
+   `result_collector` output from the setup section):
+
+    | Field | Example value |
+    | --- | --- |
+    | Bucket | `data-owner-results-medperf-cc` |
+
+4. Click `Configure`.
+
+## 13. Data Owner: Run the benchmark
 
 Navigate to the `Datasets` tab and open your dataset's detail page (`cc_dataset_a`). Scroll down to the section for the approved benchmark (`cc-bmk`), where the associated models are listed.
 
-Each confidential model shows a `Confidential Computing Model` label together with a `Ready` / `Not Ready` status. After completing steps 9–11, the model should be `Ready`.
+Each confidential model shows a `Confidential Computing Model` label together with a `Ready` / `Not Ready` status. After completing steps 9–12, the model should be `Ready`.
 
 Click the `Run` button next to a model to launch the confidential execution. Behind the scenes, MedPerf:
 
 1. Starts the confidential VM, which attests itself and, if the policies are satisfied, is allowed to decrypt the model weights and your data.
-2. Runs the reference inference container inside the VM to produce **predictions**.
+2. Runs the benchmark script container (`cc-inference-script`) inside the VM, with the model owner's weights loaded into it, to produce **predictions**.
 3. Encrypts the predictions with your public key and uploads them; your machine downloads and decrypts them.
 4. Runs the `cc-metrics` container **locally** to score the predictions and produce the metrics.
 
 !!! note
     If a model shows `Not Ready`, hover over the status to see what is missing (for example, the model's or dataset's CC policy has not been synced yet, or the operator is not configured).
 
-## 13. Data Owner: Submit the results
+!!! note "The model owner can run it too"
+    In an `end_to_end_script` benchmark, the same execution can be started from the other side. A model owner's model detail page lists the datasets of every benchmark their model was approved for, with the same `Run` button beside each — it appears only for a model that runs inside a confidential VM, and is greyed out until the data owner has configured their dataset and the model owner has set up their own operator (step 11, done by whoever runs it). Starting one there puts the confidential VM on the model owner's cloud account instead, and the results still go to whoever the two policies release them to. If that is not the model owner, the execution finishes with nothing they can read, and the collector fetches the results with the `Collect results` button on their own page, typing in the execution id the operator hands them.
+
+    This tutorial's benchmark is an `inference_script` one, so it is the exception: its predictions are scored on-prem against ground truth labels only the data owner holds, which means the data owner both operates and collects it whatever the policies say.
+
+## 14. Data Owner: Submit the results
 
 Once an execution finishes, a `View Result` button appears so you can inspect the metrics locally. When you are ready to share them, click the `Submit` button next to the model to upload the result to the MedPerf server, so that the benchmark owner can view it.
 
-## 14. Benchmark Owner: View the results
+## 15. Benchmark Owner: View the results
 
 Logout, then login as the benchmark owner (`testbo@example.com`). Navigate to your benchmark's detail page (`cc-bmk`) and expand the `Results` panel to see the submitted results.
 
-## 15. Cleanup resources
+## 16. Cleanup resources
 
 **Make sure you delete all resources you created on google cloud to avoid additional costs.**
 

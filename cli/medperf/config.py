@@ -261,6 +261,7 @@ asset_local_archive_info_file = "archive_info.yaml"
 partial_flag = ".partial"
 executed_flag = ".executed"
 results_filename = "results.yaml"
+integrity_proof_filename = "integrity_proof.yaml"
 local_metrics_outputs = "local_outputs"
 
 # MLCube assets conventions

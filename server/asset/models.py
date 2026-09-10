@@ -3,6 +3,8 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
+LOCAL_ASSET_URL = "local"
+
 
 class Asset(models.Model):
     ASSET_STATE = (
@@ -23,6 +25,10 @@ class Asset(models.Model):
 
     def __str__(self):
         return self.name
+
+    @property
+    def is_local(self):
+        return self.asset_url == LOCAL_ASSET_URL
 
     class Meta:
         ordering = ["modified_at"]

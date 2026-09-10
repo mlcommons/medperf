@@ -147,14 +147,17 @@ For that, run the following command:
 medperf benchmark run --benchmark 1 --data_uid 1
 ```
 
+The same command is also spelled `medperf dataset run_benchmark`, if you would
+rather start from the dataset.
+
 After running the command, you will receive a summary of the executions. You will see something similar to the following:
 
 ```text
-  model    Execution UID  partial result    from cache    error
--------  ---------------  ----------------  ------------  -------
-      2                2  False             False
-      1                1  False             True
-Total number of models: 2
+  model    dataset    Execution UID  partial result    from cache    confidential    error
+-------  ---------  ---------------  ----------------  ------------  --------------  -------
+      2          1                2  False             False         False
+      1          1                1  False             True          N/A
+Total number of experiments: 2
         1 were skipped (already executed), of which 0 have partial results
         0 failed
         1 ran successfully, of which 0 have partial results

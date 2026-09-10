@@ -67,27 +67,42 @@ def test_script_hash_of_a_scriptless_topology_is_an_error():
         plan.script_hash
 
 
+MODEL_OWNER_ID = 1
+SOMEBODY_ELSE_ID = 99
+
+
+def dataset_for(owner=SOMEBODY_ELSE_ID, for_test=False):
+    return TestDataset(owner=owner, for_test=for_test)
+
+
 @pytest.mark.parametrize(
-    "requires_cc,is_owner,expected",
+    "requires_cc,is_owner,dataset,expected",
     [
-        (False, False, ExecutionMedium.LOCAL),
-        (False, True, ExecutionMedium.LOCAL),
-        (True, True, ExecutionMedium.LOCAL),
-        (True, False, ExecutionMedium.CONFIDENTIAL),
+        # Nothing to protect: the model is not confidential at all.
+        (False, False, dataset_for(), ExecutionMedium.LOCAL),
+        (False, True, dataset_for(), ExecutionMedium.LOCAL),
+        # Somebody else's confidential model, on any dataset.
+        (True, False, dataset_for(), ExecutionMedium.CONFIDENTIAL),
+        (True, False, dataset_for(for_test=True), ExecutionMedium.CONFIDENTIAL),
+        # The model owner. The model is not at risk from them, but a dataset
+        # they do not own still is -- so only a demo or their own runs locally.
+        (True, True, dataset_for(for_test=True), ExecutionMedium.LOCAL),
+        (True, True, dataset_for(owner=MODEL_OWNER_ID), ExecutionMedium.LOCAL),
+        (True, True, dataset_for(), ExecutionMedium.CONFIDENTIAL),
     ],
 )
-def test_resolve_execution_medium(mocker, requires_cc, is_owner, expected):
+def test_resolve_execution_medium(mocker, requires_cc, is_owner, dataset, expected):
     # Arrange
-    model = TestAssetModel(owner=1)
+    model = TestAssetModel(owner=MODEL_OWNER_ID)
     mocker.patch.object(model, "requires_cc", return_value=requires_cc)
     mocker.patch(PATCH_PLAN.format("is_user_logged_in"), return_value=True)
     mocker.patch(
         PATCH_PLAN.format("get_medperf_user_data"),
-        return_value={"id": 1 if is_owner else 99},
+        return_value={"id": MODEL_OWNER_ID if is_owner else SOMEBODY_ELSE_ID},
     )
 
     # Act
-    medium = resolve_execution_medium(model)
+    medium = resolve_execution_medium(model, dataset)
 
     # Assert
     assert medium == expected
@@ -110,7 +125,9 @@ def test_resolve_execution_medium(mocker, requires_cc, is_owner, expected):
         ),
     ],
 )
-def test_supported_combinations_reach_their_executor(mocker, topology, medium, executor):
+def test_supported_combinations_reach_their_executor(
+    mocker, topology, medium, executor
+):
     """The dispatch table is what decides; the executors themselves are stubbed"""
     # Arrange
     names = {
@@ -136,14 +153,57 @@ def test_supported_combinations_reach_their_executor(mocker, topology, medium, e
     plan = BenchmarkPlan(topology=topology, script=TestCube(id=7))
     dataset = TestDataset()
 
+    execution = mocker.MagicMock(id=42)
+
     # Act
-    ExecutionFlow.run(plan, dataset, model)
+    ExecutionFlow.run(plan, dataset, model, execution)
 
     # Assert
-    spies[executor].assert_called_once_with(plan, dataset, model, None, False)
+    spies[executor].assert_called_once_with(plan, dataset, model, execution, False)
     for name, spy in spies.items():
         if name != executor:
             spy.assert_not_called()
+
+
+def test_a_confidential_run_needs_a_registered_execution(mocker):
+    """A compatibility test registers nothing, so there is no execution to key
+    the workload identity, its storage, or its status reports by"""
+    # Arrange
+    mocker.patch(
+        PATCH_FLOW.format("resolve_execution_medium"),
+        return_value=ExecutionMedium.CONFIDENTIAL,
+    )
+    plan = BenchmarkPlan(
+        topology=BenchmarkTopology.END_TO_END_SCRIPT, script=TestCube(id=7)
+    )
+
+    # Act & Assert
+    with pytest.raises(ExecutionError, match="compatibility test"):
+        ExecutionFlow.run(plan, TestDataset(), TestAssetModel(), execution=None)
+
+
+def test_a_local_run_needs_no_execution(mocker):
+    """Only the confidential medium is keyed by one"""
+    # Arrange
+    mocker.patch(
+        PATCH_FLOW.format("resolve_execution_medium"),
+        return_value=ExecutionMedium.LOCAL,
+    )
+    spy = mocker.MagicMock()
+    mocker.patch.dict(
+        PATCH_FLOW.format("EXECUTORS"),
+        {(BenchmarkTopology.END_TO_END_SCRIPT, ExecutionMedium.LOCAL): spy},
+        clear=True,
+    )
+    plan = BenchmarkPlan(
+        topology=BenchmarkTopology.END_TO_END_SCRIPT, script=TestCube(id=7)
+    )
+
+    # Act
+    ExecutionFlow.run(plan, TestDataset(), TestAssetModel(), execution=None)
+
+    # Assert
+    spy.assert_called_once()
 
 
 @pytest.mark.parametrize(

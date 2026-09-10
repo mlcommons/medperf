@@ -2,7 +2,7 @@ from medperf import config
 from medperf.entities.dataset import Dataset
 from medperf.entities.benchmark import Benchmark
 from medperf.utils import dict_pretty_print, approval_prompt
-from medperf.commands.execution.create import BenchmarkExecution
+from medperf.commands.execution.dataset_benchmark_run import DatasetBenchmarkRun
 from medperf.exceptions import InvalidArgumentError, CleanExit
 
 
@@ -32,7 +32,7 @@ class AssociateBenchmarkDataset:
         if benchmark.metadata.get("skip_compatibility_tests", False):
             results = {}
         else:
-            execution = BenchmarkExecution.run(
+            execution = DatasetBenchmarkRun.run(
                 benchmark_uid,
                 data_uid,
                 [benchmark.reference_model],

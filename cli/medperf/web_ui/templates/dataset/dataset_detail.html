@@ -243,7 +243,7 @@
         </div>
         <div class="my-8 bg-card dark:bg-card rounded-2xl p-8 shadow-lg border-2 border-border-brand dark:border-border">
             <h3 class="text-xl font-bold text-ink mb-4">Confidential Computing Preferences</h3>
-            {{ cc_asset_macro.gcp_asset(cc_config_defaults, cc_configured, cc_initialized, cc_last_synced, dataset.id, "dataset", task_running) }}
+            {{ cc_asset_macro.cc_asset(cc_config_defaults, cc_configured, cc_initialized, cc_last_synced, dataset.id, "dataset", cc_backends, cc_backend, cc_settings, cc_field_label, task_running, cc_policy) }}
         </div>
     </div>
 </div>
@@ -346,6 +346,17 @@
 									<button type="submit" id="run-{{ assoc }}-{{ model.id }}" class="btn btn-sm btn-primary btn-compact mx-2 cursor-pointer disabled:cursor-not-allowed" {% if task_running or (model._encrypted and not model.access_status["has_access"]) or (model._requires_cc and not model.cc_run_status["can_run"]) %}disabled{% endif %}><i class="fas fa-play mr-2"></i>{% if results_exist %} Rerun {% else %} Run {% endif %}</button>
 								</form>
 							</div>
+							{% if model._requires_cc and model.cc_can_collect and not results_exist %}
+							<div class="mx-2">
+								<form id="collect-{{ assoc }}-{{ model.id }}-form" action="/datasets/download_cc_results" method="post" class="dataset-action-form flex items-center gap-2" data-panel-title="Collecting results" data-confirm-message="collect the results of this execution?">
+									<input type="hidden" name="entity_id" value="{{ dataset.id }}">
+									<input type="hidden" name="benchmark_id" value="{{ assoc }}">
+									<input type="hidden" name="model_id" value="{{ model.id }}">
+									<input type="number" name="execution_id" id="collect-execution-{{ assoc }}-{{ model.id }}" class="w-32 px-3 py-1.5 rounded-lg border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="Execution ID" min="1" required value="{% if model.result %}{{ model.result.id }}{% endif %}" title="The execution whose results to collect. Whoever ran it was told this number when their run finished." {% if task_running %}disabled{% endif %}>
+									<button type="submit" id="collect-{{ assoc }}-{{ model.id }}" class="btn btn-sm btn-primary btn-compact cursor-pointer disabled:cursor-not-allowed" {% if task_running %}disabled{% endif %}><i class="fas fa-download mr-2"></i>Collect results</button>
+								</form>
+							</div>
+							{% endif %}
 							{% if results_exist %}
 								<div class="mx-2">
 									<button
@@ -477,6 +488,12 @@
         } else {
             resumeRunningTask("#run-{{ form_data.get('benchmark_id') }}-{{ form_data.get('model_ids') }}-form");
         }
+    });
+</script>
+{% elif  request.app.state.task.name == "download_cc_results" %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        resumeRunningTask("#collect-{{ form_data.get('benchmark_id') }}-{{ form_data.get('model_id') }}-form");
     });
 </script>
 {% elif  request.app.state.task.name == "submit_result" %}

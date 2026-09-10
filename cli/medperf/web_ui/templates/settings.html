@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% import "constants/tooltips.html" as tooltips %}
-{% import 'macros/cc_operator_macro.html' as cc_operator_macro %}
+{% import 'macros/cc_settings_macro.html' as cc_settings_macro %}
 
 {% block title %}Settings{% endblock %}
 
@@ -106,7 +106,9 @@
 
     {% if logged_in %}
     <section class="mb-12">
-        {{ cc_operator_macro.cc_operator(cc_config_defaults, cc_configured, cc_initialized, task_running=task_running) }}
+        {% for section in cc_sections %}
+        {{ cc_settings_macro.cc_settings(section, cc_field_label, task_running=task_running) }}
+        {% endfor %}
     </section>
     {% endif %}
 
@@ -121,13 +123,17 @@
 {% block extra_js %}
 <script>
     window.ccPreferences = {
-        configured: {{ cc_configured|tojson }},
-        initialized: {{ cc_initialized|tojson }},
-        defaults: {{ cc_config_defaults|tojson }}
+        {% for section in cc_sections %}
+        {{ section.name|tojson }}: {
+            configured: {{ section.configured|tojson }},
+            initialized: {{ section.initialized|tojson }},
+            defaults: {{ section.defaults|tojson }}
+        }{{ "," if not loop.last }}
+        {% endfor %}
     }
 </script>
 <script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
-<script src="{{ url_for('static', path='js/cc_operator.js') }}"></script>
+<script src="{{ url_for('static', path='js/cc_settings.js') }}"></script>
 <script>
     window.currentSettings = {
         activeProfile: "{{ profiles.active_profile_name }}",

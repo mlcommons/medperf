@@ -15,4 +15,8 @@ urlpatterns = [
         "<int:pk>/datasets_certificates/",
         certificate_views.CertificatesFromBenchmark.as_view(),
     ),
+    path(
+        "<int:pk>/models_certificates/",
+        certificate_views.CertificatesFromBenchmarkModels.as_view(),
+    ),
 ]

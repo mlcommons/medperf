@@ -3,6 +3,10 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
+# The topology whose script computes the metrics inside the confidential VM, so
+# nothing but the encrypted results ever leaves it.
+END_TO_END_TOPOLOGY = "end_to_end_script"
+
 
 class Benchmark(models.Model):
     BENCHMARK_STATUS = (
@@ -26,7 +30,7 @@ class Benchmark(models.Model):
     # model it accepts and which containers it needs; see `validate_topology`.
     BENCHMARK_TOPOLOGY = (
         ("byo_inference_script", "byo_inference_script"),
-        ("end_to_end_script", "end_to_end_script"),
+        (END_TO_END_TOPOLOGY, END_TO_END_TOPOLOGY),
         ("inference_script", "inference_script"),
     )
     name = models.CharField(max_length=128, unique=True)
@@ -95,6 +99,10 @@ class Benchmark(models.Model):
     @property
     def committee_member_emails(self):
         return list(self.committee_members.values_list("email", flat=True))
+
+    @property
+    def is_end_to_end_topology(self):
+        return self.topology == END_TO_END_TOPOLOGY
 
     def user_can_manage_benchmark(self, user):
         if self.owner.id == user.id:

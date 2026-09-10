@@ -9,9 +9,27 @@ decryption = SymmetricEncryption()
 decryption.check()
 
 
+# What the workload actually measured, as opposed to what it was told to expect.
+# Recorded here because this is the only point at which the decrypted inputs
+# exist in their registered form; the integrity proof reads it afterwards.
+MEASURED_HASHES_FILE = "measured_hashes.json"
+
+
+def __record_measured_hash(name: str, value: str) -> None:
+    path = os.path.join(os.getenv("TMP_FILES"), MEASURED_HASHES_FILE)
+    measured = {}
+    if os.path.exists(path):
+        with open(path) as f:
+            measured = json.load(f)
+    measured[name] = value
+    with open(path, "w") as f:
+        json.dump(measured, f, sort_keys=True)
+
+
 def __check_folder_hash(folder_path: str, expected_hash: str) -> None:
     paths = [os.path.join(folder_path, "data"), os.path.join(folder_path, "labels")]
     actual_hash = get_folders_hash(paths)
+    __record_measured_hash("data_sha256", actual_hash)
     if actual_hash != expected_hash:
         raise ValueError(
             f"Asset folder hash mismatch: expected {expected_hash}, got {actual_hash}"
@@ -20,6 +38,7 @@ def __check_folder_hash(folder_path: str, expected_hash: str) -> None:
 
 def __check_file_hash(asset_path: str, expected_hash: str) -> None:
     actual_hash = get_file_hash(asset_path)
+    __record_measured_hash("model_sha256", actual_hash)
     if actual_hash != expected_hash:
         raise ValueError(
             f"Asset hash mismatch: expected {expected_hash}, got {actual_hash}"

@@ -1,5 +1,5 @@
 container_type: DockerImage
-image: mlcommons/medperf-cc-chestxray:0.0.0
+image: mlcommons/medperf-cc-chestxray:0.0.1
 tasks:
   run_script:
     input_volumes:

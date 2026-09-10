@@ -1,0 +1,9 @@
+pydantic==1.10.13
+cryptography>=42
+requests>=2.26.0
+google-auth==2.49.1
+google-cloud-storage==3.9.0
+google-cloud-iam==2.21.0
+google-cloud-kms==3.11.0
+google-cloud-compute==1.46.0
+google-api-python-client==2.192.0

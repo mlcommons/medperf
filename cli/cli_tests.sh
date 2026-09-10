@@ -460,10 +460,14 @@ echo "\n"
 
 ##########################################################
 echo "====================================="
-echo "Running model3 (with singularity)"
+echo "Running model3 (with singularity), then reporting it"
 echo "====================================="
-print_eval medperf --platform=singularity run -b $BMK_UID -d $DSET_A_UID -m $MODEL3_UID -y
+print_eval medperf --platform=singularity run -b $BMK_UID -d $DSET_A_UID -m $MODEL3_UID
 checkFailed "Model3 run failed"
+
+# Running leaves the results here; reporting them is its own command.
+print_eval medperf result submit -b $BMK_UID -d $DSET_A_UID -m $MODEL3_UID -y
+checkFailed "Model3 result submission failed"
 ##########################################################
 
 echo "\n"
@@ -512,20 +516,28 @@ echo "\n"
 
 ##########################################################
 echo "====================================================================="
-echo "Rerun (execute+submit). This will error out"
+echo "Rerun a reported execution, then try to report it again"
 echo "====================================================================="
-print_eval medperf run -b $BMK_UID -d $DSET_A_UID -m $FAILING_MODEL_UID --ignore-model-errors -y
-checkSucceeded "Rerunning should fail, but it succeeded"
+# The run reads the cached result and does nothing; reporting it a second time
+# is what gets refused.
+print_eval medperf run -b $BMK_UID -d $DSET_A_UID -m $FAILING_MODEL_UID --ignore-model-errors
+checkFailed "Rerunning a reported execution should be a no-op"
+
+print_eval medperf result submit -b $BMK_UID -d $DSET_A_UID -m $FAILING_MODEL_UID -y
+checkSucceeded "Reporting an already reported result should fail, but it succeeded"
 ##########################################################
 
 echo "\n"
 
 ##########################################################
 echo "====================================================================="
-echo "Rerun (execute+submit) with --new-result flag. This should work."
+echo "Rerun with --new-result flag, and report the new record"
 echo "====================================================================="
-print_eval medperf run -b $BMK_UID -d $DSET_A_UID -m $FAILING_MODEL_UID --ignore-model-errors --new-result -y
+print_eval medperf run -b $BMK_UID -d $DSET_A_UID -m $FAILING_MODEL_UID --ignore-model-errors --new-result
 checkFailed "Rerunning with --new-result failed"
+
+print_eval medperf result submit -b $BMK_UID -d $DSET_A_UID -m $FAILING_MODEL_UID -y
+checkFailed "Reporting the new record failed"
 ##########################################################
 
 echo "\n"

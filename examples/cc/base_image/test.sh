@@ -17,5 +17,5 @@ docker run --rm -v /home/hasan/.config/gcloud:/root/.config/gcloud:ro \
     -e RESULT_CONFIG="$RESULT_CONFIG" \
     -e RESULT_COLLECTOR="$RESULT_COLLECTOR" \
     -e EXPECTED_RESULT_COLLECTOR_HASH="$EXPECTED_RESULT_COLLECTOR_HASH" \
-    mlcommons/medperf-confidential-benchmark-base:0.0.0
+    mlcommons/medperf-confidential-benchmark-base:0.0.1
 

@@ -1,3 +1,4 @@
+from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
@@ -73,6 +74,31 @@ class BasePage:
         self.ensure_element_ready(option)
         option.click()
         self.wait.until(lambda _driver: bool(hidden.get_attribute("value")))
+
+    # The panel starts collapsed and below the fold, so a recording of a long
+    # task would otherwise show a spinner and nothing else.
+    FOLLOW_LOGS = """
+    var section = document.getElementById('log-panel-section');
+    if (!section || section.classList.contains('hidden')) { return false; }
+    var button = document.getElementById('toggle-log-panel-btn');
+    if (button && button.getAttribute('aria-expanded') !== 'true') { button.click(); }
+    var log = document.getElementById('log-panel');
+    if (!log) { return false; }
+    log.scrollTop = log.scrollHeight;
+    var box = log.getBoundingClientRect();
+    if (box.top < 0 || box.bottom > window.innerHeight) {
+        log.scrollIntoView({block: 'center'});
+    }
+    return true;
+    """
+
+    def follow_logs(self):
+        """Shows what a running task is printing, for whoever watches later."""
+        try:
+            return self.driver.execute_script(self.FOLLOW_LOGS)
+        except WebDriverException:
+            # Mid-navigation, or no panel on this page. Nothing to follow.
+            return False
 
     def wait_for_presence_selector(self, locator):
         self.wait.until(EC.presence_of_element_located(locator))

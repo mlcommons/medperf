@@ -1,0 +1,4 @@
+{
+    "backend": "mock",
+    "root": "/tmp/medperf_cc_mock"
+}

@@ -80,7 +80,8 @@ class ExecutionFlow:
             model (Model): the model to execute
         """
         cls.validate_model(plan, model)
-        medium = resolve_execution_medium(model)
+        medium = resolve_execution_medium(model, dataset)
+        cls.validate_execution(medium, execution)
         executor = EXECUTORS.get((plan.topology, medium))
         if executor is None:
             reason = UNSUPPORTED_REASONS.get(
@@ -91,6 +92,22 @@ class ExecutionFlow:
             raise ExecutionError(reason)
 
         return executor(plan, dataset, model, execution, ignore_model_errors)
+
+    @staticmethod
+    def validate_execution(medium: ExecutionMedium, execution: Execution):
+        """A confidential run needs a registered execution to belong to.
+
+        Its identity, the storage its output goes to, and the status it reports
+        back are all keyed by the execution. A compatibility test has none --
+        it assembles components ad hoc, without registering anything -- so it
+        cannot be run confidentially, and saying so here is cheaper than
+        failing once a confidential VM is already running."""
+        if medium is ExecutionMedium.CONFIDENTIAL and execution is None:
+            raise ExecutionError(
+                "A confidential execution cannot be run as a compatibility"
+                " test. Associate the model with a benchmark and run it"
+                " through that benchmark instead."
+            )
 
     @staticmethod
     def validate_model(plan: BenchmarkPlan, model: Model):

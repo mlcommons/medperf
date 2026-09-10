@@ -1,5 +1,6 @@
 from __future__ import annotations
 from rest_framework.permissions import BasePermission
+from benchmarkdataset.models import BenchmarkDataset
 from benchmarkmodel.models import BenchmarkModel
 from benchmark.models import Benchmark
 from .models import Certificate
@@ -99,3 +100,34 @@ class IsAssociatedModelOwner(BasePermission):
             return True
         else:
             return False
+
+
+class IsAssociatedDatasetOwner(BasePermission):
+    """A data owner whose dataset is approved for this benchmark.
+
+    The mirror of `IsAssociatedModelOwner`."""
+
+    def has_permission(self, request, view):
+        pk = view.kwargs.get("pk", None)
+        if not pk:
+            return False
+
+        if not request.user.is_authenticated:
+            # This check is to prevent internal server error
+            # since user.dataset_set is used below
+            return False
+
+        latest_datasets_assocs_status = (
+            BenchmarkDataset.objects.all()
+            .filter(benchmark__id=pk, dataset__id=OuterRef("id"))
+            .order_by("-created_at")[:1]
+            .values("approval_status")
+        )
+
+        user_associated_datasets = (
+            request.user.dataset_set.all()
+            .annotate(assoc_status=Subquery(latest_datasets_assocs_status))
+            .filter(assoc_status="APPROVED")
+        )
+
+        return user_associated_datasets.exists()

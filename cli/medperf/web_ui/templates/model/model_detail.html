@@ -113,7 +113,7 @@
     </div>
     <div class="mt-6 bg-card dark:bg-card rounded-2xl p-6 shadow-lg border-2 border-border-brand dark:border-border">
         <h3 class="text-xl font-bold text-ink mb-4">Confidential Computing Preferences</h3>
-        {{ cc_asset_macro.gcp_asset(cc_config_defaults, cc_configured, cc_initialized, cc_last_synced, entity.id, "model", task_running) }}
+        {{ cc_asset_macro.cc_asset(cc_config_defaults, cc_configured, cc_initialized, cc_last_synced, entity.id, "model", cc_backends, cc_backend, cc_settings, cc_field_label, task_running, cc_policy) }}
     </div>
     {% endif %}
     {% endif %}
@@ -138,6 +138,112 @@
 </div>
 {% endif %}
 
+{% if is_owner and ui_mode == request.app.state.EVALUATION_MODE and entity._requires_cc %}
+{% for assoc in approved_benchmarks %}
+{% set datasets = benchmark_datasets.get(assoc, []) %}
+{% set runnable = [] %}
+{% for dataset in datasets %}{% if dataset.cc_run_status["can_run"] %}{% set _ = runnable.append(dataset) %}{% endif %}{% endfor %}
+<div class="w-full bg-card dark:bg-card rounded-2xl shadow-lg border-2 border-border-brand dark:border-border mt-6 mb-4 overflow-hidden" data-testid="benchmark-datasets">
+	<div class="px-4 py-3 bg-brand flex justify-between items-center text-brand-fg">
+		<h4 class="mb-0 text-brand-fg">
+		Benchmark:
+		<a href="/benchmarks/ui/display/{{ assoc }}" class="text-brand-fg underline font-semibold hover:opacity-80">
+			<strong>{{ benchmarks[assoc].name if assoc in benchmarks else assoc }}</strong>
+		</a>
+		</h4>
+		<form id="run-all-{{ assoc }}-form" action="/models/run" method="post" class="inline model-run-form" data-panel-title="Running benchmark execution">
+			<input type="hidden" name="entity_id" value="{{ entity.id }}">
+			<input type="hidden" name="benchmark_id" value="{{ assoc }}">
+			<input type="hidden" name="run_all" value="true">
+			{% for dataset in runnable %}<input type="hidden" name="data_ids" value="{{ dataset.id }}">{% endfor %}
+			<button type="submit" id="run-all-{{ assoc }}" class="btn btn-sm btn-secondary run-all-btn cursor-pointer disabled:cursor-not-allowed" {% if task_running or not runnable %}disabled{% endif %}><i class="fas fa-play mr-2"></i>Run All</button>
+		</form>
+	</div>
+	<div class="p-4">
+		<p class="text-sm text-muted-fg mb-4">Your model runs inside a confidential VM on machines you pay for. The data never leaves its owner, and the results go to whoever the two of you agreed to release them to.</p>
+		<div class="space-y-2">
+			{% if datasets %}
+			{% for dataset in datasets %}
+			{% set results_exist = dataset.result and dataset.result.results_exist %}
+			<div class="flex flex-wrap justify-between items-center gap-4 p-4 rounded-xl border border-border bg-muted">
+				<div class="flex flex-col">
+					<div>
+					<small class="text-muted-fg">&nbsp;Confidential Computing Run</small>
+					{% if dataset.cc_run_status["can_run"] %}
+					<small class="text-brand-accent font-bold">&nbsp;Ready</small>
+					{% else %}
+					<small class="text-danger underline cursor-help" title="{{ dataset.cc_run_status['reason'] }}">&nbsp;Not Ready</small>
+					{% endif %}
+					</div>
+					<span class="inline-flex items-center gap-2 p-2 rounded-lg">
+						<strong><a href="/datasets/ui/display/{{ dataset.id }}" class="text-brand-accent hover:underline">{{ dataset.name }}</a></strong>
+						<small class="text-muted-fg">ID: {{ dataset.id }}</small>
+					</span>
+				</div>
+				<div class="flex items-center flex-wrap gap-2">
+					<div class="mx-2">
+						<form id="run-{{ assoc }}-{{ dataset.id }}-form" action="/models/run" method="post" class="inline model-run-form" data-panel-title="Running benchmark execution">
+							<input type="hidden" name="entity_id" value="{{ entity.id }}">
+							<input type="hidden" name="benchmark_id" value="{{ assoc }}">
+							<input type="hidden" name="run_all" value="false">
+							<input type="hidden" name="data_ids" value="{{ dataset.id }}">
+							<button type="submit" id="run-{{ assoc }}-{{ dataset.id }}" class="btn btn-sm btn-primary btn-compact mx-2 cursor-pointer disabled:cursor-not-allowed" {% if task_running or not dataset.cc_run_status["can_run"] %}disabled{% endif %}><i class="fas fa-play mr-2"></i>{% if dataset.result and dataset.result.ran %} Rerun {% else %} Run {% endif %}</button>
+						</form>
+					</div>
+					{% if dataset.cc_can_collect and not results_exist %}
+					<div class="mx-2">
+						<form id="collect-{{ assoc }}-{{ dataset.id }}-form" action="/models/download_cc_results" method="post" class="model-action-form flex items-center gap-2" data-panel-title="Collecting results" data-confirm-message="collect the results of this execution?">
+							<input type="hidden" name="entity_id" value="{{ entity.id }}">
+							<input type="hidden" name="benchmark_id" value="{{ assoc }}">
+							<input type="hidden" name="data_id" value="{{ dataset.id }}">
+							<input type="number" name="execution_id" id="collect-execution-{{ assoc }}-{{ dataset.id }}" class="w-32 px-3 py-1.5 rounded-lg border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="Execution ID" min="1" required value="{% if dataset.result %}{{ dataset.result.id }}{% endif %}" title="The execution whose results to collect. Whoever ran it was told this number when their run finished." {% if task_running %}disabled{% endif %}>
+							<button type="submit" id="collect-{{ assoc }}-{{ dataset.id }}" class="btn btn-sm btn-primary btn-compact cursor-pointer disabled:cursor-not-allowed" {% if task_running %}disabled{% endif %}><i class="fas fa-download mr-2"></i>Collect results</button>
+						</form>
+					</div>
+					{% endif %}
+					{% if results_exist %}
+					<div class="mx-2">
+						<button
+							class="btn btn-sm btn-primary btn-compact view-result-btn cursor-pointer"
+							id="show-{{ assoc }}-{{ dataset.id }}"
+							data-result='{{ dataset.result.results|tojson }}'
+						>
+							<i class="fas fa-chart-line mr-2"></i>View Result
+						</button>
+					</div>
+					{% if dataset.result.finalized %}
+					<div class="mx-2">
+						<span class="inline-block px-3 py-1 rounded-lg bg-success-muted text-brand-accent font-semibold"><i class="fas fa-check mr-1"></i>Submitted</span>
+					</div>
+					{% else %}
+					<div class="mx-2">
+						<form id="submit-{{ assoc }}-{{ dataset.result.id }}-form" action="/models/submit_result" method="post" class="inline model-action-form" data-panel-title="Submitting result" data-confirm-message="submit the result?">
+							<input type="hidden" name="result_id" value="{{ dataset.result.id }}">
+							<input type="hidden" name="benchmark_id" value="{{ assoc }}">
+							<input type="hidden" name="model_id" value="{{ entity.id }}">
+							<button type="submit" id="submit-{{ assoc }}-{{ dataset.result.id }}" class="btn btn-sm btn-primary btn-compact cursor-pointer disabled:cursor-not-allowed" {% if task_running %}disabled{% endif %}><i class="fas fa-upload mr-2"></i>Submit</button>
+						</form>
+					</div>
+					{% endif %}
+					{% elif dataset.result and dataset.result.ran and not dataset.cc_can_collect %}
+					<div class="mx-2">
+						<span class="inline-block px-3 py-1 rounded-lg bg-info-muted text-info-fg font-semibold cursor-help" data-testid="collector-execution" data-execution-id="{{ dataset.result.id }}" title="The results were encrypted for whoever the policies release them to. Only they can open them, and this is the execution they have to ask for.">Ran &mdash; execution {{ dataset.result.id }} is the collector's to fetch</span>
+					</div>
+					{% endif %}
+				</div>
+			</div>
+			{% endfor %}
+			{% else %}
+			<div class="flex justify-between items-center p-4 rounded-xl border border-border bg-muted text-muted-fg">
+				No datasets yet
+			</div>
+			{% endif %}
+		</div>
+	</div>
+</div>
+{% endfor %}
+{% endif %}
+
 {% include "partials/panel_container.html" %}
 {% include "partials/text_content_container.html" %}
 {% include "partials/yaml_container.html" %}
@@ -153,15 +259,39 @@
     }
 </script>
 <script src="{{ url_for('static', path='js/event_handler.js') }}"></script>
+<script src="{{ url_for('static', path='js/results/results_utils.js') }}"></script>
 <script src="{{ url_for('static', path='js/models/model_detail.js') }}"></script>
 <script src="{{ url_for('static', path='js/cc.js') }}"></script>
 {% if task_running %}
-{% if request.app.state.task.formData.get("model_id", "") == entity.id|string %}
 {% set form_data = request.app.state.task.formData %}
+{% if form_data.get("model_id", form_data.get("entity_id", "")) == entity.id|string %}
 {% if request.app.state.task.name == "model_association" %}
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         resumeRunningTask("#model-association-form-{{ form_data.get('benchmark_id', '') }}");
+    });
+</script>
+{% elif request.app.state.task.name == "run_benchmark" %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const runAll = "{{ form_data.get('run_all') }}" === "true";
+        if (runAll) {
+            resumeRunningTask("#run-all-{{ form_data.get('benchmark_id') }}-form");
+        } else {
+            resumeRunningTask("#run-{{ form_data.get('benchmark_id') }}-{{ form_data.get('data_ids') }}-form");
+        }
+    });
+</script>
+{% elif request.app.state.task.name == "download_cc_results" %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        resumeRunningTask("#collect-{{ form_data.get('benchmark_id') }}-{{ form_data.get('data_id') }}-form");
+    });
+</script>
+{% elif request.app.state.task.name == "submit_result" %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        resumeRunningTask("#submit-{{ form_data.get('benchmark_id') }}-{{ form_data.get('result_id') }}-form");
     });
 </script>
 {% elif request.app.state.task.name == "model_update_cc_config" %}
