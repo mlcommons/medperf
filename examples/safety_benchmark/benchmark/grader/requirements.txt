@@ -1,4 +1,0 @@
-torch>=2.4
-transformers>=4.44
-accelerate>=0.34
-requests>=2.32

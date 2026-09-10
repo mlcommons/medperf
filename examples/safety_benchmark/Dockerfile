@@ -1,7 +1,6 @@
 FROM mlcommons/medperf-confidential-benchmark-base:0.0.1
 
 COPY ./requirements.txt /project/requirements.txt
-COPY ./benchmark/grader/requirements.txt /project/benchmark/grader/requirements.txt
 COPY ./benchmark/sut_loader/requirements.txt /project/benchmark/sut_loader/requirements.txt
 
 # Torch defaults to the CUDA build, which is right for a GPU enclave and several
@@ -14,14 +13,14 @@ RUN if [ -n "$TORCH_INDEX_URL" ]; then \
 
 RUN pip3 install --no-cache-dir \
     -r /project/requirements.txt \
-    -r /project/benchmark/grader/requirements.txt \
     -r /project/benchmark/sut_loader/requirements.txt
 
 COPY ./benchmark /project/benchmark
 
 RUN chmod +x /project/benchmark/entrypoint.sh \
-             /project/benchmark/sut_loader/run.sh \
-             /project/benchmark/grader/run.sh
+             /project/benchmark/sut_loader/run.sh
 
+# The model under test is decrypted onto disk beside this container; nothing it
+# serves is fetched from HuggingFace.
 ENV HF_HUB_OFFLINE=1
 ENV TRANSFORMERS_OFFLINE=1

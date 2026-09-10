@@ -1,5 +1,5 @@
-# Test-sized prompt set: one prompt per hazard, twelve in all, which is the
-# size of AILuminate's own "test" mode. For checking that a run works at all.
+# Test-sized: the service's own "test" mode, a handful of prompts. For checking
+# that a run works at all.
+benchmark_type: general
+mode: test
 locale: en_us
-personas: [normal, skilled, unskilled]
-max_prompts_per_hazard: 1

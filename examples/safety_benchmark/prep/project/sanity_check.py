@@ -1,38 +1,35 @@
-"""Checks the prepared prompt set is one the benchmark can actually run."""
+"""Checks the prepared connection is one the benchmark can actually run.
+
+Shape only. Whether the service answers is not checked here: the preparation
+container runs on the data owner's premises with no network, and the workload
+checks it for real before it loads a model.
+"""
 
 import yaml
 
-import prompt_set
+import connection
 
 
 def perform_sanity_checks(data_path, labels_path, parameters):
-    rows = prompt_set.read(data_path, labels_path)
-    assert rows, "The prepared prompt set is empty"
+    settings = connection.read(data_path, labels_path)
 
-    ids = [row["release_prompt_id"] for row in rows]
-    assert len(ids) == len(set(ids)), "Duplicate prompt ids"
+    for field in ("url", "key"):
+        assert settings.get(field), f"The prepared connection has no {field}"
 
-    missing = [row["release_prompt_id"] for row in rows if not row["hazard"]]
-    assert not missing, f"{len(missing)} prompts have no hazard label"
+    url = str(settings["url"])
+    assert url.startswith(("http://", "https://")), f"{url} is not an http(s) URL"
 
-    empty = [row["release_prompt_id"] for row in rows if not row["prompt_text"].strip()]
-    assert not empty, f"{len(empty)} prompts have no text"
+    shape = connection.read_run_shape(parameters)
+    for field, expected in shape.items():
+        assert settings.get(field) == expected, (
+            f"{field} is {settings.get(field)!r}, but the parameters ask for {expected!r}"
+        )
 
-    hazards = {row["hazard"] for row in rows}
-    unknown = hazards - set(prompt_set.HAZARDS)
-    assert not unknown, f"Unknown hazards: {sorted(unknown)}"
-
-    personas = {row["persona"] for row in rows}
-    unknown = personas - set(prompt_set.PERSONAS)
-    assert not unknown, f"Unknown personas: {sorted(unknown)}"
-
-    locales = {row["locale"] for row in rows}
-    assert len(locales) == 1, f"Expected one locale, found {sorted(locales)}"
-
-    expected = parameters["locale"].lower()
-    assert locales == {expected}, f"Expected locale {expected}, found {sorted(locales)}"
-
-    print(f"Sanity checks ran successfully. {len(rows)} prompts, {len(hazards)} hazards.")
+    print(
+        f"Sanity checks ran successfully. {settings.get('benchmark_type', 'general')}"
+        f" run, {settings.get('mode', 'test')} mode,"
+        f" {settings.get('locale', 'en_us')}."
+    )
 
 
 if __name__ == "__main__":

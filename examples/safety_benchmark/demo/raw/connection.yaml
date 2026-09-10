@@ -1,0 +1,15 @@
+# What a data owner writes by hand and registers as their dataset.
+#
+# This benchmark has no prompt set on the premises: the prompts, the annotators
+# and the grades all belong to the benchmark service. So a "dataset" here is
+# two lines -- which service, and the key that reaches it.
+#
+# Never commit a real key. This one points at the toy server in
+# baas-client/mock_server, which accepts any key.
+
+url: http://127.0.0.1:8500
+key: replace-me
+
+# Optional. What the service records the run against, and what appears in its
+# listings. Defaults to medperf-sut.
+model_id: medperf-sut

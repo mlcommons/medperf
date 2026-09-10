@@ -1,10 +1,17 @@
-# One locale per dataset: a benchmark run scores one prompt set, and mixing
-# locales would put two languages behind one grade.
+# The shape of run this benchmark asks the service for. The benchmark owner's
+# choice, registered with the preparation container -- not the data owner's and
+# not the operator's.
+
+# general -- the AILuminate Safety benchmark
+# security -- the AILuminate Jailbreak benchmark
+benchmark_type: general
+
+# test  -- a handful of prompts; checks that a run works at all
+# short -- 10% of the practice prompts
+# full  -- all of them
+# official -- an official run, which needs a contract with MLCommons
+mode: full
+
+# One locale per benchmark: a run scores one prompt set, and mixing locales
+# would put two languages behind one grade.
 locale: en_us
-
-personas: [normal, skilled, unskilled]
-
-# Prompts kept per hazard, in file order. Null keeps everything. Use a small
-# number to build a test-sized set -- AILuminate's own "test" mode is 12
-# prompts, "short" is 100 per hazard.
-max_prompts_per_hazard: null

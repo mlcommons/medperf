@@ -1,7 +1,7 @@
 #!/bin/bash
-# Builds the prompt-set preparation image and publishes it.
+# Builds the dataset preparation image and publishes it.
 #
-# Unlike the benchmark script, this one runs on the prompt owner's own machine,
+# Unlike the benchmark script, this one runs on the data owner's own machine,
 # before anything is encrypted. It is not part of the trusted computing base.
 #
 # MedPerf pulls whatever image a container config names, so a run executes the

@@ -15,7 +15,7 @@ Two things differ from the chest X-ray run, and both are the point of this one:
   page and submits what comes back. `webui_tests_cc.py` drives the same shape
   against the mock backends under `CC_OPERATOR=modelowner`.
 - **Compatibility tests are skipped at benchmark registration.** The script
-  container's grader fetches its weights from HuggingFace and MedPerf gives a
+  container relays a run from a benchmark service and MedPerf gives a
   local-medium run no network, so a compatibility test cannot pass. The flag is
   recorded on the benchmark, so it also skips the test at both association
   steps.
@@ -72,19 +72,28 @@ SCRIPT_NAME = "safety-script"
 REF_MODEL_NAME = "safety-reference-model"
 MODEL_NAME = "safety-model-under-test"
 BMK_NAME = "safety-bmk"
-DATASET_NAME = "safety_prompts"
+DATASET_NAME = "safety_service"
 
 SAFETY = os.path.join(REPO, "examples", "safety_benchmark")
 
+# Staged copies, so the shell script can point them at a registry of its own
+# without editing the repository. Unset, the committed configs are used.
+PREP_CONFIG = os.environ.get(
+    "SAFETY_PREP_CONFIG", os.path.join(SAFETY, "prep", "container_config.yaml")
+)
+SCRIPT_CONFIG = os.environ.get(
+    "SAFETY_SCRIPT_CONFIG", os.path.join(SAFETY, "container_config.yaml")
+)
+
 PREP = ContainerInput(
     name=PREP_NAME,
-    config=os.path.join(SAFETY, "prep", "container_config.yaml"),
-    # The test-sized prompt set: twelve prompts, one per hazard.
+    config=PREP_CONFIG,
+    # The service's own test mode: a handful of prompts, one per hazard.
     parameters=os.path.join(SAFETY, "prep", "workspace", "parameters_test.yaml"),
 )
 SCRIPT = ContainerInput(
     name=SCRIPT_NAME,
-    config=os.path.join(SAFETY, "container_config.yaml"),
+    config=SCRIPT_CONFIG,
 )
 
 # Served by the shell script. The reference model has to be a URL: a
@@ -104,10 +113,9 @@ OPERATOR = MODEL
 COLLECTOR = DATA
 
 # A confidential VM has to boot, pull the workload image and run it, and this
-# workload answers twelve prompts with a language model and then grades the
-# answers with a second one. On CPU that is a long way past the chest X-ray
-# run's ninety minutes, and nobody has measured it, so the ceiling here is
-# three hours. Report what it actually took.
+# workload answers a benchmark service's prompts with a language model. On CPU
+# that is a long way past the chest X-ray run's ninety minutes, so the ceiling
+# here is three hours. Report what it actually took.
 TASK_TIMEOUT = int(os.environ.get("WEBUI_TASK_TIMEOUT", "10800"))
 SHORT_WAIT = 30
 
@@ -507,7 +515,7 @@ def run_workflow(runner, parties, settings):
     # ------------------------------------------------------- benchmark owner
     runner.step("Act as the benchmark owner", lambda: switch(BENCHMARK))
     runner.step(
-        "Submit prompt-set preparation container",
+        "Submit dataset preparation container",
         lambda: register_container(runner, PREP),
     )
     runner.step(
@@ -531,9 +539,9 @@ def run_workflow(runner, parties, settings):
             metrics=None,
             benchmark_script=SCRIPT_NAME,
             topology="end_to_end_script",
-            # Not optional: the grader fetches its weights from HuggingFace and
-            # a local-medium run has no network. Recorded on the benchmark, so
-            # it skips the test at both association steps too.
+            # Not optional: the run relays prompts from a benchmark service
+            # and a local-medium run has no network. Recorded on the benchmark,
+            # so it skips the test at both association steps too.
             skip_compatibility_tests=True,
         )
         wait_for_task(page)
@@ -568,12 +576,13 @@ def run_workflow(runner, parties, settings):
     def submit_dataset():
         page = RegDatasetPage(runner.driver)
         page.open(runner.url("/datasets/register/ui"))
-        # AILuminate ships prompts and their hazard labels in one CSV, so both
-        # paths point at the same folder. The prep container splits them.
+        # The dataset is one connection.yaml: which benchmark service, and the
+        # key that reaches it. There are no labels, so both paths are the same
+        # folder.
         page.register_dataset(
             benchmark=BMK_NAME,
             name=DATASET_NAME,
-            description="AILuminate-shaped-prompt-set",
+            description="AILuminate-benchmark-service-connection",
             location="gcp-safety-location",
             data_path=os.environ["CC_DATA_PATH"],
             labels_path=os.environ["CC_LABELS_PATH"],
@@ -582,7 +591,7 @@ def run_workflow(runner, parties, settings):
         dismiss_task_modal(page)
         state["dataset_url"] = captured_detail_url(runner, "/datasets/ui/display/")
 
-    runner.step("Submit the prompt set as a dataset", submit_dataset)
+    runner.step("Submit the service connection as a dataset", submit_dataset)
 
     def dataset_step(action):
         page = DatasetDetailsPage(runner.driver, DATASET_NAME, BMK_NAME)
@@ -591,10 +600,10 @@ def run_workflow(runner, parties, settings):
         wait_for_task(page)
         dismiss_task_modal(page)
 
-    runner.step("Prepare the prompt set", lambda: dataset_step("prepare_dataset"))
-    runner.step("Mark the prompt set operational", lambda: dataset_step("set_operational"))
+    runner.step("Prepare the connection", lambda: dataset_step("prepare_dataset"))
+    runner.step("Mark the connection operational", lambda: dataset_step("set_operational"))
     runner.step(
-        "Associate the prompt set with the benchmark",
+        "Associate the connection with the benchmark",
         lambda: dataset_step("request_association"),
     )
 
@@ -625,7 +634,7 @@ def run_workflow(runner, parties, settings):
 
     runner.step("Act as the data owner for CC", lambda: switch(DATA))
     runner.step(
-        "Publish the prompt set to the data owner's bucket and key",
+        "Publish the connection to the data owner's bucket and key",
         lambda: configure_asset_cc(runner, state["dataset_url"], *settings["data"]),
     )
 

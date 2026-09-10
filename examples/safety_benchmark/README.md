@@ -1,122 +1,134 @@
-# Safety benchmark (AILuminate-shaped)
+# Safety benchmark (AILuminate, via a benchmark service)
 
-An `end_to_end_script` benchmark: prompts go to a model, the answers go to a
-grader, the verdicts become per-hazard scores and a letter grade. Everything
-happens inside the confidential VM, so nothing leaves but `results.yaml`.
+An `end_to_end_script` benchmark that relays a run: prompts come from
+MLCommons' Benchmarks-as-a-Service, the model under test answers them inside
+the confidential VM, the answers go back, and the service returns the grades.
+Nothing leaves the enclave but `results.yaml`.
 
-Built to have its parts replaced. Each of the four folders below is a seam,
-and the ones that hold a model are swappable without touching anything else.
+This is [`baas-client`](../../../baas-client)'s flow, unchanged, with two
+differences that are the point of running it here:
+
+- the model under test is an encrypted asset decrypted beside the client,
+  rather than a hosted endpoint reached over the internet
+- the answers never touch a machine anybody owns
+
+```
+baas benchmark --model-url <the sut_loader> --baas-url <the service>
+```
 
 ## Layout
 
 ```
-prep/                  prompt CSV -> a MedPerf dataset (runs on-prem)
+prep/                  a data owner's service connection -> a MedPerf dataset
 benchmark/
-├── main.py            the flow: ask -> stop -> grade -> stop -> score
+├── main.py            the flow: connect -> serve -> relay -> collect grades
+├── connection.py      dataset folder -> which service, and the key for it
 ├── model_server.py    starts a model folder's `run.sh`, waits for it, stops it
-├── prompt_reader/     dataset folder -> prompts
-├── sut_loader/        the model under test          [swappable]
-├── grader/            the safety grader             [swappable]
-└── scorer/            verdicts -> hazard scores and grades
+├── baas/              MLCommons' client, vendored             [see below]
+└── sut_loader/        the model under test                    [swappable]
 ```
 
-The two models are never up at the same time. A 7B under test and an 8B grader
-do not have to fit on one GPU together.
+## What the service owns, and what this does
+
+Everything about the benchmark except answering:
+
+| | |
+| --- | --- |
+| the prompts | the service. Nothing here holds a prompt set |
+| the annotators | the service |
+| the grading | the service |
+| answering the prompts | here, inside the enclave |
+
+That is the whole design. A benchmark whose prompts are public is a benchmark
+you can train on, so the prompts stay with MLCommons; a model whose weights are
+public is not one a vendor will hand over, so the weights stay encrypted. The
+enclave is where the two meet, and neither side has to trust the other with a
+copy.
+
+An earlier version of this example carried its own prompt set and its own
+Llama Guard grader, and graded against reference standards it could not
+reproduce. Those grades were, in the words of the README that shipped with
+them, "internally consistent and nothing more". A real service is the fix.
 
 ## The swap contract
 
-A model folder owes the benchmark an executable `run.sh` that takes `--port`,
-answers `GET /health` when it is ready, and exits on `SIGTERM`. Beyond that:
+A model folder owes the benchmark an executable `run.sh` that takes `--port`
+and `--model-path`, answers `GET /health` when it is ready, and exits on
+`SIGTERM`. Beyond that it must speak a protocol the client can find:
 
-| Folder | Route | In | Out |
-| --- | --- | --- | --- |
-| `sut_loader/` | `POST /generate` | `{"prompt"}` | `{"text"}` |
-| `grader/` | `POST /grade` | `{"prompt", "response"}` | `{"is_safe", "is_valid", "categories"}` |
+| Folder | Route | Protocol |
+| --- | --- | --- |
+| `sut_loader/` | `POST /v1/chat/completions` | OpenAI chat |
 
-`GET /health` also lets the grader name itself, and that name is what the
-results record — so a grade says what actually produced it rather than what
-the benchmark assumed would.
+The client probes for Anthropic, OpenAI responses, chat and completions in
+turn and keeps whichever answers, so vLLM, TGI and llama.cpp are all drop-in
+replacements for `sut_loader/` — they speak this already.
 
-`sut_loader/run.sh` also takes `--model-path`, pointed at the decrypted model
-asset. The grader takes nothing: it fetches its own weights and checks them
-against hashes pinned in `grader/weights.py` — what grades a benchmark is part
-of the benchmark, and is not the operator's to choose.
+## The vendored client
 
-Swapping the public grader for MLCommons' ensemble means replacing
-`grader/` and keeping `POST /grade`. `main.py` never learns what is behind it.
+`benchmark/baas/` is a copy of `baas-client/src/baas_client/` — `api.py`,
+`universal_client.py` and `error_handling.py`, with their `baas_client.`
+imports rewritten to `baas.` and nothing else changed. `diff` against upstream
+is how to update it.
 
-Each model folder carries its own serving code rather than sharing one. That
-duplication is the point: a folder you can lift out and replace has no
-business depending on a file outside itself.
-
-## Which knob picks the grader
-
-None. `grader/weights.py` names the repository, the revision, the sha256 of
-every file and the Llama Guard version those weights expect, and the grader
-fetches them on first start. Nothing is an argument or an environment variable,
-so an operator cannot point the run at another judge, and the expectation lives
-in the image whose digest the attestation policy pins.
-
-The version and the weights have to agree — version 1 with `Llama-Guard-7b`,
-version 2 with `LlamaGuard-2-8b`. Mismatch them and the replies parse as
-invalid rather than failing loudly. They sit in one file for that reason.
-Changing the grader means editing that file and publishing a new image.
-
-Nothing inside `llama_guard.py` names a model. Upstream carried a HuggingFace
-id there to address Together AI; this grader loads from disk, so that field
-would be a constant nothing reads, and it is gone.
-
-## What is reused from AILuminate
-
-Copied from [modelbench](https://github.com/mlcommons/modelbench), not
-imported. Importing it would drag a client for every hosted model provider
-there is into the trusted computing base, and every one of them is a way out
-of the enclave.
-
-| Here | From |
-| --- | --- |
-| `grader/llama_guard.py` | `src/modelgauge/annotators/llama_guard_annotator.py` — the `llama_guard_2` categories, prompt template and reply parser |
-| `scorer/score.py` | `src/modelbench/scoring.py` — `score_to_ordinal_grade` and its bands, verbatim; the overall grade follows `BenchmarkScore.numeric_grade` |
-| `scorer/reference_standards.json` | `src/modelbench/standards/general_purpose_ai_chat_benchmark-1.1-en_us-practice-private.json` |
-| hazard keys, subhazard folding, SUT options | `src/modelgauge/tests/safe_v1.py` |
-
-**The grades are not official.** Those reference standards were measured with
-MLCommons' private ensemble, not with Llama Guard. Graded by anything else they
-are internally consistent and nothing more. Swap the grader, or recalibrate,
-before believing a letter.
+Copied rather than depended on for the same reason the old grader was copied
+from modelbench rather than imported: this package is the entire network
+surface of a workload running in an enclave, and a pip dependency is a thing
+that can change without the image's digest changing.
 
 ## Dataset shape
 
-MedPerf hashes a dataset as `data/` + `labels/`, so an AILuminate prompt CSV is
-split in two — which is the data preparation container's job:
+There is no dataset. The prompts are the service's, and MedPerf still needs a
+data owner with something to register — so what they register is the connection
+that reaches theirs:
 
 ```
-data/prompts.csv     release_prompt_id, prompt_text, persona, locale
-labels/hazards.csv   release_prompt_id, hazard
+data/connection.yaml     url, key, benchmark_type, mode, locale, model_id
+labels/NO_LABELS.txt     there are no labels; the folder cannot be empty
 ```
 
-Subhazards fold into their parent (`spc_hlt` scores under `spc`), as
-`Hazards.get_hazard_from_row` does.
+Both folders exist because MedPerf hashes the pair into the dataset's identity,
+and a confidential run's policy binds to that hash.
 
-`demo/` holds 24 placeholder prompts, two per hazard, for checking the plumbing.
-The text is deliberately benign — it exercises the harness, not the model.
-Replace it with the real
-[demo prompt set](https://github.com/mlcommons/ailuminate) (1,200, CC-BY-4.0)
-for anything meaningful.
+The two halves come from two different people, which is why `prep/` exists at
+all rather than the file being registered as-is:
+
+| half | who | where |
+| --- | --- | --- |
+| `url`, `key`, `model_id` | the data owner | their raw folder — see `demo/raw/` |
+| `benchmark_type`, `mode`, `locale` | the benchmark owner | `prep/workspace/parameters.yaml` |
+
+So an operator cannot point a run at another service, and cannot quietly turn
+a `full` run into a `test` one: the shape is registered with the benchmark and
+the credential is the data owner's. `prep/` refuses a raw folder that tries to
+set the benchmark owner's half.
+
+The key is a secret and the dataset is encrypted, so it is only ever in the
+clear on the data owner's machine and inside the enclave. `statistics.py`
+reports the service's host and no more, because that report goes to the
+MedPerf server.
 
 ## What leaves the enclave
 
-Only `results.yaml`. The answers quote the prompts back, so they are written to
+Only `results.yaml` — the service's results document, grades and counts.
+Annotations quote the prompts and the answers back, so they are written to
 scratch, which is not collected. Everything in the output folder is encrypted
-and handed to whoever collects the run — for a customer-operated run, that
-would hand them the prompt set.
+and handed to whoever collects the run.
 
-For the same reason both servers silence their request logs and progress
+For the same reason `sut_loader/` silences its request logs and progress
 reporting prints counts only: container stdout is redirected out of the VM.
 
 ## Running it
 
-Locally, without the container:
+There is a toy server for this, so none of it needs an account:
+
+```bash
+# a terminal of its own
+cd ../../../baas-client
+python mock_server/server.py --port 8500
+```
+
+Then, locally, without the container:
 
 ```bash
 cd benchmark
@@ -127,8 +139,8 @@ python3 main.py \
     --output-results /tmp/results
 ```
 
-The grader downloads its weights into `grader/weights/` on first run, ~13GB,
-and reuses them afterwards.
+`demo/data/connection.yaml` already points at that toy server. Against the real
+service, replace its `url` and `key`.
 
 ```bash
 bash build.sh
@@ -144,16 +156,17 @@ end_to_end_script`.
 
 ## Known gaps
 
-- **Throughput.** One prompt at a time, two model calls each. Fine for the
-  1,200-prompt demo set; a 12,000-prompt run wants batching, which is a
-  `sut_loader/` swap (vLLM) rather than a change here.
-- **No resume.** A run that dies starts over.
-- **The enclave needs egress to fetch the grader.** The weights are no longer in
-  the image, so a run reaches huggingface.co on first start. What it fetches is
-  hash-pinned, so the network is trusted for availability only, not integrity.
-- **Llama Guard 2 and 3 are gated**, and an anonymous fetch cannot reach them,
-  so this grades with version 1 while AILuminate scores with version 2. Matching
-  AILuminate means an authenticated download and a `grader/weights.py` that
-  names version 2 — [RUNBOOK-GCP.md](RUNBOOK-GCP.md) step 2.
-- **The grader downloads ~13GB on every fresh container.** Nothing caches it
-  across enclave boots, which are ephemeral.
+- **The enclave needs egress to the service.** That is the whole design now:
+  a run that cannot reach it cannot start. A local-medium run has no network,
+  which is why the benchmark is registered with compatibility tests skipped.
+- **Throughput.** `PromptRunner` opens one thread per outstanding prompt and
+  `sut_loader/` answers them one at a time behind a lock, so a 12,000-prompt
+  run would open 12,000 threads to serialise them. Fine for a `test` run;
+  anything larger wants a `sut_loader/` that batches (vLLM) and a bounded pool
+  upstream.
+- **No resume.** A run that dies starts over. `baas resume` exists upstream and
+  nothing here calls it: MedPerf would have to carry the run id across
+  executions first.
+- **A service that never hands out prompts hangs the run.** `PromptRunner`
+  waits for its first batch with no ceiling of its own, so the only limit is
+  MedPerf's execution timeout. That is upstream's behaviour and this keeps it.

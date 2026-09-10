@@ -1,9 +1,15 @@
 # Recipe — safety benchmark end to end, web UI, real GCP backend
 
-The AILuminate-shaped safety benchmark, run confidentially on Google Cloud
-through the web UI. A prompt set and a language model, both encrypted, meeting
-for the first time inside an attested TDX VM: the workload answers the prompts,
-grades the answers, and hands back nothing but encrypted results.
+The AILuminate safety benchmark, run confidentially on Google Cloud through
+the web UI. A language model, encrypted, meeting a benchmark service's prompts
+for the first time inside an attested TDX VM: the workload relays the run,
+answers the prompts, and hands back nothing but encrypted results.
+
+The prompts, the annotators and the grades all belong to the service -- this is
+`baas-client`'s flow with the model under test decrypted beside it. So the run
+needs one more thing than the chest X-ray one: a benchmark service to point at.
+`baas-client/mock_server` is a toy one, and the driver starts it by itself
+unless `SAFETY_BAAS_URL` names a real one.
 
 **Done means:** the run prints `PASSED: 32 steps`, and there is one `run.mp4`
 showing the whole thing in the browser.
@@ -29,9 +35,12 @@ in the browser and in the video — there is no CLI half any more.
 
 | role | who | holds |
 | --- | --- | --- |
-| data owner | prompt set | bucket, key, pool — **and the results bucket** |
+| data owner | the service connection | bucket, key, pool — **and the results bucket** |
 | model owner | the weights | bucket, key, pool — **and the VM** |
 | benchmark owner | the benchmark | nothing in the cloud |
+
+The data owner's "dataset" is one `connection.yaml`: which benchmark service,
+and the key that reaches it. There is no prompt set on anybody's disk.
 
 Both asset policies must name **`data_owner`, and only `data_owner`**, as the
 allowed result collector. Naming two would be refused: results are encrypted for
@@ -70,9 +79,9 @@ It serves that tarball, and a tarball of `examples/safety_benchmark/demo`, from
 a local HTTP server of its own for the length of the run (see step 5) — so the
 reference-model URL and `--demo-url` need no setting up by hand.
 
-`MPCC_BACKEND=mock` runs the whole thing against a directory on this machine.
-Do that first; it costs nothing and catches everything that is not
-cloud-specific.
+`MPCC_BACKEND=mock` runs the whole thing against a directory on this machine,
+with the toy benchmark service the driver starts. Do that first; it costs
+nothing and catches everything that is not cloud-specific.
 
 ```bash
 MPCC_BACKEND=mock bash cli/webui_tests_cc_safety_gcp.sh -p 8201
@@ -81,6 +90,14 @@ MPCC_BACKEND=mock bash cli/webui_tests_cc_safety_gcp.sh -p 8201
 Expect `PASSED: 32 steps`. Then reset the database again before the real run.
 `-a` means nothing to it — the mock backend has no VM — so one mock pass covers
 both accelerators.
+
+**Build the base image first, from this repository.** `docker build` at
+`examples/cc/base_image` — the published
+`mlcommons/medperf-confidential-benchmark-base:0.0.1` has been seen to lag
+`cc/medperf_cc`, and a workload built on a stale one dies before it starts with
+a `KeyError` out of `assets/mock/backend.py`. The run still reports 31 passing
+steps and fails only at **Submit the result**, so the symptom is a long way
+from the cause.
 
 ## Paths
 
@@ -103,9 +120,9 @@ things differ, because the operator is now the model owner:
 
 Which of the two a run uses is the driver's `-a cpu|gpu` — see step 3.
 
-A separate VM rather than reusing `mpcc-e2e-vm`: the grader pulls roughly
-16 GB of weights into the boot disk on first start, and the chest X-ray VM's
-100 GB disk is sized for a small CNN. Delete it in step 11 like the other one.
+A separate VM rather than reusing `mpcc-e2e-vm`: the chest X-ray VM's 100 GB
+disk is sized for a small CNN and the workload image here carries torch and
+transformers. Delete it in step 11 like the other one.
 
 Everything else — `mpcc-e2e-model-owner`, `mpcc-e2e-data-owner`,
 `mpcc-e2e-workload`, the three buckets, both keyrings, both pools — is reused
@@ -121,8 +138,9 @@ As in `RECIPE_gcp.md` step 1, plus these, which are this recipe's own:
 | `cli/medperf/web_ui/tests/e2e_cc/webui_tests_cc_safety_gcp.py` | the clicking |
 | `examples/safety_benchmark/container_config.yaml` | the benchmark script container |
 | `examples/safety_benchmark/prep/container_config.yaml` | the prompt-set preparation container |
-| `examples/safety_benchmark/prep/workspace/parameters_test.yaml` | twelve prompts, one per hazard |
-| `examples/safety_benchmark/demo/raw/` | the raw prompt set |
+| `examples/safety_benchmark/prep/workspace/parameters_test.yaml` | the service's `test` mode |
+| `examples/safety_benchmark/demo/raw/connection.yaml` | what a data owner writes |
+| `baas-client/mock_server/server.py` | the toy benchmark service |
 | `cli/cli_tests_cc_safety.sh` | the CLI original this mirrors — read it |
 
 Confirm the web UI still offers what this needs, both of which were added for
@@ -145,6 +163,16 @@ docker buildx imagetools inspect mlcommons/medperf-safety-benchmark:0.0.0 \
   --format '{{.Manifest.Digest}}'
 docker buildx imagetools inspect mlcommons/medperf-safety-benchmark-prep:0.0.0 \
   --format '{{.Manifest.Digest}}'
+```
+
+To run an image you built yourself, push it to a registry the client can pull
+from and set `SAFETY_IMAGE_PREFIX` — the driver rewrites both container configs
+without touching the repository:
+
+```bash
+docker run -d -p 5555:5000 --name registry registry:2
+IMAGE=localhost:5555/medperf-safety-benchmark:0.0.0 bash examples/safety_benchmark/build.sh
+SAFETY_IMAGE_PREFIX=localhost:5555 bash cli/webui_tests_cc_safety_gcp.sh -p 8201
 ```
 
 ## 2. Authenticate, and reuse what exists
@@ -195,7 +223,7 @@ locals {
   machine_type     = "c3-standard-8"
   min_cpu_platform = "Intel Sapphire Rapids"
 
-  # The grader fetches ~16 GB of weights into the VM on first start.
+  # Room for the workload image, which carries torch and transformers.
   boot_disk_size = 200
   boot_disk_type = "pd-balanced"
 
@@ -283,19 +311,19 @@ The H100 saves **50 seconds** on the benchmark and about 80 on the whole test,
 for roughly fifteen times the price per hour. That is the answer to "should
 this run on a GPU", and it is no.
 
-The reason is in the five minutes themselves: decrypting both assets, fetching
-~13 GB of Llama Guard weights over the network, and encrypting the results back
-are the same work on either machine, and only the answering and the grading get
-faster. Twelve prompts is far too few for that to pay.
+The reason is in the five minutes themselves: decrypting the assets, pulling
+the image and encrypting the results back are the same work on either machine,
+and only the answering gets faster. Twelve prompts is far too few for that to
+pay.
 
-It is still worth having the stack. Grading is the part that scales with the
-prompt count and the part the H100 actually accelerates; a real AILuminate set
-is thousands of prompts, not twelve. Expect the gap to widen with the set.
+It is still worth having the stack. Answering is the part that scales with the
+prompt count and the part the H100 actually accelerates; a real AILuminate run
+is thousands of prompts, not twelve. Expect the gap to widen with the mode.
 
-Sapphire Rapids does the CPU grading in about three minutes; an older CPU is
-much slower — the same workload took 33 minutes under `MPCC_BACKEND=mock` on an
-eight-core desktop, mostly on the weight fetch and the grader. Report what your
-run took.
+**These numbers were measured before the grader moved to the service**, when
+the workload also fetched ~13 GB of Llama Guard weights and graded locally. A
+run now does strictly less, so treat them as a ceiling and report what yours
+actually took.
 
 ## 4. The results bucket, unchanged
 
@@ -320,7 +348,7 @@ have to be reachable over HTTP by the MedPerf client:
 | --- | --- | --- |
 | model under test | a local path | a local-path asset is what makes it require CC |
 | reference model | a **URL** | it runs on the local medium during association, so it must not require CC |
-| demo prompt set | a **URL** | the benchmark's `--demo-url` |
+| demo dataset | a **URL** | the benchmark's `--demo-url` |
 
 The reference model and the model under test are the same tarball served two
 ways. `~/medperf_ws/qwen0.5b.tar.gz` is what previous runs used, and naming it
@@ -404,10 +432,10 @@ it by hand, and what the driver has to keep doing.
 
 **Benchmark owner** — prep container, script container, reference model asset,
 then the benchmark itself with **Skip Compatibility Tests selected**. That flag
-is not optional: the script container's grader fetches its weights from
-HuggingFace, and MedPerf gives a local-medium run no network, so a compatibility
-test cannot pass. It is recorded on the benchmark, so it also skips the test at
-both association steps.
+is not optional: the run relays prompts from the benchmark service, and MedPerf
+gives a local-medium run no network, so a compatibility test cannot pass. It is
+recorded on the benchmark, so it also skips the test at both association
+steps.
 
 | field | value |
 | --- | --- |
@@ -420,11 +448,10 @@ both association steps.
 **Model owner** — submit the weights from a local path, request association,
 get and submit an RSA client certificate.
 
-**Data owner** — get and submit an RSA certificate, then submit the prompt set
-as a dataset. Both the data path and the labels path are
-`examples/safety_benchmark/demo/raw`: AILuminate ships prompts and hazard
-labels in one CSV and the prep container splits them. Prepare, mark
-operational, associate.
+**Data owner** — get and submit an RSA certificate, then submit the service
+connection as a dataset. Both the data path and the labels path are the folder
+the driver wrote `connection.yaml` into: there are no labels, because the
+service grades. Prepare, mark operational, associate.
 
 **Benchmark owner** — approve both associations.
 
@@ -525,10 +552,9 @@ GPU rows below, which are the ones to read before planning a GPU run.
 
 | what | where to look |
 | --- | --- |
-| the grader takes far longer on CPU than the numbers in step 3 | the VM's serial console; the run step's own ceiling is three hours |
+| the run takes far longer on CPU than the numbers in step 3 | the VM's serial console; the run step's own ceiling is three hours |
 | `result verify` says it could not read the pinned root certificate | Google's `.well-known/attestation-pki-root` returns a JSON `root_ca_uri` pointer rather than a PEM. `Authority.fetch_pki_root` follows it; if it ever points somewhere else again, that is where to fix it |
-| the boot disk fills fetching grader weights | serial console; raise `boot_disk_size` and re-apply |
-| the VM has no egress to huggingface.co | the workload cannot grade at all — check the external IP survived |
+| the VM cannot reach the benchmark service | the workload cannot start at all — check the external IP survived, and that the service is reachable from outside this machine (a toy server bound to a docker bridge is not) |
 | compatibility tests ran anyway | Skip was not selected at benchmark registration; it cannot be set afterwards, so re-register |
 | `terraform apply` tries to create `mpcc-e2e-workload` | `create_service_account` is still `true` |
 | results collected but empty | the workload wrote a result file with no metrics — read the serial console before believing the numbers |

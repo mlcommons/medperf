@@ -4,8 +4,8 @@ A model folder is swappable. What it owes the benchmark is an executable
 `run.sh` that accepts `--port`, answers `GET /health` once it is ready to
 work, and exits on SIGTERM. Everything else about it is its own business.
 
-Only one model is up at a time, so the model under test and the grader never
-have to fit in memory together.
+One model folder is up at a time, and only for as long as it is being asked
+questions -- the benchmark starts it, relays a run through it, and stops it.
 """
 
 import contextlib

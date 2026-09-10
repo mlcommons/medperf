@@ -1,38 +1,31 @@
-"""Counts, and nothing else.
+"""Shape, and nothing else.
 
-These statistics travel to the MedPerf server as part of the dataset's
-report, which the benchmark owner can read. For an ordinary dataset that is
-unremarkable; for a prompt set whose whole value is that nobody has seen it,
-it means no prompt text may appear here. Shapes and counts only.
+These statistics travel to the MedPerf server as part of the dataset's report,
+which the benchmark owner can read. For an ordinary dataset that is
+unremarkable; here the dataset is a service and a key, so neither the key nor
+anything that identifies the account may appear. The host is named because the
+benchmark owner is entitled to know which service graded a run of their
+benchmark.
 """
+
+from urllib.parse import urlparse
 
 import yaml
 
-import prompt_set
+import connection
 
 
 def generate_statistics(data_path, labels_path, parameters, out_path):
-    rows = prompt_set.read(data_path, labels_path)
-
-    per_hazard = {}
-    per_persona = {}
-    for row in rows:
-        per_hazard[row["hazard"]] = per_hazard.get(row["hazard"], 0) + 1
-        per_persona[row["persona"]] = per_persona.get(row["persona"], 0) + 1
-
-    lengths = sorted(len(row["prompt_text"]) for row in rows)
+    settings = connection.read(data_path, labels_path)
+    parsed = urlparse(str(settings.get("url", "")))
 
     statistics = {
-        "num_prompts": len(rows),
-        "locale": rows[0]["locale"],
-        "num_hazards": len(per_hazard),
-        "prompts_per_hazard": dict(sorted(per_hazard.items())),
-        "prompts_per_persona": dict(sorted(per_persona.items())),
-        "prompt_length_chars": {
-            "min": lengths[0],
-            "median": lengths[len(lengths) // 2],
-            "max": lengths[-1],
-        },
+        "service_scheme": parsed.scheme,
+        "service_host": parsed.hostname or "",
+        "benchmark_type": settings.get("benchmark_type", "general"),
+        "mode": settings.get("mode", "test"),
+        "locale": settings.get("locale", "en_us"),
+        "num_prompts": 0,  # none are held here; the service has them
     }
 
     with open(out_path, "w") as f:

@@ -19,6 +19,14 @@
 #   SAFETY_MODEL_TARBALL   the weights under test, a local tarball
 #   MPCC_*                 the cloud resources, when MPCC_BACKEND=gcp
 #
+# The benchmark itself has no prompts: it relays a run from a benchmark service.
+# Point SAFETY_BAAS_URL at one, or leave it unset and this starts the toy server
+# from the baas-client repository beside this one (SAFETY_BAAS_SERVER names it
+# elsewhere, SAFETY_BAAS_PORT moves it, SAFETY_BAAS_KEY sets the key).
+#
+# SAFETY_IMAGE_PREFIX points both container configs at a registry of your own,
+# for testing an image you built rather than the published one.
+#
 # The model under test comes from a local path -- that is what makes it an
 # asset nobody has a copy of, and so a run that requires CC. The *reference*
 # model must come from a URL instead, because it is run on the local medium
@@ -105,15 +113,17 @@ TEST_ROOT="/tmp/medperf_webui_cc_safety_gcp_$(date +%Y%m%d%H%M%S)"
 SERVE="$TEST_ROOT/serve"
 SERVE_PORT="${MPCC_SERVE_PORT:-8100}"
 
-# Prompts and their hazard labels ship in one CSV; the prep container splits
-# them, so both paths are the same folder.
-export CC_DATA_PATH="$SAFETY/demo/raw"
-export CC_LABELS_PATH="$SAFETY/demo/raw"
+# The data owner's whole dataset: one connection.yaml naming the benchmark
+# service and the key that reaches it, written below. There are no labels, so
+# both paths are the same folder.
+CONNECTION="$TEST_ROOT/connection"
+export CC_DATA_PATH="$CONNECTION"
+export CC_LABELS_PATH="$CONNECTION"
 export CC_MODEL_TARBALL="$SAFETY_MODEL_TARBALL"
 export WEBUI_ARTIFACTS="$TEST_ROOT/artifacts"
 export WEBUI_PARTIES="$TEST_ROOT/parties.json"
 
-mkdir -p "$SERVE" "$WEBUI_ARTIFACTS"
+mkdir -p "$SERVE" "$WEBUI_ARTIFACTS" "$CONNECTION"
 
 echo "Test root:  $TEST_ROOT"
 echo "Artifacts:  $WEBUI_ARTIFACTS"
@@ -129,7 +139,66 @@ trap cleanup EXIT INT TERM
 
 ##########################################################
 echo "====================================="
-echo "Serving the reference model and the demo prompt set"
+echo "The benchmark service"
+echo "====================================="
+# The workload has no prompts of its own: it relays a run from a benchmark
+# service. Name one that is already running with SAFETY_BAAS_URL, or let this
+# start the toy server from the baas-client repository beside this one.
+#
+# The workload reaches it from inside a container, so the address has to be one
+# a container can resolve -- the docker bridge gateway, not localhost. Binding
+# the toy server to that same address keeps it off every other interface.
+BAAS_KEY="${SAFETY_BAAS_KEY:-medperf-e2e-key}"
+BAAS_URL="${SAFETY_BAAS_URL:-}"
+
+if [ -z "$BAAS_URL" ]; then
+    MOCK_BAAS="${SAFETY_BAAS_SERVER:-$REPO/../baas-client/mock_server/server.py}"
+    if [ ! -f "$MOCK_BAAS" ]; then
+        echo "No benchmark service. Either set SAFETY_BAAS_URL to one, or set" >&2
+        echo "SAFETY_BAAS_SERVER to baas-client's mock_server/server.py." >&2
+        echo "Looked for it at: $MOCK_BAAS" >&2
+        exit 1
+    fi
+
+    GATEWAY=$(docker network inspect bridge -f '{{(index .IPAM.Config 0).Gateway}}' 2>/dev/null)
+    if [ -z "$GATEWAY" ]; then
+        echo "Could not read the docker bridge gateway; is docker running?" >&2
+        exit 1
+    fi
+    BAAS_PORT="${SAFETY_BAAS_PORT:-8500}"
+    BAAS_URL="http://$GATEWAY:$BAAS_PORT"
+
+    BAAS_MOCK_KEY="$BAAS_KEY" python "$MOCK_BAAS" --host "$GATEWAY" --port "$BAAS_PORT" \
+        > "$TEST_ROOT/baas.log" 2>&1 &
+    PIDS="$PIDS $!"
+
+    for _ in $(seq 1 30); do
+        if curl -sf -m 5 -o /dev/null "$BAAS_URL/up"; then
+            break
+        fi
+        sleep 1
+    done
+    if ! curl -sf -m 5 -o /dev/null "$BAAS_URL/up"; then
+        echo "The toy benchmark service never answered on $BAAS_URL:" >&2
+        tail -20 "$TEST_ROOT/baas.log" >&2
+        echo "(is port $BAAS_PORT taken? set SAFETY_BAAS_PORT)" >&2
+        exit 1
+    fi
+    echo "  toy server $BAAS_URL  (log $TEST_ROOT/baas.log)"
+else
+    echo "  service    $BAAS_URL"
+fi
+
+# The data owner's dataset, written the way one would write it by hand.
+cat > "$CONNECTION/connection.yaml" <<EOF
+url: $BAAS_URL
+key: $BAAS_KEY
+model_id: safety-model-under-test
+EOF
+
+##########################################################
+echo "====================================="
+echo "Serving the reference model and the demo dataset"
 echo "====================================="
 # Only this machine fetches these. The confidential VM never does: it reads the
 # *encrypted* asset out of the owner's bucket.
@@ -157,6 +226,26 @@ if ! curl -sf -m 5 -o /dev/null "$SAFETY_MODEL_URL"; then
 fi
 echo "  model  $SAFETY_MODEL_URL"
 echo "  demo   $SAFETY_DEMO_URL"
+
+##########################################################
+echo "====================================="
+echo "The two container configs"
+echo "====================================="
+# Registering a container pulls the image it names and records that registry's
+# digest, so a locally built image has to be in a registry the client can pull
+# from. SAFETY_IMAGE_PREFIX rewrites both configs to point at one -- e.g.
+# localhost:5555 with `docker run -d -p 5555:5000 registry:2`. Unset, the
+# published mlcommons images are used and nothing is rewritten.
+export SAFETY_PREP_CONFIG="$TEST_ROOT/prep_container_config.yaml"
+export SAFETY_SCRIPT_CONFIG="$TEST_ROOT/script_container_config.yaml"
+cp "$SAFETY/prep/container_config.yaml" "$SAFETY_PREP_CONFIG"
+cp "$SAFETY/container_config.yaml" "$SAFETY_SCRIPT_CONFIG"
+
+if [ -n "${SAFETY_IMAGE_PREFIX:-}" ]; then
+    sed -i "s|^image: mlcommons/|image: $SAFETY_IMAGE_PREFIX/|" \
+        "$SAFETY_PREP_CONFIG" "$SAFETY_SCRIPT_CONFIG"
+fi
+grep -h '^image:' "$SAFETY_PREP_CONFIG" "$SAFETY_SCRIPT_CONFIG" | sed 's/^/  /'
 
 ##########################################################
 echo "====================================="

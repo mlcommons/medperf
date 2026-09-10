@@ -1,14 +1,15 @@
 # Running this on real GCP confidential computing
 
-The mock backend proves the plumbing. This runs it for real: the prompts and the
-model are decrypted only inside an attested TDX VM.
+The mock backend proves the plumbing. This runs it for real: the model is
+decrypted, and the benchmark service's prompts are answered, only inside an
+attested TDX VM.
 
 Three roles. They can be three people or one person wearing three hats, but they
-need **two GCP projects** — one for the prompt side, one for the model side.
+need **two GCP projects** — one for the data side, one for the model side.
 
 | Role | Owns | GCP resources |
 | --- | --- | --- |
-| Data owner | the prompt set | bucket, KMS key, workload identity pool, service account, VM |
+| Data owner | the benchmark service account | bucket, KMS key, workload identity pool, service account, VM |
 | Model owner | the weights | bucket, KMS key, workload identity pool |
 | Collector | receives the grades | a bucket |
 
@@ -21,7 +22,7 @@ Data owner operates the VM and collects, which is the default.
 Run these in Cloud Shell. Edit the config block at the top of each first.
 
 ```bash
-# Prompt side (also creates the VM)
+# Data side (also creates the VM)
 bash examples/cc/admin_scripts/data_admin_gpu.sh
 
 # Model side
@@ -40,16 +41,9 @@ granted by default.
 
 ## 2. Build and push the image
 
-The published `mlcommons/medperf-safety-benchmark` grades with Llama Guard 1,
-which is what an anonymous fetch can reach. Scoring the way AILuminate does
-wants version 2, whose weights are gated, so build that image yourself.
-
-Edit `benchmark/grader/weights.py` first: point `REPO` at
-`meta-llama/Meta-Llama-Guard-2-8B`, pin its `REVISION`, set `VERSION` to `"2"`,
-and replace `FILES` with that revision's filenames and sha256s. A gated
-repository will not serve an anonymous request, so the fetch needs a token —
-which is why this image belongs in a registry of your own rather than a public
-one.
+`mlcommons/medperf-safety-benchmark` is published and `container_config.yaml`
+names it, so this step is only needed if you have changed anything under
+`benchmark/`.
 
 ```bash
 cd examples/safety_benchmark
@@ -60,9 +54,10 @@ IMAGE=us-docker.pkg.dev/PROJECT_ID/REPO/medperf-safety-benchmark:v1 \
 
 Then point `container_config.yaml` at that same image name.
 
-The image is small now, but the grader downloads ~16 GB into the VM on first
-start. The boot disk must have room for that — the admin script defaults to
-500 GB — and the VM needs egress to huggingface.co.
+**The VM needs egress to the benchmark service.** That is where the prompts and
+the grades come from; a run without it cannot start. Nothing else is fetched at
+run time — the model is decrypted from the owner's bucket — so the boot disk
+only has to hold the image and the weights.
 
 ---
 
@@ -139,11 +134,13 @@ medperf model submit --name my-model --asset-path ./weights.tar.gz --operational
 medperf model associate -m $MODEL -b $BMK -y
 ```
 
-Data owner:
+Data owner. The "dataset" is a folder holding one `connection.yaml` — the
+benchmark service and the key that reaches it, as in `demo/raw/`. Both paths
+are that same folder; there are no labels to point at:
 
 ```bash
-medperf dataset submit -p $PREP -d ./prompts -l ./prompts \
-                       --name prompts --description set --location here -y
+medperf dataset submit -p $PREP -d ./connection -l ./connection \
+                       --name baas --description "benchmark service" --location here -y
 medperf dataset prepare -d $DSET
 medperf dataset set_operational -d $DSET -y
 medperf dataset associate -d $DSET -b $BMK -y
@@ -178,7 +175,7 @@ medperf confidential setup_cc_operator -c operator_cc_config.json
 
 `configure_*` encrypts the asset and uploads it. `update_*_cc_policy` is the
 moment of consent — it binds the decryption key to this exact
-(image, prompts, model, collector). Re-run it whenever any of those change.
+(image, connection, model, collector). Re-run it whenever any of those change.
 
 ---
 

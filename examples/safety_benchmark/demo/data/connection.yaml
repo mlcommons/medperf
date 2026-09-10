@@ -1,0 +1,6 @@
+benchmark_type: general
+key: replace-me
+locale: en_us
+mode: test
+model_id: medperf-sut
+url: http://127.0.0.1:8500
