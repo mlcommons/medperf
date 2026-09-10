@@ -2,6 +2,7 @@ import json
 import os
 
 import pytest
+from pydantic import ValidationError
 
 from medperf_cc.proof import (
     IntegrityProof,
@@ -183,7 +184,7 @@ def test_a_verification_with_nothing_to_compare_against_cannot_be_asked_for():
     """The fail-open case: a check has nothing to compare against, passes on
     the absence, and the results are reported as backed by a valid proof. There
     is no such thing as an incomplete expectation to hand `verify_proof`."""
-    with pytest.raises(TypeError):
+    with pytest.raises(ValidationError):
         ProofExpectations()
 
 
@@ -191,8 +192,15 @@ def test_a_verification_with_nothing_to_compare_against_cannot_be_asked_for():
     "missing", ["script_image_hash", "data_hash", "model_hash", "results"]
 )
 def test_a_single_missing_expectation_is_refused(missing):
-    with pytest.raises(ValueError, match=missing.replace("_", " ")):
+    with pytest.raises(ValidationError, match=missing):
         expectations(**{missing: None})
+
+
+def test_an_expectation_nothing_compares_against_is_refused():
+    """A misspelled field would leave its real one missing, which is the same
+    fail-open by another route."""
+    with pytest.raises(ValidationError, match="script_hash"):
+        expectations(script_hash=SCRIPT_IMAGE)
 
 
 def test_a_reported_metric_that_was_edited_is_caught(authority):

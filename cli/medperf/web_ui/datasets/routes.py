@@ -158,16 +158,14 @@ def dataset_detail_ui(  # noqa
         results = []
         if benchmark_assocs:
             user_id = user_obj.id
-            results = Execution.all(filters={"owner": user_id})
             if is_owner:
-                # An execution somebody else operated is listed to them, not
-                # here, but its results may have been collected by this user.
-                known = {result.id for result in results}
-                results += [
-                    execution
-                    for execution in Execution.local_all()
-                    if execution.dataset == dataset_id and execution.id not in known
-                ]
+                # Every execution on this dataset, whoever operated it. A
+                # confidential run somebody else operated is recorded as
+                # theirs, so it is missing from the owner-scoped listing --
+                # this is the one the server answers to a dataset's owner.
+                results = Execution.all(filters={"dataset": dataset_id})
+            else:
+                results = Execution.all(filters={"owner": user_id})
             results = filter_latest_executions(results)
 
         # Fetch models associated with each benchmark

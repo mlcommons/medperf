@@ -1029,6 +1029,23 @@ class REST(Comms):
         error_msg = "Could not get benchmark executions"
         return self.__get_list(url, filters=filters, error_msg=error_msg)
 
+    def get_dataset_executions(self, dataset_id: int, filters=dict()) -> dict:
+        """Retrieves all executions run against a given dataset
+
+        An execution belongs to whoever operated it, so a dataset owner's own
+        listing leaves out a confidential run somebody else operated on their
+        data. This is where they find those.
+
+        Args:
+            dataset_id (int): dataset ID to retrieve executions from
+
+        Returns:
+            dict: dictionary with the contents of each execution on the specified dataset
+        """
+        url = f"{self.server_url}/datasets/{dataset_id}/results/"
+        error_msg = "Could not get dataset executions"
+        return self.__get_list(url, filters=filters, error_msg=error_msg)
+
     def get_mlcube_datasets(self, mlcube_id: int, filters=dict()) -> dict:
         """Retrieves all datasets that have the specified mlcube as the prep mlcube
 

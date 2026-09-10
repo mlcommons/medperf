@@ -22,6 +22,8 @@ import os
 from dataclasses import dataclass, field
 from typing import List, Optional
 
+from pydantic import BaseModel
+
 from medperf_cc.attestation.authority import GOOGLE, trust_anchor
 from medperf_cc.attestation.token import AttestationToken, TokenType
 from medperf_cc.attestation.verifier import AttestationRequirements, verify_token
@@ -74,16 +76,15 @@ class IntegrityProof:
         return {"statement": self.statement, "token": self.token}
 
 
-@dataclass
-class ProofExpectations:
+class ProofExpectations(BaseModel):
     """What the results are supposed to be, according to the caller's records.
 
     Taking any of these from the proof itself would establish nothing, so they
     come from whoever is asking. All of them are required, and none of them may
     be None: every check below compares the proof against one of these, so a
     missing one would be a check that passes on an absence. "Nothing to compare
-    against" is not the same answer as "matches", and refusing to build the
-    expectations at all is how the two are kept apart.
+    against" is not the same answer as "matches", which is why these are
+    validated into existence rather than defaulted.
     """
 
     script_image_hash: str
@@ -93,14 +94,10 @@ class ProofExpectations:
     # check without having run anything.
     results: dict
 
-    def __post_init__(self):
-        missing = [name for name, value in vars(self).items() if value is None]
-        if missing:
-            raise ValueError(
-                "Nothing to check the proof against: no "
-                + ", ".join(name.replace("_", " ") for name in missing)
-                + " was supplied"
-            )
+    class Config:
+        # A misspelled field would be an expectation nothing compares against,
+        # which is the failure this class exists to make impossible.
+        extra = "forbid"
 
 
 @dataclass
