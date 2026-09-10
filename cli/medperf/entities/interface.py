@@ -107,39 +107,17 @@ class Entity(ABC):
         return entities
 
     @classmethod
-    def local_all(cls: Type[EntityType]) -> List[EntityType]:
-        """Gets the registered instances this machine holds a copy of.
-
-        Unlike `all()`, this includes entities the server would not list to
-        this user. Storage is shared by every profile on the machine, so
-        callers must narrow the result to what their user is entitled to.
-
-        Returns:
-            List[Entity]: the registered entities in local storage.
-        """
+    def __unregistered_all(cls: Type[EntityType]) -> List[EntityType]:
         entities = []
-        for uid in cls.__local_uids():
-            if not uid.isdigit():
-                continue
-            try:
-                entities.append(cls.__local_get(uid))
-            except MedperfException:
-                logging.warning(f"Could not read local {cls.get_type()} {uid}")
-        return entities
-
-    @classmethod
-    def __local_uids(cls: Type[EntityType]) -> List[str]:
+        storage_path = cls.get_storage_path()
         try:
-            return next(os.walk(cls.get_storage_path()))[1]
+            uids = next(os.walk(storage_path))[1]
         except StopIteration:
             msg = f"Couldn't iterate over the {cls.get_type()} storage"
             logging.warning(msg)
             raise MedperfException(msg)
 
-    @classmethod
-    def __unregistered_all(cls: Type[EntityType]) -> List[EntityType]:
-        entities = []
-        for uid in cls.__local_uids():
+        for uid in uids:
             if uid.isdigit():
                 continue
             entity = cls.__local_get(uid)

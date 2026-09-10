@@ -19,20 +19,26 @@ Data owner operates the VM and collects, which is the default.
 
 ## 1. Create the GCP resources
 
-Run these in Cloud Shell. Edit the config block at the top of each first.
+Run these in Cloud Shell, from `examples/cc/admin_scripts/terraform`. Edit
+`config.tf` in each directory first — see that directory's `README.md`.
 
 ```bash
-# Data side (also creates the VM)
-bash examples/cc/admin_scripts/data_admin_gpu.sh
+# Data side: the encrypted asset, the VM it runs on, the bucket results land in
+( cd asset_owner      && terraform init && terraform apply && terraform output -raw info )
+( cd operator_gpu     && terraform init && terraform apply && terraform output -raw info )
+( cd result_collector && terraform init && terraform apply && terraform output -raw info )
 
 # Model side
-bash examples/cc/admin_scripts/model_admin.sh
+( cd asset_owner && terraform init && terraform apply && terraform output -raw info )
 ```
 
-Each prints the values you need for step 3. Save that output.
+Each prints the values you need for step 3. Save that output. Copy a directory
+before editing it if you are running the same one for both sides — Terraform
+keeps its state there, and two roles cannot share one.
 
-Use `data_admin_cpu.sh` instead if you only want a CPU VM — fine for a 0.5B
-model, far too slow for 7B.
+Run `result_collector` after `operator_gpu`: it needs the workload service
+account that one creates. Use `operator_cpu` instead if you only want a CPU VM
+— fine for a 0.5B model, far too slow for 7B.
 
 **Quota:** `a3-highgpu-1g` (one H100). Request it before you start, it is not
 granted by default.
@@ -203,8 +209,8 @@ medperf confidential download_cc_results -e $EXECUTION
 
 ## Gotchas
 
-- **The VM must be stopped before a run.** MedPerf starts it. The admin script
-  leaves it stopped; if a run dies, stop it by hand before retrying.
+- **The VM must be stopped before a run.** MedPerf starts it. The operator
+  stack leaves it stopped; if a run dies, stop it by hand before retrying.
 - **Re-run `update_*_cc_policy` after rebuilding the image.** The policy binds
   the image digest. A new build is a new identity and the key will not be
   released.

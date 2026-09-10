@@ -81,9 +81,9 @@ class VerifyExecutionProof:
         model = Model.get(self.execution.model)
 
         return ProofExpectations(
-            script_image_hash=plan.script.image_hash if plan.script else None,
+            script_image_hash=plan.script_hash,
             data_hash=dataset.generated_uid,
-            model_hash=model.asset_obj.asset_hash if model.is_asset() else None,
+            model_hash=model.asset_obj.asset_hash,
             # These metrics came back from the server, so they have been through
             # `medperf.utils.sanitize_json` on the way up. The workload attested
             # to them as mapped by `medperf_cc.statement.json_safe`. Those two

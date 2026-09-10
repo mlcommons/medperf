@@ -36,8 +36,15 @@ Ask your cloud administrator for the following information:
 - Service Account Name
 - VM Zone
 - VM Name
+- Results Bucket — where results written for you land. Only needed if results
+  are to be released to you, and a bucket of its own rather than the one above.
 
 You will use this information to configure your Medperf client.
+
+The Terraform configurations in
+[`examples/cc/admin_scripts/terraform`](https://github.com/mlcommons/medperf/tree/main/examples/cc/admin_scripts/terraform)
+create all of it, one directory per cloud role, and print exactly this list at
+the end. Give that to your cloud administrator if they have not done it before.
 
 ### Set up google cloud CLI
 
@@ -174,8 +181,13 @@ them nor open them. The collector picks them up afterwards:
 medperf confidential download_cc_results -e <execution-id>
 ```
 
-The operator passes the execution id on; nothing lists an execution waiting for
-you yet.
+In the web UI it is the `Collect results` button, which appears beside the model
+on your dataset's page (and beside the dataset on your model's page) with a box
+to type the execution id into.
+
+The operator passes the execution id on — their own page shows it once the run
+finishes. Nothing lists an execution waiting for you yet, which is why the
+number has to be handed over.
 
 ## Choosing where everything lives
 

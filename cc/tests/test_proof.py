@@ -179,28 +179,20 @@ def test_a_proof_is_checked_without_holding_the_output_files(authority):
     assert any("Reported metrics" in check for check in verdict.checks)
 
 
-def test_a_verification_with_nothing_to_compare_against_is_refused(authority):
-    """The fail-open case: every check skips itself when its expectation is
-    absent, so without a completeness check this collected no failures and
-    reported the results as backed by a valid proof."""
-    proof = proof_for(authority, statement())
-
-    verdict = verify_proof(proof, ProofExpectations())
-
-    assert not verdict.verified
-    assert any("Nothing to check the proof against" in f for f in verdict.failures)
+def test_a_verification_with_nothing_to_compare_against_cannot_be_asked_for():
+    """The fail-open case: a check has nothing to compare against, passes on
+    the absence, and the results are reported as backed by a valid proof. There
+    is no such thing as an incomplete expectation to hand `verify_proof`."""
+    with pytest.raises(TypeError):
+        ProofExpectations()
 
 
 @pytest.mark.parametrize(
     "missing", ["script_image_hash", "data_hash", "model_hash", "results"]
 )
-def test_a_single_missing_expectation_is_refused(authority, missing):
-    proof = proof_for(authority, statement())
-
-    verdict = verify_proof(proof, expectations(**{missing: None}))
-
-    assert not verdict.verified
-    assert any(missing.replace("_", " ") in f for f in verdict.failures)
+def test_a_single_missing_expectation_is_refused(missing):
+    with pytest.raises(ValueError, match=missing.replace("_", " ")):
+        expectations(**{missing: None})
 
 
 def test_a_reported_metric_that_was_edited_is_caught(authority):

@@ -1,8 +1,11 @@
+import logging
 import os
+from typing import List
 from medperf.entities.interface import Entity
 from medperf.entities.schemas import ExecutionSchema
 import medperf.config as config
 from medperf.account_management import get_medperf_user_data
+from medperf.exceptions import MedperfException
 from medperf.utils import remove_path
 import yaml
 from medperf.entities.utils import handle_validation_error
@@ -70,6 +73,37 @@ class Execution(Entity):
     @property
     def local_id(self):
         return self.name
+
+    @classmethod
+    def local_all(cls) -> List["Execution"]:
+        """The registered executions this machine holds a copy of.
+
+        Executions are the one entity a user can hold without the server
+        listing it to them: an execution belongs to whoever operated it, so a
+        dataset owner who collected the results of a confidential run somebody
+        else operated has those results on disk and no mention of the execution
+        anywhere in their own listing -- this is how they find it again.
+
+        Local storage is keyed by server rather than by user, so everybody
+        sharing an installation shares these directories. Callers must narrow
+        the result to what their user is entitled to -- the executions of a
+        dataset of their own, say, which the server would also let them read.
+        """
+        storage_path = cls.get_storage_path()
+        if not os.path.isdir(storage_path):
+            return []
+
+        executions = []
+        for uid in next(os.walk(storage_path))[1]:
+            if not uid.isdigit():
+                # Unregistered executions have no server id, and nothing that
+                # reads this list can do anything with one.
+                continue
+            try:
+                executions.append(cls.get(uid, local_only=True))
+            except MedperfException:
+                logging.warning(f"Could not read local execution {uid}")
+        return executions
 
     def is_executed(self):
         flag_file = os.path.join(self.path, config.executed_flag)

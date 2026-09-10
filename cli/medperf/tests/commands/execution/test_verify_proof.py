@@ -89,18 +89,20 @@ def test_expectations_come_from_medperf_not_from_the_proof(execution, verify):
     assert expectations.model_hash == ASSET_HASH
 
 
-def test_a_container_model_has_no_asset_hash_to_expect(mocker, execution, verify):
-    """Only asset models are loaded into a confidential VM, so there is nothing
-    to pin for one that brings its own container"""
+def test_a_container_model_could_not_have_produced_this_proof(
+    mocker, execution, verify
+):
+    """Only asset models are loaded into a confidential VM. There is no hash to
+    pin for one that brings its own container, and rather than verifying
+    against one expectation fewer, this says the record makes no sense"""
     # Arrange
     execution.integrity_proof = PROOF
     mocker.patch(PATCH_VERIFY.format("Model.get"), return_value=TestContainerModel())
 
-    # Act
-    VerifyExecutionProof.run(execution.id)
-
-    # Assert
-    assert verify.call_args.args[1].model_hash is None
+    # Act & Assert
+    with pytest.raises(MedperfException, match="not an asset"):
+        VerifyExecutionProof.run(execution.id)
+    verify.assert_not_called()
 
 
 def test_the_reported_metrics_are_what_gets_checked(execution, verify):

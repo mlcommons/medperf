@@ -507,10 +507,9 @@ medperf result verify -e <execution id>
 Report what it says either way. A pass is the first real evidence the integrity
 proof works; a failure is a finding worth more than the run itself.
 
-**On CPU this passes (7 checks). On GPU it fails**, on the STABLE-image check,
-for the reason set out at the end of this recipe. That failure is expected as
-of 2026-08-27 and is a product gap, not a broken run — but do not report a GPU
-run as clean until it is resolved.
+**On CPU this passes (7 checks).** On GPU it used to fail on the STABLE-image
+check; that gap was closed on 2026-09-03 and a GPU run should now pass too —
+see the end of this recipe. Report a GPU failure there as a regression.
 
 If the collection step in the browser said the execution left no results, the
 workload failed — go to the serial console of the VM you ran on, not to this
@@ -547,8 +546,9 @@ directories.
 
 The first full run of this recipe, on 2026-08-27, passed 32 steps in 999 s on
 CPU with one product fix (`Authority.fetch_pki_root`, below). The first GPU run,
-the same day, passed 32 steps in 919 s but **fails `result verify`** — see the
-GPU rows below, which are the ones to read before planning a GPU run.
+the same day, passed 32 steps in 919 s but failed `result verify` on the
+STABLE-image check; that was fixed on 2026-09-03 and no GPU run has been made
+since. Read the GPU notes below before planning one.
 
 | what | where to look |
 | --- | --- |
@@ -559,27 +559,28 @@ GPU rows below, which are the ones to read before planning a GPU run.
 | `terraform apply` tries to create `mpcc-e2e-workload` | `create_service_account` is still `true` |
 | results collected but empty | the workload wrote a result file with no metrics — read the serial console before believing the numbers |
 
-Three of these are GPU-only, and all three are real. None is quota.
+Two of the notes below are GPU-only, and both are real. Neither is quota.
 
-**`result verify` fails on a GPU run with "Token does not report a STABLE
-Confidential Space image".** Not a flake, and not something to work around. The
-GPU image family is `confidential-space-preview-cgpu`, and its attestation token
-carries `support_attributes: [EXPERIMENTAL]` where the CPU image carries
-`[LATEST STABLE USABLE]`. The two halves of the product disagree about whether
+**`result verify` used to fail on a GPU run with "Token does not report a
+STABLE Confidential Space image" — fixed 2026-09-03.** Recorded because the
+shape of it is worth remembering. The GPU image family is
+`confidential-space-preview-cgpu`, and its attestation token carries
+`support_attributes: [EXPERIMENTAL]` where the CPU image carries
+`[LATEST STABLE USABLE]`. The two halves of the product disagreed about whether
 that is acceptable:
 
-- the key release policy already exempts it — `Vault.__install_attribute_mapping`
-  builds `swname == "CONFIDENTIAL_SPACE" && (nvidia_gpu.cc_mode == "ON" || 'STABLE' in support_attributes)`,
-  with a comment saying GPU mode is not stable yet. That is why the run works
-  at all: the token's `nvidia_gpu.cc_mode` is `ON`, so KMS releases the key.
-- `AttestationVerifier` has no such branch. `require_stable_image` defaults to
-  `True` and no caller overrides it, so it rejects the very run the key policy
-  deliberately allowed.
+- the key release policy already exempted it — `Vault.__install_attribute_mapping`
+  builds `swname == "CONFIDENTIAL_SPACE" && (nvidia_gpu.cc_mode == "ON" || 'STABLE' in support_attributes)`.
+  That is why the run worked at all: the token's `nvidia_gpu.cc_mode` is `ON`,
+  so KMS released the key.
+- `AttestationVerifier` had no such branch, so it rejected the very run the key
+  policy deliberately allowed.
 
-The run's attestation is sound — confidential mode was genuinely on. The gap is
-that the verifier was never taught the exemption the key policy already makes.
-**Do not "fix" this by relaxing `require_stable_image`**; that is a security
-check, and which of the two halves is right is a product decision. Report it.
+The verifier now makes the same disjunction: `require_stable_image` became
+`require_hardened_image`, and `AttestationRequirements.__is_hardened` accepts a
+STABLE image **or** a GPU in confidential mode. Neither half was relaxed — they
+were made to agree. If the two ever drift apart again, a released key produces
+results nobody can verify, and that is what to look for.
 
 **`terraform apply` of the GPU stack fails with "Error changing instance status
 after creation: VM has a Local SSD attached but an undefined value for

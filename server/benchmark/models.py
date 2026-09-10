@@ -102,10 +102,6 @@ class Benchmark(models.Model):
 
     @property
     def is_end_to_end_topology(self):
-        """Whether a confidential VM computes this benchmark's metrics itself.
-
-        Nothing but the encrypted results leaves the VM, which is what lets a
-        result be trusted without trusting whoever operated the run."""
         return self.topology == END_TO_END_TOPOLOGY
 
     def user_can_manage_benchmark(self, user):

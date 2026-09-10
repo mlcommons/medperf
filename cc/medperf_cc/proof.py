@@ -79,21 +79,28 @@ class ProofExpectations:
     """What the results are supposed to be, according to the caller's records.
 
     Taking any of these from the proof itself would establish nothing, so they
-    come from whoever is asking. All of them are required: a verification
-    missing one is refused rather than passed with fewer checks, because
-    "nothing to compare against" is not the same answer as "matches".
+    come from whoever is asking. All of them are required, and none of them may
+    be None: every check below compares the proof against one of these, so a
+    missing one would be a check that passes on an absence. "Nothing to compare
+    against" is not the same answer as "matches", and refusing to build the
+    expectations at all is how the two are kept apart.
     """
 
-    script_image_hash: Optional[str] = None
-    data_hash: Optional[str] = None
-    model_hash: Optional[str] = None
+    script_image_hash: str
+    data_hash: str
+    model_hash: str
     # The metrics as a value -- what the server holds, and what anybody can
     # check without having run anything.
-    results: Optional[dict] = None
+    results: dict
 
-
-# Everything a verification has to compare the proof against.
-REQUIRED_EXPECTATIONS = ("script_image_hash", "data_hash", "model_hash", "results")
+    def __post_init__(self):
+        missing = [name for name, value in vars(self).items() if value is None]
+        if missing:
+            raise ValueError(
+                "Nothing to check the proof against: no "
+                + ", ".join(name.replace("_", " ") for name in missing)
+                + " was supplied"
+            )
 
 
 @dataclass
@@ -149,7 +156,6 @@ def verify_proof(
     verdict.checks.append("Attestation token is genuine and signed by the issuer")
     verdict.checks.append("Statement is the one the workload committed to")
 
-    __check_completeness(expectations, verdict)
     __check_statement_version(proof.statement, verdict)
     __check_results(proof.statement, expectations, verdict)
     __check_script(token, expectations, verdict)
@@ -157,25 +163,6 @@ def verify_proof(
 
     verdict.verified = not verdict.failures
     return verdict
-
-
-def __check_completeness(expectations: ProofExpectations, verdict: ProofVerdict):
-    """Refuses a verification that would have nothing to compare against.
-
-    Every check below skips itself when its expectation is absent, so without
-    this a caller supplying none of them would collect no failures and be told
-    the results are backed by a valid proof -- on the strength of the token
-    agreeing with itself.
-    """
-    missing = [
-        name for name in REQUIRED_EXPECTATIONS if getattr(expectations, name) is None
-    ]
-    if missing:
-        verdict.failures.append(
-            "Nothing to check the proof against: no "
-            + ", ".join(name.replace("_", " ") for name in missing)
-            + " was supplied"
-        )
 
 
 def __check_statement_version(statement: dict, verdict: ProofVerdict):
@@ -191,9 +178,6 @@ def __check_results(
 
     Checked as a value, so anybody reading the numbers off the server can do it
     -- no output files, no knowledge of how they were written."""
-    if expectations.results is None:
-        return
-
     attested = statement.get("results_sha256")
     actual = results_hash(expectations.results)
     if attested is None:
@@ -217,9 +201,6 @@ def __check_script(
 ):
     """Which code ran. Taken from the attested image digest, never from the
     statement: a workload self-reporting its own image would be worth nothing."""
-    if expectations.script_image_hash is None:
-        return
-
     if token.image_digest != expectations.script_image_hash:
         verdict.failures.append(
             f"Results were produced by image {token.image_digest}, not the"
@@ -248,9 +229,6 @@ def __check_inputs(
     )
 
     for label, expected, claim, measured_key in inputs:
-        if expected is None:
-            continue
-
         declared = environment.get(claim)
         if declared != expected:
             verdict.failures.append(
