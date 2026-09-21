@@ -1,0 +1,45 @@
+# Both tasks call the same workflow executable. The default flow prepares data;
+# statistics starts at validation (sanity_check) and also generates statistics.
+container_type: DockerImage
+image: mlcommons/chestxray-prep-workflow:0.1.0
+tasks:
+  prepare:
+    run_args:
+      command: python3 -m prep_workflow.main
+    input_volumes:
+      data_path:
+        mount_path: /mlcommons/volumes/raw_data
+        type: directory
+      labels_path:
+        mount_path: /mlcommons/volumes/raw_labels
+        type: directory
+      parameters_file:
+        mount_path: /mlcommons/volumes/parameters/parameters_file.yaml
+        type: file
+    output_volumes:
+      output_path:
+        mount_path: /mlcommons/volumes/data
+        type: directory
+      output_labels_path:
+        mount_path: /mlcommons/volumes/labels
+        type: directory
+      report_file:
+        mount_path: /mlcommons/volumes/report/report.yaml
+        type: file
+  statistics:
+    run_args:
+      command: python3 -m prep_workflow.main --start=sanity_check
+    input_volumes:
+      data_path:
+        mount_path: /mlcommons/volumes/data
+        type: directory
+      labels_path:
+        mount_path: /mlcommons/volumes/labels
+        type: directory
+      parameters_file:
+        mount_path: /mlcommons/volumes/parameters/parameters_file.yaml
+        type: file
+    output_volumes:
+      output_path:
+        mount_path: /mlcommons/volumes/statistics/statistics.yaml
+        type: file

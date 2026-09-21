@@ -117,6 +117,22 @@ def __apply_cc_migrations(config_p: ConfigManager):
             config_p.storage[folder] = config_p.storage["benchmarks_folder"]
 
 
+def __apply_preparation_migrations(config_p: ConfigManager):
+    # sanity_check was folded into the statistics task, so a single
+    # statistics_timeout now covers both.
+    for profile in config_p.profiles.values():
+        if "sanity_check_timeout" not in profile:
+            continue
+        statistics_timeout = profile["statistics_timeout"]
+        sanity_check_timeout = profile["sanity_check_timeout"]
+        if statistics_timeout is not None and sanity_check_timeout is not None:
+            profile["statistics_timeout"] += profile["sanity_check_timeout"]
+        elif statistics_timeout is None and sanity_check_timeout is not None:
+            profile["statistics_timeout"] = sanity_check_timeout
+
+        del profile["sanity_check_timeout"]
+
+
 def apply_configuration_migrations():
     if not os.path.exists(config.config_path):
         return
@@ -128,5 +144,6 @@ def apply_configuration_migrations():
     __apply_results_to_executions_migrations(config_p)
     __apply_trusted_ca_migrations(config_p)
     __apply_cc_migrations(config_p)
+    __apply_preparation_migrations(config_p)
 
     write_config(config_p)

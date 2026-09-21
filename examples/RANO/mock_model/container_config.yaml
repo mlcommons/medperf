@@ -1,0 +1,17 @@
+# Placeholder RANO reference model: no real inference, just structurally-valid
+# empty segmentation predictions matching the prep-workflow RANO preparator's
+# output shape. See project/infer.py for what it does and why.
+container_type: DockerImage
+image: mhmdk0/rano-mock-model:0.0.1
+tasks:
+  infer:
+    run_args:
+      command: python3 /project/infer.py
+    input_volumes:
+      data_path:
+        mount_path: /mlcommons/volumes/data
+        type: directory
+    output_volumes:
+      output_path:
+        mount_path: /mlcommons/volumes/predictions
+        type: directory

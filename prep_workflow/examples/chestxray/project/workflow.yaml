@@ -1,0 +1,24 @@
+# ChestXRay is not per-subject: the whole dataset is prepared in one step, so the
+# graph is a single barrier after establishing one dataset "subject".
+steps:
+  - id: setup
+    step: DiscoverSubjects
+    per_subject: false
+    config:
+      single: true            # treat the whole dataset as one unit
+    next: prepare
+
+  - id: prepare
+    step: Prepare
+    per_subject: false
+    next: sanity_check
+
+  - id: sanity_check
+    step: SanityCheck
+    per_subject: false
+    next: statistics
+
+  - id: statistics
+    step: Statistics
+    per_subject: false
+    next: null

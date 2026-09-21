@@ -96,11 +96,10 @@ class DataPreparation:
         if preparation.should_run_prepare():
             with preparation.ui.interactive():
                 preparation.run_prepare()
-
         with preparation.ui.interactive():
-            preparation.run_sanity_check()
             preparation.run_statistics()
 
+        preparation.check_statistics()
         preparation.mark_dataset_as_ready()
 
         return preparation.dataset.id
@@ -211,25 +210,26 @@ class DataPreparation:
         self.ui.print("> Container execution complete")
         report_sender.stop("finished")
 
-    def run_sanity_check(self):
-        sanity_check_timeout = config.sanity_check_timeout
+    def run_statistics(self):
+        # The statistics task runs sanity_check then Statistics in the workflow.
+        statistics_timeout = config.statistics_timeout
         out_datapath = self.out_datapath
         out_labelspath = self.out_labelspath
 
-        # Specify parameters for the tasks
-        sanity_check_mounts = {
+        statistics_mounts = {
             "data_path": out_datapath,
             "labels_path": out_labelspath,
+            "output_path": self.out_statistics_path,
         }
         if self.metadata_specified:
-            sanity_check_mounts["metadata_path"] = self.metadata_path
+            statistics_mounts["metadata_path"] = self.metadata_path
 
-        self.ui.text = "Running sanity check..."
+        self.ui.text = "Running sanity checks and statistics..."
         try:
             self.cube.run(
-                task="sanity_check",
-                timeout=sanity_check_timeout,
-                mounts=sanity_check_mounts,
+                task="statistics",
+                timeout=statistics_timeout,
+                mounts=statistics_mounts,
             )
         except ExecutionError:
             self.dataset.unmark_as_ready()
@@ -244,35 +244,14 @@ class DataPreparation:
                 self.ui.print_warning(msg)
                 raise CleanExit(medperf_status_code=1)
 
-            msg = "The sanity check process failed"
+            msg = "The sanity check and statistics process failed"
             raise ExecutionError(msg)
-        self.ui.print("> Sanity checks complete")
+        self.ui.print("> Sanity checks and statistics complete")
 
-    def run_statistics(self):
-        statistics_timeout = config.statistics_timeout
-        out_datapath = self.out_datapath
-        out_labelspath = self.out_labelspath
-
-        statistics_mounts = {
-            "data_path": out_datapath,
-            "labels_path": out_labelspath,
-            "output_path": self.out_statistics_path,
-        }
-
-        if self.metadata_specified:
-            statistics_mounts["metadata_path"] = self.metadata_path
-
-        self.ui.text = "Generating statistics..."
-
-        try:
-            self.cube.run(
-                task="statistics",
-                timeout=statistics_timeout,
-                mounts=statistics_mounts,
-            )
-        except ExecutionError as e:
+    def check_statistics(self):
+        if not os.path.exists(self.out_statistics_path):
             self.dataset.unmark_as_ready()
-            raise e
+            raise ExecutionError("Statistics file was not created.")
 
         with open(self.out_statistics_path) as f:
             stats = yaml.safe_load(f)
@@ -280,8 +259,6 @@ class DataPreparation:
         if stats is None:
             self.dataset.unmark_as_ready()
             raise ExecutionError("Statistics file is empty.")
-
-        self.ui.print("> Statistics complete")
 
     def mark_dataset_as_ready(self):
         self.dataset.mark_as_ready()

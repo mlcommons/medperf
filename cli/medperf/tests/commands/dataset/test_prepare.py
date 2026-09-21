@@ -187,7 +187,7 @@ def test_prepare_checks_report_and_metadata_path(
 @pytest.mark.parametrize(
     "report_specified,exception", [[False, ExecutionError], [True, CleanExit]]
 )
-def test_sanity_checks_unmarks_the_dataset_as_ready_on_failure(
+def test_statistics_unmarks_the_dataset_as_ready_on_failure(
     mocker, data_preparation, cube, report_specified, exception
 ):
     # Arrange
@@ -200,24 +200,6 @@ def test_sanity_checks_unmarks_the_dataset_as_ready_on_failure(
 
     # Act & assert
     with pytest.raises(exception):
-        data_preparation.run_sanity_check()
-
-    # Assert
-    unmark_spy.assert_called_once()
-
-
-def test_statistics_unmarks_the_dataset_as_ready_on_failure(
-    mocker, data_preparation, cube
-):
-    # Arrange
-    def _failure_run(*args, **kwargs):
-        raise ExecutionError()
-
-    mocker.patch.object(cube, "run", side_effect=_failure_run)
-    unmark_spy = mocker.patch.object(data_preparation.dataset, "unmark_as_ready")
-
-    # Act & assert
-    with pytest.raises(ExecutionError):
         data_preparation.run_statistics()
 
     # Assert
@@ -225,38 +207,49 @@ def test_statistics_unmarks_the_dataset_as_ready_on_failure(
 
 
 @pytest.mark.parametrize("metadata_specified", [False, True])
-def test_statistics_checks_metadata_path(
-    mocker, data_preparation, metadata_specified, cube, fs
+def test_statistics_generates_statistics_and_checks_paths(
+    mocker, data_preparation, metadata_specified, cube
 ):
     # Arrange
     spy = mocker.patch.object(cube, "run")
     data_preparation.metadata_specified = metadata_specified
     data_preparation.out_statistics_path = "test.yaml"
-    fs.create_file(data_preparation.out_statistics_path, contents="")
-    mocker.patch("yaml.safe_load", return_value={})
 
     # Act
     data_preparation.run_statistics()
 
     # Assert
+    assert spy.call_args.kwargs["task"] == "statistics"
+    assert spy.call_args.kwargs["mounts"]["output_path"] == "test.yaml"
     if metadata_specified:
         assert "metadata_path" in spy.call_args.kwargs["mounts"].keys()
     else:
         assert "metadata_path" not in spy.call_args.kwargs["mounts"].keys()
 
 
-def test_preparation_fails_if_statistics_is_none(mocker, data_preparation, cube, fs):
-
+def test_preparation_fails_if_statistics_is_none(mocker, data_preparation, fs):
     # Arrange
     unmark_spy = mocker.patch.object(data_preparation.dataset, "unmark_as_ready")
-    mocker.patch.object(cube, "run")
     data_preparation.out_statistics_path = "test.yaml"
     fs.create_file(data_preparation.out_statistics_path, contents="")
     mocker.patch("yaml.safe_load", return_value=None)
 
     # Act
     with pytest.raises(ExecutionError):
-        data_preparation.run_statistics()
+        data_preparation.check_statistics()
+
+    # Assert
+    unmark_spy.assert_called_once()
+
+
+def test_preparation_fails_if_statistics_were_not_created(mocker, data_preparation):
+    # Arrange
+    unmark_spy = mocker.patch.object(data_preparation.dataset, "unmark_as_ready")
+    data_preparation.out_statistics_path = "missing.yaml"
+
+    # Act
+    with pytest.raises(ExecutionError, match="not created"):
+        data_preparation.check_statistics()
 
     # Assert
     unmark_spy.assert_called_once()
