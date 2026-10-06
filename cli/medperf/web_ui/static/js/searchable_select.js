@@ -1,7 +1,16 @@
+/*
+ * Searchable entity pickers (see partials/searchable_select.html).
+ *
+ * The user types in a search box; matching entities are fetched from
+ * /api/entity_search and the chosen entity ID is stored in a hidden input,
+ * which is the value submitted with the form.
+ */
+
 (function () {
     var MIN_SEARCH_LENGTH = 2;
     var DEBOUNCE_MS = 300;
 
+    /** Make a `.searchable-select` element (root) interactive. */
     function initSearchableSelect(root) {
         if (root.dataset.initialized === "true") return;
         root.dataset.initialized = "true";
@@ -20,39 +29,46 @@
         var allowedIds = root.dataset.allowedIds || "";
         var disabled = root.dataset.disabled === "true";
 
+        /** Notify the form that the selected value changed. */
         function dispatchChange() {
             hiddenInput.dispatchEvent(new Event("change", { bubbles: true }));
             hiddenInput.dispatchEvent(new Event("input", { bubbles: true }));
         }
 
+        /** Show or hide the hint below the search box. */
         function setHint(message, visible) {
             if (!hintEl) return;
             hintEl.textContent = message || "";
             hintEl.classList.toggle("hidden", !visible);
         }
 
+        /** Show the clear button only when something is selected. */
         function updateClearButton() {
             if (!clearBtn) return;
             clearBtn.classList.toggle("hidden", !hiddenInput.value);
         }
 
+        /** Hide the results list. */
         function closeResults() {
             resultsList.classList.add("hidden");
             queryInput.setAttribute("aria-expanded", "false");
             activeIndex = -1;
         }
 
+        /** Show the results list. */
         function openResults() {
             resultsList.classList.remove("hidden");
             queryInput.setAttribute("aria-expanded", "true");
         }
 
+        /** Text shown for an entity in the results: "ID - name". */
         function entityLabel(item) {
             if (item.label) return item.label;
             if (item.id != null && item.name) return item.name + " (ID: " + item.id + ")";
             return item.name || String(item.id || "");
         }
 
+        /** Fill the results list with the found entities. */
         function renderResults(items) {
             resultsList.innerHTML = "";
             activeIndex = -1;
@@ -83,6 +99,7 @@
             openResults();
         }
 
+        /** Select an entity: store its ID and show its label in the search box. */
         function selectOption(value, label) {
             hiddenInput.value = value;
             queryInput.value = label;
@@ -92,6 +109,7 @@
             dispatchChange();
         }
 
+        /** Unselect the current entity. */
         function clearSelection() {
             hiddenInput.value = "";
             queryInput.value = "";
@@ -101,10 +119,15 @@
             dispatchChange();
         }
 
+        /** Build the /api/entity_search URL for the given query parameters. */
         function buildSearchUrl(params) {
             return "/api/entity_search?" + params.toString();
         }
 
+        /**
+         * Fetch the entities matching the given options (restricted by the picker's
+         * entity type, container type, allowed IDs and "mine only" settings).
+         */
         function fetchResults(options) {
             var params = new URLSearchParams({
                 entity_type: entityType,
@@ -126,6 +149,7 @@
                 });
         }
 
+        /** Search the entities matching the text typed in the search box. */
         function runSearch() {
             var query = queryInput.value.trim();
             if (query.length < MIN_SEARCH_LENGTH) {
@@ -212,6 +236,7 @@
         updateClearButton();
     }
 
+    /** Initialize all the searchable selects of the page. */
     function initAll() {
         document.querySelectorAll(".searchable-select").forEach(initSearchableSelect);
     }

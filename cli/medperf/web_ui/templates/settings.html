@@ -1,5 +1,5 @@
+{# Settings page: profiles, active profile settings, user certificates and confidential computing operator settings. #}
 {% extends "base.html" %}
-{% import "constants/tooltips.html" as tooltips %}
 {% import 'macros/cc_operator_macro.html' as cc_operator_macro %}
 
 {% block title %}Settings{% endblock %}
@@ -25,7 +25,7 @@
             </div>
             <div class="flex flex-wrap justify-center gap-3">
                 <button type="button" class="btn btn-primary disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed" id="activate-profile-btn" disabled>Activate Profile</button>
-                <button type="button" class="btn btn-secondary disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed" id="view-profile-btn" {% if task_running %}disabled{% endif %} title="{{ tooltips.view_profile_btn if tooltips.view_profile_btn is defined else '' }}">View Profile</button>
+                <button type="button" class="btn btn-secondary disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed" id="view-profile-btn" {% if task_running %}disabled{% endif %} title="{{ help_texts.WebUITooltips.view_profile_btn }}">View Profile</button>
             </div>
         </form>
 
@@ -76,7 +76,7 @@
             <p class="text-secondary mb-4">No Certificate Found</p>
             <form id="get-cert-form" action="/settings/get_certificate" method="post" class="inline settings-action-form" data-panel-title="Getting Client Certificate" data-confirm-message="get a new certificate?" >
                 <input type="hidden" name="key_type" value="{{ key_type }}">
-                <button id="get-cert-btn" type="submit" class="btn btn-secondary disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed" {% if task_running %}disabled{% endif %} title="{{ tooltips.get_client_certificate_btn }}">Get User Certificate</button>
+                <button id="get-cert-btn" type="submit" class="btn btn-secondary disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed" {% if task_running %}disabled{% endif %} title="{{ help_texts.WebUITooltips.get_client_certificate_btn }}">Get User Certificate</button>
             </form>
             {% else %}
             <p class="text-secondary mb-4">Certificate Exists</p>
@@ -91,12 +91,12 @@
             {% if certificate_status["should_be_submitted"] %}
             <form id="submit-cert-form" action="/settings/submit_certificate" method="post" class="settings-action-form m-0" data-panel-title="Submitting Client Certificate" data-confirm-message="submit the certificate?">
                 <input type="hidden" name="key_type" value="{{ key_type }}">
-                <button id="submit-cert-btn" type="submit" class="btn btn-primary disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed inline-flex items-center justify-center" {% if task_running %}disabled{% endif %} title="{{ tooltips.submit_certificate_btn }}">Submit Certificate</button>
+                <button id="submit-cert-btn" type="submit" class="btn btn-primary disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed inline-flex items-center justify-center" {% if task_running %}disabled{% endif %} title="{{ help_texts.WebUITooltips.submit_certificate_btn }}">Submit Certificate</button>
             </form>
             {% endif %}
             <form id="delete-cert-form" action="/settings/delete_certificate" method="post" class="settings-action-form m-0" data-panel-title="Deleting Client Certificate" data-confirm-message="delete the certificate?">
                 <input type="hidden" name="key_type" value="{{ key_type }}">
-                <button id="delete-cert-btn" type="submit" class="btn btn-danger disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed inline-flex items-center justify-center" {% if task_running %}disabled{% endif %} title="{{ tooltips.invalidate_certificate_btn }}">Delete</button>
+                <button id="delete-cert-btn" type="submit" class="btn btn-danger disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed inline-flex items-center justify-center" {% if task_running %}disabled{% endif %} title="{{ help_texts.WebUITooltips.invalidate_certificate_btn }}">Delete</button>
             </form>
             </div>
             {% endif %}

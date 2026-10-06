@@ -1,5 +1,5 @@
+{# Aggregator registration form. #}
 {% extends "base.html" %}
-{% import "constants/tooltips.html" as tooltips %}
 
 {% block title %}Register Aggregator{% endblock %}
 
@@ -19,29 +19,29 @@
         <div>
             <label for="name" class="block text-secondary font-semibold mb-2">Name</label>
             <div class="flex flex-wrap items-stretch gap-2">
-                <input name="name" type="text" id="name" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="Aggregator name" {% if task_running %}disabled{% endif %} {% if agg_register_running %}value="{{ form_data.get('name', '') }}"{% endif %} maxlength="128">
-                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ tooltips.register_aggregator_name }}"><i class="fas fa-info-circle text-lg"></i></span>
+                <input name="name" type="text" id="name" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="{{ help_texts.WebUIPlaceholders.aggregator_name }}" {% if task_running %}disabled{% endif %} {% if agg_register_running %}value="{{ form_data.get('name', '') }}"{% endif %} maxlength="128">
+                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ help_texts.Aggregator.name }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
         <div>
             <label for="address" class="block text-secondary font-semibold mb-2">Address</label>
             <div class="flex flex-wrap items-stretch gap-2">
-                <input name="address" type="text" id="address" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="Hostname or IP" {% if task_running %}disabled{% endif %} {% if agg_register_running %}value="{{ form_data.get('address', '') }}"{% endif %}>
-                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ tooltips.register_aggregator_address }}"><i class="fas fa-info-circle text-lg"></i></span>
+                <input name="address" type="text" id="address" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="{{ help_texts.WebUIPlaceholders.aggregator_address }}" {% if task_running %}disabled{% endif %} {% if agg_register_running %}value="{{ form_data.get('address', '') }}"{% endif %}>
+                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ help_texts.Aggregator.address }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
         <div>
             <label for="port" class="block text-secondary font-semibold mb-2">Port</label>
             <div class="flex flex-wrap items-stretch gap-2">
-                <input name="port" type="number" id="port" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="Port number" min="1" max="65535" {% if task_running %}disabled{% endif %} {% if agg_register_running %}value="{{ form_data.get('port', '') }}"{% endif %}>
-                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ tooltips.register_aggregator_port }}"><i class="fas fa-info-circle text-lg"></i></span>
+                <input name="port" type="number" id="port" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="{{ help_texts.WebUIPlaceholders.aggregator_port }}" min="1" max="65535" {% if task_running %}disabled{% endif %} {% if agg_register_running %}value="{{ form_data.get('port', '') }}"{% endif %}>
+                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ help_texts.Aggregator.port }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
         <div>
             <label for="admin_port" class="block text-secondary font-semibold mb-2">Admin Port</label>
             <div class="flex flex-wrap items-stretch gap-2">
-                <input name="admin_port" type="number" id="admin-port" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="Admin Port number" min="1" max="65535" {% if task_running %}disabled{% endif %} {% if agg_register_running %}value="{{ form_data.get('admin_port', '') }}"{% endif %}>
-                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ tooltips.register_aggregator_admin_port }}"><i class="fas fa-info-circle text-lg"></i></span>
+                <input name="admin_port" type="number" id="admin-port" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="{{ help_texts.WebUIPlaceholders.aggregator_admin_port }}" min="1" max="65535" {% if task_running %}disabled{% endif %} {% if agg_register_running %}value="{{ form_data.get('admin_port', '') }}"{% endif %}>
+                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ help_texts.Aggregator.admin_port }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
         <div>
@@ -57,7 +57,7 @@
                 {% set selected_value = form_data.get('aggregation_mlcube', '') if agg_register_running else '' %}
                 {% set disabled = task_running %}
                 {% include "partials/searchable_select.html" %}
-                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ tooltips.register_aggregator_aggregation_mlcube }}"><i class="fas fa-info-circle text-lg"></i></span>
+                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ help_texts.Aggregator.aggregation_container }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
         <div class="text-center pt-4">

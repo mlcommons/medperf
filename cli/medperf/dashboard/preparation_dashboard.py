@@ -7,6 +7,7 @@ import pandas as pd
 
 from medperf import config
 from medperf.utils import sanitize_path
+import medperf.help_texts as help_texts
 
 from .get_data import get_data
 from .utils import get_reports_path
@@ -530,17 +531,19 @@ def build_app(
 @t_app.command()
 def main(
     benchmark_id: int = Option(
-        ..., "-b", "--benchmark", help="Benchmark ID to inspect preparation from"
+        ..., "-b", "--benchmark", help=help_texts.Dashboard.benchmark_id
     ),
-    stages_path: str = Option(..., "-s", "--stages", help="Path to stages.csv"),
+    stages_path: str = Option(
+        ..., "-s", "--stages", help=help_texts.Dashboard.stages_path
+    ),
     institutions_path: str = Option(
         ...,
         "-i",
         "--institutions",
-        help="Path to a CSV file containing institution-email information",
+        help=help_texts.Dashboard.institutions_path,
     ),
     out_path: str = Option(
-        None, "-o", "--out-path", help="location to store progress CSVs"
+        None, "-o", "--out-path", help=help_texts.Dashboard.out_path
     ),
 ):
     app = build_app(benchmark_id, stages_path, institutions_path, out_path)

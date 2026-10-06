@@ -12,6 +12,7 @@ from medperf.commands.benchmark.update_associations_poilcy import (
     UpdateAssociationsPolicy,
 )
 from medperf.commands.benchmark.update_committee_members import UpdateCommitteeMembers
+import medperf.help_texts as help_texts
 
 app = typer.Typer()
 
@@ -20,25 +21,23 @@ app = typer.Typer()
 @clean_except
 def list(
     unregistered: bool = typer.Option(
-        False, "--unregistered", help="Get unregistered benchmarks"
+        False, "--unregistered", help=help_texts.Benchmark.ls_unregistered
     ),
-    mine: bool = typer.Option(False, "--mine", help="Get current-user benchmarks"),
-    name: str = typer.Option(None, "--name", help="Filter by name"),
-    owner: int = typer.Option(None, "--owner", help="Filter by owner"),
-    state: str = typer.Option(
-        None, "--state", help="Filter by state (DEVELOPMENT/OPERATION)"
-    ),
+    mine: bool = typer.Option(False, "--mine", help=help_texts.Benchmark.ls_mine),
+    name: str = typer.Option(None, "--name", help=help_texts.Common.name_filter),
+    owner: int = typer.Option(None, "--owner", help=help_texts.Common.owner_filter),
+    state: str = typer.Option(None, "--state", help=help_texts.Common.state_filter),
     is_valid: bool = typer.Option(
-        None, "--valid/--invalid", help="Filter by valid status"
+        None, "--valid/--invalid", help=help_texts.Common.valid_filter
     ),
     is_active: bool = typer.Option(
-        None, "--active/--inactive", help="Filter by active status"
+        None, "--active/--inactive", help=help_texts.Common.active_filter
     ),
     data_prep: int = typer.Option(
         None,
         "-d",
         "--data-preparation-container",
-        help="Filter by Data Preparation Container",
+        help=help_texts.Benchmark.data_preparation_container_filter,
     ),
 ):
     """List benchmarks"""
@@ -71,43 +70,50 @@ def list(
 @app.command("submit")
 @clean_except
 def submit(
-    name: str = typer.Option(..., "--name", "-n", help="Name of the benchmark"),
+    name: str = typer.Option(..., "--name", "-n", help=help_texts.Benchmark.name),
     description: str = typer.Option(
-        ..., "--description", "-d", help="Description of the benchmark"
+        ..., "--description", "-d", help=help_texts.Benchmark.description
     ),
-    docs_url: str = typer.Option("", "--docs-url", "-u", help="URL to documentation"),
+    docs_url: str = typer.Option(
+        "", "--docs-url", "-u", help=help_texts.Common.docs_url
+    ),
     demo_url: str = typer.Option(
         "",
         "--demo-url",
-        help="""Identifier to download the demonstration dataset tarball file.\n
-        See `medperf container submit --help` for more information""",
+        help=help_texts.Benchmark.demo_url_cli,
     ),
     demo_hash: str = typer.Option(
-        "", "--demo-hash", help="Hash of demonstration dataset tarball file"
+        "", "--demo-hash", help=help_texts.Benchmark.demo_hash
     ),
     data_preparation_container: int = typer.Option(
-        ..., "--data-preparation-container", "-p", help="Data Preparation container UID"
+        ...,
+        "--data-preparation-container",
+        "-p",
+        help=help_texts.Benchmark.data_preparation_container,
     ),
     reference_model: int = typer.Option(
-        ..., "--reference-model", "-m", help="Reference Model UID"
+        ..., "--reference-model", "-m", help=help_texts.Benchmark.reference_model
     ),
     evaluator_container: int = typer.Option(
-        ..., "--evaluator-container", "-e", help="Evaluator container UID"
+        ...,
+        "--evaluator-container",
+        "-e",
+        help=help_texts.Benchmark.evaluator_container,
     ),
     skip_data_preparation_step: bool = typer.Option(
         False,
         "--skip-demo-data-preparation",
-        help="Use this flag if the demo dataset is already prepared",
+        help=help_texts.Benchmark.skip_demo_data_preparation,
     ),
     operational: bool = typer.Option(
         False,
         "--operational",
-        help="Submit the Benchmark as OPERATIONAL",
+        help=help_texts.Benchmark.operational,
     ),
     skip_compatibility_tests: bool = typer.Option(
         False,
         "--skip-compatibility-tests",
-        help="Skip compatibility tests during benchmark submission",
+        help=help_texts.Benchmark.skip_compatibility_tests,
     ),
 ):
     """Submits a new benchmark to the platform"""
@@ -134,33 +140,31 @@ def submit(
 @clean_except
 def run(
     benchmark_uid: int = typer.Option(
-        ..., "--benchmark", "-b", help="UID of the desired benchmark"
+        ..., "--benchmark", "-b", help=help_texts.Benchmark.uid
     ),
     data_uid: int = typer.Option(
-        ..., "--data_uid", "-d", help="Registered Dataset UID"
+        ..., "--data_uid", "-d", help=help_texts.Dataset.registered_uid
     ),
     file: str = typer.Option(
         None,
         "--models-from-file",
         "-f",
-        help="""A file containing the model UIDs to be executed.\n
-        The file should contain a single line as a list of\n
-        comma-separated integers corresponding to the model UIDs""",
+        help=help_texts.Benchmark.models_from_file,
     ),
     ignore_model_errors: bool = typer.Option(
         False,
         "--ignore-model-errors",
-        help="Ignore failing models, allowing for possibly submitting partial results",
+        help=help_texts.Common.ignore_model_errors,
     ),
     no_cache: bool = typer.Option(
         False,
         "--no-cache",
-        help="Execute even if results already exist",
+        help=help_texts.Common.no_cache,
     ),
     rerun_finalized: bool = typer.Option(
         False,
         "--rerun-finalized",
-        help="Execute even if results have been already uploaded (this will create new records)",
+        help=help_texts.Benchmark.rerun_finalized,
     ),
 ):
     """Runs the benchmark execution step for a given benchmark, prepared dataset and model"""
@@ -181,28 +185,28 @@ def run(
 @app.command("view")
 @clean_except
 def view(
-    entity_id: Optional[int] = typer.Argument(None, help="Benchmark ID"),
+    entity_id: Optional[int] = typer.Argument(None, help=help_texts.Benchmark.id),
     format: str = typer.Option(
         "yaml",
         "-f",
         "--format",
-        help="Format to display contents. Available formats: [yaml, json]",
+        help=help_texts.Common.format,
     ),
     unregistered: bool = typer.Option(
         False,
         "--unregistered",
-        help="Display unregistered benchmarks if benchmark ID is not provided",
+        help=help_texts.Benchmark.view_unregistered,
     ),
     mine: bool = typer.Option(
         False,
         "--mine",
-        help="Display current-user benchmarks if benchmark ID is not provided",
+        help=help_texts.Benchmark.view_mine,
     ),
     output: str = typer.Option(
         None,
         "--output",
         "-o",
-        help="Output file to store contents. If not provided, the output will be displayed",
+        help=help_texts.Common.output,
     ),
 ):
     """Displays the information of one or more benchmarks"""
@@ -213,43 +217,30 @@ def view(
 @clean_except
 def update_associations_policy(
     benchmark_uid: int = typer.Option(
-        ..., "--benchmark", "-b", help="UID of the desired benchmark"
+        ..., "--benchmark", "-b", help=help_texts.Benchmark.uid
     ),
     dataset_auto_approve_mode: str = typer.Option(
         None,
         "--dataset_auto_approve_mode",
-        help=(
-            "Can be NEVER for no auto approvals, ALWAYS for auto"
-            " approving any dataset association, and ALLOWLIST for approving"
-            " dataset associations with owners contained in the auto_approve_file"
-        ),
+        help=help_texts.Benchmark.dataset_auto_approve_mode,
     ),
     dataset_auto_approve_file: str = typer.Option(
         None,
         "--dataset_auto_approve_file",
-        help=(
-            "File containing list of emails to approve associations with"
-            " their datasets when the auto approve mode is ALLOWLIST"
-        ),
+        help=help_texts.Benchmark.dataset_auto_approve_file,
     ),
     model_auto_approve_mode: str = typer.Option(
         None,
         "--model_auto_approve_mode",
-        help=(
-            "Can be NEVER for no auto approvals, ALWAYS for auto"
-            " approving any model association, and ALLOWLIST for approving"
-            " model associations with owners contained in the auto_approve_file"
-        ),
+        help=help_texts.Benchmark.model_auto_approve_mode,
     ),
     model_auto_approve_file: str = typer.Option(
         None,
         "--model_auto_approve_file",
-        help=(
-            "File containing list of emails to approve associations with"
-            " their models when the auto approve mode is ALLOWLIST"
-        ),
+        help=help_texts.Benchmark.model_auto_approve_file,
     ),
 ):
+    """Updates the auto-approval policy of dataset and model associations of a benchmark"""
     UpdateAssociationsPolicy.run(
         benchmark_uid,
         dataset_mode=dataset_auto_approve_mode,
@@ -263,17 +254,17 @@ def update_associations_policy(
 @clean_except
 def update_committee_members(
     benchmark_uid: int = typer.Option(
-        ..., "--benchmark", "-b", help="UID of the desired benchmark"
+        ..., "--benchmark", "-b", help=help_texts.Benchmark.uid
     ),
     committee_emails_file: str = typer.Option(
         None,
         "--committee_emails_file",
-        help="File containing list of committee member emails",
+        help=help_texts.Benchmark.committee_emails_file,
     ),
     committee_emails: str = typer.Option(
         None,
         "--committee_emails",
-        help="Space-separated list of committee member emails",
+        help=help_texts.Benchmark.committee_emails,
     ),
 ):
     """Updates the committee members for a benchmark"""

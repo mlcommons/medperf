@@ -24,8 +24,7 @@ from medperf.enums import Status
 from medperf.web_ui.common import (
     check_user_api,
     check_user_ui,
-    initialize_state_task,
-    reset_state_task,
+    UITask,
     sort_associations_display,
     templates,
 )
@@ -57,10 +56,10 @@ def register_training(
     fl_admin_container: Optional[str] = Form(None),
     current_user: bool = Depends(check_user_api),
 ):
-    initialize_state_task(request, task_name="register_training_experiment")
-    return_response = {"status": "", "error": "", "entity_id": None}
     training_id = None
-    try:
+    with UITask(
+        request, "register_training_experiment", response={"entity_id": None}
+    ) as task:
         training_exp_info = {
             "name": name,
             "description": description or "",
@@ -74,27 +73,17 @@ def register_training(
             "state": "DEVELOPMENT",
         }
         training_id = SubmitTrainingExp.run(training_exp_info)
-        return_response["status"] = "success"
-        return_response["entity_id"] = training_id
-        notification_message = "Training experiment successfully registered"
-    except Exception as exp:
-        return_response["status"] = "failed"
-        return_response["error"] = str(exp)
-        notification_message = "Failed to register training experiment"
-        logger.exception(exp)
-
-    config.ui.end_task(return_response)
-    reset_state_task(request)
-    config.ui.add_notification(
-        message=notification_message,
-        return_response=return_response,
+        task.response["entity_id"] = training_id
+    task.notify(
+        success_message="Training experiment successfully registered",
+        failure_message="Failed to register training experiment",
         url=(
             f"/training/ui/display/{training_id}"
             if training_id
             else "/training/register/ui"
         ),
     )
-    return return_response
+    return task.response
 
 
 @router.get("/ui", response_class=HTMLResponse)
@@ -130,79 +119,86 @@ def training_ui(
     )
 
 
+def _datasets_associations_context(training_id: int) -> dict:
+    """Dataset associations of a training experiment (shown to its owner),
+    sorted for display, with the associated datasets."""
+    context = {
+        "datasets_associations": [],
+        "datasets": {},
+        "dataset_assoc_pending": False,
+    }
+    try:
+        associations = TrainingExp.get_datasets_associations(
+            training_exp_uid=training_id
+        )
+        context["dataset_assoc_pending"] = any(
+            assoc["approval_status"] == "PENDING" for assoc in associations
+        )
+        associations = sort_associations_display(associations)
+        context["datasets_associations"] = associations
+        context["datasets"] = {
+            assoc["dataset"]: Dataset.get(assoc["dataset"])
+            for assoc in associations
+            if assoc["dataset"]
+        }
+    except Exception as e:
+        logger.warning("Could not load training dataset associations: %s", e)
+    return context
+
+
+def _experiment_aggregator(training_id: int) -> Optional[Aggregator]:
+    """The aggregator set for a training experiment (one per experiment), if any."""
+    try:
+        agg_meta = config.comms.get_experiment_aggregator(training_id)
+        if agg_meta:
+            return Aggregator(**agg_meta)
+    except Exception:
+        pass
+    return None
+
+
+def _has_active_event(training_id: int) -> bool:
+    """Whether the training experiment has an active (not finished) event,
+    which decides between showing the Start and the Close event actions."""
+    try:
+        event_meta = config.comms.get_experiment_event(training_id)
+        return bool(event_meta) and not event_meta.get("finished", True)
+    except Exception:
+        return False
+
+
 @router.get("/ui/display/{training_id}", response_class=HTMLResponse)
-def training_detail_ui(  # noqa
+def training_detail_ui(
     request: Request,
     training_id: int,
     current_user: bool = Depends(check_user_ui),
 ):
     entity = TrainingExp.get(training_id)
-    my_user_id = get_medperf_user_data()["id"]
-    is_owner = entity.owner == my_user_id
+    is_owner = entity.owner == get_medperf_user_data()["id"]
 
-    # Containers
-    prep_cube = Cube.get(cube_uid=entity.data_preparation_mlcube)
-    fl_cube = Cube.get(cube_uid=entity.fl_mlcube)
-    fl_admin_cube = (
-        Cube.get(cube_uid=entity.fl_admin_mlcube) if entity.fl_admin_mlcube else None
-    )
-
-    datasets_associations = []
-    datasets = {}
-    dataset_assoc_pending = False
+    context = {
+        "request": request,
+        "entity": entity,
+        "prep_cube": Cube.get(cube_uid=entity.data_preparation_mlcube),
+        "fl_cube": Cube.get(cube_uid=entity.fl_mlcube),
+        "fl_admin_cube": (
+            Cube.get(cube_uid=entity.fl_admin_mlcube)
+            if entity.fl_admin_mlcube
+            else None
+        ),
+        "datasets_associations": [],
+        "datasets": {},
+        "dataset_assoc_pending": False,
+        "aggregator": _experiment_aggregator(training_id),
+        "is_owner": is_owner,
+        "has_active_event": _has_active_event(training_id),
+        "plan_exists": bool(entity.plan),
+    }
     if is_owner:
-        try:
-            datasets_associations = TrainingExp.get_datasets_associations(
-                training_exp_uid=training_id
-            )
-            dataset_assoc_pending = any(
-                i["approval_status"] == "PENDING" for i in datasets_associations
-            )
-            datasets_associations = sort_associations_display(datasets_associations)
-            datasets = {
-                assoc["dataset"]: Dataset.get(assoc["dataset"])
-                for assoc in datasets_associations
-                if assoc["dataset"]
-            }
-        except Exception as e:
-            logger.warning("Could not load training dataset associations: %s", e)
-
-    # Aggregator (one per experiment, from server)
-    aggregator = None
-    try:
-        agg_meta = config.comms.get_experiment_aggregator(training_id)
-        if agg_meta:
-            aggregator = Aggregator(**agg_meta)
-    except Exception:
-        pass
-
-    # Current event: show Start vs Close based on whether there's an active (non-finished) event
-    has_active_event = False
-    try:
-        event_meta = config.comms.get_experiment_event(training_id)
-        if event_meta and not event_meta.get("finished", True):
-            has_active_event = True
-    except Exception:
-        pass
-
-    plan_exists = bool(entity.plan)
+        context.update(_datasets_associations_context(training_id))
 
     return templates.TemplateResponse(
-        "training/training_experiment_detail.html",
-        {
-            "request": request,
-            "entity": entity,
-            "prep_cube": prep_cube,
-            "fl_cube": fl_cube,
-            "fl_admin_cube": fl_admin_cube,
-            "datasets_associations": datasets_associations,
-            "datasets": datasets,
-            "dataset_assoc_pending": dataset_assoc_pending,
-            "aggregator": aggregator,
-            "is_owner": is_owner,
-            "has_active_event": has_active_event,
-            "plan_exists": plan_exists,
-        },
+        "training/training_experiment_detail.html", context
     )
 
 
@@ -213,27 +209,14 @@ def set_plan(
     path: str = Form(...),
     current_user: bool = Depends(check_user_api),
 ):
-    initialize_state_task(request, task_name="set_training_plan")
-    return_response = {"status": "", "error": ""}
-    try:
+    with UITask(request, "set_training_plan") as task:
         SetPlan.run(training_exp_id, path)
-        return_response["status"] = "success"
-        notification_message = "Training plan set successfully"
-    except Exception as exp:
-        return_response["status"] = "failed"
-        return_response["error"] = str(exp)
-        notification_message = "Failed to set training plan"
-        logger.exception(exp)
-
-    config.ui.end_task(return_response)
-    reset_state_task(request)
-    redirect_url = f"/training/ui/display/{training_exp_id}"
-    config.ui.add_notification(
-        message=notification_message,
-        return_response=return_response,
-        url=redirect_url,
+    task.notify(
+        success_message="Training plan set successfully",
+        failure_message="Failed to set training plan",
+        url=f"/training/ui/display/{training_exp_id}",
     )
-    return return_response
+    return task.response
 
 
 @router.post("/add_aggregator", response_class=JSONResponse)
@@ -243,27 +226,14 @@ def add_aggregator(
     aggregator_id: int = Form(...),
     current_user: bool = Depends(check_user_api),
 ):
-    initialize_state_task(request, task_name="set_training_aggregator")
-    return_response = {"status": "", "error": ""}
-    try:
+    with UITask(request, "set_training_aggregator") as task:
         SetAggregator.run(training_exp_id, aggregator_id)
-        return_response["status"] = "success"
-        notification_message = "Aggregator set successfully"
-    except Exception as exp:
-        return_response["status"] = "failed"
-        return_response["error"] = str(exp)
-        notification_message = "Failed to set aggregator"
-        logger.exception(exp)
-
-    config.ui.end_task(return_response)
-    reset_state_task(request)
-    redirect_url = f"/training/ui/display/{training_exp_id}"
-    config.ui.add_notification(
-        message=notification_message,
-        return_response=return_response,
-        url=redirect_url,
+    task.notify(
+        success_message="Aggregator set successfully",
+        failure_message="Failed to set aggregator",
+        url=f"/training/ui/display/{training_exp_id}",
     )
-    return return_response
+    return task.response
 
 
 @router.post("/start_event", response_class=JSONResponse)
@@ -274,29 +244,16 @@ def start_event(
     participants_list_file: Optional[str] = Form(None),
     current_user: bool = Depends(check_user_api),
 ):
-    initialize_state_task(request, task_name="start_training_event")
-    return_response = {"status": "", "error": ""}
-    try:
+    with UITask(request, "start_training_event") as task:
         StartEvent.run(
             training_exp_id, event_name, participants_list_file=participants_list_file
         )
-        return_response["status"] = "success"
-        notification_message = "Training event started successfully"
-    except Exception as exp:
-        return_response["status"] = "failed"
-        return_response["error"] = str(exp)
-        notification_message = "Failed to start training event"
-        logger.exception(exp)
-
-    config.ui.end_task(return_response)
-    reset_state_task(request)
-    redirect_url = f"/training/ui/display/{training_exp_id}"
-    config.ui.add_notification(
-        message=notification_message,
-        return_response=return_response,
-        url=redirect_url,
+    task.notify(
+        success_message="Training event started successfully",
+        failure_message="Failed to start training event",
+        url=f"/training/ui/display/{training_exp_id}",
     )
-    return return_response
+    return task.response
 
 
 @router.post("/get_experiment_status", response_class=JSONResponse)
@@ -305,31 +262,20 @@ def get_experiment_status(
     training_exp_id: int = Form(...),
     current_user: bool = Depends(check_user_api),
 ):
-    initialize_state_task(request, task_name="get_training_status")
-    return_response = {"status": "", "error": "", "status_content": None}
-    try:
+    with UITask(
+        request, "get_training_status", response={"status_content": None}
+    ) as task:
         GetExperimentStatus.run(training_exp_id, silent=True)
         exp = TrainingExp.get(training_exp_id)
         if exp.status_path and os.path.exists(exp.status_path):
             with open(exp.status_path) as f:
-                return_response["status_content"] = yaml.safe_load(f)
-        return_response["status"] = "success"
-        notification_message = "Experiment status retrieved"
-    except Exception as exp:
-        return_response["status"] = "failed"
-        return_response["error"] = str(exp)
-        notification_message = "Failed to get experiment status"
-        logger.exception(exp)
-
-    config.ui.end_task(return_response)
-    reset_state_task(request)
-    redirect_url = f"/training/ui/display/{training_exp_id}"
-    config.ui.add_notification(
-        message=notification_message,
-        return_response=return_response,
-        url=redirect_url,
+                task.response["status_content"] = yaml.safe_load(f)
+    task.notify(
+        success_message="Experiment status retrieved",
+        failure_message="Failed to get experiment status",
+        url=f"/training/ui/display/{training_exp_id}",
     )
-    return return_response
+    return task.response
 
 
 @router.post("/update_plan", response_class=JSONResponse)
@@ -340,27 +286,14 @@ def update_plan(
     field_value: str = Form(...),
     current_user: bool = Depends(check_user_api),
 ):
-    initialize_state_task(request, task_name="update_training_plan")
-    return_response = {"status": "", "error": ""}
-    try:
+    with UITask(request, "update_training_plan") as task:
         UpdatePlan.run(training_exp_id, field_name, field_value)
-        return_response["status"] = "success"
-        notification_message = "Plan updated successfully"
-    except Exception as exp:
-        return_response["status"] = "failed"
-        return_response["error"] = str(exp)
-        notification_message = "Failed to update plan"
-        logger.exception(exp)
-
-    config.ui.end_task(return_response)
-    reset_state_task(request)
-    redirect_url = f"/training/ui/display/{training_exp_id}"
-    config.ui.add_notification(
-        message=notification_message,
-        return_response=return_response,
-        url=redirect_url,
+    task.notify(
+        success_message="Plan updated successfully",
+        failure_message="Failed to update plan",
+        url=f"/training/ui/display/{training_exp_id}",
     )
-    return return_response
+    return task.response
 
 
 @router.post("/close_event", response_class=JSONResponse)
@@ -369,27 +302,14 @@ def close_event(
     training_exp_id: int = Form(...),
     current_user: bool = Depends(check_user_api),
 ):
-    initialize_state_task(request, task_name="close_training_event")
-    return_response = {"status": "", "error": ""}
-    try:
+    with UITask(request, "close_training_event") as task:
         CloseEvent.run(training_exp_id)
-        return_response["status"] = "success"
-        notification_message = "Event closed successfully"
-    except Exception as exp:
-        return_response["status"] = "failed"
-        return_response["error"] = str(exp)
-        notification_message = "Failed to close event"
-        logger.exception(exp)
-
-    config.ui.end_task(return_response)
-    reset_state_task(request)
-    redirect_url = f"/training/ui/display/{training_exp_id}"
-    config.ui.add_notification(
-        message=notification_message,
-        return_response=return_response,
-        url=redirect_url,
+    task.notify(
+        success_message="Event closed successfully",
+        failure_message="Failed to close event",
+        url=f"/training/ui/display/{training_exp_id}",
     )
-    return return_response
+    return task.response
 
 
 @router.post("/approve", response_class=JSONResponse)
@@ -399,30 +319,18 @@ def approve_association(
     dataset_id: Optional[int] = Form(None),
     current_user: bool = Depends(check_user_api),
 ):
-    initialize_state_task(request, task_name="approve_training_dataset_association")
-    return_response = {"status": "", "error": ""}
-    try:
+    with UITask(request, "approve_training_dataset_association") as task:
         Approval.run(
             training_exp_uid=training_exp_id,
             approval_status=Status.APPROVED,
             dataset_uid=dataset_id,
         )
-        return_response["status"] = "success"
-        notification_message = "Association approved"
-    except Exception as exp:
-        return_response["status"] = "failed"
-        return_response["error"] = str(exp)
-        notification_message = "Failed to approve association"
-        logger.exception(exp)
-
-    config.ui.end_task(return_response)
-    reset_state_task(request)
-    config.ui.add_notification(
-        message=notification_message,
-        return_response=return_response,
+    task.notify(
+        success_message="Association approved",
+        failure_message="Failed to approve association",
         url=f"/training/ui/display/{training_exp_id}",
     )
-    return return_response
+    return task.response
 
 
 @router.post("/reject", response_class=JSONResponse)
@@ -432,27 +340,15 @@ def reject_association(
     dataset_id: Optional[int] = Form(None),
     current_user: bool = Depends(check_user_api),
 ):
-    initialize_state_task(request, task_name="reject_training_dataset_association")
-    return_response = {"status": "", "error": ""}
-    try:
+    with UITask(request, "reject_training_dataset_association") as task:
         Approval.run(
             training_exp_uid=training_exp_id,
             approval_status=Status.REJECTED,
             dataset_uid=dataset_id,
         )
-        return_response["status"] = "success"
-        notification_message = "Association rejected"
-    except Exception as exp:
-        return_response["status"] = "failed"
-        return_response["error"] = str(exp)
-        notification_message = "Failed to reject association"
-        logger.exception(exp)
-
-    config.ui.end_task(return_response)
-    reset_state_task(request)
-    config.ui.add_notification(
-        message=notification_message,
-        return_response=return_response,
+    task.notify(
+        success_message="Association rejected",
+        failure_message="Failed to reject association",
         url=f"/training/ui/display/{training_exp_id}",
     )
-    return return_response
+    return task.response

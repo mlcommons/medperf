@@ -1,9 +1,11 @@
+import threading
 from queue import Queue
 from contextlib import contextmanager
 from yaspin import yaspin
 import typer
 
 from medperf.ui.cli import CLI
+from medperf.web_ui.history import TaskRecorder, get_history_scope
 from medperf.web_ui.schemas import Event, EventsManager, GlobalEventsManager
 
 
@@ -16,6 +18,62 @@ class WebUI(CLI):
         self.task_id = None
         self.events_manager = EventsManager()
         self.global_events_manager = GlobalEventsManager()
+        self.task_recorder = TaskRecorder()
+        self.history_store = None
+        self._silenced = threading.local()
+
+    def attach_history_store(self, store):
+        """Persist notifications and finished tasks in the given store
+        (web_ui.history.WebUIHistoryStore), loading what was saved before.
+        """
+        self.history_store = store
+        self.load_history()
+
+    def load_history(self):
+        """Load the notifications and finished tasks of the active profile and
+        user. Must be called whenever either changes (login, logout, profile switch).
+        """
+        if self.history_store is None:
+            return
+        self.history_store.set_scope(*get_history_scope())
+        self.global_events_manager.attach_store(self.history_store)
+        self.task_recorder.attach_store(self.history_store)
+
+    def get_finished_tasks(self):
+        """Return the most recent finished tasks with their logs, most recent first."""
+        return self.task_recorder.get_finished_tasks()
+
+    @property
+    def _is_silenced(self) -> bool:
+        return getattr(self._silenced, "value", False)
+
+    @property
+    def _captured_messages(self):
+        return getattr(self._silenced, "captured", None)
+
+    @contextmanager
+    def capture(self):
+        """Run a block without emitting task-log events or touching the
+        shared spinner/interactive state, scoped to the calling thread only,
+        collecting any messages that would have been emitted instead.
+
+        Used by background workers (e.g. the auto grant access worker) that
+        call into commands reporting progress via this UI, so they don't
+        get attributed to - or interrupt - whichever foreground task
+        currently owns the task-log stream, while still keeping a record of
+        what happened. Callers not interested in the messages can simply
+        ignore the yielded list.
+
+        Yields:
+            list[str]: messages emitted during the block, in arrival order.
+        """
+        self._silenced.value = True
+        self._silenced.captured = []
+        try:
+            yield self._silenced.captured
+        finally:
+            self._silenced.captured = None
+            self._silenced.value = False
 
     def print_error(self, msg: str):
         """Display an error message on the command line
@@ -37,6 +95,12 @@ class WebUI(CLI):
         self._print(msg, "warning")
 
     def _print(self, msg: str = "", type: str = "print"):
+        if self._is_silenced:
+            captured = self._captured_messages
+            if captured is not None:
+                captured.append(msg)
+            return
+
         if self.is_interactive:
             self.spinner.write(msg)
         else:
@@ -70,7 +134,10 @@ class WebUI(CLI):
         Yields:
             CLI: Yields the current CLI instance with an interactive session initialized
         """
-        if self.is_interactive:
+        if self._is_silenced:
+            # don't touch the shared spinner/interactive state
+            yield self
+        elif self.is_interactive:
             # if already interactive, do nothing
             yield self
         else:
@@ -96,6 +163,12 @@ class WebUI(CLI):
         """
         # if not self.is_interactive:
         #     self.print(msg)
+
+        if self._is_silenced:
+            captured = self._captured_messages
+            if captured is not None:
+                captured.append(msg)
+            return
 
         self.set_event(
             Event(
@@ -180,6 +253,7 @@ class WebUI(CLI):
         )
 
     def set_event(self, event: Event):
+        self.task_recorder.record(event.task_id, event.message)
         self.events_manager.process_event(event)
 
     def get_event(self, timeout=None):
@@ -193,6 +267,7 @@ class WebUI(CLI):
 
     def end_task(self, response=None):
         self.events_manager.stop_buffering()
+        self.task_recorder.finish(response)
 
         self.events_manager.enqueue_event(
             Event(
@@ -206,8 +281,9 @@ class WebUI(CLI):
         )
         self.unset_task_id()
 
-    def start_task(self, task_id: str):
+    def start_task(self, task_id: str, task_name: str = ""):
         self.set_task_id(task_id)
+        self.task_recorder.start(task_id, task_name)
         self.events_manager.start_buffering()
 
     def set_task_id(self, task_id):
@@ -218,10 +294,6 @@ class WebUI(CLI):
 
     def add_notification(self, message, return_response, url=""):
         self.global_events_manager.add_notification(message, return_response, url)
-
-    def clear_notifications(self):
-        self.global_events_manager.clear_notifications()
-        self.global_events_manager.clear_new_notifications()
 
     def delete_notification(self, notification_id: str):
         self.global_events_manager.delete_notification(notification_id)

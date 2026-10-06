@@ -1,73 +1,31 @@
+/*
+ * Benchmark details page: associations policy, committee members, results
+ * and the preparation dashboard form.
+ */
+
 var REDIRECT_BASE = "/benchmarks/ui/display/";
 
-function isValidEmail(email) {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
-
-function createEmailChip(email, inputElement) {
-    var normalizedEmail = email.toLowerCase();
-    if (inputElement && inputElement.parentNode) {
-        var alreadyAdded = false;
-        inputElement.parentNode.querySelectorAll(".email-chip").forEach(function (chip) {
-            var text = (chip.textContent || "").replace(/\s*×\s*$/, "").trim().toLowerCase();
-            if (text === normalizedEmail) alreadyAdded = true;
-        });
-        if (alreadyAdded) return;
-    }
-    var chip = document.createElement("div");
-    chip.className = "email-chip inline-block bg-muted-strong rounded-full py-1 px-3 mr-2 mb-2 text-sm";
-    chip.textContent = email;
-    var remove = document.createElement("span");
-    remove.className = "remove-btn ml-2 cursor-pointer font-bold";
-    remove.textContent = "×";
-    remove.addEventListener("click", function () { chip.remove(); });
-    chip.appendChild(remove);
-    if (inputElement && inputElement.parentNode) inputElement.parentNode.insertBefore(chip, inputElement);
-}
-
-function parseEmails(element) {
-    if (!element || !element.getAttribute) return;
-    var raw = element.getAttribute("data-allowed-list") || "[]";
-    var jsonList = [];
-    try { jsonList = JSON.parse(raw); } catch (_) {}
-    var inputEl = element.querySelector("input");
-    for (var i = 0; i < jsonList.length; i++) createEmailChip(jsonList[i], inputEl);
-}
-
-function getEmailsList(element) {
-    var emailsArr = [];
-    if (!element) return emailsArr;
-    element.querySelectorAll(".email-chip").forEach(function (chip) {
-        var text = (chip.textContent || "").replace(/\s*×\s*$/, "").trim();
-        emailsArr.push(text);
-    });
-    return emailsArr;
-}
-
-function showErrorToast(message) {
-    showToast("Validation Error", message, "text-bg-danger");
-}
-
-function checkUpdateAssociationsPolicyForm() {
+/** Confirmation message of the policy update, warning about empty allow lists. */
+function buildAssociationsPolicyConfirmMessage(message) {
     var datasetModeEl = document.getElementById("dataset-auto-approve-mode");
     var modelModeEl = document.getElementById("model-auto-approve-mode");
-    var datasetApproveMode = datasetModeEl ? datasetModeEl.value : "NEVER";
-    var modelApproveMode = modelModeEl ? modelModeEl.value : "NEVER";
-    var isDatasetValid = (datasetApproveMode === "NEVER" || datasetApproveMode === "ALWAYS");
-    var isModelValid = (modelApproveMode === "NEVER" || modelApproveMode === "ALWAYS");
-    if (!isDatasetValid) {
+    var warnings = [];
+    if (datasetModeEl && datasetModeEl.value === "ALLOWLIST") {
         var datasetAllowListArr = getEmailsList(document.getElementById("dataset-allow-list-emails"));
-        if (datasetAllowListArr.length) isDatasetValid = true;
-        else showErrorToast("Make sure that the dataset allow list is not empty");
+        if (!datasetAllowListArr.length) warnings.push("dataset");
     }
-    if (!isModelValid) {
+    if (modelModeEl && modelModeEl.value === "ALLOWLIST") {
         var modelAllowListArr = getEmailsList(document.getElementById("model-allow-list-emails"));
-        if (modelAllowListArr.length) isModelValid = true;
-        else showErrorToast("Make sure that the model allow list is not empty");
+        if (!modelAllowListArr.length) warnings.push("model");
     }
-    return isDatasetValid && isModelValid;
+    if (!warnings.length) return message;
+    var listWord = warnings.length > 1 ? "allow lists are" : "allow list is";
+    return message + " <strong>Note: the " + warnings.join(" and ") + " " + listWord + " empty " +
+        "- no " + warnings.join("/") + " associations will be auto-approved until " +
+        "you add emails.</strong>";
 }
 
+/** Handle the response of updating the associations policy. */
 function onUpdateAssociationsPolicySuccess(response) {
     if (response && response.status === "success") {
         showReloadModal({ title: "Benchmark Associations Policy Successfully Updated", seconds: 3 });
@@ -76,6 +34,7 @@ function onUpdateAssociationsPolicySuccess(response) {
     }
 }
 
+/** Save the associations policy (auto-approval modes and allow lists). */
 function updateAssociationsPolicy(saveBtn) {
     addSpinner(saveBtn);
     disableElements("#association-policy-form button, #association-policy-form input, #association-policy-form select");
@@ -98,6 +57,7 @@ function updateAssociationsPolicy(saveBtn) {
     ajaxRequest("/benchmarks/update_associations_policy", "POST", formData, onUpdateAssociationsPolicySuccess, "Failed to update associations policy");
 }
 
+/** Handle the response of updating the committee members. */
 function onUpdateCommitteeMembersSuccess(response) {
     if (response && response.status === "success") {
         showReloadModal({ title: "Benchmark Committee Members Successfully Updated", seconds: 3 });
@@ -106,6 +66,7 @@ function onUpdateCommitteeMembersSuccess(response) {
     }
 }
 
+/** Save the committee members emails. */
 function updateCommitteeMembers(saveBtn) {
     addSpinner(saveBtn);
     disableElements("#committee-members-form button, #committee-members-form input");
@@ -116,6 +77,7 @@ function updateCommitteeMembers(saveBtn) {
     ajaxRequest("/benchmarks/update_committee_members", "POST", formData, onUpdateCommitteeMembersSuccess, "Failed to update committee members");
 }
 
+/** Bind the page forms, email lists, results and dashboard form. */
 function initBenchmarkDetail() {
     document.querySelectorAll("form.benchmark-action-form").forEach(function (form) {
         form.addEventListener("submit", submitActionForm);
@@ -143,32 +105,12 @@ function initBenchmarkDetail() {
     parseEmails(document.getElementById("dataset-allow-list-emails"));
     parseEmails(document.getElementById("committee-members-emails"));
 
-    document.querySelectorAll(".email-input").forEach(function (input) {
-        input.addEventListener("keydown", function (e) {
-            if (e.key === "Enter" || e.key === " " || e.key === ",") {
-                e.preventDefault();
-                var email = this.value.trim().replace(/,$/, "");
-                if (email && isValidEmail(email)) {
-                    createEmailChip(email, this);
-                    this.value = "";
-                }
-            }
-        });
-        input.addEventListener("paste", function (e) {
-            e.preventDefault();
-            var clipboardData = (e.clipboardData || window.clipboardData).getData("text");
-            var rawEmails = clipboardData.split(/[\s,]+/);
-            rawEmails.forEach(function (email) {
-                email = email.trim();
-                if (email && isValidEmail(email)) createEmailChip(email, input);
-            });
-            input.value = "";
-        });
-    });
+    bindEmailInputs();
 
     var savePolicyBtn = document.getElementById("save-policy-btn");
     if (savePolicyBtn) savePolicyBtn.addEventListener("click", function (e) {
-        if (checkUpdateAssociationsPolicyForm()) showConfirmModal(e.currentTarget, updateAssociationsPolicy, "update benchmark associations policy?");
+        var message = buildAssociationsPolicyConfirmMessage("update benchmark associations policy?");
+        showConfirmModal(e.currentTarget, updateAssociationsPolicy, message);
     });
 
     var saveCommitteeBtn = document.getElementById("save-committee-members-btn");

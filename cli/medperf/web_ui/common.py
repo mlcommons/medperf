@@ -14,6 +14,7 @@ from starlette.responses import RedirectResponse
 from pydantic.datetime_parse import parse_datetime
 
 from medperf.enums import Status
+from medperf.exceptions import CleanExit
 from medperf.web_ui.auth import (
     security_token,
     AUTH_COOKIE_NAME,
@@ -27,9 +28,11 @@ from medperf.account_management.account_management import (
 )
 from medperf.web_ui.schemas import WebUITask
 from medperf.web_ui.utils import generate_uuid
+import medperf.help_texts as help_texts
 
 templates_folder_path = Path(resources.files("medperf.web_ui")) / "templates"
 templates = Jinja2Templates(directory=templates_folder_path)
+templates.env.globals["help_texts"] = help_texts
 
 logger = logging.getLogger(__name__)
 
@@ -38,14 +41,17 @@ ALLOWED_PATHS = [
     "/notifications",
     "/current_task",
     "/api/running_tasks",
+    "/api/task_history",
     "/api/stop_task",
+    "/api/support",
+    "/containers/auto_access_logs",
 ]
 
 
 def initialize_state_task(request: Request, task_name: str) -> str:
     form_data = dict(anyio.from_thread.run(lambda: request.form()))
     new_task_id = generate_uuid()
-    config.ui.start_task(new_task_id)
+    config.ui.start_task(new_task_id, task_name)
     request.app.state.task = WebUITask(
         id=new_task_id, name=task_name, running=True, formData=form_data
     )
@@ -62,6 +68,92 @@ def reset_state_task(request: Request):
     request.app.state.old_tasks.append(current_task)
     request.app.state.task = WebUITask()
     request.app.state.task_running = False
+
+
+class UITask:
+    """Run the body of a `with` block as a web UI task.
+
+    Replaces the boilerplate shared by the routes that run a MedPerf command:
+    it starts the task (so its logs are streamed to the page), catches and logs
+    any exception raised by the block, sets the task status and ends it. The
+    exception is not propagated: the route then sends the notification and
+    returns the task response, whatever the outcome.
+
+    The task status is one of:
+        "success": the block finished.
+        "info": the block stopped with a CleanExit, which, as in the CLI
+            (see decorators.clean_except), is not an error: e.g. the user
+            declined a prompt, or there was nothing to do.
+        "failed": the block raised any other exception.
+
+    Example:
+        with UITask(request, "register_container", response={"entity_id": None}) as task:
+            container_id = SubmitCube.run(...)
+            task.response["entity_id"] = container_id
+        task.notify(
+            success_message="Container successfully registered",
+            failure_message="Failed to register container",
+        )
+        return task.response
+
+    Attributes:
+        response (dict): the task response ("status", "error" and any extra field),
+            returned to the page and passed to the notification. "error" holds
+            the error, or the reason the task stopped.
+    """
+
+    def __init__(self, request: Request, task_name: str, response: dict = None):
+        self.request = request
+        self.task_name = task_name
+        self.response = {"status": "", "error": "", **(response or {})}
+
+    @property
+    def succeeded(self) -> bool:
+        return self.response["status"] == "success"
+
+    def __enter__(self):
+        initialize_state_task(self.request, task_name=self.task_name)
+        return self
+
+    def __exit__(self, exc_type, exc, traceback):
+        if exc is None:
+            self.response["status"] = "success"
+        elif isinstance(exc, CleanExit) and exc.medperf_status_code == 0:
+            self.response["status"] = "info"
+            self.response["error"] = str(exc)
+            logger.info(str(exc))
+        else:
+            self.response["status"] = "failed"
+            self.response["error"] = str(exc)
+            if isinstance(exc, Exception):
+                logger.exception(exc, exc_info=(exc_type, exc, traceback))
+        self._end()
+        # Exceptions are reported in the response instead of being raised;
+        # anything else (e.g. KeyboardInterrupt) still propagates
+        return exc is None or isinstance(exc, Exception)
+
+    def _end(self):
+        config.ui.end_task(self.response)
+        reset_state_task(self.request)
+
+    def notify(self, success_message: str, failure_message: str, url: str = ""):
+        """Notify the user of the task outcome: a failure also shows its error,
+        and a task stopped with a CleanExit shows the reason it stopped.
+
+        Args:
+            success_message (str): message shown if the task succeeded.
+            failure_message (str): message shown if the task failed.
+            url (str, optional): page opened from the notification.
+        """
+        if self.response["status"] == "info":
+            message = self.response["error"]
+        elif self.succeeded:
+            message = success_message
+        else:
+            message = failure_message
+        config.ui.add_notification(
+            message=message, return_response=self.response, url=url
+        )
 
 
 def custom_exception_handler(request: Request, exc: Exception):

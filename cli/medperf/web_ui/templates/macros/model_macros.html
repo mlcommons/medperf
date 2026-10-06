@@ -1,4 +1,5 @@
 {# ./cli/medperf/web_ui/templates/macros/model_macros.html #}
+{# Macros rendering models (listing cards). #}
 
 {% macro model_link(model) %}
 <span class="inline-flex items-center gap-2 p-2 rounded-lg {% if not model.is_valid %}invalid-card{% endif %}">

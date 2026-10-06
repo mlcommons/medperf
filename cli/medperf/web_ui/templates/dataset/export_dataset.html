@@ -1,6 +1,5 @@
+{# Dataset export form (backup to a tar.gz file). #}
 {% extends "detail_base.html" %}
-{% import "constants/forms_placeholders.html" as placeholders %}
-{% import "constants/tooltips.html" as tooltips %}
 {% import "macros/container_macros.html" as container_macros %}
 {% import "macros/modal_macros.html" as modal_macros %}
 
@@ -53,9 +52,9 @@
         <div>
             <label for="output-path" class="block text-secondary font-semibold mb-2">Output Folder</label>
             <div class="flex flex-wrap items-stretch gap-2">
-                <input type="text" id="output-path" name="output_path" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="{{ placeholders.export_dataset_output_path }}" {% if task_running %}disabled{% endif %} {% if dataset_export_running %}value="{{ form_data.get('output_path', '') }}"{% endif %}>
+                <input type="text" id="output-path" name="output_path" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="{{ help_texts.WebUIPlaceholders.dataset_export_output_path }}" {% if task_running %}disabled{% endif %} {% if dataset_export_running %}value="{{ form_data.get('output_path', '') }}"{% endif %}>
                 <button type="button" class="btn btn-sm btn-secondary" id="browse-output-btn" {% if task_running %}disabled{% endif %}>Browse</button>
-                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ tooltips.export_dataset_output_path }}"><i class="fas fa-info-circle text-lg"></i></span>
+                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ help_texts.Dataset.export_output_path }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
         <div class="text-center pt-4">

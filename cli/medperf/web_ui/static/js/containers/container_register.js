@@ -1,5 +1,10 @@
+/*
+ * Container registration page.
+ */
+
 var REDIRECT_BASE = "/containers/ui/display/";
 
+/** Enable the Register button only when the form is valid, and show the user what is missing (see form_validation.js). */
 function checkContainerFormValidity() {
     var containerFileEl = document.getElementById("container-file");
     var containerPath = containerFileEl ? containerFileEl.value.trim() : "";
@@ -14,11 +19,21 @@ function checkContainerFormValidity() {
     }
     var nameEl = document.getElementById("name");
     var nameVal = nameEl ? nameEl.value.trim() : "";
-    var isValid = !!nameVal && containerPath.length > 0 && (isEncrypted === "true" ? decryptionPath.length > 0 : isEncrypted === "false");
+
+    var problems = [];
+    if (!nameVal) problems.push({ field: nameEl, message: "Enter the container name" });
+    if (!containerPath) problems.push({ field: containerFileEl, message: "Enter the container config file path" });
+    if (isEncrypted === "true") {
+        if (!decryptionPath) problems.push({ field: decryptionEl, message: "Enter the decryption key file path" });
+    } else if (isEncrypted !== "false") {
+        problems.push({ field: null, message: "Choose whether the container is encrypted" });
+    }
+
     var btn = document.getElementById("register-container-btn");
-    if (btn) btn.disabled = !isValid;
+    if (btn) btn.disabled = !showFormProblems(btn, problems);
 }
 
+/** Bind the registration form and its path pickers. */
 function init() {
     var form = document.getElementById("register-container-form");
     if (form) {

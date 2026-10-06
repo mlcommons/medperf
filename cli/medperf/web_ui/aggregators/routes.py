@@ -16,8 +16,7 @@ from medperf.utils import get_pki_assets_path
 from medperf.web_ui.common import (
     check_user_api,
     check_user_ui,
-    initialize_state_task,
-    reset_state_task,
+    UITask,
     templates,
 )
 from medperf.enums import CryptoKeyType
@@ -48,10 +47,8 @@ def register_aggregator(
     aggregation_mlcube: int = Form(...),
     current_user: bool = Depends(check_user_api),
 ):
-    initialize_state_task(request, task_name="register_aggregator")
-    return_response = {"status": "", "error": "", "entity_id": None}
     aggregator_id = None
-    try:
+    with UITask(request, "register_aggregator", response={"entity_id": None}) as task:
         aggregator_id = SubmitAggregator.run(
             name=name,
             address=address.strip(),
@@ -59,28 +56,17 @@ def register_aggregator(
             admin_port=admin_port,
             aggregation_mlcube=aggregation_mlcube,
         )
-        return_response["status"] = "success"
-        return_response["entity_id"] = aggregator_id
-        notification_message = "Aggregator successfully registered"
-    except Exception as exp:
-        return_response["status"] = "failed"
-        return_response["error"] = str(exp)
-        notification_message = "Failed to register aggregator"
-        logger.exception(exp)
-
-    config.ui.end_task(return_response)
-    reset_state_task(request)
-    redirect_url = (
-        f"/aggregators/ui/display/{aggregator_id}"
-        if aggregator_id
-        else "/aggregators/register/ui"
+        task.response["entity_id"] = aggregator_id
+    task.notify(
+        success_message="Aggregator successfully registered",
+        failure_message="Failed to register aggregator",
+        url=(
+            f"/aggregators/ui/display/{aggregator_id}"
+            if aggregator_id
+            else "/aggregators/register/ui"
+        ),
     )
-    config.ui.add_notification(
-        message=notification_message,
-        return_response=return_response,
-        url=redirect_url,
-    )
-    return return_response
+    return task.response
 
 
 @router.get("/ui", response_class=HTMLResponse)
@@ -166,27 +152,14 @@ def get_server_certificate(
     aggregator_id: int = Form(...),
     current_user: bool = Depends(check_user_api),
 ):
-    initialize_state_task(request, task_name="aggregator_get_server_cert")
-    return_response = {"status": "", "error": ""}
-    try:
+    with UITask(request, "aggregator_get_server_cert") as task:
         GetServerCertificate.run(aggregator_id=aggregator_id)
-        return_response["status"] = "success"
-        notification_message = "Server certificate retrieved successfully"
-    except Exception as exp:
-        return_response["status"] = "failed"
-        return_response["error"] = str(exp)
-        notification_message = "Failed to get server certificate"
-        logger.exception(exp)
-
-    config.ui.end_task(return_response)
-    reset_state_task(request)
-    redirect_url = f"/aggregators/ui/display/{aggregator_id}"
-    config.ui.add_notification(
-        message=notification_message,
-        return_response=return_response,
-        url=redirect_url,
+    task.notify(
+        success_message="Server certificate retrieved successfully",
+        failure_message="Failed to get server certificate",
+        url=f"/aggregators/ui/display/{aggregator_id}",
     )
-    return return_response
+    return task.response
 
 
 @router.post("/run", response_class=JSONResponse)
@@ -197,25 +170,11 @@ def run_aggregator(
     publish_on: str = Form("127.0.0.1"),
     current_user: bool = Depends(check_user_api),
 ):
-    initialize_state_task(request, task_name="start_aggregator")
-
-    return_response = {"status": "", "error": ""}
-    notification_message = "Aggregator run started successfully"
-    try:
+    with UITask(request, "start_aggregator") as task:
         StartAggregator.run(training_exp_id=training_exp_id, publish_on=publish_on)
-        return_response["status"] = "success"
-    except Exception as exp:
-        return_response["status"] = "failed"
-        return_response["error"] = str(exp)
-        notification_message = "An error occurred while running the aggregator"
-        logger.exception(exp)
-
-    config.ui.end_task(return_response)
-    reset_state_task(request)
-    config.ui.add_notification(
-        message=notification_message,
-        return_response=return_response,
+    task.notify(
+        success_message="Aggregator run started successfully",
+        failure_message="An error occurred while running the aggregator",
         url=f"/aggregators/ui/display/{aggregator_id}",
     )
-
-    return return_response
+    return task.response

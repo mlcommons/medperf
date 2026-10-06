@@ -9,6 +9,7 @@ from medperf.commands.aggregator.run import StartAggregator
 
 from medperf.commands.list import EntityList
 from medperf.commands.view import EntityView
+import medperf.help_texts as help_texts
 
 app = typer.Typer()
 
@@ -16,20 +17,21 @@ app = typer.Typer()
 @app.command("submit")
 @clean_except
 def submit(
-    name: str = typer.Option(..., "--name", "-n", help="Name of the aggregator"),
+    name: str = typer.Option(..., "--name", "-n", help=help_texts.Aggregator.name),
     address: str = typer.Option(
-        ..., "--address", "-a", help="Address/domain of the aggregator"
+        ..., "--address", "-a", help=help_texts.Aggregator.address
     ),
-    port: int = typer.Option(
-        ..., "--port", "-p", help="The port which the aggregator will use"
-    ),
+    port: int = typer.Option(..., "--port", "-p", help=help_texts.Aggregator.port),
     admin_port: int = typer.Option(
         ...,
         "--admin-port",
-        help="The port which the aggregator will use to serve admin requests",
+        help=help_texts.Aggregator.admin_port,
     ),
     aggregation_mlcube: int = typer.Option(
-        ..., "--aggregation-container", "-m", help="Aggregation container UID"
+        ...,
+        "--aggregation-container",
+        "-m",
+        help=help_texts.Aggregator.aggregation_container,
     ),
 ):
     """Submits an aggregator"""
@@ -44,16 +46,16 @@ def run(
         ...,
         "--training_exp_id",
         "-t",
-        help="UID of training experiment whose aggregator to be run",
+        help=help_texts.Aggregator.start_training_exp_id,
     ),
     publish_on: str = typer.Option(
         "127.0.0.1",
         "--publish_on",
         "-p",
-        help="Host network interface on which the aggregator will listen",
+        help=help_texts.Aggregator.publish_on,
     ),
     overwrite: bool = typer.Option(
-        False, "--overwrite", help="Overwrite outputs if present"
+        False, "--overwrite", help=help_texts.Common.overwrite
     ),
 ):
     """Starts the aggregation server of a training experiment"""
@@ -65,9 +67,9 @@ def run(
 @clean_except
 def list(
     unregistered: bool = typer.Option(
-        False, "--unregistered", help="Get unregistered aggregators"
+        False, "--unregistered", help=help_texts.Aggregator.ls_unregistered
     ),
-    mine: bool = typer.Option(False, "--mine", help="Get current-user aggregators"),
+    mine: bool = typer.Option(False, "--mine", help=help_texts.Aggregator.ls_mine),
 ):
     """List aggregators"""
     EntityList.run(
@@ -81,28 +83,28 @@ def list(
 @app.command("view")
 @clean_except
 def view(
-    entity_id: Optional[int] = typer.Argument(None, help="Benchmark ID"),
+    entity_id: Optional[int] = typer.Argument(None, help=help_texts.Aggregator.id),
     format: str = typer.Option(
         "yaml",
         "-f",
         "--format",
-        help="Format to display contents. Available formats: [yaml, json]",
+        help=help_texts.Common.format,
     ),
     unregistered: bool = typer.Option(
         False,
         "--unregistered",
-        help="Display unregistered benchmarks if benchmark ID is not provided",
+        help=help_texts.Aggregator.view_unregistered,
     ),
     mine: bool = typer.Option(
         False,
         "--mine",
-        help="Display current-user benchmarks if benchmark ID is not provided",
+        help=help_texts.Aggregator.view_mine,
     ),
     output: str = typer.Option(
         None,
         "--output",
         "-o",
-        help="Output file to store contents. If not provided, the output will be displayed",
+        help=help_texts.Common.output,
     ),
 ):
     """Displays the information of one or more aggregators"""

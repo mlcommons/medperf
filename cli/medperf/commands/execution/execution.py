@@ -9,6 +9,7 @@ from medperf.commands.list import EntityList
 from medperf.commands.execution.create import BenchmarkExecution
 from medperf.commands.execution.submit import ResultSubmission
 from medperf.commands.execution.show_local_results import ShowLocalResults
+import medperf.help_texts as help_texts
 
 app = typer.Typer()
 
@@ -17,31 +18,28 @@ app = typer.Typer()
 @clean_except
 def create(
     benchmark_uid: int = typer.Option(
-        ..., "--benchmark", "-b", help="UID of the desired benchmark"
+        ..., "--benchmark", "-b", help=help_texts.Benchmark.uid
     ),
     data_uid: int = typer.Option(
-        ..., "--data_uid", "-d", help="Registered Dataset UID"
+        ..., "--data_uid", "-d", help=help_texts.Dataset.registered_uid
     ),
     model_uid: int = typer.Option(
-        ..., "--model_uid", "-m", help="UID of model to execute"
+        ..., "--model_uid", "-m", help=help_texts.Result.model_uid
     ),
     ignore_model_errors: bool = typer.Option(
         False,
         "--ignore-model-errors",
-        help="Ignore failing models, allowing for possibly submitting partial results",
+        help=help_texts.Common.ignore_model_errors,
     ),
     no_cache: bool = typer.Option(
         False,
         "--no-cache",
-        help="Execute even if results already exist",
+        help=help_texts.Common.no_cache,
     ),
     new_result: bool = typer.Option(
         False,
         "--new-result",
-        help=(
-            "Works if the result of the execution was already uploaded."
-            "This will rerun and create a new record."
-        ),
+        help=help_texts.Result.new_result,
     ),
 ):
     """Runs the benchmark execution step for a given benchmark, prepared dataset and model"""
@@ -59,17 +57,17 @@ def create(
 @app.command("submit")
 @clean_except
 def submit(
-    result_uid: int = typer.Option(None, "--result", "-r", help="UID of the result"),
+    result_uid: int = typer.Option(None, "--result", "-r", help=help_texts.Result.uid),
     benchmark_uid: int = typer.Option(
-        None, "--benchmark", "-b", help="UID of the desired benchmark"
+        None, "--benchmark", "-b", help=help_texts.Benchmark.uid
     ),
     data_uid: int = typer.Option(
-        None, "--data_uid", "-d", help="Registered Dataset UID"
+        None, "--data_uid", "-d", help=help_texts.Dataset.registered_uid
     ),
     model_uid: int = typer.Option(
-        None, "--model_uid", "-m", help="UID of model to execute"
+        None, "--model_uid", "-m", help=help_texts.Result.model_uid
     ),
-    approval: bool = typer.Option(False, "-y", help="Skip approval step"),
+    approval: bool = typer.Option(False, "-y", help=help_texts.Common.approval),
 ):
     """Submits already obtained results to the server"""
     ResultSubmission.run(
@@ -82,17 +80,17 @@ def submit(
 @clean_except
 def list(
     unregistered: bool = typer.Option(
-        False, "--unregistered", help="Get unregistered results"
+        False, "--unregistered", help=help_texts.Result.ls_unregistered
     ),
-    mine: bool = typer.Option(False, "--mine", help="Get current-user results"),
+    mine: bool = typer.Option(False, "--mine", help=help_texts.Result.ls_mine),
     benchmark: int = typer.Option(
-        None, "--benchmark", "-b", help="Get results for a given benchmark"
+        None, "--benchmark", "-b", help=help_texts.Result.benchmark_filter
     ),
     model: int = typer.Option(
-        None, "--model", "-m", help="Get results for a given model"
+        None, "--model", "-m", help=help_texts.Result.model_filter
     ),
     dataset: int = typer.Option(
-        None, "--dataset", "-d", help="Get reuslts for a given dataset"
+        None, "--dataset", "-d", help=help_texts.Result.dataset_filter
     ),
 ):
     """List results"""
@@ -118,31 +116,31 @@ def list(
 @app.command("view")
 @clean_except
 def view(
-    entity_id: Optional[str] = typer.Argument(None, help="Result ID"),
+    entity_id: Optional[str] = typer.Argument(None, help=help_texts.Result.id),
     format: str = typer.Option(
         "yaml",
         "-f",
         "--format",
-        help="Format to display contents. Available formats: [yaml, json]",
+        help=help_texts.Common.format,
     ),
     unregistered: bool = typer.Option(
         False,
         "--unregistered",
-        help="Display unregistered results if result ID is not provided",
+        help=help_texts.Result.view_unregistered,
     ),
     mine: bool = typer.Option(
         False,
         "--mine",
-        help="Display current-user results if result ID is not provided",
+        help=help_texts.Result.view_mine,
     ),
     benchmark: int = typer.Option(
-        None, "--benchmark", "-b", help="Get results for a given benchmark"
+        None, "--benchmark", "-b", help=help_texts.Result.benchmark_filter
     ),
     output: str = typer.Option(
         None,
         "--output",
         "-o",
-        help="Output file to store contents. If not provided, the output will be displayed",
+        help=help_texts.Common.output,
     ),
 ):
     """Displays the information of one or more results"""
@@ -154,19 +152,19 @@ def view(
 @app.command("show_local_results")
 @clean_except
 def show_local_results(
-    result_id: int = typer.Argument(..., help="Result ID"),
+    result_id: int = typer.Argument(..., help=help_texts.Result.id),
     format: str = typer.Option(
         "yaml",
         "-f",
         "--format",
-        help="Format to display contents. Available formats: [yaml, json]",
+        help=help_texts.Common.format,
     ),
     output: str = typer.Option(
         None,
         "--output",
         "-o",
-        help="Output file to store contents. If not provided, the output will be displayed",
+        help=help_texts.Common.output,
     ),
 ):
-    """Displays the information of one or more results"""
+    """Displays the local results of an execution"""
     ShowLocalResults.run(result_id, format, output)

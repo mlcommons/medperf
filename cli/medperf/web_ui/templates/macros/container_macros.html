@@ -1,3 +1,4 @@
+{# Macros rendering containers (listing cards). #}
 {% macro container_link(container) %}
 <span class="inline-flex items-center gap-2 p-2 rounded-lg {% if not container.is_valid %}invalid-card{% endif %}">
     <strong>

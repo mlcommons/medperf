@@ -1,3 +1,4 @@
+{# Message shown when a listing has no results. #}
 {% set sq = (search_query | default('', true)) %}
 {% set listing_has_search = (sq | length) >= 2 %}
 {% set listing_filters_active = mine_only or listing_has_search %}

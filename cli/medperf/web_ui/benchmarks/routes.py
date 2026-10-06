@@ -1,5 +1,7 @@
 import logging
 
+import anyio
+
 from fastapi import APIRouter, Depends, Form
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi import Request
@@ -7,7 +9,6 @@ from typing import Optional
 
 from medperf.commands.benchmark.submit import SubmitBenchmark
 from medperf.commands.execution.utils import filter_latest_executions
-import medperf.config as config
 from medperf.entities.benchmark import Benchmark
 from medperf.entities.dataset import Dataset
 from medperf.entities.cube import Cube
@@ -16,8 +17,7 @@ from medperf.account_management import get_medperf_user_data
 from medperf.entities.execution import Execution
 from medperf.web_ui.common import (
     check_user_api,
-    initialize_state_task,
-    reset_state_task,
+    UITask,
     templates,
     sort_associations_display,
     check_user_ui,
@@ -70,6 +70,53 @@ def benchmarks_ui(
     )
 
 
+def _results_with_data_owners(benchmark_id: int) -> list:
+    """Latest results of the benchmark, each with the email of its data owner
+    (or "Hidden" when the owner didn't share it)."""
+    results = filter_latest_executions(
+        Execution.all(filters={"benchmark": benchmark_id})
+    )
+    owners_emails = {
+        dataset["id"]: dataset["owner"]["email"]
+        for dataset in Benchmark.get_datasets_with_users(benchmark_id)
+    }
+    for result in results:
+        result.data_owner_email = owners_emails.get(result.dataset, "Hidden")
+    return results
+
+
+def _benchmark_management_context(benchmark_id: int) -> dict:
+    """What the benchmark managers see: the dataset and model associations
+    (sorted for display, with the associated entities) and the results."""
+    datasets_associations = Benchmark.get_datasets_associations(
+        benchmark_uid=benchmark_id
+    )
+    models_associations = Benchmark.get_models_associations(benchmark_uid=benchmark_id)
+    datasets_associations = sort_associations_display(datasets_associations)
+    models_associations = sort_associations_display(models_associations)
+    return {
+        "datasets_associations": datasets_associations,
+        "models_associations": models_associations,
+        "dataset_assoc_pending": any(
+            assoc["approval_status"] == "PENDING" for assoc in datasets_associations
+        ),
+        "model_assoc_pending": any(
+            assoc["approval_status"] == "PENDING" for assoc in models_associations
+        ),
+        "datasets": {
+            assoc["dataset"]: Dataset.get(assoc["dataset"])
+            for assoc in datasets_associations
+            if assoc["dataset"]
+        },
+        "models": {
+            assoc["model"]: Model.get(assoc["model"])
+            for assoc in models_associations
+            if assoc["model"]
+        },
+        "results": _results_with_data_owners(benchmark_id),
+    }
+
+
 @router.get("/ui/display/{benchmark_id}", response_class=HTMLResponse)
 def benchmark_detail_ui(
     request: Request,
@@ -77,76 +124,33 @@ def benchmark_detail_ui(
     current_user: bool = Depends(check_user_ui),
 ):
     benchmark = Benchmark.get(benchmark_id)
-    data_preparation_container = Cube.get(cube_uid=benchmark.data_preparation_mlcube)
-    reference_model = Model.get(benchmark.reference_model)
-    metrics_container = Cube.get(cube_uid=benchmark.data_evaluator_mlcube)
-    datasets_associations = []
-    models_associations = []
-    datasets = {}
-    models = {}
-    results = []
-    dataset_assoc_pending = False
-    model_assoc_pending = False
-    current_user_is_benchmark_owner = benchmark.owner == get_medperf_user_data()["id"]
-    current_user_can_manage_benchmark = benchmark.user_can_manage()
-    if current_user_can_manage_benchmark:
-        datasets_associations = Benchmark.get_datasets_associations(
-            benchmark_uid=benchmark_id
-        )
-        dataset_assoc_pending = any(
-            [i["approval_status"] == "PENDING" for i in datasets_associations]
-        )
-        models_associations = Benchmark.get_models_associations(
-            benchmark_uid=benchmark_id
-        )
-        model_assoc_pending = any(
-            [i["approval_status"] == "PENDING" for i in models_associations]
-        )
-        datasets_associations = sort_associations_display(datasets_associations)
-        models_associations = sort_associations_display(models_associations)
+    can_manage = benchmark.user_can_manage()
 
-        datasets = {
-            assoc["dataset"]: Dataset.get(assoc["dataset"])
-            for assoc in datasets_associations
-            if assoc["dataset"]
-        }
-        models = {
-            assoc["model"]: Model.get(assoc["model"])
-            for assoc in models_associations
-            if assoc["model"]
-        }
+    context = {
+        "request": request,
+        "entity": benchmark,
+        "entity_name": benchmark.name,
+        "data_preparation_container": Cube.get(
+            cube_uid=benchmark.data_preparation_mlcube
+        ),
+        "reference_model": Model.get(benchmark.reference_model),
+        "metrics_container": Cube.get(cube_uid=benchmark.data_evaluator_mlcube),
+        "current_user_is_benchmark_owner": benchmark.owner
+        == get_medperf_user_data()["id"],
+        "current_user_can_manage_benchmark": can_manage,
+        # Only benchmark managers see the associations and results
+        "datasets_associations": [],
+        "models_associations": [],
+        "dataset_assoc_pending": False,
+        "model_assoc_pending": False,
+        "datasets": {},
+        "models": {},
+        "results": [],
+    }
+    if can_manage:
+        context.update(_benchmark_management_context(benchmark_id))
 
-        # Results
-        results = Execution.all(filters={"benchmark": benchmark_id})
-        results = filter_latest_executions(results)
-        datasets_with_users = Benchmark.get_datasets_with_users(benchmark_id)
-        id_to_email_mapping = {}
-        for dataset in datasets_with_users:
-            id_to_email_mapping[dataset["id"]] = dataset["owner"]["email"]
-
-        for result in results:
-            result.data_owner_email = id_to_email_mapping.get(result.dataset, "Hidden")
-
-    return templates.TemplateResponse(
-        "benchmark/benchmark_detail.html",
-        {
-            "request": request,
-            "entity": benchmark,
-            "entity_name": benchmark.name,
-            "data_preparation_container": data_preparation_container,
-            "reference_model": reference_model,
-            "metrics_container": metrics_container,
-            "datasets_associations": datasets_associations,  #
-            "models_associations": models_associations,  #
-            "datasets": datasets,
-            "models": models,
-            "current_user_is_benchmark_owner": current_user_is_benchmark_owner,
-            "current_user_can_manage_benchmark": current_user_can_manage_benchmark,
-            "results": results,
-            "dataset_assoc_pending": dataset_assoc_pending,
-            "model_assoc_pending": model_assoc_pending,
-        },
-    )
+    return templates.TemplateResponse("benchmark/benchmark_detail.html", context)
 
 
 @router.get("/register/ui", response_class=HTMLResponse)
@@ -185,32 +189,20 @@ def register_benchmark(
         "data_evaluator_mlcube": evaluator_container,
         "state": "OPERATION",
     }
-    initialize_state_task(request, task_name="register_benchmark")
-    return_response = {"status": "", "error": "", "entity_id": None}
     benchmark_id = None
-    try:
+    with UITask(request, "register_benchmark", response={"entity_id": None}) as task:
         benchmark_id = SubmitBenchmark.run(
             benchmark_info,
             skip_data_preparation_step=skip_data_preparation_step,
             skip_compatibility_tests=skip_compatibility_tests,
         )
-        return_response["status"] = "success"
-        return_response["entity_id"] = benchmark_id
-        notification_message = "Benchmark successfully registered!"
-    except Exception as exp:
-        return_response["status"] = "failed"
-        return_response["error"] = str(exp)
-        notification_message = "Failed to register benchmark"
-        logger.exception(exp)
-
-    config.ui.end_task(return_response)
-    reset_state_task(request)
-    config.ui.add_notification(
-        message=notification_message,
-        return_response=return_response,
+        task.response["entity_id"] = benchmark_id
+    task.notify(
+        success_message="Benchmark successfully registered!",
+        failure_message="Failed to register benchmark",
         url=f"/benchmarks/ui/display/{benchmark_id}" if benchmark_id else "",
     )
-    return return_response
+    return task.response
 
 
 @router.post("/approve", response_class=JSONResponse)
@@ -221,31 +213,19 @@ def approve(
     dataset_id: Optional[int] = Form(None),
     current_user: bool = Depends(check_user_api),
 ):
-    initialize_state_task(request, task_name="approve_association")
-    return_response = {"status": "", "error": ""}
-    try:
+    with UITask(request, "approve_association") as task:
         Approval.run(
             benchmark_uid=benchmark_id,
             approval_status=Status.APPROVED,
             dataset_uid=dataset_id,
             model_uid=model_id,
         )
-        return_response["status"] = "success"
-        notification_message = "Association successfully approved"
-    except Exception as exp:
-        return_response["status"] = "failed"
-        return_response["error"] = str(exp)
-        notification_message = "Failed to approve association"
-        logger.exception(exp)
-
-    config.ui.end_task(return_response)
-    reset_state_task(request)
-    config.ui.add_notification(
-        message=notification_message,
-        return_response=return_response,
+    task.notify(
+        success_message="Association successfully approved",
+        failure_message="Failed to approve association",
         url=f"/benchmarks/ui/display/{benchmark_id}",
     )
-    return return_response
+    return task.response
 
 
 @router.post("/reject", response_class=JSONResponse)
@@ -256,31 +236,19 @@ def reject(
     dataset_id: Optional[int] = Form(None),
     current_user: bool = Depends(check_user_api),
 ):
-    initialize_state_task(request, task_name="reject_association")
-    return_response = {"status": "", "error": ""}
-    try:
+    with UITask(request, "reject_association") as task:
         Approval.run(
             benchmark_uid=benchmark_id,
             approval_status=Status.REJECTED,
             dataset_uid=dataset_id,
             model_uid=model_id,
         )
-        return_response["status"] = "success"
-        notification_message = "Association successfully rejected"
-    except Exception as exp:
-        return_response["status"] = "failed"
-        return_response["error"] = str(exp)
-        notification_message = "Failed to reject association"
-        logger.exception(exp)
-
-    config.ui.end_task(return_response)
-    reset_state_task(request)
-    config.ui.add_notification(
-        message=notification_message,
-        return_response=return_response,
+    task.notify(
+        success_message="Association successfully rejected",
+        failure_message="Failed to reject association",
         url=f"/benchmarks/ui/display/{benchmark_id}",
     )
-    return return_response
+    return task.response
 
 
 @router.post("/update_associations_policy", response_class=JSONResponse)
@@ -288,14 +256,18 @@ def update_associations_policy(
     request: Request,
     benchmark_id: int = Form(...),
     dataset_mode: Optional[str] = Form(None),
-    dataset_emails: Optional[str] = Form(None),
     model_mode: Optional[str] = Form(None),
-    model_emails: Optional[str] = Form(None),
     current_user: bool = Depends(check_user_api),
 ):
-    initialize_state_task(request, task_name="update_associations_policy")
-    return_response = {"status": "", "error": ""}
-    try:
+    # dataset_emails/model_emails are read from the raw form instead of via
+    # FastAPI's Form(None): an empty-string value there is indistinguishable
+    # from the field being absent, which breaks "explicitly clear the allow
+    # list" (as opposed to "the field wasn't part of this submission at all").
+    form_data = anyio.from_thread.run(lambda: request.form())
+    dataset_emails = form_data.get("dataset_emails")
+    model_emails = form_data.get("model_emails")
+
+    with UITask(request, "update_associations_policy") as task:
         UpdateAssociationsPolicy.run(
             benchmark_uid=benchmark_id,
             dataset_mode=dataset_mode,
@@ -303,54 +275,32 @@ def update_associations_policy(
             model_mode=model_mode,
             model_emails=model_emails,
         )
-        return_response["status"] = "success"
-        notification_message = "Associations policy updated"
-    except Exception as exp:
-        return_response["status"] = "failed"
-        return_response["error"] = str(exp)
-        notification_message = "Failed to update associations policy"
-        logger.exception(exp)
-
-    config.ui.end_task(return_response)
-    reset_state_task(request)
-    config.ui.add_notification(
-        message=notification_message,
-        return_response=return_response,
+    task.notify(
+        success_message="Associations policy updated",
+        failure_message="Failed to update associations policy",
         url=f"/benchmarks/ui/display/{benchmark_id}",
     )
-    return return_response
+    return task.response
 
 
 @router.post("/update_committee_members", response_class=JSONResponse)
 def update_committee_members(
     request: Request,
     benchmark_id: int = Form(...),
-    committee_emails: Optional[str] = Form(None),
+    committee_emails: str = Form(""),
     current_user: bool = Depends(check_user_api),
 ):
-    initialize_state_task(request, task_name="update_committee_members")
-    return_response = {"status": "", "error": ""}
-    try:
+    with UITask(request, "update_committee_members") as task:
         UpdateCommitteeMembers.run(
             benchmark_uid=benchmark_id,
             committee_emails=committee_emails,
         )
-        return_response["status"] = "success"
-        notification_message = "Committee members updated"
-    except Exception as exp:
-        return_response["status"] = "failed"
-        return_response["error"] = str(exp)
-        notification_message = "Failed to update committee members"
-        logger.exception(exp)
-
-    config.ui.end_task(return_response)
-    reset_state_task(request)
-    config.ui.add_notification(
-        message=notification_message,
-        return_response=return_response,
+    task.notify(
+        success_message="Committee members updated",
+        failure_message="Failed to update committee members",
         url=f"/benchmarks/ui/display/{benchmark_id}",
     )
-    return return_response
+    return task.response
 
 
 @router.post("/ui/dashboard", response_class=HTMLResponse)

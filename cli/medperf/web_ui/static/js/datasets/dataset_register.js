@@ -1,5 +1,10 @@
+/*
+ * Dataset registration page.
+ */
+
 var REDIRECT_BASE = "/datasets/ui/display/";
 
+/** Enable the Register button only when the form is valid, and show the user what is missing (see form_validation.js). */
 function checkDatasetFormValidity() {
     var benchmarkEl = document.getElementById("benchmark");
     var nameEl = document.getElementById("name");
@@ -7,14 +12,21 @@ function checkDatasetFormValidity() {
     var locationEl = document.getElementById("location");
     var dataPathEl = document.getElementById("data-path");
     var labelsPathEl = document.getElementById("labels-path");
-    var isValid = !!(nameEl && nameEl.value.trim()) && !!(descEl && descEl.value.trim()) && !!(locationEl && locationEl.value.trim()) && !!(dataPathEl && dataPathEl.value.trim()) && !!(labelsPathEl && labelsPathEl.value.trim());
-    if(window.ui_mode === window.evaluation_mode){
-        isValid = isValid  && !!(benchmarkEl && benchmarkEl.value);
+    var problems = [];
+    if (window.ui_mode === window.evaluation_mode && benchmarkEl && !benchmarkEl.value) {
+        problems.push({ field: benchmarkEl, message: "Select a benchmark" });
     }
+    requireValue(problems, nameEl, "Enter the dataset name");
+    requireValue(problems, descEl, "Enter a description");
+    requireValue(problems, locationEl, "Enter the dataset location");
+    requireValue(problems, dataPathEl, "Enter the data path");
+    requireValue(problems, labelsPathEl, "Enter the labels path");
+
     var btn = document.getElementById("register-dataset-btn");
-    if (btn) btn.disabled = !isValid;
+    if (btn) btn.disabled = !showFormProblems(btn, problems);
 }
 
+/** Bind the registration form and its path pickers. */
 function init() {
     var form = document.getElementById("register-dataset-form");
     if (form){

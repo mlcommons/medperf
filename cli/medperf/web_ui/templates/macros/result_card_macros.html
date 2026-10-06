@@ -1,3 +1,4 @@
+{# Macros rendering result cards. #}
 {% macro result_card(result) %}
 <div class="bg-card dark:bg-card rounded-xl p-6 shadow-lg border-2 border-border-brand dark:border-border mb-4 {% if not result.finalized %}unfinalized-result-card{% endif %}">
     <h3 class="text-lg font-bold text-ink mb-3">{{ result.name }}</h3>

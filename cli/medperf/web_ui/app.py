@@ -6,8 +6,9 @@ from medperf.logging.utils import log_machine_details
 
 import typer
 from starlette.middleware.base import BaseHTTPMiddleware
-from fastapi import FastAPI, Request
-from fastapi.responses import RedirectResponse
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from medperf import config
@@ -20,6 +21,7 @@ from medperf.web_ui.containers.routes import router as containers_router
 from medperf.web_ui.models.routes import router as models_router
 from medperf.web_ui.assets.routes import router as assets_router
 from medperf.web_ui.schemas import WebUITask
+from medperf.web_ui.history import WebUIHistoryStore
 from medperf.web_ui.training.routes import router as training_router
 from medperf.web_ui.aggregators.routes import router as aggregators_router
 from medperf.web_ui.yaml_fetch.routes import router as yaml_fetch_router
@@ -28,7 +30,9 @@ from medperf.web_ui.security_check import router as login_router
 from medperf.web_ui.events import router as events_router
 from medperf.web_ui.medperf_login import router as medperf_login
 from medperf.web_ui.settings import router as settings_router
+from medperf.web_ui.support import router as support_router
 from medperf.web_ui.auth import wrap_openapi, NotAuthenticatedException, security_token
+import medperf.help_texts as help_texts
 
 JS_VERSION = "1.0.1"
 
@@ -66,6 +70,7 @@ web_app.include_router(login_router)
 web_app.include_router(events_router)
 web_app.include_router(medperf_login)
 web_app.include_router(settings_router, prefix="/settings")
+web_app.include_router(support_router, prefix="/api/support")
 
 static_folder_path = Path(resources.files("medperf.web_ui")) / "static"
 
@@ -91,15 +96,15 @@ def startup_event():
     # List of [schemas.Notification] will appear in the notifications tab
     web_app.state.notifications = []
 
-    # Container auto grant access initial values
-    web_app.state.model_auto_give_access = {
-        "running": False,
-        "worker": None,
-        "benchmark": 0,
-        "model": 0,
-        "emails": "",
-        "interval": 0,
-    }
+    # Dictionary for tracking auto give access status for each model and benchmark combination
+    web_app.state.model_auto_give_access = {}
+
+    # Restore saved notifications and finished tasks. A storage problem must not
+    # prevent the web UI from starting, so it only disables the history.
+    try:
+        config.ui.attach_history_store(WebUIHistoryStore(config.webui_db))
+    except Exception as e:
+        logging.exception(f"Failed to load the web UI history: {e}")
 
     # Set default UI mode to evaluation on startup, will be updated by NavModeMiddleware on each request based on cookie
     web_app.state.ui_mode = UI_MODE_EVALUATION
@@ -129,6 +134,26 @@ def not_authenticated_exception_handler(
     return RedirectResponse(url=exc.redirect_url)
 
 
+@web_app.exception_handler(HTTPException)
+def http_exception_handler(request: Request, exc: HTTPException):
+    # Reshape into the {"status", "error"} format for consistency with other error responses,
+    # instead of FastAPI's default {"detail": ...} body.
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"status": "failed", "error": exc.detail},
+    )
+
+
+@web_app.exception_handler(RequestValidationError)
+def validation_exception_handler(request: Request, exc: RequestValidationError):
+    messages = []
+    for error in exc.errors():
+        field = ".".join(str(p) for p in error.get("loc", []) if p != "body")
+        messages.append(f"{field}: {error['msg']}" if field else error["msg"])
+    message = "\n".join(messages) if messages else "Invalid request data."
+    return JSONResponse(status_code=422, content={"status": "failed", "error": message})
+
+
 @web_app.get("/", include_in_schema=False)
 def read_root(request: Request):
     if request.app.state.ui_mode == UI_MODE_TRAINING:
@@ -154,7 +179,7 @@ app = typer.Typer()
 @app.command("run")
 @clean_except
 def run(
-    port: int = typer.Option(8100, "--port", help="port to use"),
+    port: int = typer.Option(8100, "--port", help=help_texts.WebUI.port),
 ):
     """Runs a local web UI"""
     import uvicorn

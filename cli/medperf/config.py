@@ -71,6 +71,7 @@ pki_assets = str(config_storage / ".pki_assets")
 container_keys_dir = str(config_storage / ".container_keys")
 cc_artifacts_dir = str(config_storage / ".cc_artifacts")
 webui_host_props = str(config_storage / ".webui_host_props")
+webui_db = str(config_storage / ".webui_db")
 
 # TODO: should we change this?
 safe_root = ""  # Base path to accept input paths from user.
@@ -303,6 +304,10 @@ webui_max_log_messages = 200  # Max nb of messages that will appear in LogPanel 
 webui_max_chunk_age = 2.0  # Max 2 seconds as age of a chunk
 webui_max_chunk_length = 20  # Max 20 events in a chunk
 webui_max_chunk_size = 64 * 1024  # Max 64 Bytes as chunk size
+webui_max_saved_notifications = 50  # Max nb of notifications kept in the WebUI database
+webui_max_saved_tasks = 10  # Max nb of finished tasks kept in the WebUI database
+# Recipients of the "Get support" email drafts (if empty, the user fills them in)
+webui_support_emails = ["mohammad.kassem@mlcommons.org", "hasan.kassem@mlcommons.org"]
 
 
 default_profile_name = "default"

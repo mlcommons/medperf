@@ -1,3 +1,4 @@
+/** Show the result stored in the element's `data-result` (JSON). */
 function showResult(element) {
     var resultStr = element.getAttribute("data-result");
     var result = {};

@@ -1,4 +1,12 @@
+/*
+ * Shared helpers of all the pages: dates, alerts, modals (confirmation, error,
+ * reload), AJAX requests, running tasks (submitting action forms, streaming
+ * their logs, answering prompts), the log panel and page initialization.
+ *
+ * Loaded by base.html after modal-queue.js and notifications.js.
+ */
 
+/** Format a date for display, in the user's locale and time zone. */
 function formatDate(dateString) {
     var date = new Date(dateString);
     var now = new Date();
@@ -14,6 +22,7 @@ function formatDate(dateString) {
     return date.toLocaleDateString(undefined, options);
 }
 
+/** Return how long ago a date was (e.g. "5 min ago"); accepts seconds since epoch or a date string. */
 function timeAgo(secondsSinceEpoch) {
     var ts = typeof secondsSinceEpoch === "number" ? secondsSinceEpoch * 1000 : new Date(secondsSinceEpoch).getTime();
     var seconds = Math.floor((Date.now() - ts) / 1000);
@@ -27,6 +36,10 @@ function timeAgo(secondsSinceEpoch) {
     return days + " day" + (days > 1 ? "s" : "") + " ago";
 }
 
+/**
+ * Fill the elements having a `data-date` attribute with the formatted date
+ * (or its age, if `data-date-format="timeago"`).
+ */
 function applyDateFormatting() {
     document.querySelectorAll("[data-date]").forEach(function (el) {
         var date = el.getAttribute("data-date");
@@ -41,6 +54,13 @@ function applyDateFormatting() {
 
 var DISPLAY_ALERT_AUTO_DISMISS_MS = 5000;
 
+/**
+ * Show an alert that disappears after `durationMs` (5 seconds by default).
+ *
+ * @param {string} type - "success", "danger", "warning" or "info".
+ * @param {string} message - text of the alert.
+ * @param {number} [durationMs]
+ */
 function displayAlert(type, message, durationMs) {
     var duration = durationMs != null ? durationMs : DISPLAY_ALERT_AUTO_DISMISS_MS;
     var classMap = {
@@ -86,27 +106,35 @@ function displayAlert(type, message, durationMs) {
     alertEl._alertTimeoutId = timeoutId;
 }
 
+/** Escape a text so it can be safely inserted as HTML. */
 function escapeHtml(text) {
     var div = document.createElement("div");
     div.textContent = text;
     return div.innerHTML;
 }
 
+/** Remove an alert with its exit animation. */
 function removeAlert(alertEl) {
     if (alertEl._alertTimeoutId) clearTimeout(alertEl._alertTimeoutId);
     alertEl.classList.add("display-alert-out");
     setTimeout(function () { alertEl.remove(); }, 280);
 }
 
+/** Remove all the alerts at once. */
 function clearAlerts() {
     document.querySelectorAll(".display-alert").forEach(function (a) { a.remove(); });
 }
 
+/** Log a failed AJAX request. */
 function onRequestFailure(xhr, status, error, errorMessage) {
     console.log(errorMessage, error);
     console.error("Error:", xhr && xhr.responseText);
 }
 
+/**
+ * Send a request and pass its JSON response to `successFunctionCallback`.
+ * `requestBody` can be FormData or an object (sent as JSON).
+ */
 function ajaxRequest(requestUrl, requestType, requestBody, successFunctionCallback, errorMessage) {
     var opts = { method: requestType, headers: {} };
     if (requestBody instanceof FormData) {
@@ -127,14 +155,21 @@ function ajaxRequest(requestUrl, requestType, requestBody, successFunctionCallba
         });
 }
 
+/** Disable all the elements matching a selector. */
 function disableElements(selector) {
     document.querySelectorAll(selector).forEach(function (el) { el.disabled = true; });
 }
 
+/** Enable all the elements matching a selector. */
 function enableElements(selector) {
     document.querySelectorAll(selector).forEach(function (el) { el.disabled = false; });
 }
 
+/**
+ * Show a modal counting down before reloading the page (or going to `opts.url`).
+ *
+ * @param {{title: string, seconds: number, url: (string|undefined)}} opts
+ */
 function showReloadModal(opts) {
     var title = opts.title, seconds = opts.seconds, url = opts.url || null;
     showModal({
@@ -146,6 +181,7 @@ function showReloadModal(opts) {
     });
 }
 
+/** Countdown of the reload modal. */
 function timer(opts) {
     var seconds = opts.seconds, url = opts.url || null;
     var popup = document.getElementById("popup-text");
@@ -162,6 +198,7 @@ function timer(opts) {
     }, 1000);
 }
 
+/** Mark all the stages of the running task as completed. */
 function markAllStagesAsComplete() {
     var list = document.getElementById("stages-list");
     if (list) list.querySelectorAll(":scope > li").forEach(function (el) { markStageAsComplete(el); });
@@ -169,6 +206,7 @@ function markAllStagesAsComplete() {
 
 var STAGE_SPINNER_CLASS = "inline-block w-5 h-5 flex-shrink-0 border-2 border-brand border-t-transparent dark:border-t-transparent rounded-full animate-spin";
 
+/** Add a spinner to an element (buttons/links are also disabled). */
 function addSpinner(element) {
     if (!element) return;
     var span = document.createElement("span");
@@ -186,6 +224,7 @@ function addSpinner(element) {
     }
 }
 
+/** Show the running task panel with the given title, and scroll to it. */
 function showPanel(title) {
     var panelTitle = document.getElementById("panel-title");
     var panel = document.getElementById("panel");
@@ -195,15 +234,37 @@ function showPanel(title) {
     window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
 }
 
+/** Show an error modal with the error of a failed request/task response. */
 function showErrorModal(errorTitle, response) {
+    // A task stopped with a CleanExit (status "info") isn't an error,
+    // e.g. the user declined a prompt: show its reason instead
+    if (response && response.status === "info") {
+        showInfoModal("Task stopped", response.error);
+        return;
+    }
     var responseError = (response && response.error) || "";
     var responseStatus = (response && response.status) || "";
-    var errorText = (responseError + (responseError ? "<br>" : "") + responseStatus).replace(/\n/g, "<br>");
+    // Server errors are plain text: escape them, keeping their line breaks
+    var errorText = escapeHtml(responseError + (responseError ? "\n" : "") + responseStatus).replace(/\n/g, "<br>");
+    if (!errorText) errorText = "Something went wrong. Please try again.";
     var modalBody = "<p id=\"error-text\" class=\"text-lg font-bold text-danger\">" + errorText + "</p><p class=\"text-end mt-3\"><button type=\"button\" class=\"btn btn-xs btn-secondary\" onclick=\"reloadPage();\">Click here to reload</button></p>";
     var modalFooter = "<button type=\"button\" class=\"btn btn-sm btn-danger close-modal-btn\">Hide</button>";
     showModal({ title: errorTitle, body: modalBody, footer: modalFooter });
 }
 
+/**
+ * Show an informative (non-error) message in a modal, with a way to reload the page.
+ */
+function showInfoModal(title, message) {
+    var modalBody = "<p id=\"info-text\" class=\"text-lg font-bold text-ink\">" + escapeHtml(message || "") + "</p><p class=\"text-end mt-3\"><button type=\"button\" class=\"btn btn-xs btn-secondary\" onclick=\"reloadPage();\">Click here to reload</button></p>";
+    var modalFooter = "<button type=\"button\" class=\"btn btn-sm btn-secondary close-modal-btn\">Hide</button>";
+    showModal({ title: title, body: modalBody, footer: modalFooter });
+}
+
+/**
+ * Ask the user to confirm an action; `callback(clickedBtn)` runs if confirmed.
+ * `message` completes "Are you sure you want to ...".
+ */
 function showConfirmModal(clickedBtn, callback, message) {
     var modalTitle = "Confirmation Prompt";
     var modalBody = "<p id=\"confirm-text\" class=\"text-lg\">Are you sure you want to " + message + "</p>";
@@ -222,6 +283,7 @@ function showConfirmModal(clickedBtn, callback, message) {
     showModal({ title: modalTitle, body: modalBody, footer: modalFooter, extra_func: extra });
 }
 
+/** Return the ID of the task currently running on the server. */
 async function getTaskId() {
     try {
         const response = await fetch("/current_task");
@@ -238,6 +300,10 @@ async function getTaskId() {
     }
 }
 
+/**
+ * Send the user's answer to the prompt of the running task, then resume
+ * streaming its events.
+ */
 function respondToPrompt(value) {
     var formData = new FormData();
     formData.append("is_approved", value ? "true" : "false");
@@ -250,6 +316,10 @@ function respondToPrompt(value) {
     streamEvents(logPanel, stagesList, currentStageElement);
 }
 
+/**
+ * Resume showing a task that is still running when the page is (re)loaded:
+ * its panel and logs (including the ones already emitted).
+ */
 function resumeRunningTask(formSelector) {
     const submitBtn = document.querySelector(formSelector + ' button[type="submit"]');
     const panelTitle = document.querySelector(formSelector)?.getAttribute("data-panel-title");
@@ -260,16 +330,58 @@ function resumeRunningTask(formSelector) {
     streamEvents(logPanel, stagesList, currentStageElement, true);
 }
 
+// Some tasks start containers that keep running after the task itself ends
+// (a training, an aggregator). Their pages poll the server to show whether
+// they are still running, and can stop them.
+var RUNNING_TASKS_POLL_MS = 2000;
+var runningContainerPollers = {};
+
+/**
+ * Poll the containers running on the server and call `onUpdate(isRunning)`
+ * with whether the container of the given task is one of them.
+ */
+function watchRunningContainer(taskName, onUpdate) {
+    function poll() {
+        fetch("/api/running_tasks", { method: "GET" })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (data && Array.isArray(data.tasks)) onUpdate(data.tasks.indexOf(taskName) !== -1);
+            })
+            .catch(function () {});
+    }
+    poll();
+    if (!runningContainerPollers[taskName]) {
+        runningContainerPollers[taskName] = setInterval(poll, RUNNING_TASKS_POLL_MS);
+    }
+}
+
+/**
+ * Ask the server to stop the container of the given task. `button` is
+ * disabled while the request runs; `onStopped` is called once it's stopped.
+ */
+function stopRunningContainer(taskName, button, onStopped) {
+    if (button) button.disabled = true;
+    var formData = new FormData();
+    formData.append("task_name", taskName);
+    fetch("/api/stop_task", { method: "POST", body: formData })
+        .then(function (r) { if (r.ok) onStopped(); })
+        .catch(function () {})
+        .finally(function () { if (button) button.disabled = false; });
+}
+
+/** Reload the current page. */
 function reloadPage() {
     window.location.reload();
 }
 
+/** Listing pages: reload the list with only the user's entities, or all of them. */
 function getEntities(switchElement) {
     var entity_name = switchElement.getAttribute("data-entity-name");
     var mine_only = switchElement.checked;
     window.location.href = "/" + entity_name + "/ui?mine_only=" + (mine_only ? "true" : "false");
 }
 
+/** Handle the logout response. */
 function onLogoutSuccess(response) {
     if (response && response.status === "success") {
         showReloadModal({ title: "Successfully Logged Out", seconds: 1, url: "/medperf_login" });
@@ -278,14 +390,16 @@ function onLogoutSuccess(response) {
     }
 }
 
+/** Log the user out. */
 function logout() {
     ajaxRequest("/logout", "POST", null, onLogoutSuccess, "Error logging out:");
 }
 
+/** Show a critical warning sent by the server, which the user must acknowledge. */
 function showCriticalPopup(data) {
     var modalTitle = "Critical Warning";
     var modalTitleClasses = "font-bold text-danger";
-    var modalBody = "<p id=\"warning-text\" class=\"text-lg font-bold text-danger\">" + (data && data.message ? data.message : "") + "</p>";
+    var modalBody = "<p id=\"warning-text\" class=\"text-lg font-bold text-danger\">" + escapeHtml(data && data.message ? data.message : "") + "</p>";
     var modalFooter = "<button id=\"acknowledge-btn\" type=\"button\" class=\"btn btn-sm btn-primary close-modal-btn\" onclick=\"acknowledgeWarning(this);\" data-event-id=\"" + (data && data.id ? data.id : "") + "\">Acknowledge</button>";
     var extra = function () {
         document.getElementById("acknowledge-btn");
@@ -293,6 +407,7 @@ function showCriticalPopup(data) {
     showModal({ title: modalTitle, body: modalBody, footer: modalFooter, titleClasses: modalTitleClasses, extra_func: extra });
 }
 
+/** Tell the server a critical warning was acknowledged, so it isn't shown again. */
 function acknowledgeWarning(ackBtn) {
     var eventId = ackBtn.getAttribute("data-event-id");
     var formData = new FormData();
@@ -306,6 +421,7 @@ window.onPromptComplete = null;
 
 var isLogPanelExpanded = false;
 
+/** Expand or collapse the log panel of the running task. */
 function setLogPanelExpanded(expanded) {
     var container = document.getElementById("log-panel-container");
     var btn = document.getElementById("toggle-log-panel-btn");
@@ -329,14 +445,17 @@ function setLogPanelExpanded(expanded) {
     btn.setAttribute("aria-expanded", expanded ? "true" : "false");
 }
 
+/** Collapse the log panel. */
 function collapseLogPanel() {
     setLogPanelExpanded(false);
 }
 
+/** Expand the log panel if collapsed, collapse it otherwise. */
 function toggleLogPanel() {
     setLogPanelExpanded(!isLogPanelExpanded);
 }
 
+/** Bind the expand/collapse button of the log panel (collapsed at first). */
 function initializeLogPanelCollapse() {
     var btn = document.getElementById("toggle-log-panel-btn");
     if (!btn) return;
@@ -344,6 +463,7 @@ function initializeLogPanelCollapse() {
     collapseLogPanel();
 }
 
+/** Close the page modal when one of its `.close-modal-btn` buttons is clicked. */
 function bindModalCloseButtons() {
     var footer = document.getElementById("page-modal-footer");
     if (footer) footer.addEventListener("click", function (e) {
@@ -361,6 +481,10 @@ document.body.addEventListener("click", function (e) {
     }
 });
 
+/**
+ * Return the default handler of an action form response: show a reload
+ * modal on success (going to the created entity if any), an error otherwise.
+ */
 function onActionSuccess(panelTitle) {
     return function (response) {
         markAllStagesAsComplete();
@@ -373,11 +497,19 @@ function onActionSuccess(panelTitle) {
                 url: url
             });
         } else {
-            showErrorModal("Something when wrong while " + panelTitle.toLowerCase(), response);
+            showErrorModal("Something went wrong while " + panelTitle.toLowerCase(), response);
         }
     };
 }
 
+/**
+ * Submit an action form as a task: disable the forms, show the task panel
+ * and stream the task logs until its response.
+ *
+ * The form can customize this with attributes: `data-panel-title`,
+ * `data-success-handler` (name of the response handler) and
+ * `data-after-submit` (name of a function called with the form once submitted).
+ */
 async function submitActionFormWithForm(form) {
     const formData = new FormData(form);
     const panelTitle = form.getAttribute("data-panel-title") || "Running task";
@@ -394,7 +526,8 @@ async function submitActionFormWithForm(form) {
         "POST",
         formData,
         function (response) {
-            if (response && (response.status === "success" || response.status === "failed")) {
+            // Task responses have a status: "success", "failed" or "info"
+            if (response && response.status) {
                 if (typeof window.onPromptComplete === "function") {
                     window.onPromptComplete(response);
                     window.onPromptComplete = null;
@@ -405,8 +538,16 @@ async function submitActionFormWithForm(form) {
     );
     window.taskId = await getTaskId();
     streamEvents(logPanel, stagesList, currentStageElement);
+
+    // Optional page hook, e.g. to start polling a container the task started
+    var afterSubmitName = form.getAttribute("data-after-submit");
+    if (afterSubmitName && typeof window[afterSubmitName] === "function") window[afterSubmitName](form);
 }
 
+/**
+ * Submit handler of the action forms: asks for confirmation (the form's
+ * `data-confirm-message`), then submits the form as a task.
+ */
 function submitActionForm(e) {
     e.preventDefault();
     var form = e.target;
@@ -414,6 +555,10 @@ function submitActionForm(e) {
     showConfirmModal(form, submitActionFormWithForm, msg);
 }
 
+/**
+ * Initialize what all the pages share: dates, modals, notifications, the log
+ * panel, prompts, YAML links and the logout button.
+ */
 function onDomReady() {
     applyDateFormatting();
     bindModalCloseButtons();

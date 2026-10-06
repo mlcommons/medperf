@@ -6,6 +6,7 @@ from medperf.commands.association.list import ListAssociations
 from medperf.commands.association.approval import Approval
 from medperf.commands.association.priority import AssociationPriority
 from medperf.enums import Status
+import medperf.help_texts as help_texts
 
 app = typer.Typer()
 
@@ -13,12 +14,16 @@ app = typer.Typer()
 @app.command("ls")
 @clean_except
 def list(
-    benchmark: bool = typer.Option(False, "-b", help="list benchmark associations"),
-    training_exp: bool = typer.Option(False, "-t", help="list training associations"),
-    dataset: bool = typer.Option(False, "-d", help="list dataset associations"),
-    model: bool = typer.Option(False, "-m", help="list models associations"),
+    benchmark: bool = typer.Option(
+        False, "-b", help=help_texts.Association.ls_benchmark
+    ),
+    training_exp: bool = typer.Option(
+        False, "-t", help=help_texts.Association.ls_training_exp
+    ),
+    dataset: bool = typer.Option(False, "-d", help=help_texts.Association.ls_dataset),
+    model: bool = typer.Option(False, "-m", help=help_texts.Association.ls_model),
     approval_status: str = typer.Option(
-        None, "--approval-status", help="Approval status"
+        None, "--approval-status", help=help_texts.Association.approval_status
     ),
 ):
     """Display all associations related to the current user.
@@ -33,19 +38,25 @@ def list(
 @app.command("approve")
 @clean_except
 def approve(
-    benchmark_uid: int = typer.Option(None, "--benchmark", "-b", help="Benchmark UID"),
-    training_exp_uid: int = typer.Option(
-        None, "--training_exp", "-t", help="Training exp UID"
+    benchmark_uid: int = typer.Option(
+        None, "--benchmark", "-b", help=help_texts.Benchmark.uid
     ),
-    dataset_uid: int = typer.Option(None, "--dataset", "-d", help="Dataset UID"),
-    model_uid: int = typer.Option(None, "--model", "-m", help="Model container UID"),
+    training_exp_uid: int = typer.Option(
+        None, "--training_exp", "-t", help=help_texts.Training.uid
+    ),
+    dataset_uid: int = typer.Option(
+        None, "--dataset", "-d", help=help_texts.Dataset.uid
+    ),
+    model_uid: int = typer.Option(None, "--model", "-m", help=help_texts.Model.uid),
 ):
-    """Approves an association between a benchmark and a dataset or model container
+    """Approves an association between a benchmark or a training experiment
+    and a dataset or model
 
     Args:
-        benchmark_uid (int): Benchmark UID.
+        benchmark_uid (int, optional): Benchmark UID.
+        training_exp_uid (int, optional): Training experiment UID.
         dataset_uid (int, optional): Dataset UID.
-        model_uid (int, optional): Model container UID.
+        model_uid (int, optional): Model UID.
     """
     Approval.run(
         Status.APPROVED,
@@ -60,19 +71,25 @@ def approve(
 @app.command("reject")
 @clean_except
 def reject(
-    benchmark_uid: int = typer.Option(None, "--benchmark", "-b", help="Benchmark UID"),
-    training_exp_uid: int = typer.Option(
-        None, "--training_exp", "-t", help="Training exp UID"
+    benchmark_uid: int = typer.Option(
+        None, "--benchmark", "-b", help=help_texts.Benchmark.uid
     ),
-    dataset_uid: int = typer.Option(None, "--dataset", "-d", help="Dataset UID"),
-    model_uid: int = typer.Option(None, "--model", "-m", help="Model container UID"),
+    training_exp_uid: int = typer.Option(
+        None, "--training_exp", "-t", help=help_texts.Training.uid
+    ),
+    dataset_uid: int = typer.Option(
+        None, "--dataset", "-d", help=help_texts.Dataset.uid
+    ),
+    model_uid: int = typer.Option(None, "--model", "-m", help=help_texts.Model.uid),
 ):
-    """Rejects an association between a benchmark and a dataset or model container
+    """Rejects an association between a benchmark or a training experiment
+    and a dataset or model
 
     Args:
-        benchmark_uid (int): Benchmark UID.
+        benchmark_uid (int, optional): Benchmark UID.
+        training_exp_uid (int, optional): Training experiment UID.
         dataset_uid (int, optional): Dataset UID.
-        model_uid (int, optional): Model container UID.
+        model_uid (int, optional): Model UID.
     """
     Approval.run(
         Status.REJECTED,
@@ -87,9 +104,13 @@ def reject(
 @app.command("set_priority")
 @clean_except
 def set_priority(
-    benchmark_uid: int = typer.Option(..., "--benchmark", "-b", help="Benchmark UID"),
-    model_uid: int = typer.Option(..., "--model", "-m", help="Model container UID"),
-    priority: int = typer.Option(..., "--priority", "-p", help="Priority, an integer"),
+    benchmark_uid: int = typer.Option(
+        ..., "--benchmark", "-b", help=help_texts.Benchmark.uid
+    ),
+    model_uid: int = typer.Option(..., "--model", "-m", help=help_texts.Model.uid),
+    priority: int = typer.Option(
+        ..., "--priority", "-p", help=help_texts.Association.priority
+    ),
 ):
     """Updates the priority of a benchmark-model association. Model priorities within
     a benchmark define which models need to be executed before others when
@@ -106,7 +127,7 @@ def set_priority(
 
     Args:
         benchmark_uid (int): Benchmark UID.
-        model_uid (int): Model container UID.
+        model_uid (int): Model UID.
         priority (int): Priority, an integer
     """
     AssociationPriority.run(benchmark_uid, model_uid, priority)

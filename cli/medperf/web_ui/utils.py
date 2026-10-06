@@ -1,3 +1,4 @@
+import re
 import uuid
 from typing import Optional, Tuple
 
@@ -10,6 +11,15 @@ from medperf.utils import sanitize_path
 
 MIN_SEARCH_LENGTH = 2
 SEARCH_DEBOUNCE_MS = 300
+
+_ANSI_ESCAPE_RE = re.compile(
+    r"[\u001b\u009b][\[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]"
+)
+
+
+def strip_ansi(text: str) -> str:
+    """Remove terminal color/style escape sequences from a string."""
+    return _ANSI_ESCAPE_RE.sub("", text or "")
 
 
 def normalize_search_query(search: Optional[str]) -> str:

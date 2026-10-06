@@ -1,3 +1,11 @@
+/*
+ * The page modal (#page-modal in base.html), shared by all dialogs.
+ *
+ * Only one dialog is shown at a time: requesting a modal while another one is
+ * open queues it until the current one is closed. Exposes showModal,
+ * requestModal, hidePageModal, onModalHidden and resetModal on `window`.
+ */
+
 (function () {
     "use strict";
 
@@ -10,12 +18,14 @@
     window.modalQueue = window.modalQueue || [];
     window.modalOpen = window.modalOpen || false;
 
+    /** Shortcut for document.getElementById. */
     function getEl(id) {
         return document.getElementById(id);
     }
 
     const dialogBaseClass = "rounded-2xl shadow-xl w-full mx-auto relative bg-card dark:bg-card border-2 border-border-brand dark:border-border max-h-[90vh] flex flex-col scale-95 transition-transform duration-300 ease-out";
 
+    /** Reset the modal to its default size and empty content. */
     function resetModal() {
         const dialog = getEl(dialogId);
         const title = getEl(titleId);
@@ -25,6 +35,12 @@
         if (getEl(footerId)) getEl(footerId).innerHTML = "";
     }
 
+    /**
+     * Fill the modal with the given options and show it.
+     *
+     * @param {Object} options - title, body and footer (HTML), titleClasses,
+     *     modalClasses (dialog size), extra_func (called once the content is set).
+     */
     function showModalImpl(options) {
         const {
             title = "",
@@ -63,6 +79,7 @@
         document.body.classList.add("overflow-hidden");
     }
 
+    /** Hide the modal (the next queued one, if any, is shown by onModalHidden). */
     function hideModal() {
         const modalEl = getEl(modalId);
         const dialog = getEl(dialogId);
@@ -73,6 +90,7 @@
         document.body.classList.remove("overflow-hidden");
     }
 
+    /** Show the next queued modal, if any. Must be called after hiding the modal. */
     function onModalHidden() {
         window.modalOpen = false;
         if (window.modalQueue.length > 0) {
@@ -82,6 +100,7 @@
         }
     }
 
+    /** Run `showFn` now if no modal is open, or once the open ones are closed. */
     function requestModal(showFn) {
         if (!window.modalOpen) {
             window.modalOpen = true;
@@ -91,12 +110,14 @@
         }
     }
 
+    /** Show a modal (queued if another one is open). See showModalImpl for the options. */
     function showModal(options) {
         requestModal(function () {
             showModalImpl(options);
         });
     }
 
+    /** Close the modal when clicking its backdrop or close button. */
     function bindPageModal() {
         const modalEl = getEl(modalId);
         if (!modalEl) return;
@@ -104,6 +125,7 @@
         const backdrop = document.getElementById("page-modal-backdrop");
         const closeBtn = document.getElementById("page-modal-close-btn");
 
+        /** Hide the modal and show the next queued one. */
         function close() {
             hideModal();
             onModalHidden();

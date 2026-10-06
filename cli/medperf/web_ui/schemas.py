@@ -1,4 +1,5 @@
 import json
+import logging
 from queue import Queue
 import threading
 from medperf.web_ui.utils import generate_uuid
@@ -7,6 +8,8 @@ from typing import Optional, List, Dict
 import time
 from typing_extensions import Literal
 from medperf import config
+
+logger = logging.getLogger(__name__)
 
 
 class Notification(BaseModel):
@@ -129,8 +132,36 @@ class GlobalEventsManager:
         self.new_notifications: List[Notification] = list()
         self.events: List[Event] = list()
         self.waiting_ack: List[Event] = list()
+        self.max_notifications = config.webui_max_saved_notifications
+        # Optional persistent storage of notifications (web_ui.history.WebUIHistoryStore)
+        self.store = None
         self._lock = threading.Lock()
         self._notifs_lock = threading.Lock()
+
+    def attach_store(self, store) -> None:
+        """Persist notifications in the given store and load the ones saved in it.
+
+        Args:
+            store (WebUIHistoryStore): The store to use.
+        """
+
+        with self._notifs_lock:
+            self.store = store
+            self.notifications = store.load_notifications()[-self.max_notifications:]
+            # Notifications not shown yet belong to the previous profile/user
+            self.new_notifications.clear()
+
+    def _persist(self, method_name: str, *args) -> None:
+        """Call a method of the attached store, if any. Failures are only logged,
+        so that a storage problem never breaks the web UI.
+        """
+
+        if self.store is None:
+            return
+        try:
+            getattr(self.store, method_name)(*args)
+        except Exception as e:
+            logger.exception(f"Failed to {method_name} in the web UI history: {e}")
 
     def add_event(self, event: Event) -> None:
         """Add an event into the events list.
@@ -198,14 +229,14 @@ class GlobalEventsManager:
 
         with self._notifs_lock:
             self.new_notifications.append(notification)
+        self._persist("save_notification", notification)
 
-    def clear_notifications(self) -> None:
-        with self._notifs_lock:
-            self.notifications.clear()
+    def _trim_notifications(self) -> None:
+        """Drop the oldest notifications beyond the maximum. Must hold the notifications lock."""
 
-    def clear_new_notifications(self) -> None:
-        with self._notifs_lock:
-            self.new_notifications.clear()
+        excess = len(self.notifications) - self.max_notifications
+        if excess > 0:
+            del self.notifications[:excess]
 
     def get_new_notification(self) -> Optional[Notification]:
         with self._notifs_lock:
@@ -215,6 +246,7 @@ class GlobalEventsManager:
             oldest_notification = self.new_notifications[0]
             self.new_notifications.remove(oldest_notification)
             self.notifications.append(oldest_notification)
+            self._trim_notifications()
 
             return oldest_notification
 
@@ -223,6 +255,7 @@ class GlobalEventsManager:
             if self.new_notifications:
                 self.notifications.extend(self.new_notifications)
                 self.new_notifications.clear()
+                self._trim_notifications()
 
         return self.notifications
 
@@ -235,14 +268,16 @@ class GlobalEventsManager:
             for notification in self.notifications:
                 if notification.id == notification_id:
                     self.notifications.remove(notification)
-                    return
+                    break
+        self._persist("delete_notification", notification_id)
 
     def mark_notification_as_read(self, notification_id) -> None:
         with self._notifs_lock:
             for notification in self.notifications:
                 if notification.id == notification_id:
                     notification.read = True
-                    return
+                    break
+        self._persist("mark_notification_read", notification_id)
 
 
 class EventsManager:

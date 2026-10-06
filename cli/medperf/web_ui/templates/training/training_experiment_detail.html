@@ -1,3 +1,4 @@
+{# Training experiment details page: containers, dataset associations, plan, aggregator, events and status. #}
 {% extends "detail_base.html" %}
 {% import 'macros/container_macros.html' as container_macros %}
 {% import 'macros/association_card_macros.html' as association_card_macros %}
@@ -136,7 +137,7 @@
                     <input type="hidden" name="training_exp_id" value="{{ entity.id }}">
                     <fieldset class="flex flex-col flex-1 gap-3 border-0 p-0 m-0 min-w-0" {% if not aggregator %}disabled{% endif %}>
                         <div class="flex flex-wrap items-stretch gap-2">
-                            <input name="path" type="text" id="set-plan-path" class="flex-1 min-w-0 px-3 py-2.5 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="Path to plan config (e.g. plan.yaml)" required>
+                            <input name="path" type="text" id="set-plan-path" class="flex-1 min-w-0 px-3 py-2.5 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="{{ help_texts.WebUIPlaceholders.training_config_path }}" required>
                             <button type="button" class="btn btn-sm btn-secondary" id="browse-set-plan-btn">Browse</button>
                         </div>
                         <button type="submit" class="cursor-pointer w-full btn btn-sm btn-primary mt-auto">Set plan</button>
@@ -154,8 +155,8 @@
                     <input type="hidden" name="training_exp_id" value="{{ entity.id }}">
                     <fieldset class="flex flex-col flex-1 gap-3 border-0 p-0 m-0 min-w-0" {% if not plan_exists %}disabled{% endif %}>
                         <div class="flex flex-wrap gap-3">
-                            <input type="text" name="field_name" placeholder="Field name" class="flex-1 min-w-[120px] px-3 py-2 rounded-lg border border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:ring-2 focus:ring-brand-accent" required>
-                            <input type="text" name="field_value" placeholder="Value" class="flex-1 min-w-[120px] px-3 py-2 rounded-lg border border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:ring-2 focus:ring-brand-accent" required>
+                            <input type="text" name="field_name" placeholder="{{ help_texts.WebUIPlaceholders.training_field_name }}" class="flex-1 min-w-[120px] px-3 py-2 rounded-lg border border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:ring-2 focus:ring-brand-accent" required>
+                            <input type="text" name="field_value" placeholder="{{ help_texts.WebUIPlaceholders.training_value }}" class="flex-1 min-w-[120px] px-3 py-2 rounded-lg border border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:ring-2 focus:ring-brand-accent" required>
                         </div>
                         <button type="submit" class="cursor-pointer w-full btn btn-sm btn-primary mt-auto">Update</button>
                     </fieldset>
@@ -172,9 +173,9 @@
                 <form id="start-event-form" action="/training/start_event" method="post" class="flex flex-col flex-1 gap-3" data-panel-title="Starting event" data-confirm-message="start this training event?">
                     <input type="hidden" name="training_exp_id" value="{{ entity.id }}">
                     <fieldset class="flex flex-col flex-1 gap-3 border-0 p-0 m-0 min-w-0" {% if not plan_exists %}disabled{% endif %}>
-                        <input type="text" name="event_name" placeholder="Event name" class="w-full px-3 py-2 rounded-lg border border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:ring-2 focus:ring-brand-accent" required>
+                        <input type="text" name="event_name" placeholder="{{ help_texts.WebUIPlaceholders.training_event_name }}" class="w-full px-3 py-2 rounded-lg border border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:ring-2 focus:ring-brand-accent" required>
                         <div class="flex flex-wrap items-stretch gap-2">
-                            <input name="participants_list_file" type="text" id="start-event-participants-path" class="flex-1 min-w-0 px-3 py-2.5 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="Participants list file path (optional)">
+                            <input name="participants_list_file" type="text" id="start-event-participants-path" class="flex-1 min-w-0 px-3 py-2.5 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="{{ help_texts.WebUIPlaceholders.training_participants_list_file }}">
                             <button type="button" class="btn btn-sm btn-secondary" id="browse-start-event-participants-btn">Browse</button>
                         </div>
                         <button type="submit" class="cursor-pointer w-full btn btn-sm btn-primary mt-auto">Start event</button>

@@ -1,6 +1,5 @@
+{# Container registration form. #}
 {% extends "base.html" %}
-{% import "constants/forms_placeholders.html" as placeholders %}
-{% import "constants/tooltips.html" as tooltips %}
 
 {% set ui_mode = request.app.state.ui_mode %}
 
@@ -18,31 +17,31 @@
         <div>
             <label for="name" class="block text-secondary font-semibold mb-2">Container name</label>
             <div class="flex flex-wrap items-stretch gap-2">
-                <input name="name" type="text" id="name" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="{{ placeholders.register_container_name }}" {% if container_register_running %}value="{{ form_data.get('name', '') }}" disabled{% endif %} maxlength="128">
-                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ tooltips.register_container_name }}"><i class="fas fa-info-circle text-lg"></i></span>
+                <input name="name" type="text" id="name" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="{{ help_texts.WebUIPlaceholders.container_name }}" {% if container_register_running %}value="{{ form_data.get('name', '') }}" disabled{% endif %} maxlength="128">
+                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ help_texts.Container.name }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
         <div>
             <label for="container-file" class="block text-secondary font-semibold mb-2">Container Config File</label>
             <div class="flex flex-wrap items-stretch gap-2">
-                <input name="container_file" type="text" id="container-file" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="{{ placeholders.register_container_manifest_file }}" {% if task_running %}disabled{% endif %} {% if container_register_running %}value="{{ form_data.get('container_file', '') }}"{% endif %}>
+                <input name="container_file" type="text" id="container-file" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="{{ help_texts.WebUIPlaceholders.container_config_file }}" {% if task_running %}disabled{% endif %} {% if container_register_running %}value="{{ form_data.get('container_file', '') }}"{% endif %}>
                 <button type="button" class="btn btn-sm btn-secondary" id="browse-container-btn" {% if task_running %}disabled{% endif %}>Browse</button>
-                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ tooltips.register_container_manifest_file }}"><i class="fas fa-info-circle text-lg"></i></span>
+                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ help_texts.Container.config_file }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
         <div>
             <label for="parameters-file" class="block text-secondary font-semibold mb-2">Parameters File</label>
             <div class="flex flex-wrap items-stretch gap-2">
-                <input name="parameters_file" type="text" id="parameters-file" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="{{ placeholders.register_container_parameters_file }}" {% if task_running %}disabled{% endif %} {% if container_register_running %}value="{{ form_data.get('parameters_file', '') }}"{% endif %}>
+                <input name="parameters_file" type="text" id="parameters-file" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="{{ help_texts.WebUIPlaceholders.container_parameters_file }}" {% if task_running %}disabled{% endif %} {% if container_register_running %}value="{{ form_data.get('parameters_file', '') }}"{% endif %}>
                 <button type="button" class="btn btn-sm btn-secondary" id="browse-parameters-btn" {% if task_running %}disabled{% endif %}>Browse</button>
-                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ tooltips.register_container_parameters_file }}"><i class="fas fa-info-circle text-lg"></i></span>
+                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ help_texts.Container.parameters_file }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
         <div>
             <label for="additional-file" class="block text-secondary font-semibold mb-2">Additional Files URL</label>
             <div class="flex flex-wrap items-stretch gap-2">
-                <input name="additional_file" type="text" id="additional-file" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="{{ placeholders.register_container_additional_file }}" {% if task_running %}disabled{% endif %} {% if container_register_running %}value="{{ form_data.get('additional_file', '') }}"{% endif %}>
-                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ tooltips.register_container_additional_file }}"><i class="fas fa-info-circle text-lg"></i></span>
+                <input name="additional_file" type="text" id="additional-file" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="{{ help_texts.WebUIPlaceholders.container_additional_file }}" {% if task_running %}disabled{% endif %} {% if container_register_running %}value="{{ form_data.get('additional_file', '') }}"{% endif %}>
+                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ help_texts.Container.additional_file }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
         {% if ui_mode == request.app.state.EVALUATION_MODE %}
@@ -53,9 +52,9 @@
         <div id="decryption-file-container" class="hidden">
             <label for="decryption-file" class="block text-secondary font-semibold mb-2">Decryption Key File Path</label>
             <div class="flex flex-wrap items-stretch gap-2">
-                <input type="text" id="decryption-file" name="decryption_file" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="{{ placeholders.register_container_decryption_file }}" {% if task_running %}disabled{% endif %} {% if container_register_running %}value="{{ form_data.get('decryption_file', '') }}"{% endif %}>
+                <input type="text" id="decryption-file" name="decryption_file" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="{{ help_texts.WebUIPlaceholders.container_decryption_key }}" {% if task_running %}disabled{% endif %} {% if container_register_running %}value="{{ form_data.get('decryption_file', '') }}"{% endif %}>
                 <button type="button" class="btn btn-sm btn-secondary" id="browse-decryption-btn" {% if task_running %}disabled{% endif %}>Browse</button>
-                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ tooltips.register_container_decryption_file }}"><i class="fas fa-info-circle text-lg"></i></span>
+                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ help_texts.Container.decryption_key }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
         {% else %}

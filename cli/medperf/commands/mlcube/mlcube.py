@@ -14,6 +14,7 @@ from medperf.commands.mlcube.revoke_user_access import RevokeUserAccess
 from medperf.commands.mlcube.delete_keys import DeleteKeys
 from medperf.commands.mlcube.check_access import CheckAccess
 from medperf.exceptions import CleanExit
+import medperf.help_texts as help_texts
 
 app = typer.Typer()
 
@@ -22,35 +23,39 @@ app = typer.Typer()
 @clean_except
 def run_test(
     mlcube_path: str = typer.Option(
-        ..., "--container", "-m", help="path to container config"
+        ..., "--container", "-m", help=help_texts.Container.run_test_config
     ),
-    task: str = typer.Option(..., "--task", "-t", help="container task to run"),
+    task: str = typer.Option(
+        ..., "--task", "-t", help=help_texts.Container.run_test_task
+    ),
     parameters_file_path: str = typer.Option(
-        None, "--parameters_file_path", help="path to container parameters file"
+        None,
+        "--parameters_file_path",
+        help=help_texts.Container.run_test_parameters_file,
     ),
     additional_files_path: str = typer.Option(
-        None, "--additional_files_path", help="path to ciontainer additional files"
+        None,
+        "--additional_files_path",
+        help=help_texts.Container.run_test_additional_files,
     ),
     output_logs: str = typer.Option(
-        None, "--output_logs", "-o", help="where to store stdout"
+        None, "--output_logs", "-o", help=help_texts.Container.run_test_output_logs
     ),
     timeout: int = typer.Option(
-        None, "--timeout", help="comma separated list of key=value pairs"
+        None, "--timeout", help=help_texts.Container.run_test_timeout
     ),
     mounts: str = typer.Option(
-        "", "--mounts", "-m", help="comma separated list of key=value pairs"
+        "", "--mounts", "-m", help=help_texts.Container.run_test_mounts
     ),
-    env: str = typer.Option(
-        "", "--env", "-e", help="comma separated list of key=value pairs"
-    ),
+    env: str = typer.Option("", "--env", "-e", help=help_texts.Container.run_test_env),
     ports: str = typer.Option(
-        "", "--ports", "-P", help="comma separated list of ports to expose"
+        "", "--ports", "-P", help=help_texts.Container.run_test_ports
     ),
     allow_network: bool = typer.Option(
-        False, "--allow_network", help="comma separated list of key=value pairs"
+        False, "--allow_network", help=help_texts.Container.run_test_allow_network
     ),
     download: int = typer.Option(
-        False, "--download", help="whether to pull docker image"
+        False, "--download", help=help_texts.Container.run_test_download
     ),
 ):
     """Runs a container for testing only (developers)"""
@@ -76,16 +81,16 @@ def run_test(
 @clean_except
 def list(
     unregistered: bool = typer.Option(
-        False, "--unregistered", help="Get unregistered containers"
+        False, "--unregistered", help=help_texts.Container.ls_unregistered
     ),
-    mine: bool = typer.Option(False, "--mine", help="Get current-user containers"),
-    name: str = typer.Option(None, "--name", "-n", help="Filter out by container Name"),
-    owner: int = typer.Option(None, "--owner", help="Filter by owner ID"),
-    state: str = typer.Option(
-        None, "--state", help="Filter by state (DEVELOPMENT/OPERATION)"
+    mine: bool = typer.Option(False, "--mine", help=help_texts.Container.ls_mine),
+    name: str = typer.Option(
+        None, "--name", "-n", help=help_texts.Container.name_filter
     ),
+    owner: int = typer.Option(None, "--owner", help=help_texts.Common.owner_filter),
+    state: str = typer.Option(None, "--state", help=help_texts.Common.state_filter),
     is_active: bool = typer.Option(
-        None, "--active/--inactive", help="Filter by active status"
+        None, "--active/--inactive", help=help_texts.Common.active_filter
     ),
 ):
     """List containers"""
@@ -106,22 +111,22 @@ def list(
 def create(
     template: str = typer.Argument(
         ...,
-        help=f"Container type. Available types: [{' | '.join(config.templates.keys())}]",
+        help=help_texts.Container.template,
     ),
     image_name: str = typer.Option(
         ...,
         "--image",
         "-i",
-        help="Image name",
+        help=help_texts.Container.image_name,
     ),
     folder_name: str = typer.Option(
         ...,
         "--folder_name",
         "-f",
-        help="Folder name of the container files template to be created",
+        help=help_texts.Container.folder_name,
     ),
     output_path: str = typer.Option(
-        ".", "--output", "-o", help="Save the generated template to the specified path"
+        ".", "--output", "-o", help=help_texts.Container.output_path
     ),
 ):
     """Creates a container files template"""
@@ -131,41 +136,42 @@ def create(
 @app.command("submit")
 @clean_except
 def submit(
-    name: str = typer.Option(..., "--name", "-n", help="Name of the container"),
+    name: str = typer.Option(..., "--name", "-n", help=help_texts.Container.name),
     container_config_file: str = typer.Option(
         ...,
         "--container-config-file",
         "-m",
-        help="Container Config file.",
+        help=help_texts.Container.config_file,
     ),
     parameters_file: str = typer.Option(
         None,
         "--parameters-file",
         "-p",
-        help="container parameters file.",
+        help=help_texts.Container.parameters_file,
     ),
     additional_file: str = typer.Option(
         "",
         "--additional-file",
         "-a",
-        help="Identifier to download the additional files tarball. See the description above",
+        help=help_texts.Container.additional_file_cli,
     ),
     additional_hash: str = typer.Option(
-        "", "--additional-hash", help="hash of additional file"
+        "", "--additional-hash", help=help_texts.Container.additional_hash
     ),
-    image_hash: str = typer.Option("", "--image-hash", help="hash of image file"),
+    image_hash: str = typer.Option(
+        "", "--image-hash", help=help_texts.Container.image_hash
+    ),
     operational: bool = typer.Option(
         False,
         "--operational",
-        help="Submit the container as OPERATIONAL",
+        help=help_texts.Container.operational,
     ),
     decryption_key: Optional[str] = typer.Option(
         None,
         "--decryption-key",
         "--decryption_key",
         "-d",
-        help="Path to the decryption key file for the encrypted container. The key "
-        "will stay local. This should only be provided for encrypted container submissions.",
+        help=help_texts.Container.decryption_key,
     ),
 ):
     """Submits a new container to the platform.\n
@@ -199,28 +205,28 @@ def submit(
 @app.command("view")
 @clean_except
 def view(
-    entity_id: Optional[int] = typer.Argument(None, help="Container ID"),
+    entity_id: Optional[int] = typer.Argument(None, help=help_texts.Container.id),
     format: str = typer.Option(
         "yaml",
         "-f",
         "--format",
-        help="Format to display contents. Available formats: [yaml, json]",
+        help=help_texts.Common.format,
     ),
     unregistered: bool = typer.Option(
         False,
         "--unregistered",
-        help="Display unregistered containers if container ID is not provided",
+        help=help_texts.Container.view_unregistered,
     ),
     mine: bool = typer.Option(
         False,
         "--mine",
-        help="Display current-user containers if container ID is not provided",
+        help=help_texts.Container.view_mine,
     ),
     output: str = typer.Option(
         None,
         "--output",
         "-o",
-        help="Output file to store contents. If not provided, the output will be displayed",
+        help=help_texts.Common.output,
     ),
 ):
     """Displays the information of one or more containers"""
@@ -235,23 +241,21 @@ def grant_access(
         "-m",
         "--model-id",
         "--model_id",
-        help="Private model for which access will be granted.",
+        help=help_texts.Access.model_id,
     ),
     benchmark_id: int = typer.Option(
         ...,
         "-b",
         "--benchmark-id",
         "--benchmark_id",
-        help="Benchmark UID to which the Private model is associated. "
-        "All data owners registered to this benchmark and have "
-        "a valid certificate will be granted access to the model.",
+        help=help_texts.Access.benchmark_id,
     ),
-    approval: bool = typer.Option(False, "-y", help="Skip approval step"),
+    approval: bool = typer.Option(False, "-y", help=help_texts.Common.approval),
     allowed_emails: str = typer.Option(
         None,
         "-a",
         "--allowed_emails",
-        help="Space-separated list of emails",
+        help=help_texts.Access.allowed_emails_cli,
     ),
 ):
     """
@@ -278,16 +282,14 @@ def auto_grant_access(
         "-m",
         "--model-id",
         "--model_id",
-        help="Private model for which access will be granted.",
+        help=help_texts.Access.model_id,
     ),
     benchmark_id: int = typer.Option(
         ...,
         "-b",
         "--benchmark-id",
         "--benchmark_id",
-        help="Benchmark UID to which the Private model is associated. "
-        "All data owners registered to this benchmark and have "
-        "a valid certificate will be granted access to the model.",
+        help=help_texts.Access.benchmark_id,
     ),
     interval: int = typer.Option(
         5,
@@ -295,18 +297,17 @@ def auto_grant_access(
         "--interval",
         min=5,
         max=60,
-        help="Time in minutes to check for updates. Minimum 5 minutes, maximum 60 minutes "
-        "(an hour). Defaults to 5 minutes if not provided.",
+        help=help_texts.Access.interval,
     ),
     allowed_emails: str = typer.Option(
         None,
         "-a",
         "--allowed_emails",
-        help="Space-separated list of emails",
+        help=help_texts.Access.allowed_emails_cli,
     ),
 ):
     """
-    This command will run the 'grant_access' command every 5 minutes indefinetely.
+    This command will run the 'grant_access' command every 5 minutes indefinitely.
     To stop this command, press CTRL+C. The time interval for checking for new data
     owners may be customized by using the -i flag.
     Allows all currently registered Data Owners in a given benchmark to access
@@ -341,9 +342,9 @@ def revoke_user_access(
         "-k",
         "--key-id",
         "--key_id",
-        help="Key ID to delete.",
+        help=help_texts.Access.key_id,
     ),
-    approval: bool = typer.Option(False, "-y", help="Skip approval step"),
+    approval: bool = typer.Option(False, "-y", help=help_texts.Common.approval),
 ):
     """
     Revokes access to the container for a user by deleting the user's key.
@@ -360,9 +361,9 @@ def delete_keys(
         "-c",
         "--container-id",
         "--container_id",
-        help="Container ID to delete all its keys.",
+        help=help_texts.Container.delete_keys_id,
     ),
-    approval: bool = typer.Option(False, "-y", help="Skip approval step"),
+    approval: bool = typer.Option(False, "-y", help=help_texts.Common.approval),
 ):
     """
     Revokes access to the container by deleting all its encrypted keys on the server.
@@ -379,7 +380,7 @@ def check_access(
         "-c",
         "--container-id",
         "--container_id",
-        help="Container ID to check if you have access to.",
+        help=help_texts.Container.check_access_id,
     )
 ):
     """

@@ -8,6 +8,7 @@ from medperf.commands.view import EntityView
 from medperf.entities.report import TestReport
 from medperf.commands.list import EntityList
 from medperf.commands.compatibility_test.run import CompatibilityTestExecution
+import medperf.help_texts as help_texts
 
 app = typer.Typer()
 
@@ -16,56 +17,46 @@ app = typer.Typer()
 @clean_except
 def run(
     benchmark_uid: int = typer.Option(
-        None, "--benchmark", "-b", help="UID of the benchmark to test. Optional"
+        None, "--benchmark", "-b", help=help_texts.CompatibilityTest.benchmark_uid
     ),
     data_uid: str = typer.Option(
         None,
         "--data_uid",
         "-d",
-        help="Prepared Dataset UID. Used for dataset testing. Optional. Defaults to benchmark demo dataset.",
+        help=help_texts.CompatibilityTest.data_uid,
     ),
     data_prep: str = typer.Option(
         None,
         "--data_preparator",
         "-p",
-        help=(
-            "UID or local path to the data preparation container config file."
-            " Optional. Defaults to benchmark data preparator."
-        ),
+        help=help_texts.CompatibilityTest.data_preparation,
     ),
     model: str = typer.Option(
         None,
         "--model",
         "-m",
-        help=(
-            "UID or local path to the model container config file."
-            " Optional. Defaults to benchmark reference model."
-        ),
+        help=help_texts.CompatibilityTest.model,
     ),
     evaluator: str = typer.Option(
         None,
         "--evaluator",
         "-e",
-        help=(
-            "UID or local path to the evaluator container config file."
-            " Optional. Defaults to benchmark evaluator."
-        ),
+        help=help_texts.CompatibilityTest.evaluator,
     ),
     no_cache: bool = typer.Option(
-        False, "--no-cache", help="Execute the test even if results already exist"
+        False, "--no-cache", help=help_texts.CompatibilityTest.no_cache
     ),
     skip_data_preparation_step: bool = typer.Option(
         False,
         "--skip-demo-data-preparation",
-        help="Use this flag if the passed demo dataset or data path is already prepared",
+        help=help_texts.CompatibilityTest.skip_data_preparation,
     ),
     model_decryption_key: Path = typer.Option(
         None,
         "--decryption-key",
         "--decryption_key",
         "-d",
-        help="Only used for compatibility tests of encrypted containers. "
-        "Path to the decryption key file for the encrypted container.",
+        help=help_texts.CompatibilityTest.model_decryption_key,
         exists=True,
         file_okay=True,
         dir_okay=False,
@@ -102,18 +93,20 @@ def list():
 @app.command("view")
 @clean_except
 def view(
-    entity_id: Optional[str] = typer.Argument(None, help="Test report ID"),
+    entity_id: Optional[str] = typer.Argument(
+        None, help=help_texts.CompatibilityTest.id
+    ),
     format: str = typer.Option(
         "yaml",
         "-f",
         "--format",
-        help="Format to display contents. Available formats: [yaml, json]",
+        help=help_texts.Common.format,
     ),
     output: str = typer.Option(
         None,
         "--output",
         "-o",
-        help="Output file to store contents. If not provided, the output will be displayed",
+        help=help_texts.Common.output,
     ),
 ):
     """Displays the information of one or more test reports"""

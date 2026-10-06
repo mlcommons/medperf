@@ -112,6 +112,21 @@ class UpdateAssociationsPolicy:
         if self.model_emails is not None:
             self.model_emails = validate_and_normalize_emails(self.model_emails)
 
+    def warn_if_empty_allow_list(self):
+        # self.dataset_emails is None means the field wasn't part of this
+        # submission at all (existing allow list, if any, stays untouched);
+        # only an explicitly-submitted empty list ([]) warrants a warning.
+        if self.dataset_mode == "ALLOWLIST" and self.dataset_emails == []:
+            config.ui.print_warning(
+                "Dataset allow list is empty: no dataset associations will be "
+                "auto-approved until you add emails to the allow list."
+            )
+        if self.model_mode == "ALLOWLIST" and self.model_emails == []:
+            config.ui.print_warning(
+                "Model allow list is empty: no model associations will be "
+                "auto-approved until you add emails to the allow list."
+            )
+
     def update(self):
         if all(
             [
@@ -122,6 +137,7 @@ class UpdateAssociationsPolicy:
             ]
         ):
             return
+        self.warn_if_empty_allow_list()
         body = {}
         if self.dataset_emails is not None:
             body["dataset_auto_approval_allow_list"] = self.dataset_emails

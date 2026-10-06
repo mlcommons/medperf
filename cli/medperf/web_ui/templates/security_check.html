@@ -1,3 +1,4 @@
+{# Asks for the web UI security token printed in the terminal when the web UI starts. #}
 {% extends "base.html" %}
 
 {% block title %}Security Check{% endblock %}
@@ -18,7 +19,7 @@
                 <input type="hidden" name="redirect_url" value="{{ redirect_url }}">
                 <div class="mb-6">
                     <label for="token" class="block text-secondary font-semibold mb-2">Enter your Security Token printed in MedPerf CLI output</label>
-                    <input type="text" id="token" name="token" class="w-full px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="security token" required>
+                    <input type="text" id="token" name="token" class="w-full px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="{{ help_texts.WebUIPlaceholders.security_token }}" required>
                 </div>
                 <div class="text-center">
                     <button id="security-check-btn" type="button" class="btn btn-primary btn-block transition-all">Access Web UI</button>

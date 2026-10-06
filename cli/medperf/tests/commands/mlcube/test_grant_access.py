@@ -217,9 +217,11 @@ def test_filter_certificates_when_empty(grantaccess):
     }
     grantaccess.allowed_emails = []
 
-    # Act & Assert
-    with pytest.raises(CleanExit):
-        grantaccess.filter_certificates()
+    # Act
+    grantaccess.filter_certificates()
+
+    # Assert
+    assert [cert.id for cert in grantaccess.certificates] == [1, 2]
 
 
 def test_verify_certificates_filters_invalid_certs(mocker, grantaccess):

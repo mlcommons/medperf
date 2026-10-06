@@ -1,3 +1,4 @@
+{# Layout of all the pages: head (Tailwind theme from brand-tokens.css, fonts, styles), navbar, page modal, toasts, footer, shared scripts and the global events stream (notifications and critical warnings) while a task runs. #}
 {% import 'macros/modal_macros.html' as modal_macros %}
 {% set task_running = request.app.state.task_running %}
 {% set logged_in = request.app.state.logged_in %}
@@ -29,7 +30,6 @@
             --color-brand-fg: var(--theme-brand-fg);
             --color-brand-hover: var(--theme-brand-hover);
             --color-brand-accent: var(--theme-brand-accent);
-            --color-brand-fg: var(--theme-brand-fg);
             --color-brand-subtle: var(--theme-brand-subtle);
             --color-success: var(--theme-success);
             --color-success-fg: var(--theme-success-text);
@@ -62,17 +62,9 @@
     <link rel="stylesheet" href="{{ url_for('static', path='css/prism-dark.css') }}" id="prism-dark-theme" disabled>
     <link rel="stylesheet" href="{{ url_for('static', path='css/common.css') }}">
     <link rel="icon" href="{{ url_for('static', path='images/favicon.png') }}">
-    <style>
-        body { font-family: var(--font-sans); }
-        h1, h2, h3, .font-display { font-family: var(--font-sans); }
-        .font-data { font-family: var(--font-serif); }
-        [x-cloak] { display: none !important; }
-        #page-modal.modal-visible { opacity: 1; pointer-events: auto; }
-        #page-modal.modal-visible #page-modal-dialog { transform: scale(1); }
-    </style>
     <script>
         (function(){
-            window.taskRunning = true ? "{{ task_running }}" === "True" : false;
+            window.taskRunning = "{{ task_running }}" === "True";
             var d = document.documentElement;
             var v = localStorage.getItem('medperf-dark');
             if (v === '1' || (v === null && typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)){
@@ -134,6 +126,8 @@
     <script src="{{ url_for('static', path='js/modal-queue.js') }}"></script>
     <script src="{{ url_for('static', path='js/notifications.js') }}"></script>
     <script src="{{ url_for('static', path='js/common.js') }}"></script>
+    <script src="{{ url_for('static', path='js/form_validation.js') }}"></script>
+    <script src="{{ url_for('static', path='js/support.js') }}"></script>
 
     {% if task_running %}
     <script data-testid="global-event-source-script">

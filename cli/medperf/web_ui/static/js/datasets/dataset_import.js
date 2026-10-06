@@ -1,5 +1,10 @@
+/*
+ * Dataset import page.
+ */
+
 var REDIRECT_BASE = "/datasets/ui/display/";
 
+/** Enable the Import button only when the form is valid, and show the user what is missing (see form_validation.js). */
 function checkImportFormValidity() {
     var datasetIdEl = document.getElementById("dataset-id");
     var datasetIdValue = datasetIdEl && datasetIdEl.value ? Number(datasetIdEl.value) : 0;
@@ -9,22 +14,33 @@ function checkImportFormValidity() {
     var selectedMode = checked ? checked.value : "";
     var rawPathEl = document.getElementById("raw-path");
     var rawPathValue = rawPathEl ? rawPathEl.value.trim() : "";
-    var isValid = false;
-    if (datasetIdValue > 0 && inputPathValue) {
-        if (selectedMode === "development") isValid = !!rawPathValue;
-        else if (selectedMode === "operational") isValid = true;
+
+    var problems = [];
+    if (!(datasetIdValue > 0)) problems.push({ field: datasetIdEl, message: "Enter the ID of the dataset to import" });
+    if (!inputPathValue) problems.push({ field: inputPathEl, message: "Enter the path of the dataset backup (.tar.gz)" });
+    if (selectedMode === "development") {
+        if (!rawPathValue) problems.push({ field: rawPathEl, message: "Enter the new path for the raw data" });
+    } else if (selectedMode !== "operational") {
+        problems.push({ field: null, message: "Choose the dataset type (development or operational)" });
     }
+
     var btn = document.getElementById("import-dataset-btn");
-    if (btn) btn.disabled = !isValid;
+    if (btn) btn.disabled = !showFormProblems(btn, problems);
 }
 
+/**
+ * Bind the import form, its path pickers, and show the raw data path input
+ * only for development datasets.
+ */
 function init() {
     var form = document.getElementById("dataset-import-form");
-    if (form) form.querySelectorAll("input").forEach(function (el) {
+    if (form) {
         form.addEventListener("submit", submitActionForm);
-        el.addEventListener("change", checkImportFormValidity);
-        el.addEventListener("keyup", checkImportFormValidity);
-    });
+        form.querySelectorAll("input").forEach(function (el) {
+            el.addEventListener("change", checkImportFormValidity);
+            el.addEventListener("keyup", checkImportFormValidity);
+        });
+    }
     var browseInput = document.getElementById("browse-input-btn");
     var browseRaw = document.getElementById("browse-raw-btn");
     if (browseInput) browseInput.addEventListener("click", function () { browseWithFiles = true; browseFolderHandler("input-path"); });
