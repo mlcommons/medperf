@@ -1,9 +1,14 @@
 name: Auth Integration workflow
 
-on: pull_request_target
+on: pull_request
+
+permissions:
+  contents: read
 
 jobs:
   authorize:
+    # Real authentication credentials are available only to branches in this repository.
+    if: github.event.pull_request.head.repo.full_name == github.repository
     environment:
       'testing-external-code'
     runs-on: ubuntu-latest
@@ -17,12 +22,12 @@ jobs:
       MOCK_USERS_PASSWORD: ${{ secrets.MEDPERF_MOCK_USERS_PASSWORD }}
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         ref: ${{ github.event.pull_request.head.sha }}
     
     - name: Set up Python 3.11
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v6
       with:
         python-version: '3.11'
 
