@@ -245,6 +245,11 @@ def container_access_ui(
         {"id": benchmark_id, "name": state["name"]}
         for benchmark_id, state in running_auto_access.items()
     ]
+    # A running automatic grant access stays selectable (to stop it or view its
+    # logs) even if its association is no longer approved
+    auto_access_benchmark_ids = sorted(
+        set(approved_benchmark_ids) | set(running_auto_access)
+    )
 
     return templates.TemplateResponse(
         "container/container_access.html",
@@ -254,6 +259,9 @@ def container_access_ui(
             "entity_name": container.name,
             "is_owner": is_owner,
             "benchmark_allowed_ids": ",".join(map(str, approved_benchmark_ids)),
+            "auto_access_benchmark_allowed_ids": ",".join(
+                map(str, auto_access_benchmark_ids)
+            ),
             "keys": _container_keys_owners(container_id, approved_benchmark_ids),
             "running_auto_access": running_auto_access,
             "running_benchmarks": running_benchmarks,

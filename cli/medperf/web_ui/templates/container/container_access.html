@@ -61,7 +61,7 @@
                 {% set input_name = "" %}
                 {% set input_id = "benchmark-auto" %}
                 {% set placeholder = "Search approved benchmarks…" %}
-                {% set allowed_ids = benchmark_allowed_ids %}
+                {% set allowed_ids = auto_access_benchmark_allowed_ids %}
                 {% set required = false %}
                 {% set disabled = task_running %}
                 {% include "partials/searchable_select.html" %}
