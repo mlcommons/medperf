@@ -2,6 +2,7 @@ import os
 from medperf.exceptions import InvalidArgumentError
 import pytest
 import logging
+import tarfile
 from pathlib import Path
 from unittest.mock import mock_open, call, ANY
 
@@ -195,7 +196,8 @@ def test_untar_extracts_to_parent_directory(mocker, file):
     utils.untar(file)
 
     # Assert
-    spy.assert_called_once_with(ANY, parent_path)
+    filters = {"filter": "data"} if hasattr(tarfile, "data_filter") else {}
+    spy.assert_called_once_with(ANY, parent_path, members=[], **filters)
 
 
 @pytest.mark.parametrize("file", ["./test.tar.bz", "path/to/file.tar.bz"])
