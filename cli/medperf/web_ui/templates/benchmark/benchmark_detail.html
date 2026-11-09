@@ -125,11 +125,14 @@
 </div>
 
 {% if current_user_can_manage_benchmark %}
-<div class="bg-card dark:bg-card rounded-2xl p-8 shadow-lg border-2 border-border-brand dark:border-border mb-6">
-    <h2 class="text-3xl font-bold text-ink mb-6 flex items-center">
-        <i class="fas fa-cog mr-3 text-brand-accent"></i>Association Policy
-    </h2>
-    <form id="association-policy-form" class="space-y-6">
+<div class="bg-card dark:bg-card rounded-2xl p-8 shadow-lg border-2 border-border-brand dark:border-border mb-6" x-data="{ open: false }">
+    <button type="button" @click="open = !open" class="w-full flex items-center justify-between cursor-pointer text-left" data-testid="association-policy-btn">
+        <h2 class="text-3xl font-bold text-ink flex items-center">
+            <i class="fas fa-cog mr-3 text-brand-accent"></i>Association Policy
+        </h2>
+        <i class="fas fa-chevron-down text-muted-fg transition-transform duration-200 flex-shrink-0" :class="open && 'rotate-180'" aria-hidden="true"></i>
+    </button>
+    <form id="association-policy-form" class="space-y-6 mt-6" x-show="open" x-cloak x-transition style="display: none;">
         <div>
             <label class="block text-sm font-bold text-secondary mb-3" for="dataset-auto-approve-mode">Dataset auto approve mode</label>
             <select class="px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent w-auto cursor-pointer" name="dataset_auto_approve_mode" id="dataset-auto-approve-mode" {% if task_running %} disabled {% endif %}>
@@ -166,11 +169,14 @@
     </form>
 </div>
 
-<div class="bg-card dark:bg-card rounded-2xl p-8 shadow-lg border-2 border-border-brand dark:border-border mb-6">
-    <h2 class="text-3xl font-bold text-ink mb-6 flex items-center">
-        <i class="fas fa-users mr-3 text-brand-accent"></i>Committee Members
-    </h2>
-    <form id="committee-members-form" class="space-y-6">
+<div class="bg-card dark:bg-card rounded-2xl p-8 shadow-lg border-2 border-border-brand dark:border-border mb-6" x-data="{ open: false }">
+    <button type="button" @click="open = !open" class="w-full flex items-center justify-between cursor-pointer text-left" data-testid="committee-members-btn">
+        <h2 class="text-3xl font-bold text-ink flex items-center">
+            <i class="fas fa-users mr-3 text-brand-accent"></i>Committee Members
+        </h2>
+        <i class="fas fa-chevron-down text-muted-fg transition-transform duration-200 flex-shrink-0" :class="open && 'rotate-180'" aria-hidden="true"></i>
+    </button>
+    <form id="committee-members-form" class="space-y-6 mt-6" x-show="open" x-cloak x-transition style="display: none;">
         <div>
             <label class="block text-sm font-bold text-secondary mb-2" for="committee-members-text-input">Committee member emails</label>
             <div class="email-container" id="committee-members-emails" data-allowed-list='{{ entity.committee_member_emails | tojson }}'>
