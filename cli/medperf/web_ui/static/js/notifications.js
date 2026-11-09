@@ -136,7 +136,8 @@ function postNotificationAction(action, notificationId) {
 function markNotificationRead(notificationId) {
     postNotificationAction("mark_read", notificationId).then(function () {
         var li = document.querySelector("#notifications-list li[data-id=\"" + CSS.escape(notificationId) + "\"]");
-        if (!li) return;
+        // Already read (e.g. a double click): the count was already updated
+        if (!li || li.getAttribute("data-read") === "true") return;
         li.setAttribute("data-read", "true");
         var text = li.querySelector(".notification-text");
         if (text) text.classList.remove("font-bold");
@@ -218,7 +219,9 @@ function buildTaskHistoryItem(task) {
     html += "</div>";
     html += "<div class=\"text-xs text-muted-fg mt-1\">Finished " + timeAgo(task.finished_at) + " &middot; took " + duration + "s</div>";
     if (task.error) {
-        html += "<p class=\"text-sm text-danger-fg mt-2 whitespace-pre-wrap break-words\">" + escapeHtml(task.error) + "</p>";
+        // "info" tasks were stopped (e.g. a declined prompt): their reason isn't an error
+        var errorClass = task.status === "info" ? "text-info-fg" : "text-danger-fg";
+        html += "<p class=\"text-sm " + errorClass + " mt-2 whitespace-pre-wrap break-words\">" + escapeHtml(task.error) + "</p>";
     }
     if (logs.length) {
         html += "<details class=\"mt-2\"><summary class=\"cursor-pointer text-sm text-brand-accent\">View logs (" + logs.length + " lines)</summary>";

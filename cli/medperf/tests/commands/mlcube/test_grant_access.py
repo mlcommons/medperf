@@ -271,6 +271,20 @@ def test_filter_certificates_when_empty(grantaccess):
     assert [cert.id for cert in grantaccess.certificates] == [1, 2]
 
 
+def test_filter_certificates_when_no_email_matches(grantaccess):
+    # Arrange
+    grantaccess.certificates = [TestCertificate(id=1), TestCertificate(id=2)]
+    grantaccess.cert_user_info = {
+        1: {"email": "alice@example.com"},
+        2: {"email": "charlie@example.com"},
+    }
+    grantaccess.allowed_emails = ["bob@example.com"]
+
+    # Act & Assert
+    with pytest.raises(CleanExit):
+        grantaccess.filter_certificates()
+
+
 def test_verify_certificates_filters_invalid_certs(mocker, grantaccess):
     # Arrange
     def verify_side_effect(cert, **kwargs):

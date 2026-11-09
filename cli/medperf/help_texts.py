@@ -97,10 +97,11 @@ class GlobalOptions:
     )
     platform = "Platform to use for running containers [docker | singularity]"
     gpus = (
-        "What GPUs to expose to containers. "
-        'Accepted values are comma-separated GPU IDs (e.g. "1,2"), or "all". '
-        "Containers that aren't configured to use GPUs won't be affected by this. "
-        "Defaults to all available GPUs"
+        "What GPUs to expose to containers, overriding the GPUs set in their "
+        'configuration. Accepted values are "" or 0 (no GPUs), "all" (all GPUs), '
+        "an integer (a number of GPUs, only for Docker, e.g. 2), or "
+        '"device=<id1>,<id2>" (specific GPUs, e.g. "device=0,2"). '
+        "If not set, each container uses the GPUs set in its configuration"
     )
     gpus_inline = """
         What GPUs to expose to containers.
