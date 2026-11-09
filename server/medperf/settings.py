@@ -225,14 +225,17 @@ STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
 GS_DEFAULT_ACL = "publicRead"
 
-if GS_BUCKET_NAME:
-    # Serve static files from GCS bucket
-    DEFAULT_FILE_STORAGE = "storages.backends.gcloud.GoogleCloudStorage"
-    STATICFILES_STORAGE = "storages.backends.gcloud.GoogleCloudStorage"
-else:
-    # Serve static files from local file system
-    DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
-    STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
+# Django 5.1 removed DEFAULT_FILE_STORAGE and STATICFILES_STORAGE.
+STORAGES = {
+    "default": {
+        "BACKEND": "storages.backends.gcloud.GoogleCloudStorage"
+        if GS_BUCKET_NAME else "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "storages.backends.gcloud.GoogleCloudStorage"
+        if GS_BUCKET_NAME else "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
