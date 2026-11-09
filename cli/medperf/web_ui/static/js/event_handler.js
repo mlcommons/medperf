@@ -84,8 +84,10 @@ function handleEvents(event, logPanel, stagesList, currentStageElement) {
             return currentStageElement;
         }
     }
+    // Messages may hold data from the server (e.g. a training plan written by
+    // another user): escape them so they are displayed as text, never run.
     if (event.type === "yaml") cleanMessage = event.message;
-    else cleanMessage = cleanMessage.replace("\n", "<br>");
+    else if (event.type !== "url") cleanMessage = escapeHtml(cleanMessage).replace(/\n/g, "<br>");
 
     var content = document.getElementById("content");
     var textContent = document.getElementById("text-content");
@@ -126,14 +128,18 @@ function handleEvents(event, logPanel, stagesList, currentStageElement) {
         scrollToElement("#prompt-container");
         window.isPromptReceived = true;
     } else if (event.type === "yaml") {
-        if (yamlContent) yamlContent.innerHTML = cleanMessage;
+        if (yamlContent) yamlContent.textContent = cleanMessage;
         if (yamlContainer) { yamlContainer.style.display = ""; yamlContainer.classList.remove("hidden"); }
         if (window.Prism && yamlContent) Prism.highlightElement(yamlContent);
         scrollToElement("#yaml-container");
     } else if (event.type === "url") {
         var a = document.createElement("a");
-        a.href = cleanMessage;
-        a.target = "_blank";
+        // Only web links are clickable, e.g. never a "javascript:" URL
+        if (/^https?:\/\//i.test(cleanMessage.trim())) {
+            a.href = cleanMessage;
+            a.target = "_blank";
+            a.rel = "noopener noreferrer";
+        }
         a.textContent = cleanMessage;
         a.className = "text-lg font-bold text-ink text-brand-accent hover:underline";
         if (content) content.appendChild(a);

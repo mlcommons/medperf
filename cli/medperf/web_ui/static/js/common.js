@@ -579,7 +579,7 @@ function onDomReady() {
             var yamlData = [];
             try { yamlData = JSON.parse(yamlDataStr || "[]"); } catch (_) {}
             var yamlDataPrettified = JSON.stringify(yamlData, null, 2);
-            var modalBody = "<pre id=\"modal-yaml-content\" class=\"language-json overflow-x-auto p-4 rounded-lg bg-muted\">" + yamlDataPrettified.replace(/</g, "&lt;") + "</pre>";
+            var modalBody = "<pre id=\"modal-yaml-content\" class=\"language-json overflow-x-auto p-4 rounded-lg bg-muted\">" + escapeHtml(yamlDataPrettified) + "</pre>";
             var modalFooter = "<button type=\"button\" class=\"btn btn-sm btn-primary close-modal-btn\">Close</button>";
             var extra = function () {
                 var pre = document.getElementById("modal-yaml-content");
