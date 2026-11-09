@@ -142,7 +142,7 @@ medperf profile set --platform singularity --launcher slurm \
     --slurm-time 02:00:00
 ```
 
-The Dummy model, the data preparator and the evaluator don't use the GPU. The AIDE agent needs one GPU, for at least its `aide.time_limit` plus the time to load the LLM: about 1 h 15 min with the default parameters. Request the GPU only on the commands that run the agent (`model associate` in step 6, and `run` in step 7), by putting `--slurm-gres gpu:1` right after `medperf`, e.g. `medperf --slurm-gres gpu:1 run ...`.
+The Dummy model, the data preparator and the evaluator don't use the GPU. The AIDE agent needs one GPU, for at least its `aide.time_limit` plus the time to load the LLM: about 1 h 15 min with the default parameters. Request the GPU only on the commands that run the agent (`model associate` in step 6, and `run` in step 7), by putting `--slurm-gres gpu:1` right after `medperf`, e.g. `medperf --slurm-gres gpu:1 run ...`. MedPerf applies it to every job the command submits, so the evaluation job of the same command also gets a GPU it doesn't use, and MedPerf prints a warning about it. This is harmless: the evaluation takes seconds.
 
 ## 4. Benchmark owner: register the containers and the benchmark
 
