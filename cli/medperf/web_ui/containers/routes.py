@@ -31,6 +31,9 @@ from medperf.web_ui.listing import fetch_listing_page
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
+# Starting an automatic grant access checks then saves its worker: concurrent
+# starts must not both pass the check (the first worker couldn't be stopped).
+_auto_access_start_lock = threading.Lock()
 
 
 def _auto_access_key(model_id: int, benchmark_id: int) -> str:
@@ -316,38 +319,39 @@ def start_auto_access(
 ):
     model_auto_give_access = request.app.state.model_auto_give_access
     key = _auto_access_key(model_id, benchmark_id)
-    if key in model_auto_give_access:
-        return {
-            "status": "failed",
-            "error": "Auto give access is already running for the selected container and benchmark.",
-        }
-
     return_response = {"status": "", "error": ""}
-    try:
-        benchmark_name = Benchmark.get(benchmark_id).name
-        event = threading.Event()
-        logs = deque(maxlen=config.webui_max_log_messages)
-        auto_access_worker = threading.Thread(
-            target=grant_access_worker,
-            args=(benchmark_id, model_id, emails, interval, event, logs),
-            daemon=True,
-        )
-        auto_access_worker.start()
-        model_auto_give_access[key] = {
-            "worker": auto_access_worker,
-            "event": event,
-            "name": benchmark_name,
-            "emails": emails,
-            "interval": interval,
-            "logs": logs,
-        }
-        return_response["status"] = "success"
-        notification_message = "Successfully started automatic grant access."
-    except Exception as exp:
-        return_response["status"] = "failed"
-        return_response["error"] = str(exp)
-        notification_message = "Failed to start automatic grant access."
-        logger.exception(exp)
+    with _auto_access_start_lock:
+        if key in model_auto_give_access:
+            return {
+                "status": "failed",
+                "error": "Auto give access is already running for the selected container and benchmark.",
+            }
+
+        try:
+            benchmark_name = Benchmark.get(benchmark_id).name
+            event = threading.Event()
+            logs = deque(maxlen=config.webui_max_log_messages)
+            auto_access_worker = threading.Thread(
+                target=grant_access_worker,
+                args=(benchmark_id, model_id, emails, interval, event, logs),
+                daemon=True,
+            )
+            auto_access_worker.start()
+            model_auto_give_access[key] = {
+                "worker": auto_access_worker,
+                "event": event,
+                "name": benchmark_name,
+                "emails": emails,
+                "interval": interval,
+                "logs": logs,
+            }
+            return_response["status"] = "success"
+            notification_message = "Successfully started automatic grant access."
+        except Exception as exp:
+            return_response["status"] = "failed"
+            return_response["error"] = str(exp)
+            notification_message = "Failed to start automatic grant access."
+            logger.exception(exp)
 
     config.ui.add_notification(
         message=notification_message,
