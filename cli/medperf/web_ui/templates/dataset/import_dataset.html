@@ -1,6 +1,5 @@
+{# Dataset import form (from a tar.gz backup). #}
 {% extends "base.html" %}
-{% import "constants/forms_placeholders.html" as placeholders %}
-{% import "constants/tooltips.html" as tooltips %}
 {% import "macros/modal_macros.html" as modal_macros %}
 
 {% block title %}Import Dataset{% endblock %}
@@ -17,16 +16,16 @@
         <div>
             <label for="dataset-id" class="block text-secondary font-semibold mb-2">Dataset UID</label>
             <div class="flex flex-wrap items-stretch gap-2">
-                <input type="number" id="dataset-id" name="dataset_id" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="{{ placeholders.import_dataset_id }}" {% if task_running %}disabled{% endif %} {% if dataset_import_running %}value="{{ form_data.get('dataset_id', '') }}"{% endif %}>
-                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ tooltips.import_dataset_id }}"><i class="fas fa-info-circle text-lg"></i></span>
+                <input type="number" id="dataset-id" name="dataset_id" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="{{ help_texts.WebUIPlaceholders.dataset_import_uid }}" {% if task_running %}disabled{% endif %} {% if dataset_import_running %}value="{{ form_data.get('dataset_id', '') }}"{% endif %}>
+                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ help_texts.Dataset.import_uid }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
         <div>
             <label for="input-path" class="block text-secondary font-semibold mb-2">Dataset Backup File</label>
             <div class="flex flex-wrap items-stretch gap-2">
-                <input type="text" id="input-path" name="input_path" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="{{ placeholders.import_dataset_input_path }}" {% if task_running %}disabled{% endif %} {% if dataset_import_running %}value="{{ form_data.get('input_path', '') }}"{% endif %}>
+                <input type="text" id="input-path" name="input_path" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="{{ help_texts.WebUIPlaceholders.dataset_import_input_path }}" {% if task_running %}disabled{% endif %} {% if dataset_import_running %}value="{{ form_data.get('input_path', '') }}"{% endif %}>
                 <button type="button" class="btn btn-sm btn-secondary" id="browse-input-btn" {% if task_running %}disabled{% endif %}>Browse</button>
-                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ tooltips.import_dataset_input_path }}"><i class="fas fa-info-circle text-lg"></i></span>
+                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ help_texts.Dataset.import_input_path }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
         <div>
@@ -39,9 +38,9 @@
         <div id="raw-data-group" class="hidden">
             <label for="raw-path" class="block text-secondary font-semibold mb-2">Raw Dataset Path</label>
             <div class="flex flex-wrap items-stretch gap-2">
-                <input type="text" id="raw-path" name="raw_dataset_path" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="{{ placeholders.import_dataset_raw_path }}" {% if task_running %}disabled{% endif %} {% if dataset_import_running %}value="{{ form_data.get('raw_dataset_path', '') }}"{% endif %}>
+                <input type="text" id="raw-path" name="raw_dataset_path" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="{{ help_texts.WebUIPlaceholders.dataset_import_raw_path }}" {% if task_running %}disabled{% endif %} {% if dataset_import_running %}value="{{ form_data.get('raw_dataset_path', '') }}"{% endif %}>
                 <button type="button" class="btn btn-sm btn-secondary" id="browse-raw-btn" {% if task_running %}disabled{% endif %}>Browse</button>
-                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ tooltips.import_dataset_raw_path }}"><i class="fas fa-info-circle text-lg"></i></span>
+                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ help_texts.Dataset.import_raw_path }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
         <div class="text-center pt-4">

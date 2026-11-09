@@ -1,5 +1,10 @@
+/*
+ * Training experiment details page: plan, aggregator, events and status.
+ */
+
 var REDIRECT_BASE = "/training/ui/display/";
 
+/** Bind the page forms and path pickers. */
 function init() {
     var browseSetPlanBtn = document.getElementById("browse-set-plan-btn");
     if (browseSetPlanBtn) {

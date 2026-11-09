@@ -7,6 +7,7 @@ from medperf.commands.cc.model_configure_for_cc import ModelConfigureForCC
 from medperf.commands.cc.dataset_update_cc_policy import DatasetUpdateCCPolicy
 from medperf.commands.cc.model_update_cc_policy import ModelUpdateCCPolicy
 from medperf.commands.cc.setup_cc_operator import SetupCCOperator
+import medperf.help_texts as help_texts
 
 app = typer.Typer()
 
@@ -14,12 +15,12 @@ app = typer.Typer()
 @app.command("configure_dataset_for_cc")
 @clean_except
 def configure_dataset_for_cc(
-    data_uid: int = typer.Option(..., "--data_uid", "-d", help="Dataset UID"),
+    data_uid: int = typer.Option(..., "--data_uid", "-d", help=help_texts.Dataset.uid),
     cc_config_file: str = typer.Option(
-        ..., "--cc_config_file", "-c", help="path to cc config file"
+        ..., "--cc_config_file", "-c", help=help_texts.Confidential.config_file
     ),
     cc_policy_file: str = typer.Option(
-        ..., "--cc_policy_file", "-p", help="path to cc policy file"
+        ..., "--cc_policy_file", "-p", help=help_texts.Confidential.policy_file
     ),
 ):
     """Configure dataset for confidential computing execution"""
@@ -31,12 +32,12 @@ def configure_dataset_for_cc(
 @app.command("configure_model_for_cc")
 @clean_except
 def configure_model_for_cc(
-    model_uid: int = typer.Option(..., "--model_uid", "-m", help="Model UID"),
+    model_uid: int = typer.Option(..., "--model_uid", "-m", help=help_texts.Model.uid),
     cc_config_file: str = typer.Option(
-        ..., "--cc_config_file", "-c", help="path to cc config file"
+        ..., "--cc_config_file", "-c", help=help_texts.Confidential.config_file
     ),
     cc_policy_file: str = typer.Option(
-        ..., "--cc_policy_file", "-p", help="path to cc policy file"
+        ..., "--cc_policy_file", "-p", help=help_texts.Confidential.policy_file
     ),
 ):
     """Configure model for confidential computing execution"""
@@ -48,7 +49,7 @@ def configure_model_for_cc(
 @app.command("update_dataset_cc_policy")
 @clean_except
 def update_dataset_cc_policy(
-    data_uid: int = typer.Option(..., "--data_uid", "-d", help="Dataset UID"),
+    data_uid: int = typer.Option(..., "--data_uid", "-d", help=help_texts.Dataset.uid),
 ):
     """Update dataset confidential computing policy"""
     ui = config.ui
@@ -59,7 +60,7 @@ def update_dataset_cc_policy(
 @app.command("update_model_cc_policy")
 @clean_except
 def update_model_cc_policy(
-    model_uid: int = typer.Option(..., "--model_uid", "-m", help="Model UID"),
+    model_uid: int = typer.Option(..., "--model_uid", "-m", help=help_texts.Model.uid),
 ):
     """Update model confidential computing policy"""
     ui = config.ui
@@ -71,7 +72,7 @@ def update_model_cc_policy(
 @clean_except
 def setup_cc_operator(
     cc_config_file: str = typer.Option(
-        ..., "--cc_config_file", "-c", help="path to cc config file"
+        ..., "--cc_config_file", "-c", help=help_texts.Confidential.config_file
     ),
 ):
     """Setup confidential computing operator"""

@@ -1,5 +1,3 @@
-import logging
-
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 
@@ -10,11 +8,9 @@ from medperf.commands.model.associate import AssociateModel
 from medperf.commands.mlcube.utils import check_access_to_container
 from medperf.commands.cc.model_configure_for_cc import ModelConfigureForCC
 from medperf.commands.cc.model_update_cc_policy import ModelUpdateCCPolicy
-import medperf.config as config
 from medperf.web_ui.common import (
     check_user_api,
-    initialize_state_task,
-    reset_state_task,
+    UITask,
     templates,
     check_user_ui,
 )
@@ -23,7 +19,6 @@ from typing import Optional
 from medperf.web_ui.listing import fetch_listing_page
 
 router = APIRouter()
-logger = logging.getLogger(__name__)
 
 
 @router.get("/ui", response_class=HTMLResponse)
@@ -120,26 +115,14 @@ def associate(
     benchmark_id: int = Form(...),
     current_user: bool = Depends(check_user_api),
 ):
-    initialize_state_task(request, task_name="model_association")
-    return_response = {"status": "", "error": "", "entity_id": model_id}
-    try:
+    with UITask(request, "model_association", response={"entity_id": model_id}) as task:
         AssociateModel.run(model_uid=model_id, benchmark_uid=benchmark_id)
-        return_response["status"] = "success"
-        notification_message = "Successfully requested model association!"
-    except Exception as exp:
-        return_response["status"] = "failed"
-        return_response["error"] = str(exp)
-        notification_message = "Failed to request model association"
-        logger.exception(exp)
-
-    config.ui.end_task(return_response)
-    reset_state_task(request)
-    config.ui.add_notification(
-        message=notification_message,
-        return_response=return_response,
+    task.notify(
+        success_message="Successfully requested model association!",
+        failure_message="Failed to request model association",
         url=f"/models/ui/display/{model_id}",
     )
-    return return_response
+    return task.response
 
 
 @router.post("/edit_cc_config", response_class=JSONResponse)
@@ -170,26 +153,14 @@ def edit_cc_config(
     if not configure_cc:
         args = {}
 
-    initialize_state_task(request, task_name="model_update_cc_config")
-    return_response = {"status": "", "error": ""}
-    try:
+    with UITask(request, "model_update_cc_config") as task:
         ModelConfigureForCC.run(entity_id, args, {})
-        return_response["status"] = "success"
-        notification_message = "Successfully updated model CC config!"
-    except Exception as exp:
-        return_response["status"] = "failed"
-        return_response["error"] = str(exp)
-        notification_message = "Failed to update model CC config"
-        logger.exception(exp)
-
-    config.ui.end_task(return_response)
-    reset_state_task(request)
-    config.ui.add_notification(
-        message=notification_message,
-        return_response=return_response,
+    task.notify(
+        success_message="Successfully updated model CC config!",
+        failure_message="Failed to update model CC config",
         url=f"/models/ui/display/{entity_id}",
     )
-    return return_response
+    return task.response
 
 
 @router.post("/sync_cc_policy", response_class=JSONResponse)
@@ -198,23 +169,11 @@ def sync_cc_policy(
     entity_id: int = Form(...),
     current_user: bool = Depends(check_user_api),
 ):
-    initialize_state_task(request, task_name="model_update_cc_policy")
-    return_response = {"status": "", "error": ""}
-    try:
+    with UITask(request, "model_update_cc_policy") as task:
         ModelUpdateCCPolicy.run(entity_id)
-        return_response["status"] = "success"
-        notification_message = "Successfully updated model CC policy!"
-    except Exception as exp:
-        return_response["status"] = "failed"
-        return_response["error"] = str(exp)
-        notification_message = "Failed to update model CC policy"
-        logger.exception(exp)
-
-    config.ui.end_task(return_response)
-    reset_state_task(request)
-    config.ui.add_notification(
-        message=notification_message,
-        return_response=return_response,
+    task.notify(
+        success_message="Successfully updated model CC policy!",
+        failure_message="Failed to update model CC policy",
         url=f"/models/ui/display/{entity_id}",
     )
-    return return_response
+    return task.response

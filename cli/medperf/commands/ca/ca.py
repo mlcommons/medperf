@@ -8,6 +8,7 @@ from medperf.commands.ca.submit import SubmitCA
 
 from medperf.commands.list import EntityList
 from medperf.commands.view import EntityView
+import medperf.help_texts as help_texts
 
 app = typer.Typer()
 
@@ -15,23 +16,25 @@ app = typer.Typer()
 @app.command("submit")
 @clean_except
 def submit(
-    name: str = typer.Option(..., "--name", "-n", help="Name of the ca"),
+    name: str = typer.Option(..., "--name", "-n", help=help_texts.CA.name),
     config_path: str = typer.Option(
         ...,
         "--config-path",
         "-c",
-        help="Path to the configuration file (JSON) of the CA",
+        help=help_texts.CA.config_path,
     ),
-    ca_mlcube: int = typer.Option(..., "--ca-container", help="CA container UID"),
+    ca_mlcube: int = typer.Option(
+        ..., "--ca-container", help=help_texts.CA.ca_container
+    ),
     client_mlcube: int = typer.Option(
         ...,
         "--client-container",
-        help="container UID to be used by clients to get a cert",
+        help=help_texts.CA.client_container,
     ),
     server_mlcube: int = typer.Option(
         ...,
         "--server-container",
-        help="container UID to be used by servers to get a cert",
+        help=help_texts.CA.server_container,
     ),
 ):
     """Submits a ca"""
@@ -43,9 +46,9 @@ def submit(
 @clean_except
 def list(
     unregistered: bool = typer.Option(
-        False, "--unregistered", help="Get unregistered CAs"
+        False, "--unregistered", help=help_texts.CA.ls_unregistered
     ),
-    mine: bool = typer.Option(False, "--mine", help="Get current-user CAs"),
+    mine: bool = typer.Option(False, "--mine", help=help_texts.CA.ls_mine),
 ):
     """List CAs"""
     EntityList.run(
@@ -59,28 +62,28 @@ def list(
 @app.command("view")
 @clean_except
 def view(
-    entity_id: Optional[int] = typer.Argument(None, help="Benchmark ID"),
+    entity_id: Optional[int] = typer.Argument(None, help=help_texts.CA.id),
     format: str = typer.Option(
         "yaml",
         "-f",
         "--format",
-        help="Format to display contents. Available formats: [yaml, json]",
+        help=help_texts.Common.format,
     ),
     unregistered: bool = typer.Option(
         False,
         "--unregistered",
-        help="Display unregistered benchmarks if benchmark ID is not provided",
+        help=help_texts.CA.view_unregistered,
     ),
     mine: bool = typer.Option(
         False,
         "--mine",
-        help="Display current-user benchmarks if benchmark ID is not provided",
+        help=help_texts.CA.view_mine,
     ),
     output: str = typer.Option(
         None,
         "--output",
         "-o",
-        help="Output file to store contents. If not provided, the output will be displayed",
+        help=help_texts.Common.output,
     ),
 ):
     """Displays the information of one or more CAs"""

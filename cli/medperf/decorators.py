@@ -8,6 +8,7 @@ from medperf.utils import pretty_error, cleanup
 from medperf.logging.utils import package_logs
 from medperf.exceptions import MedperfException, CleanExit
 import medperf.config as config
+import medperf.help_texts as help_texts
 
 
 def clean_except(func: Callable) -> Callable:
@@ -61,98 +62,102 @@ def configurable(func: Callable) -> Callable:
     def wrapper(
         *args,
         server: str = typer.Option(
-            config.server, "--server", help="URL of a hosted MedPerf API instance"
+            config.server, "--server", help=help_texts.GlobalOptions.server
         ),
         auth_class: str = typer.Option(
             config.auth_class,
             "--auth_class",
-            help="Authentication interface to use [Auth0]",
+            help=help_texts.GlobalOptions.auth_class,
         ),
         auth_domain: str = typer.Option(
-            config.auth_domain, "--auth_domain", help="Auth0 domain name"
+            config.auth_domain,
+            "--auth_domain",
+            help=help_texts.GlobalOptions.auth_domain,
         ),
         auth_jwks_url: str = typer.Option(
-            config.auth_jwks_url, "--auth_jwks_url", help="Auth0 Json Web Key set URL"
+            config.auth_jwks_url,
+            "--auth_jwks_url",
+            help=help_texts.GlobalOptions.auth_jwks_url,
         ),
         auth_idtoken_issuer: str = typer.Option(
             config.auth_idtoken_issuer,
             "--auth_idtoken_issuer",
-            help="Auth0 ID token issuer",
+            help=help_texts.GlobalOptions.auth_idtoken_issuer,
         ),
         auth_client_id: str = typer.Option(
-            config.auth_client_id, "--auth_client_id", help="Auth0 client ID"
+            config.auth_client_id,
+            "--auth_client_id",
+            help=help_texts.GlobalOptions.auth_client_id,
         ),
         auth_audience: str = typer.Option(
             config.auth_audience,
             "--auth_audience",
-            help="Server's Auth0 API identifier",
+            help=help_texts.GlobalOptions.auth_audience,
         ),
         certificate: str = typer.Option(
-            config.certificate, "--certificate", help="path to a valid SSL certificate"
+            config.certificate,
+            "--certificate",
+            help=help_texts.GlobalOptions.certificate,
         ),
         loglevel: str = typer.Option(
             config.loglevel,
             "--loglevel",
-            help="Logging level [debug | info | warning | error]",
+            help=help_texts.GlobalOptions.loglevel,
         ),
         prepare_timeout: int = typer.Option(
             config.prepare_timeout,
             "--prepare_timeout",
-            help="Maximum time in seconds before interrupting prepare task",
+            help=help_texts.GlobalOptions.prepare_timeout,
         ),
         sanity_check_timeout: int = typer.Option(
             config.sanity_check_timeout,
             "--sanity_check_timeout",
-            help="Maximum time in seconds before interrupting sanity_check task",
+            help=help_texts.GlobalOptions.sanity_check_timeout,
         ),
         statistics_timeout: int = typer.Option(
             config.statistics_timeout,
             "--statistics_timeout",
-            help="Maximum time in seconds before interrupting statistics task",
+            help=help_texts.GlobalOptions.statistics_timeout,
         ),
         infer_timeout: int = typer.Option(
             config.infer_timeout,
             "--infer_timeout",
-            help="Maximum time in seconds before interrupting infer task",
+            help=help_texts.GlobalOptions.infer_timeout,
         ),
         evaluate_timeout: int = typer.Option(
             config.evaluate_timeout,
             "--evaluate_timeout",
-            help="Maximum time in seconds before interrupting evaluate task",
+            help=help_texts.GlobalOptions.evaluate_timeout,
         ),
         container_loglevel: str = typer.Option(
             config.container_loglevel,
             "--container-loglevel",
-            help="Logging level for containers to be run [debug | info | warning | error]",
+            help=help_texts.GlobalOptions.container_loglevel,
         ),
         platform: str = typer.Option(
             config.platform,
             "--platform",
-            help="Platform to use for MLCube. [docker | singularity]",
+            help=help_texts.GlobalOptions.platform,
         ),
         gpus: str = typer.Option(
             config.gpus,
             "--gpus",
-            help="""
-            What GPUs to expose to MLCube.
-            Accepted Values are comma separated GPU IDs (e.g "1,2"), or \"all\".
-            MLCubes that aren't configured to use GPUs won't be affected by this.
-            Defaults to all available GPUs""",
+            help=help_texts.GlobalOptions.gpus,
         ),
         cleanup: bool = typer.Option(
             config.cleanup,
             "--cleanup/--no-cleanup",
-            help="Wether to clean up temporary medperf storage after execution",
+            help=help_texts.GlobalOptions.cleanup,
         ),
         certificate_authority_id: int = typer.Option(
             config.certificate_authority_id,
             "--certificate_authority_id",
-            help="Certificate Authority ID to configure the client with",
+            help=help_texts.GlobalOptions.certificate_authority_id,
         ),
         certificate_authority_fingerprint: str = typer.Option(
             config.certificate_authority_fingerprint,
             "--certificate_authority_fingerprint",
-            help="Expected fingerprint of the configured certificate authority",
+            help=help_texts.GlobalOptions.certificate_authority_fingerprint,
         ),
         **kwargs,
     ):
@@ -179,67 +184,57 @@ def add_inline_parameters(func: Callable) -> Callable:
         loglevel: str = typer.Option(
             config.loglevel,
             "--loglevel",
-            help="Logging level [debug | info | warning | error]",
+            help=help_texts.GlobalOptions.loglevel,
         ),
         prepare_timeout: int = typer.Option(
             config.prepare_timeout,
             "--prepare_timeout",
-            help="Maximum time in seconds before interrupting prepare task",
+            help=help_texts.GlobalOptions.prepare_timeout,
         ),
         sanity_check_timeout: int = typer.Option(
             config.sanity_check_timeout,
             "--sanity_check_timeout",
-            help="Maximum time in seconds before interrupting sanity_check task",
+            help=help_texts.GlobalOptions.sanity_check_timeout,
         ),
         statistics_timeout: int = typer.Option(
             config.statistics_timeout,
             "--statistics_timeout",
-            help="Maximum time in seconds before interrupting statistics task",
+            help=help_texts.GlobalOptions.statistics_timeout,
         ),
         infer_timeout: int = typer.Option(
             config.infer_timeout,
             "--infer_timeout",
-            help="Maximum time in seconds before interrupting infer task",
+            help=help_texts.GlobalOptions.infer_timeout,
         ),
         evaluate_timeout: int = typer.Option(
             config.evaluate_timeout,
             "--evaluate_timeout",
-            help="Maximum time in seconds before interrupting evaluate task",
+            help=help_texts.GlobalOptions.evaluate_timeout,
         ),
         container_loglevel: str = typer.Option(
             config.container_loglevel,
             "--container-loglevel",
-            help="Logging level for containers to be run [debug | info | warning | error]",
+            help=help_texts.GlobalOptions.container_loglevel,
         ),
         platform: str = typer.Option(
             config.platform,
             "--platform",
-            help="Platform to use for MLCube. [docker | singularity]",
+            help=help_texts.GlobalOptions.platform,
         ),
         gpus: str = typer.Option(
             config.gpus,
             "--gpus",
-            help="""
-            What GPUs to expose to MLCube.
-            Accepted Values are:\n
-            - "" or 0: to expose no GPUs (e.g.: --gpus="")\n
-            - "all": to expose all GPUs. (e.g.: --gpus=all)\n
-            - an integer: to expose a certain number of GPUs. ONLY AVAILABLE FOR DOCKER
-            (e.g., --gpus=2 to expose 2 GPUs)\n
-            - Form "device=<id1>,<id2>": to expose specific GPUs.
-            (e.g., --gpus="device=0,2")\n""",
+            help=help_texts.GlobalOptions.gpus_inline,
         ),
         shm_size: str = typer.Option(
             config.shm_size,
             "--shm-size",
-            help="""
-            Only for Docker. See --shm-size argument
-            in docker run: https://docs.docker.com/engine/containers/run/""",
+            help=help_texts.GlobalOptions.shm_size,
         ),
         cleanup: bool = typer.Option(
             config.cleanup,
             "--cleanup/--no-cleanup",
-            help="Whether to clean up temporary medperf storage after execution",
+            help=help_texts.GlobalOptions.cleanup,
         ),
         **kwargs,
     ):

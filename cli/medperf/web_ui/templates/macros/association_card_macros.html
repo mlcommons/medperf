@@ -1,3 +1,4 @@
+{# Macros rendering association cards, with approve/reject actions for the benchmark owner. #}
 {% macro association_card(assoc, entity, entity_type, training_exp_id=none) %}
 <div class="bg-card dark:bg-card rounded-xl p-6 shadow-lg border-2 border-border-brand dark:border-border mb-4 {% if assoc.approval_status == 'REJECTED' %}invalid-card{% endif %}" data-testid="associated-benchmark-item">
     <h3 class="text-lg font-bold text-ink mb-3">

@@ -1,6 +1,5 @@
+{# Dataset registration form. #}
 {% extends "base.html" %}
-{% import "constants/forms_placeholders.html" as placeholders %}
-{% import "constants/tooltips.html" as tooltips %}
 {% import "macros/modal_macros.html" as modal_macros %}
 
 {% block title %}Register Dataset{% endblock %}
@@ -42,52 +41,52 @@
                 {% set selected_value = form_data.get('prep_cube_uid', '') if dataset_register_running else '' %}
                 {% set disabled = task_running %}
                 {% include "partials/searchable_select.html" %}
-                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ tooltips.register_training_data_preparation_container }}"><i class="fas fa-info-circle text-lg"></i></span>
+                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ help_texts.Dataset.data_preparation_container }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
         {% endif %}
         <div>
             <label for="name" class="block text-secondary font-semibold mb-2">Dataset Name</label>
             <div class="flex flex-wrap items-stretch gap-2">
-                <input type="text" name="name" id="name" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="{{ placeholders.register_dataset_name }}" {% if task_running %}disabled{% endif %} {% if dataset_register_running %}value="{{ form_data.get('name', '') }}"{% endif %} maxlength="128">
-                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ tooltips.register_dataset_name }}"><i class="fas fa-info-circle text-lg"></i></span>
+                <input type="text" name="name" id="name" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="{{ help_texts.WebUIPlaceholders.dataset_name }}" {% if task_running %}disabled{% endif %} {% if dataset_register_running %}value="{{ form_data.get('name', '') }}"{% endif %} maxlength="128">
+                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ help_texts.Dataset.name }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
         <div>
             <label for="description" class="block text-secondary font-semibold mb-2">Description</label>
             <div class="flex flex-wrap items-stretch gap-2">
-                <textarea name="description" id="description" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="{{ placeholders.register_dataset_description }}" {% if task_running %}disabled{% endif %} maxlength="256">{% if dataset_register_running %}{{ form_data.get('description', '') }}{% endif %}</textarea>
-                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ tooltips.register_dataset_description }}"><i class="fas fa-info-circle text-lg"></i></span>
+                <textarea name="description" id="description" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="{{ help_texts.WebUIPlaceholders.dataset_description }}" {% if task_running %}disabled{% endif %} maxlength="256">{% if dataset_register_running %}{{ form_data.get('description', '') }}{% endif %}</textarea>
+                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ help_texts.Dataset.description }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
         <div>
             <label for="location" class="block text-secondary font-semibold mb-2">Location</label>
             <div class="flex flex-wrap items-stretch gap-2">
-                <input type="text" name="location" id="location" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="{{ placeholders.register_dataset_location }}" {% if task_running %}disabled{% endif %} {% if dataset_register_running %}value="{{ form_data.get('location', '') }}"{% endif %} maxlength="128">
-                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ tooltips.register_dataset_location }}"><i class="fas fa-info-circle text-lg"></i></span>
+                <input type="text" name="location" id="location" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="{{ help_texts.WebUIPlaceholders.dataset_location }}" {% if task_running %}disabled{% endif %} {% if dataset_register_running %}value="{{ form_data.get('location', '') }}"{% endif %} maxlength="128">
+                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ help_texts.Dataset.location }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
         <div>
             <label for="data-path" class="block text-secondary font-semibold mb-2">Data Folder</label>
             <div class="flex flex-wrap items-stretch gap-2">
-                <input type="text" id="data-path" name="data_path" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="{{ placeholders.register_dataset_data_path }}" {% if task_running %}disabled{% endif %} {% if dataset_register_running %}value="{{ form_data.get('data_path', '') }}"{% endif %}>
+                <input type="text" id="data-path" name="data_path" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="{{ help_texts.WebUIPlaceholders.dataset_data_path }}" {% if task_running %}disabled{% endif %} {% if dataset_register_running %}value="{{ form_data.get('data_path', '') }}"{% endif %}>
                 <button type="button" class="btn btn-sm btn-secondary" id="browse-data-btn" {% if task_running %}disabled{% endif %}>Browse</button>
-                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ tooltips.register_dataset_data_path }}"><i class="fas fa-info-circle text-lg"></i></span>
+                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ help_texts.Dataset.data_path }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
         <div>
             <label for="labels-path" class="block text-secondary font-semibold mb-2">Labels Folder</label>
             <div class="flex flex-wrap items-stretch gap-2">
-                <input type="text" id="labels-path" name="labels_path" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="{{ placeholders.register_dataset_labels_path }}" {% if task_running %}disabled{% endif %} {% if dataset_register_running %}value="{{ form_data.get('labels_path', '') }}"{% endif %}>
+                <input type="text" id="labels-path" name="labels_path" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="{{ help_texts.WebUIPlaceholders.dataset_labels_path }}" {% if task_running %}disabled{% endif %} {% if dataset_register_running %}value="{{ form_data.get('labels_path', '') }}"{% endif %}>
                 <button type="button" class="btn btn-sm btn-secondary" id="browse-labels-btn" {% if task_running %}disabled{% endif %}>Browse</button>
-                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ tooltips.register_dataset_labels_path }}"><i class="fas fa-info-circle text-lg"></i></span>
+                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ help_texts.Dataset.labels_path }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
         <div class="flex items-center gap-4">
             <label class="relative inline-flex items-center cursor-pointer" for="submit-as-prepared">
                 <input type="checkbox" id="submit-as-prepared" name="submit_as_prepared" class="sr-only peer" {% if dataset_register_running and form_data.get("submit_as_prepared") %}checked{% endif %} {% if task_running %}disabled{% endif %}>
                 <div class="relative w-14 h-7 bg-muted-strong peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-subtle rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-brand"></div>
-                <span class="ml-4 text-secondary font-semibold" title="{{ tooltips.register_dataset_submit_as_prepared }}">Submit as Prepared</span>
+                <span class="ml-4 text-secondary font-semibold" title="{{ help_texts.WebUITooltips.dataset_submit_as_prepared }}">Submit as Prepared</span>
             </label>
         </div>
         <div class="text-center pt-4">

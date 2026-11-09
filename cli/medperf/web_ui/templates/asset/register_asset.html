@@ -1,8 +1,7 @@
 {# ./cli/medperf/web_ui/templates/asset/register_asset.html #}
+{# Asset registration form (local file or remote URL). #}
 
 {% extends "base.html" %}
-{% import "constants/forms_placeholders.html" as placeholders %}
-{% import "constants/tooltips.html" as tooltips %}
 
 {% block title %}Register Asset{% endblock %}
 
@@ -19,8 +18,8 @@
         <div>
             <label for="name" class="block text-secondary font-semibold mb-2">Asset name</label>
             <div class="flex flex-wrap items-stretch gap-2">
-                <input name="name" type="text" id="name" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="{{ placeholders.register_asset_name }}" {% if asset_register_running %}value="{{ form_data.get('name', '') }}" disabled{% endif %} maxlength="128">
-                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ tooltips.register_asset_name }}"><i class="fas fa-info-circle text-lg"></i></span>
+                <input name="name" type="text" id="name" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="{{ help_texts.WebUIPlaceholders.asset_name }}" {% if asset_register_running %}value="{{ form_data.get('name', '') }}" disabled{% endif %} maxlength="128">
+                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ help_texts.Asset.name }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
         <div class="flex flex-wrap gap-4">
@@ -37,17 +36,17 @@
         <div id="asset-url-container" class="{% if asset_register_running and not form_data.get('asset_is_remote') == 'true' %}hidden{% endif %}">
             <label for="asset-url" class="block text-secondary font-semibold mb-2">Asset URL</label>
             <div class="flex flex-wrap items-stretch gap-2">
-                <input name="asset_url" type="text" id="asset-url" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="{{ placeholders.register_asset_url }}" {% if task_running %}disabled{% endif %} {% if asset_register_running %}value="{{ form_data.get('asset_url', '') }}"{% endif %}>
-                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ tooltips.register_asset_url }}"><i class="fas fa-info-circle text-lg"></i></span>
+                <input name="asset_url" type="text" id="asset-url" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="{{ help_texts.WebUIPlaceholders.asset_url }}" {% if task_running %}disabled{% endif %} {% if asset_register_running %}value="{{ form_data.get('asset_url', '') }}"{% endif %}>
+                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ help_texts.Asset.url }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
 
         <div id="asset-path-container" class="{% if asset_register_running and form_data.get('asset_is_remote') == 'true' %}hidden{% endif %}">
             <label for="asset-path" class="block text-secondary font-semibold mb-2">Asset Path</label>
             <div class="flex flex-wrap items-stretch gap-2">
-                <input type="text" id="asset-path" name="asset_path" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="{{ placeholders.register_asset_path }}" {% if task_running %}disabled{% endif %} {% if asset_register_running %}value="{{ form_data.get('asset_path', '') }}"{% endif %}>
+                <input type="text" id="asset-path" name="asset_path" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="{{ help_texts.WebUIPlaceholders.asset_path }}" {% if task_running %}disabled{% endif %} {% if asset_register_running %}value="{{ form_data.get('asset_path', '') }}"{% endif %}>
                 <button type="button" class="btn btn-sm btn-secondary" id="browse-asset-btn" {% if task_running %}disabled{% endif %}>Browse</button>
-                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ tooltips.register_asset_path }}"><i class="fas fa-info-circle text-lg"></i></span>
+                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ help_texts.Asset.path }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
 

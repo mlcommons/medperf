@@ -1,6 +1,5 @@
+{# Benchmark registration form. #}
 {% extends "base.html" %}
-{% import "constants/forms_placeholders.html" as placeholders %}
-{% import "constants/tooltips.html" as tooltips %}
 
 {% block title %}Register Benchmark{% endblock %}
 
@@ -20,22 +19,22 @@
         <div>
             <label for="name" class="block text-secondary font-semibold mb-2">Benchmark Name</label>
             <div class="flex flex-wrap items-stretch gap-2">
-                <input name="name" type="text" id="name" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="{{ placeholders.register_benchmark_name }}" {% if task_running %}disabled{% endif %} {% if benchmark_register_running %}value="{{ form_data.get('name', '') }}"{% endif %} maxlength="128">
-                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ tooltips.register_benchmark_name }}"><i class="fas fa-info-circle text-lg"></i></span>
+                <input name="name" type="text" id="name" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="{{ help_texts.WebUIPlaceholders.benchmark_name }}" {% if task_running %}disabled{% endif %} {% if benchmark_register_running %}value="{{ form_data.get('name', '') }}"{% endif %} maxlength="128">
+                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ help_texts.Benchmark.name }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
         <div>
             <label for="description" class="block text-secondary font-semibold mb-2">Description</label>
             <div class="flex flex-wrap items-stretch gap-2">
-                <textarea name="description" id="description" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="{{ placeholders.register_benchmark_description }}" {% if task_running %}disabled{% endif %} maxlength="256">{% if benchmark_register_running %}{{ form_data.get('description', '') }}{% endif %}</textarea>
-                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ tooltips.register_benchmark_description }}"><i class="fas fa-info-circle text-lg"></i></span>
+                <textarea name="description" id="description" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="{{ help_texts.WebUIPlaceholders.benchmark_description }}" {% if task_running %}disabled{% endif %} maxlength="256">{% if benchmark_register_running %}{{ form_data.get('description', '') }}{% endif %}</textarea>
+                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ help_texts.Benchmark.description }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
         <div id="demo-dataset-input-container">
             <label for="reference-dataset-tarball-url" class="block text-secondary font-semibold mb-2">Reference Dataset Tarball URL</label>
             <div class="flex flex-wrap items-stretch gap-2">
-                <input name="reference_dataset_tarball_url" type="text" id="reference-dataset-tarball-url" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="{{ placeholders.register_benchmark_reference_dataset_tarball_url }}" {% if task_running %}disabled{% endif %} {% if benchmark_register_running %}value="{{ form_data.get('reference_dataset_tarball_url', '') }}"{% endif %}>
-                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ tooltips.register_benchmark_reference_dataset_tarball_url }}"><i class="fas fa-info-circle text-lg"></i></span>
+                <input name="reference_dataset_tarball_url" type="text" id="reference-dataset-tarball-url" class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" placeholder="{{ help_texts.WebUIPlaceholders.benchmark_demo_url }}" {% if task_running %}disabled{% endif %} {% if benchmark_register_running %}value="{{ form_data.get('reference_dataset_tarball_url', '') }}"{% endif %}>
+                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ help_texts.Benchmark.demo_url }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
             <div class="flex flex-wrap gap-4 mt-3">
                 <label class="inline-flex items-center gap-2 cursor-pointer text-ink"><input type="radio" name="skip_data_preparation_step" value="true" id="skip-dataprep" class="rounded-full border-border-strong text-brand focus:ring-brand-accent dark:border-border accent-brand"> Already Prepared</label>
@@ -56,7 +55,7 @@
                 {% set selected_value = form_data.get('data_preparation_container', '') if benchmark_register_running else '' %}
                 {% set disabled = task_running %}
                 {% include "partials/searchable_select.html" %}
-                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ tooltips.register_benchmark_data_preparation_container_id }}"><i class="fas fa-info-circle text-lg"></i></span>
+                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ help_texts.Benchmark.data_preparation_container }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
         <div>
@@ -73,7 +72,7 @@
                 {% set selected_value = form_data.get('reference_model', '') if benchmark_register_running else '' %}
                 {% set disabled = task_running %}
                 {% include "partials/searchable_select.html" %}
-                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ tooltips.register_benchmark_reference_model_id }}"><i class="fas fa-info-circle text-lg"></i></span>
+                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ help_texts.Benchmark.reference_model }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
         <div>
@@ -90,7 +89,7 @@
                 {% set selected_value = form_data.get('evaluator_container', '') if benchmark_register_running else '' %}
                 {% set disabled = task_running %}
                 {% include "partials/searchable_select.html" %}
-                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ tooltips.register_benchmark_metrics_container_id }}"><i class="fas fa-info-circle text-lg"></i></span>
+                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ help_texts.Benchmark.evaluator_container }}"><i class="fas fa-info-circle text-lg"></i></span>
             </div>
         </div>
         <div class="text-center pt-4">

@@ -27,58 +27,56 @@ import medperf.commands.storage as storage
 import medperf.web_ui.app as web_ui
 from medperf.utils import check_for_updates, get_webui_properties
 from medperf.logging.utils import log_machine_details
+import medperf.help_texts as help_texts
 
 app = typer.Typer()
-app.add_typer(mlcube.app, name="mlcube", help="Manage mlcubes")
-app.add_typer(mlcube.app, name="container", help="Manage containers")
-app.add_typer(execution.app, name="result", help="Manage results")
-app.add_typer(dataset.app, name="dataset", help="Manage datasets")
-app.add_typer(benchmark.app, name="benchmark", help="Manage benchmarks")
-app.add_typer(association.app, name="association", help="Manage associations")
-app.add_typer(profile.app, name="profile", help="Manage profiles")
-app.add_typer(compatibility_test.app, name="test", help="Manage compatibility tests")
-app.add_typer(auth.app, name="auth", help="Authentication")
-app.add_typer(storage.app, name="storage", help="Storage management")
-app.add_typer(training.app, name="training", help="Manage training experiments")
-app.add_typer(aggregator.app, name="aggregator", help="Manage aggregators")
-app.add_typer(ca.app, name="ca", help="Manage CAs")
-app.add_typer(certificate.app, name="certificate", help="Manage certificates")
-app.add_typer(asset.app, name="asset", help="Manage assets")
-app.add_typer(model_cmds.app, name="model", help="Manage models")
-app.add_typer(cc_cmds.app, name="confidential", help="Manage confidential computing")
-app.add_typer(web_ui.app, name="web-ui", help="local web UI to manage medperf entities")
+app.add_typer(mlcube.app, name="mlcube", help=help_texts.Groups.mlcube)
+app.add_typer(mlcube.app, name="container", help=help_texts.Groups.container)
+app.add_typer(execution.app, name="result", help=help_texts.Groups.result)
+app.add_typer(dataset.app, name="dataset", help=help_texts.Groups.dataset)
+app.add_typer(benchmark.app, name="benchmark", help=help_texts.Groups.benchmark)
+app.add_typer(association.app, name="association", help=help_texts.Groups.association)
+app.add_typer(profile.app, name="profile", help=help_texts.Groups.profile)
+app.add_typer(compatibility_test.app, name="test", help=help_texts.Groups.test)
+app.add_typer(auth.app, name="auth", help=help_texts.Groups.auth)
+app.add_typer(storage.app, name="storage", help=help_texts.Groups.storage)
+app.add_typer(training.app, name="training", help=help_texts.Groups.training)
+app.add_typer(aggregator.app, name="aggregator", help=help_texts.Groups.aggregator)
+app.add_typer(ca.app, name="ca", help=help_texts.Groups.ca)
+app.add_typer(certificate.app, name="certificate", help=help_texts.Groups.certificate)
+app.add_typer(asset.app, name="asset", help=help_texts.Groups.asset)
+app.add_typer(model_cmds.app, name="model", help=help_texts.Groups.model)
+app.add_typer(cc_cmds.app, name="confidential", help=help_texts.Groups.confidential)
+app.add_typer(web_ui.app, name="web-ui", help=help_texts.Groups.web_ui)
 
 
 @app.command("run")
 @clean_except
 def execute(
     benchmark_uid: int = typer.Option(
-        ..., "--benchmark", "-b", help="UID of the desired benchmark"
+        ..., "--benchmark", "-b", help=help_texts.Benchmark.uid
     ),
     data_uid: int = typer.Option(
-        ..., "--data_uid", "-d", help="Registered Dataset UID"
+        ..., "--data_uid", "-d", help=help_texts.Dataset.registered_uid
     ),
     model_uid: int = typer.Option(
-        ..., "--model_uid", "-m", help="UID of model to execute"
+        ..., "--model_uid", "-m", help=help_texts.Result.model_uid
     ),
-    approval: bool = typer.Option(False, "-y", help="Skip approval step"),
+    approval: bool = typer.Option(False, "-y", help=help_texts.Common.approval),
     ignore_model_errors: bool = typer.Option(
         False,
         "--ignore-model-errors",
-        help="Ignore failing models, allowing for possibly submitting partial results",
+        help=help_texts.Common.ignore_model_errors,
     ),
     no_cache: bool = typer.Option(
         False,
         "--no-cache",
-        help="Ignore existing results. The experiment then will be rerun",
+        help=help_texts.Common.no_cache,
     ),
     new_result: bool = typer.Option(
         False,
         "--new-result",
-        help=(
-            "Works if the result of the execution was already uploaded."
-            "This will rerun and create a new record."
-        ),
+        help=help_texts.Result.new_result,
     ),
 ):
     """Runs the benchmark execution step for a given benchmark, prepared dataset and model"""

@@ -1,5 +1,10 @@
+/*
+ * Model details page.
+ */
+
 var REDIRECT_BASE = "/models/ui/display/";
 
+/** Bind the page forms. */
 function initModelDetail() {
     document.querySelectorAll("form.model-action-form").forEach(function (form) {
         form.addEventListener("submit", submitActionForm);

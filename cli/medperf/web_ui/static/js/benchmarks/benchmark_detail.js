@@ -1,73 +1,50 @@
+/*
+ * Benchmark details page: associations policy, committee members, results
+ * and the preparation dashboard form.
+ */
+
 var REDIRECT_BASE = "/benchmarks/ui/display/";
 
-function isValidEmail(email) {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
-
-function createEmailChip(email, inputElement) {
-    var normalizedEmail = email.toLowerCase();
-    if (inputElement && inputElement.parentNode) {
-        var alreadyAdded = false;
-        inputElement.parentNode.querySelectorAll(".email-chip").forEach(function (chip) {
-            var text = (chip.textContent || "").replace(/\s*×\s*$/, "").trim().toLowerCase();
-            if (text === normalizedEmail) alreadyAdded = true;
-        });
-        if (alreadyAdded) return;
+/**
+ * Confirmation message of the policy update. An empty allow list auto-approves
+ * nobody: it is refused when the saved list is already empty, otherwise (the
+ * user is emptying it) the mode will be set to Never. Null when refused.
+ */
+function buildAssociationsPolicyConfirmMessage(message) {
+    var notes = [];
+    var kinds = ["dataset", "model"];
+    for (var i = 0; i < kinds.length; i++) {
+        var kind = kinds[i];
+        var modeEl = document.getElementById(kind + "-auto-approve-mode");
+        if (!modeEl || modeEl.value !== "ALLOWLIST") continue;
+        var listEl = document.getElementById(kind + "-allow-list-emails");
+        if (getEmailsList(listEl).length) continue;
+        if (!getSavedEmails(listEl).length) {
+            showErrorToast("The " + kind + " allow list is empty. Add at least one email, or choose another mode.");
+            return null;
+        }
+        notes.push("This will empty the " + kind + " allow list and set the " + kind + " auto approve mode to Never.");
     }
-    var chip = document.createElement("div");
-    chip.className = "email-chip inline-block bg-muted-strong rounded-full py-1 px-3 mr-2 mb-2 text-sm";
-    chip.textContent = email;
-    var remove = document.createElement("span");
-    remove.className = "remove-btn ml-2 cursor-pointer font-bold";
-    remove.textContent = "×";
-    remove.addEventListener("click", function () { chip.remove(); });
-    chip.appendChild(remove);
-    if (inputElement && inputElement.parentNode) inputElement.parentNode.insertBefore(chip, inputElement);
+    if (!notes.length) return message;
+    return message + " <strong>" + notes.join(" ") + "</strong>";
 }
 
-function parseEmails(element) {
-    if (!element || !element.getAttribute) return;
-    var raw = element.getAttribute("data-allowed-list") || "[]";
-    var jsonList = [];
-    try { jsonList = JSON.parse(raw); } catch (_) {}
-    var inputEl = element.querySelector("input");
-    for (var i = 0; i < jsonList.length; i++) createEmailChip(jsonList[i], inputEl);
-}
-
-function getEmailsList(element) {
-    var emailsArr = [];
-    if (!element) return emailsArr;
-    element.querySelectorAll(".email-chip").forEach(function (chip) {
-        var text = (chip.textContent || "").replace(/\s*×\s*$/, "").trim();
-        emailsArr.push(text);
-    });
-    return emailsArr;
-}
-
-function showErrorToast(message) {
-    showToast("Validation Error", message, "text-bg-danger");
-}
-
-function checkUpdateAssociationsPolicyForm() {
-    var datasetModeEl = document.getElementById("dataset-auto-approve-mode");
-    var modelModeEl = document.getElementById("model-auto-approve-mode");
-    var datasetApproveMode = datasetModeEl ? datasetModeEl.value : "NEVER";
-    var modelApproveMode = modelModeEl ? modelModeEl.value : "NEVER";
-    var isDatasetValid = (datasetApproveMode === "NEVER" || datasetApproveMode === "ALWAYS");
-    var isModelValid = (modelApproveMode === "NEVER" || modelApproveMode === "ALWAYS");
-    if (!isDatasetValid) {
-        var datasetAllowListArr = getEmailsList(document.getElementById("dataset-allow-list-emails"));
-        if (datasetAllowListArr.length) isDatasetValid = true;
-        else showErrorToast("Make sure that the dataset allow list is not empty");
+/**
+ * Confirmation message of the committee members update. An empty list removes
+ * all the members: it is refused when the committee is already empty. Null
+ * when refused.
+ */
+function buildCommitteeMembersConfirmMessage(message) {
+    var listEl = document.getElementById("committee-members-emails");
+    if (getEmailsList(listEl).length) return message;
+    if (!getSavedEmails(listEl).length) {
+        showErrorToast("The committee members list is empty. Add at least one email.");
+        return null;
     }
-    if (!isModelValid) {
-        var modelAllowListArr = getEmailsList(document.getElementById("model-allow-list-emails"));
-        if (modelAllowListArr.length) isModelValid = true;
-        else showErrorToast("Make sure that the model allow list is not empty");
-    }
-    return isDatasetValid && isModelValid;
+    return message + " <strong>This will remove all committee members.</strong>";
 }
 
+/** Handle the response of updating the associations policy. */
 function onUpdateAssociationsPolicySuccess(response) {
     if (response && response.status === "success") {
         showReloadModal({ title: "Benchmark Associations Policy Successfully Updated", seconds: 3 });
@@ -76,6 +53,7 @@ function onUpdateAssociationsPolicySuccess(response) {
     }
 }
 
+/** Save the associations policy (auto-approval modes and allow lists). */
 function updateAssociationsPolicy(saveBtn) {
     addSpinner(saveBtn);
     disableElements("#association-policy-form button, #association-policy-form input, #association-policy-form select");
@@ -98,6 +76,7 @@ function updateAssociationsPolicy(saveBtn) {
     ajaxRequest("/benchmarks/update_associations_policy", "POST", formData, onUpdateAssociationsPolicySuccess, "Failed to update associations policy");
 }
 
+/** Handle the response of updating the committee members. */
 function onUpdateCommitteeMembersSuccess(response) {
     if (response && response.status === "success") {
         showReloadModal({ title: "Benchmark Committee Members Successfully Updated", seconds: 3 });
@@ -106,6 +85,7 @@ function onUpdateCommitteeMembersSuccess(response) {
     }
 }
 
+/** Save the committee members emails. */
 function updateCommitteeMembers(saveBtn) {
     addSpinner(saveBtn);
     disableElements("#committee-members-form button, #committee-members-form input");
@@ -116,6 +96,7 @@ function updateCommitteeMembers(saveBtn) {
     ajaxRequest("/benchmarks/update_committee_members", "POST", formData, onUpdateCommitteeMembersSuccess, "Failed to update committee members");
 }
 
+/** Bind the page forms, email lists, results and dashboard form. */
 function initBenchmarkDetail() {
     document.querySelectorAll("form.benchmark-action-form").forEach(function (form) {
         form.addEventListener("submit", submitActionForm);
@@ -143,37 +124,18 @@ function initBenchmarkDetail() {
     parseEmails(document.getElementById("dataset-allow-list-emails"));
     parseEmails(document.getElementById("committee-members-emails"));
 
-    document.querySelectorAll(".email-input").forEach(function (input) {
-        input.addEventListener("keydown", function (e) {
-            if (e.key === "Enter" || e.key === " " || e.key === ",") {
-                e.preventDefault();
-                var email = this.value.trim().replace(/,$/, "");
-                if (email && isValidEmail(email)) {
-                    createEmailChip(email, this);
-                    this.value = "";
-                }
-            }
-        });
-        input.addEventListener("paste", function (e) {
-            e.preventDefault();
-            var clipboardData = (e.clipboardData || window.clipboardData).getData("text");
-            var rawEmails = clipboardData.split(/[\s,]+/);
-            rawEmails.forEach(function (email) {
-                email = email.trim();
-                if (email && isValidEmail(email)) createEmailChip(email, input);
-            });
-            input.value = "";
-        });
-    });
+    bindEmailInputs();
 
     var savePolicyBtn = document.getElementById("save-policy-btn");
     if (savePolicyBtn) savePolicyBtn.addEventListener("click", function (e) {
-        if (checkUpdateAssociationsPolicyForm()) showConfirmModal(e.currentTarget, updateAssociationsPolicy, "update benchmark associations policy?");
+        var message = buildAssociationsPolicyConfirmMessage("update benchmark associations policy?");
+        if (message !== null) showConfirmModal(e.currentTarget, updateAssociationsPolicy, message);
     });
 
     var saveCommitteeBtn = document.getElementById("save-committee-members-btn");
     if (saveCommitteeBtn) saveCommitteeBtn.addEventListener("click", function (e) {
-        showConfirmModal(e.currentTarget, updateCommitteeMembers, "update benchmark committee members?");
+        var message = buildCommitteeMembersConfirmMessage("update benchmark committee members?");
+        if (message !== null) showConfirmModal(e.currentTarget, updateCommitteeMembers, message);
     });
 
     if (datasetModeEl) datasetModeEl.dispatchEvent(new Event("change"));

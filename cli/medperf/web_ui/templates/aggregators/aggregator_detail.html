@@ -1,3 +1,4 @@
+{# Aggregator details page: its information, server certificate and running it for a training experiment. #}
 {% extends "detail_base.html" %}
 
 {% block title %}Aggregator Details{% endblock %}
@@ -99,7 +100,7 @@
                 <p class="text-sm text-muted-fg mb-4">A server certificate is already present.</p>
                 {% else %}
                 <p class="text-sm text-muted-fg mb-4">Obtain a server certificate for this aggregator address.</p>
-                <form id="get-server-cert-form" class="space-y-3 mt-10" action="/aggregators/get_server_certificate" method="post" data-panel-title="Getting server certificate" data-confirm-message="get the server certificate for this aggregator?">
+                <form id="get-server-cert-form" data-success-handler="onGetServerCertSuccess" class="space-y-3 mt-10" action="/aggregators/get_server_certificate" method="post" data-panel-title="Getting server certificate" data-confirm-message="get the server certificate for this aggregator?">
                     <input type="hidden" name="aggregator_id" value="{{ entity.id }}">
                     <button type="submit" class="w-full btn btn-sm btn-primary cursor-pointer" {% if task_running %} disabled {% endif %}>Get certificate</button>
                 </form>
@@ -122,7 +123,7 @@
                 {% if not experiments_using_aggregator %}
                 <p class="text-sm text-warning-fg mb-4">No training experiments use this aggregator. Set this aggregator on a training experiment first.</p>
                 {% endif %}
-                <form id="start-aggregator-form" action="/aggregators/run" method="post" class="space-y-3 mt-auto" data-panel-title="Running aggregator" data-confirm-message="run the aggregator for the selected training experiment?">
+                <form id="start-aggregator-form" data-success-handler="onRunAggregatorSuccess" data-after-submit="startPollingRunningTasks" action="/aggregators/run" method="post" class="space-y-3 mt-auto" data-panel-title="Running aggregator" data-confirm-message="run the aggregator for the selected training experiment?">
                     <input type="hidden" name="aggregator_id" value="{{ entity.id }}">
                     {% set entity_type = "training" %}
                     {% set input_name = "training_exp_id" %}
@@ -135,7 +136,7 @@
                     {% include "partials/searchable_select.html" %}
                     <div>
                         <label for="publish-on-input" class="block text-sm font-medium text-secondary mb-1.5">Publish on</label>
-                        <input type="text" id="publish-on-input" name="publish_on" autocomplete="off" placeholder="127.0.0.1"
+                        <input type="text" id="publish-on-input" name="publish_on" autocomplete="off" placeholder="{{ help_texts.WebUIPlaceholders.aggregator_publish_on }}"
                             class="w-full px-3 py-2.5 rounded-lg border border-border-strong dark:border-border dark:bg-card-muted dark:text-ink font-mono text-sm focus:outline-none focus:ring-2 focus:ring-brand-accent"
                             value="{% if aggregator_running %}{{ form_data.get('publish_on', '127.0.0.1') }}{% else %}127.0.0.1{% endif %}"
                             {% if not experiments_using_aggregator or not certificate_exists or task_running %}disabled{% endif %}>

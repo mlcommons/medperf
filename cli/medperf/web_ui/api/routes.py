@@ -46,6 +46,12 @@ def entity_search(
     )
 
 
+@router.get("/task_history", response_class=JSONResponse)
+def get_task_history(current_user: bool = Depends(check_user_api)):
+    """Return the most recent finished tasks with their logs, most recent first."""
+    return {"tasks": config.ui.get_finished_tasks()}
+
+
 @router.get("/running_tasks", response_class=JSONResponse)
 def get_running_tasks(current_user: bool = Depends(check_user_api)):
     tasks = list(config.running_containers.keys())

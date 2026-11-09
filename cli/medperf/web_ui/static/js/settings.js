@@ -1,5 +1,6 @@
+/** Show the configuration of a profile in the page modal. */
 function showProfileModal(profileName, profileData) {
-    var modalBody = "<h5 class=\"text-center text-lg font-bold mb-4\">Profile Name: " + profileName + "</h5><pre id=\"profile-yaml\" class=\"language-yaml overflow-x-auto p-4 rounded-lg bg-muted\">" + (profileData || "").replace(/</g, "&lt;") + "</pre>";
+    var modalBody = "<h5 class=\"text-center text-lg font-bold mb-4\">Profile Name: " + escapeHtml(profileName) + "</h5><pre id=\"profile-yaml\" class=\"language-yaml overflow-x-auto p-4 rounded-lg bg-muted\">" + (profileData || "").replace(/</g, "&lt;") + "</pre>";
     var modalFooter = "<button type=\"button\" class=\"btn btn-sm btn-primary close-modal-btn\">Close</button>";
     var extra = function () {
         var el = document.getElementById("profile-yaml");
@@ -14,6 +15,7 @@ function showProfileModal(profileName, profileData) {
     });
 }
 
+/** Activate the selected profile. */
 function activateProfile(activateProfileBtn) {
     addSpinner(activateProfileBtn);
     var form = document.getElementById("profiles-form");
@@ -27,6 +29,7 @@ function activateProfile(activateProfileBtn) {
     }, "Error activating profile:");
 }
 
+/** Show the configuration of the selected profile. */
 function viewProfile(viewProfileBtn) {
     var form = document.getElementById("profiles-form");
     var formData = form ? new FormData(form) : new FormData();
@@ -40,6 +43,7 @@ function viewProfile(viewProfileBtn) {
     }, "Error viewing profile:");
 }
 
+/** Save the edited settings of the active profile. */
 function editProfile(editProfileBtn) {
     var form = document.getElementById("edit-config-form");
     var formData = form ? new FormData(form) : new FormData();
@@ -52,6 +56,7 @@ function editProfile(editProfileBtn) {
     }, "Error editing profile:");
 }
 
+/** Enable the Apply button only if a setting of the active profile changed. */
 function checkForProfileEditChanges() {
     var gpusEl = document.getElementById("gpus");
     var platformEl = document.getElementById("platform");
@@ -69,6 +74,10 @@ function checkForProfileEditChanges() {
     if (btn) btn.disabled = !(gpusChanged || platformChanged || caChanged || fingerprintChanged);
 }
 
+/**
+ * The settings can only be edited for the active profile: show them (and
+ * disable Activate) when the selected profile is the active one.
+ */
 function checkProfileMatch() {
     var profileEl = document.getElementById("profile");
     var selectedProfile = profileEl ? profileEl.value : "";
@@ -83,6 +92,7 @@ function checkProfileMatch() {
     }
 }
 
+/** Bind the settings page forms and buttons. */
 function initSettings() {
     document.querySelectorAll("form.settings-action-form").forEach(function (form) {
         form.addEventListener("submit", submitActionForm);

@@ -8,6 +8,7 @@ from medperf.commands.certificate.submit import SubmitCertificate
 from medperf.commands.certificate.delete_client_certificate import DeleteCertificate
 from medperf.commands.certificate.check_client_certificate import CheckUserCertificate
 from medperf.enums import CryptoKeyType
+import medperf.help_texts as help_texts
 
 app = typer.Typer()
 
@@ -16,13 +17,13 @@ app = typer.Typer()
 @clean_except
 def get_client_certificate(
     key_type: CryptoKeyType = typer.Option(
-        ..., "--key_type", help="Type of certificate to get"
+        ..., "--key_type", help=help_texts.Certificate.get_key_type
     ),
     overwrite: bool = typer.Option(
-        False, "--overwrite", help="Overwrite cert and key if present"
+        False, "--overwrite", help=help_texts.Certificate.overwrite
     ),
 ):
-
+    """Get a client certificate."""
     GetUserCertificate.run(key_type=key_type, overwrite=overwrite)
     config.ui.print("✅ Done!")
 
@@ -34,10 +35,10 @@ def get_server_certificate(
         ...,
         "--aggregator_id",
         "-a",
-        help="UID of the aggregator you wish to get a certificate for.",
+        help=help_texts.Certificate.aggregator_id,
     ),
     overwrite: bool = typer.Option(
-        False, "--overwrite", help="Overwrite cert and key if present"
+        False, "--overwrite", help=help_texts.Certificate.overwrite
     ),
 ):
     """Get a server certificate."""
@@ -49,9 +50,9 @@ def get_server_certificate(
 @clean_except
 def submit_client_certificate(
     key_type: CryptoKeyType = typer.Option(
-        ..., "--key_type", help="Type of certificate to submit"
+        ..., "--key_type", help=help_texts.Certificate.submit_key_type
     ),
-    approval: bool = typer.Option(False, "-y", help="Skip approval step"),
+    approval: bool = typer.Option(False, "-y", help=help_texts.Common.approval),
 ):
     """
     Upload a client certificate to the Medperf Server.
@@ -66,9 +67,9 @@ def submit_client_certificate(
 @clean_except
 def delete_client_certificate(
     key_type: CryptoKeyType = typer.Option(
-        ..., "--key_type", help="Type of certificate to delete"
+        ..., "--key_type", help=help_texts.Certificate.delete_key_type
     ),
-    approval: bool = typer.Option(False, "-y", help="Skip approval step"),
+    approval: bool = typer.Option(False, "-y", help=help_texts.Common.approval),
 ):
     """
     Invalidate a client certificate.
@@ -81,7 +82,7 @@ def delete_client_certificate(
 @clean_except
 def check_client_certificate(
     key_type: CryptoKeyType = typer.Option(
-        ..., "--key_type", help="Type of certificate to check"
+        ..., "--key_type", help=help_texts.Certificate.check_key_type
     ),
 ):
     """

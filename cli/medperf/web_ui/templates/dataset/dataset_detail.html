@@ -1,3 +1,4 @@
+{# Dataset details page: preparation, associations, benchmark executions and results (evaluation mode), or training associations and runs (training mode), and CC configuration. #}
 
 {% extends "detail_base.html" %}
 
@@ -165,7 +166,7 @@
                 {% endfor %}
                 <div class="relative w-full mt-auto" x-data="{ associateOpen: false, listFilter: '' }" @click.outside="associateOpen = false">
                     <button type="button" id="associate-dropdown-btn" class="btn btn-sm btn-info btn-block disabled:cursor-not-allowed" @click="associateOpen = !associateOpen" {% if task_running %}disabled{% endif %}><i class="fas fa-link mr-2"></i>Associate with benchmark</button>
-                    <div id="dropdown-div" class="absolute left-0 right-0 mt-2 rounded-xl bg-card dark:bg-card shadow-xl border-2 border-border py-2 z-[100] max-h-[400px] overflow-y-auto overflow-x-hidden min-w-[420px]" x-show="associateOpen" x-cloak x-transition style="display: none;">
+                    <div id="dropdown-div" class="absolute left-0 right-0 mt-2 rounded-xl bg-card dark:bg-card shadow-xl border-2 border-border py-2 z-30 max-h-[400px] overflow-y-auto overflow-x-hidden min-w-[420px]" x-show="associateOpen" x-cloak x-transition style="display: none;">
                         {% if available_benchmarks %}
                         {% include "partials/association_dropdown_search.html" %}
                         {% for benchmark in available_benchmarks %}
@@ -200,7 +201,7 @@
                 {% else %}
                 <div class="relative w-full mt-auto overflow-visible" x-data="{ trainingAssocOpen: false, listFilter: '' }" @click.outside="trainingAssocOpen = false">
                     <button type="button" class="btn btn-sm btn-info btn-block !h-auto min-h-[2.5rem] !px-5 !py-2.5 !whitespace-normal leading-snug disabled:cursor-not-allowed" @click="trainingAssocOpen = !trainingAssocOpen" {% if task_running %}disabled{% endif %}><i class="fas fa-link"></i>Associate with training experiment</button>
-                    <div id="dropdown-training-div" class="absolute left-0 right-0 mt-2 rounded-xl bg-card dark:bg-card shadow-xl border-2 border-border py-2 z-[100] max-h-[400px] overflow-y-auto overflow-x-hidden min-w-[420px]" x-show="trainingAssocOpen" x-cloak x-transition style="display: none;">
+                    <div id="dropdown-training-div" class="absolute left-0 right-0 mt-2 rounded-xl bg-card dark:bg-card shadow-xl border-2 border-border py-2 z-30 max-h-[400px] overflow-y-auto overflow-x-hidden min-w-[420px]" x-show="trainingAssocOpen" x-cloak x-transition style="display: none;">
                         {% if available_training_experiments %}
                         {% set filter_placeholder = "Filter training experiments by name or ID…" %}
                         {% include "partials/association_dropdown_search.html" %}
@@ -410,7 +411,7 @@
                     <span class="px-3 py-1 rounded-full text-xs font-bold ml-2 {% if assoc.approval_status == 'APPROVED' %}bg-success-muted text-brand-accent{% elif assoc.approval_status == 'REJECTED' %}bg-danger-muted text-danger-fg{% else %}bg-warning-muted text-warning-fg{% endif %}">{{ assoc.approval_status }}</span>
                 </div>
                 {% if assoc.approval_status == 'APPROVED' and dataset_is_operational %}
-                <form id="start-training-form-{{ exp_id }}" action="/datasets/start_training" method="post" class="inline dataset-training-action-form dataset-action-form" data-panel-title="Running training" data-confirm-message="start training for this experiment with this dataset?">
+                <form id="start-training-form-{{ exp_id }}" data-success-handler="onRunTrainingSuccess" data-after-submit="startPollingTrainingRunningTasks" action="/datasets/start_training" method="post" class="inline dataset-training-action-form dataset-action-form" data-panel-title="Running training" data-confirm-message="start training for this experiment with this dataset?">
                     <input type="hidden" name="entity_id" value="{{ dataset.id }}">
                     <input type="hidden" name="training_exp_id" value="{{ exp_id }}">
                     <button type="submit" class="btn btn-sm btn-primary cursor-pointer start-training-btn">

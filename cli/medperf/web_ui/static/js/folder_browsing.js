@@ -1,12 +1,15 @@
+/** Show the folder picker modal. */
 function showFolderPickerModal() {
     const el = document.getElementById("folder-picker-modal");
     if (el) { el.classList.remove("hidden"); document.body.classList.add("overflow-hidden"); }
 }
+/** Hide the folder picker modal. */
 function hideFolderPickerModal() {
     const el = document.getElementById("folder-picker-modal");
     if (el) { el.classList.add("hidden"); document.body.classList.remove("overflow-hidden"); }
 }
 
+/** List the content of a folder in the picker (files only if browseWithFiles). */
 function loadFolder(path) {
     var formData = new FormData();
     formData.append("path", path);
@@ -33,10 +36,11 @@ function loadFolder(path) {
                 folderList.appendChild(li);
             });
             var titleEl = document.getElementById("folder-picker-modal-title");
-            if (titleEl) titleEl.innerHTML = "Select Path: <code class=\"text-sm bg-muted px-1 rounded\">" + currentPath + "</code>";
+            if (titleEl) titleEl.innerHTML = "Select Path: <code class=\"text-sm bg-muted px-1 rounded\">" + escapeHtml(currentPath) + "</code>";
         });
 }
 
+/** Open the picker to fill the input with the given ID. */
 function browseFolderHandler(elementId) {
     activeInput = document.getElementById(elementId);
     if (currentPathType === "file") {
@@ -61,7 +65,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if (clicked.classList.contains("file-item")) {
                 currentPath = clicked.getAttribute("data-path");
                 const titleEl = document.getElementById("folder-picker-modal-title");
-                if (titleEl) titleEl.innerHTML = "<b>Selected File:</b> <code class=\"text-sm bg-muted px-1 rounded\">" + currentPath + "</code>";
+                if (titleEl) titleEl.innerHTML = "<b>Selected File:</b> <code class=\"text-sm bg-muted px-1 rounded\">" + escapeHtml(currentPath) + "</code>";
                 currentPathType = "file";
             } else if (!clicked.classList.contains("parent-disabled")) {
                 currentPath = clicked.getAttribute("data-path");

@@ -7,6 +7,7 @@ from medperf.utils import dict_pretty_print
 from medperf.config_management import read_config, write_config
 from medperf.exceptions import InvalidArgumentError
 from medperf.commands.utils import set_profile_args
+import medperf.help_texts as help_texts
 
 app = typer.Typer()
 
@@ -31,7 +32,7 @@ def activate(profile: str):
 @app.command("create")
 @clean_except
 def create(
-    name: str = typer.Option(..., "--name", "-n", help="Profile's name"),
+    name: str = typer.Option(..., "--name", "-n", help=help_texts.Profile.name),
 ):
     """Creates a new profile for managing and customizing configuration
     The profile settings will be identical to those of the current activated profile"""

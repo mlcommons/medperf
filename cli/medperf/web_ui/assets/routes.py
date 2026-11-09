@@ -1,5 +1,3 @@
-import logging
-
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 
@@ -7,18 +5,15 @@ from medperf.entities.asset import Asset
 from medperf.commands.asset.submit import SubmitAsset
 from medperf.entities.model import Model
 
-import medperf.config as config
 from medperf.web_ui.common import (
     check_user_api,
-    initialize_state_task,
-    reset_state_task,
+    UITask,
     templates,
     check_user_ui,
     sanitize_redirect_url,
 )
 
 router = APIRouter()
-logger = logging.getLogger(__name__)
 
 
 @router.get("/ui/display/{asset_id}", response_class=HTMLResponse)
@@ -56,32 +51,21 @@ def register_asset(
     asset_path: str = Form(None),
     current_user: bool = Depends(check_user_api),
 ):
-    initialize_state_task(request, task_name="asset_registration")
-
-    return_response = {"status": "", "error": "", "asset_id": None, "entity_id": None}
     asset_id = None
-    try:
+    with UITask(
+        request, "asset_registration", response={"asset_id": None, "entity_id": None}
+    ) as task:
         asset_id = SubmitAsset.run(
             name,
             asset_path=asset_path,
             asset_url=asset_url,
             operational=True,
         )
-        return_response["status"] = "success"
-        return_response["asset_id"] = asset_id
-        return_response["entity_id"] = asset_id
-        notification_message = "Asset successfully registered"
-    except Exception as exp:
-        return_response["status"] = "failed"
-        return_response["error"] = str(exp)
-        notification_message = "Failed to register asset"
-        logger.exception(exp)
-
-    config.ui.end_task(return_response)
-    reset_state_task(request)
-    config.ui.add_notification(
-        message=notification_message,
-        return_response=return_response,
+        task.response["asset_id"] = asset_id
+        task.response["entity_id"] = asset_id
+    task.notify(
+        success_message="Asset successfully registered",
+        failure_message="Failed to register asset",
         url=f"/assets/ui/display/{asset_id}" if asset_id else "",
     )
-    return return_response
+    return task.response

@@ -1,3 +1,4 @@
+/** Handle the export response. */
 function onDatasetExportSuccess(response) {
     markAllStagesAsComplete();
     if (response && response.status === "success") {
@@ -7,6 +8,7 @@ function onDatasetExportSuccess(response) {
     }
 }
 
+/** Export the dataset to the chosen folder. */
 function exportDataset(exportButton) {
     addSpinner(exportButton);
     var form = document.getElementById("dataset-export-form");
@@ -16,13 +18,15 @@ function exportDataset(exportButton) {
     streamEvents(logPanel, stagesList, currentStageElement);
 }
 
+/** Enable the Export button only when the form is valid, and show the user what is missing (see form_validation.js). */
 function checkExportFormValidity() {
-    var outputPathEl = document.getElementById("output-path");
-    var isValid = !!(outputPathEl && outputPathEl.value.trim());
+    var problems = [];
+    requireValue(problems, document.getElementById("output-path"), "Enter the output folder path");
     var btn = document.getElementById("export-dataset-btn");
-    if (btn) btn.disabled = !isValid;
+    if (btn) btn.disabled = !showFormProblems(btn, problems);
 }
 
+/** Bind the export form and its folder picker. */
 function init() {
     var btn = document.getElementById("export-dataset-btn");
     if (btn) btn.addEventListener("click", function (e) { showConfirmModal(e.currentTarget, exportDataset, "export this dataset?"); });
