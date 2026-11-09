@@ -85,12 +85,13 @@ The agent has its own Python, separate from vLLM's, so neither can break the oth
 
 ## 1. Build and push the images
 
-The container configs use `mhmdk0/bioml-bench-{prep,metrics,dummy,aide}:0.0.1`, built for `linux/arm64`. To rebuild them:
+The container configs use `mhmdk0/bioml-bench-{prep,metrics,dummy}:0.0.1` and `mhmdk0/bioml-bench-aide:0.0.2`, built for `linux/arm64`. To rebuild them:
 
 ```bash
 cd examples/bioml_bench
 docker login
-bash build.sh            # all four; or e.g. bash build.sh prep metrics
+bash build.sh prep metrics dummy
+TAG=0.0.2 bash build.sh aide
 ```
 
 Set `REGISTRY` to push elsewhere, then change `image:` in the four `container_config.yaml` files.
@@ -137,11 +138,11 @@ Run the containers with Singularity, as Slurm jobs:
 
 ```bash
 medperf profile set --platform singularity --launcher slurm \
-    --slurm-account <budget> --slurm-partition <GPU partition> \
-    --slurm-time 02:00:00 --slurm-gres gpu:1
+    --slurm-account <budget> --slurm-partition <partition> \
+    --slurm-time 02:00:00
 ```
 
-The Dummy model, the data preparator and the evaluator don't use the GPU. The AIDE agent needs one GPU, for at least its `aide.time_limit` plus the time to load the LLM: about 1 h 15 min with the default parameters.
+The Dummy model, the data preparator and the evaluator don't use the GPU. The AIDE agent needs one GPU, for at least its `aide.time_limit` plus the time to load the LLM: about 1 h 15 min with the default parameters. Request the GPU only on the commands that run the agent (`model associate` in step 6, and `run` in step 7), by putting `--slurm-gres gpu:1` right after `medperf`, e.g. `medperf --slurm-gres gpu:1 run ...`.
 
 ## 4. Benchmark owner: register the containers and the benchmark
 
@@ -208,7 +209,7 @@ Then register the agent and ask to join the benchmark:
 medperf model submit -n bioml-aide-qwen2.5-coder-7b \
     -m model_aide/container_config.yaml -p model_aide/workspace/parameters.yaml \
     -a <URL of additional_files.tar>
-medperf model associate -m <model UID> -b <benchmark UID>
+medperf --slurm-gres gpu:1 model associate -m <model UID> -b <benchmark UID>
 ```
 
 `model associate` runs the agent on the benchmark's demo dataset, which is the whole task here: it takes as long as a full run.
@@ -218,7 +219,7 @@ The same model can join both benchmarks.
 ## 7. Run
 
 ```bash
-medperf run -b <benchmark UID> -d <dataset UID> -m <model UID>
+medperf --slurm-gres gpu:1 run -b <benchmark UID> -d <dataset UID> -m <model UID>
 ```
 
 ## Results
