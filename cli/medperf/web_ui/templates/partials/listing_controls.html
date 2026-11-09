@@ -24,7 +24,7 @@
                 </button>
                 <span id="listing-search-hint" class="sr-only">Press Enter or activate the search button to filter. At least 2 characters, or clear the field and search to reset.</span>
             </div>
-            <label class="relative inline-flex items-center cursor-pointer shrink-0 max-w-full">
+            <label class="relative inline-flex items-center cursor-pointer shrink-0 max-w-full" title="{{ help_texts.WebUITooltips.mine_only.format(entities=entity_name) }}">
                 <input type="checkbox" class="sr-only peer" id="switch" data-entity-name="{{ entity_name }}" {% if mine_only %}checked{% endif %}>
                 <div class="relative w-14 h-7 shrink-0 rounded-full bg-muted-strong peer-focus-visible:ring-2 peer-focus-visible:ring-brand-accent peer-focus-visible:ring-offset-2 dark:peer-focus-visible:ring-offset-page peer-checked:after:translate-x-[1.5rem] peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:rounded-full after:h-6 after:w-6 after:shadow after:transition-all peer-checked:bg-brand"></div>
                 <span class="ml-3 text-base text-secondary font-medium">Mine only</span>

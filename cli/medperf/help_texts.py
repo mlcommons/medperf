@@ -550,6 +550,8 @@ class WebUITooltips:
         "There is a problem with your CC configuration. Click the button again "
         "once you resolve the problem."
     )
+    # listings ({entities} is the listed entities, e.g. "benchmarks")
+    mine_only = "Show only the {entities} you registered"
 
 
 class WebUIPlaceholders:
