@@ -147,74 +147,67 @@ def configurable(func: Callable) -> Callable:
         launcher: str = typer.Option(
             config.launcher,
             "--launcher",
-            help="""Where container tasks are executed. [local | slurm]\n
-            - local: run the container as a child process of medperf.\n
-            - slurm: submit the container as a Slurm batch job and wait for it.
-            Requires --platform singularity.""",
+            help=help_texts.GlobalOptions.launcher,
         ),
         slurm_partition: str = typer.Option(
             config.slurm_partition,
             "--slurm-partition",
-            help="Slurm partition for submitted jobs (sbatch --partition)",
+            help=help_texts.GlobalOptions.slurm_partition,
         ),
         slurm_account: str = typer.Option(
             config.slurm_account,
             "--slurm-account",
-            help="Slurm account/budget for submitted jobs (sbatch --account)",
+            help=help_texts.GlobalOptions.slurm_account,
         ),
         slurm_time: str = typer.Option(
             config.slurm_time,
             "--slurm-time",
-            help="Wall-time limit for submitted jobs (sbatch --time), e.g. 02:00:00",
+            help=help_texts.GlobalOptions.slurm_time,
         ),
         slurm_cpus_per_task: int = typer.Option(
             config.slurm_cpus_per_task,
             "--slurm-cpus-per-task",
-            help="CPUs for the container process (sbatch --cpus-per-task)",
+            help=help_texts.GlobalOptions.slurm_cpus_per_task,
         ),
         slurm_mem: str = typer.Option(
             config.slurm_mem,
             "--slurm-mem",
-            help="Memory per node for submitted jobs (sbatch --mem), e.g. 64G",
+            help=help_texts.GlobalOptions.slurm_mem,
         ),
         slurm_gres: str = typer.Option(
             config.slurm_gres,
             "--slurm-gres",
-            help="Generic resources for submitted jobs (sbatch --gres), e.g. gpu:4",
+            help=help_texts.GlobalOptions.slurm_gres,
         ),
         slurm_extra_args: str = typer.Option(
             config.slurm_extra_args,
             "--slurm-extra-args",
-            help='Additional sbatch options, e.g. "--qos=normal --constraint=x"',
+            help=help_texts.GlobalOptions.slurm_extra_args,
         ),
         slurm_setup_commands: str = typer.Option(
             config.slurm_setup_commands,
             "--slurm-setup-commands",
-            help="Shell commands run inside the job before the container starts",
+            help=help_texts.GlobalOptions.slurm_setup_commands,
         ),
         slurm_jobs_dir: str = typer.Option(
             config.slurm_jobs_dir,
             "--slurm-jobs-dir",
-            help="""Directory for job scripts and logs. Must be on a filesystem
-            shared with compute nodes. Defaults to ~/.medperf_logs/slurm_jobs""",
+            help=help_texts.GlobalOptions.slurm_jobs_dir,
         ),
         slurm_node_arch: str = typer.Option(
             config.slurm_node_arch,
             "--slurm-node-arch",
-            help="""CPU architecture of the compute nodes (e.g. aarch64, x86_64).
-            Container images are checked against it before submission.
-            Defaults to the architecture of the machine running medperf""",
+            help=help_texts.GlobalOptions.slurm_node_arch,
         ),
         slurm_poll_interval: int = typer.Option(
             config.slurm_poll_interval,
             "--slurm-poll-interval",
-            help="Seconds between Slurm job status checks",
+            help=help_texts.GlobalOptions.slurm_poll_interval,
         ),
         slurm_accounting_grace: int = typer.Option(
             config.slurm_accounting_grace,
             "--slurm-accounting-grace",
-            help="""Seconds to keep waiting for a job that has left the queue but
-            has no accounting record or exit code file yet""",
+            help=help_texts.GlobalOptions.slurm_accounting_grace,
         ),
         cleanup: bool = typer.Option(
             config.cleanup,
@@ -306,74 +299,67 @@ def add_inline_parameters(func: Callable) -> Callable:
         launcher: str = typer.Option(
             config.launcher,
             "--launcher",
-            help="""Where container tasks are executed. [local | slurm]\n
-            - local: run the container as a child process of medperf.\n
-            - slurm: submit the container as a Slurm batch job and wait for it.
-            Requires --platform singularity.""",
+            help=help_texts.GlobalOptions.launcher,
         ),
         slurm_partition: str = typer.Option(
             config.slurm_partition,
             "--slurm-partition",
-            help="Slurm partition for submitted jobs (sbatch --partition)",
+            help=help_texts.GlobalOptions.slurm_partition,
         ),
         slurm_account: str = typer.Option(
             config.slurm_account,
             "--slurm-account",
-            help="Slurm account/budget for submitted jobs (sbatch --account)",
+            help=help_texts.GlobalOptions.slurm_account,
         ),
         slurm_time: str = typer.Option(
             config.slurm_time,
             "--slurm-time",
-            help="Wall-time limit for submitted jobs (sbatch --time), e.g. 02:00:00",
+            help=help_texts.GlobalOptions.slurm_time,
         ),
         slurm_cpus_per_task: int = typer.Option(
             config.slurm_cpus_per_task,
             "--slurm-cpus-per-task",
-            help="CPUs for the container process (sbatch --cpus-per-task)",
+            help=help_texts.GlobalOptions.slurm_cpus_per_task,
         ),
         slurm_mem: str = typer.Option(
             config.slurm_mem,
             "--slurm-mem",
-            help="Memory per node for submitted jobs (sbatch --mem), e.g. 64G",
+            help=help_texts.GlobalOptions.slurm_mem,
         ),
         slurm_gres: str = typer.Option(
             config.slurm_gres,
             "--slurm-gres",
-            help="Generic resources for submitted jobs (sbatch --gres), e.g. gpu:4",
+            help=help_texts.GlobalOptions.slurm_gres,
         ),
         slurm_extra_args: str = typer.Option(
             config.slurm_extra_args,
             "--slurm-extra-args",
-            help='Additional sbatch options, e.g. "--qos=normal --constraint=x"',
+            help=help_texts.GlobalOptions.slurm_extra_args,
         ),
         slurm_setup_commands: str = typer.Option(
             config.slurm_setup_commands,
             "--slurm-setup-commands",
-            help="Shell commands run inside the job before the container starts",
+            help=help_texts.GlobalOptions.slurm_setup_commands,
         ),
         slurm_jobs_dir: str = typer.Option(
             config.slurm_jobs_dir,
             "--slurm-jobs-dir",
-            help="""Directory for job scripts and logs. Must be on a filesystem
-            shared with compute nodes. Defaults to ~/.medperf_logs/slurm_jobs""",
+            help=help_texts.GlobalOptions.slurm_jobs_dir,
         ),
         slurm_node_arch: str = typer.Option(
             config.slurm_node_arch,
             "--slurm-node-arch",
-            help="""CPU architecture of the compute nodes (e.g. aarch64, x86_64).
-            Container images are checked against it before submission.
-            Defaults to the architecture of the machine running medperf""",
+            help=help_texts.GlobalOptions.slurm_node_arch,
         ),
         slurm_poll_interval: int = typer.Option(
             config.slurm_poll_interval,
             "--slurm-poll-interval",
-            help="Seconds between Slurm job status checks",
+            help=help_texts.GlobalOptions.slurm_poll_interval,
         ),
         slurm_accounting_grace: int = typer.Option(
             config.slurm_accounting_grace,
             "--slurm-accounting-grace",
-            help="""Seconds to keep waiting for a job that has left the queue but
-            has no accounting record or exit code file yet""",
+            help=help_texts.GlobalOptions.slurm_accounting_grace,
         ),
         cleanup: bool = typer.Option(
             config.cleanup,
