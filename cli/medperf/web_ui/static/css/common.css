@@ -1,10 +1,51 @@
+/*
+ * MedPerf web UI styles.
+ *
+ * Most styling uses Tailwind utility classes in the templates (themed through
+ * the tokens of brand-tokens.css, see the @theme block in base.html). This file
+ * holds what utility classes can't express well: page layout, components built
+ * by JavaScript (alerts, log panel, email chips...) and shared states.
+ */
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
+
 :root {
     --footer-h: 160px;
 }
+
 html, body {
     height: 100%;
 }
 
+body {
+    font-family: var(--font-sans);
+}
+
+h1, h2, h3, .font-display {
+    font-family: var(--font-sans);
+}
+
+/* Numbers and data values */
+.font-data {
+    font-family: var(--font-serif);
+}
+
+/* Alpine.js: hide elements until Alpine initializes them */
+[x-cloak] {
+    display: none !important;
+}
+
+pre {
+    white-space: pre-wrap;
+}
+
+/* ==========================================================================
+   Layout
+   ========================================================================== */
+
+/* The page content fills the viewport above the footer */
 .page-wrap {
     min-height: calc(100vh - var(--footer-h));
     box-sizing: border-box;
@@ -12,19 +53,6 @@ html, body {
 
 footer.site-footer {
     height: var(--footer-h);
-}
-
-.searchable-select-results .searchable-select-option[aria-selected="true"],
-.searchable-select-results .searchable-select-option.bg-brand-subtle {
-    background-color: var(--theme-brand-subtle);
-}
-
-.invalid-card {
-    background-color: var(--theme-invalid-bg);
-}
-
-.unfinalized-result-card {
-    background-color: var(--theme-invalid-bg-strong);
 }
 
 .main-content {
@@ -35,6 +63,7 @@ footer.site-footer {
     padding: 20px;
 }
 
+/* Entity details pages (see detail_base.html) */
 .detail-container {
     display: flex;
     width: 100%;
@@ -49,10 +78,7 @@ footer.site-footer {
     box-sizing: border-box;
 }
 
-pre {
-    white-space: pre-wrap;
-}
-
+/* Lists of association/result cards */
 #datasets-associations,
 #models-associations,
 #benchmark-associations-list,
@@ -61,6 +87,10 @@ pre {
     flex-wrap: wrap;
     justify-content: space-evenly;
 }
+
+/* ==========================================================================
+   Buttons and interactive elements
+   ========================================================================== */
 
 .step-btn {
     transition: opacity 0.2s ease, background-color 0.2s ease;
@@ -71,39 +101,10 @@ pre {
     line-height: 1.4;
 }
 
-button:disabled,
-.step-btn:disabled {
-    opacity: 0.65;
-    cursor: not-allowed;
-    filter: saturate(0.6);
-}
-.dark button:disabled,
-.dark .step-btn:disabled {
-    opacity: 0.55;
-    filter: saturate(0.5) brightness(0.85);
-}
-.step-btn:disabled {
-    background-color: var(--theme-disabled-bg) !important;
-    color: var(--theme-disabled-text) !important;
-}
-
-.tooltip-info:hover,
-.tooltip-icon {
-    cursor: help;
-}
-.tooltip-icon i {
-    font-size: 1.125rem;
-}
 .step-btn,
 .view-result-btn,
 .run-all-btn,
-.yaml-link {
-    cursor: pointer;
-}
-.step-btn:disabled,
-button:disabled {
-    cursor: not-allowed;
-}
+.yaml-link,
 #page-modal-footer button,
 #page-modal-close-btn,
 .close-modal-btn,
@@ -111,6 +112,74 @@ button:disabled {
 [data-dismiss-modal] {
     cursor: pointer;
 }
+
+button:disabled,
+.step-btn:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+    filter: saturate(0.6);
+}
+
+.dark button:disabled,
+.dark .step-btn:disabled {
+    opacity: 0.55;
+    filter: saturate(0.5) brightness(0.85);
+}
+
+.step-btn:disabled {
+    background-color: var(--theme-disabled-bg) !important;
+    color: var(--theme-disabled-text) !important;
+}
+
+/* The (i) icons next to form fields, showing a tooltip on hover */
+.tooltip-icon {
+    cursor: help;
+}
+
+.tooltip-icon i {
+    font-size: 1.125rem;
+}
+
+/* "My entities only" switch of the listing pages */
+#switch {
+    border: 1px solid var(--theme-text-muted);
+    cursor: pointer;
+}
+
+/* ==========================================================================
+   Cards states
+   ========================================================================== */
+
+.invalid-card {
+    background-color: var(--theme-invalid-bg);
+}
+
+.unfinalized-result-card {
+    background-color: var(--theme-invalid-bg-strong);
+}
+
+/* ==========================================================================
+   Page modal (see modal-queue.js)
+   ========================================================================== */
+
+#page-modal.modal-visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+#page-modal.modal-visible #page-modal-dialog {
+    transform: scale(1);
+}
+
+.modal-body {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+}
+
+/* ==========================================================================
+   Alerts (displayAlert in common.js)
+   ========================================================================== */
 
 .display-alert {
     position: relative;
@@ -127,9 +196,11 @@ button:disabled {
     overflow: hidden;
     animation: display-alert-in 0.3s ease-out;
 }
+
 .display-alert-out {
     animation: display-alert-out 0.28s ease-in forwards;
 }
+
 @keyframes display-alert-in {
     from {
         opacity: 0;
@@ -140,10 +211,12 @@ button:disabled {
         transform: translateY(0);
     }
 }
+
 @keyframes display-alert-out {
     from { opacity: 1; }
     to   { opacity: 0; }
 }
+
 .display-alert-icon {
     flex-shrink: 0;
     width: 1.5rem;
@@ -156,11 +229,13 @@ button:disabled {
     font-size: 0.875rem;
     font-weight: bold;
 }
+
 .display-alert-message {
     flex: 1;
     min-width: 0;
     line-height: 1.35;
 }
+
 .display-alert-close {
     flex-shrink: 0;
     width: 1.75rem;
@@ -178,9 +253,12 @@ button:disabled {
     justify-content: center;
     transition: background 0.15s ease;
 }
+
 .display-alert-close:hover {
     background: color-mix(in srgb, var(--theme-brand-fg) 35%, transparent);
 }
+
+/* Bar showing the time left before the alert disappears */
 .display-alert-progress {
     position: absolute;
     bottom: 0;
@@ -190,26 +268,33 @@ button:disabled {
     animation: display-alert-progress-shrink 5s linear forwards;
     transform-origin: left;
 }
+
 @keyframes display-alert-progress-shrink {
     from { transform: scaleX(1); }
     to   { transform: scaleX(0); }
 }
+
 .display-alert-success {
     background: linear-gradient(135deg, var(--mlc-mint) 0%, var(--mlc-mint-hover) 100%);
     color: var(--mlc-ink);
 }
+
 .display-alert-danger {
     background: var(--theme-alert-danger);
     color: var(--mlc-white);
 }
+
 .display-alert-warning {
     background: var(--theme-alert-warning);
     color: var(--mlc-ink);
 }
+
 .display-alert-info {
     background: var(--theme-alert-info);
     color: var(--mlc-white);
 }
+
+/* Used when the page has no #toast-container */
 .display-alert-fixed {
     position: fixed;
     top: 5rem;
@@ -218,23 +303,9 @@ button:disabled {
     z-index: 1060;
 }
 
-.language-yaml {
-    padding: 15px;
-    border-radius: 4px;
-    background-color: unset!important;
-}
-
-.language-json {
-    padding: 15px;
-    border-radius: 4px;
-    background-color: unset!important;
-}
-
-.modal-body {
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    white-space: normal;
-}
+/* ==========================================================================
+   Notifications (notifications.js)
+   ========================================================================== */
 
 #notifications-list {
     max-height: 70vh;
@@ -258,6 +329,10 @@ button:disabled {
     white-space: normal;
 }
 
+/* ==========================================================================
+   Task output (event_handler.js): log panel, YAML and results
+   ========================================================================== */
+
 #log-panel {
     height: 300px;
     overflow-y: scroll;
@@ -265,6 +340,7 @@ button:disabled {
     padding: 15px;
 }
 
+/* The log panel collapses with a transition (see toggleLogPanel in common.js) */
 #log-panel-container {
     overflow: hidden;
     transition: max-height 220ms ease, opacity 220ms ease, transform 220ms ease;
@@ -279,46 +355,53 @@ button:disabled {
     transform: translateY(-4px);
 }
 
-#yaml-content{
+/* Prism-highlighted code: keep the page background */
+.language-yaml,
+.language-json {
+    padding: 15px;
+    border-radius: 4px;
+    background-color: unset !important;
+}
+
+#yaml-content,
+#result-content {
     max-height: 300px;
     overflow-y: scroll;
 }
 
-#result-content{
-    max-height: 300px;
-    overflow-y: scroll;
+#modal-yaml-content {
+    max-height: 450px;
 }
 
-label[for="switch"] {
-    margin-left: -40px;
-    cursor: pointer;
-}
+/* ==========================================================================
+   Folder picker (folder_browsing.js)
+   ========================================================================== */
 
-#switch {
-    border: 1px solid var(--theme-text-muted);
-    cursor: pointer;
-}
-
-#folder-list{
+#folder-list {
     max-height: 600px;
     overflow-y: auto;
 }
 
-.folder-item{
+.folder-item {
     cursor: pointer;
 }
 
-.file-item{
+.file-item {
     color: var(--theme-text-muted);
 }
 
-.parent-disabled{
+/* The ".." entry when already at the root folder */
+.parent-disabled {
     cursor: not-allowed;
 }
 
-#folder-picker-modal-title{
+#folder-picker-modal-title {
     word-break: break-all;
 }
+
+/* ==========================================================================
+   Email chips (email_chips.js)
+   ========================================================================== */
 
 .email-chip {
     display: inline-block;
@@ -344,19 +427,21 @@ label[for="switch"] {
     border-radius: 5px;
 }
 
-#modal-yaml-content{
-    max-height: 450px;
+/* ==========================================================================
+   Searchable selects (searchable_select.js)
+   ========================================================================== */
+
+.searchable-select-results .searchable-select-option[aria-selected="true"],
+.searchable-select-results .searchable-select-option.bg-brand-subtle {
+    background-color: var(--theme-brand-subtle);
 }
 
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
-}
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
 
 @media (max-width: 992px) {
     .detail-panel {
-        max-width: 100%;
         padding-right: 0;
         padding-left: 0;
     }
@@ -366,4 +451,36 @@ label[for="switch"] {
     .detail-container {
         flex-direction: column;
     }
+}
+
+/* Form validation feedback (see js/form_validation.js) */
+.field-invalid {
+    border-color: var(--theme-danger) !important;
+}
+
+.field-error-message {
+    margin-top: 0.375rem;
+    font-size: 0.875rem;
+    color: var(--theme-danger);
+}
+
+.form-problems {
+    margin-top: 1rem;
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+    border: 1px solid var(--theme-info-border, var(--theme-border));
+    background: var(--theme-info-bg);
+    color: var(--theme-info-text);
+    font-size: 0.875rem;
+    text-align: left;
+}
+
+.form-problems-title {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.form-problems ul {
+    list-style: disc;
+    padding-left: 1.25rem;
 }

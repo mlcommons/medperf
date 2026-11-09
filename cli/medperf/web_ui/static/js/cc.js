@@ -1,4 +1,9 @@
-/* CC asset (model/dataset) configuration: uses our form design with submitActionForm and data-success-handler. */
+/*
+ * Confidential computing (CC) configuration of a model or dataset
+ * (see macros/cc_asset_macro.html): enabling CC, its GCP settings and syncing
+ * the CC policy. The Apply button is enabled when the settings changed and,
+ * if CC is enabled, all of its fields are filled (getFormProblems, see form_validation.js).
+ */
 
 var CC_ASSET_FIELD_IDS = [
     "cc-project_id",
@@ -11,6 +16,7 @@ var CC_ASSET_FIELD_IDS = [
     "cc-wip_provider",
 ];
 
+/** Handle the response of saving the CC configuration. */
 function onCCEditRequestSuccess(response) {
     markAllStagesAsComplete();
     if (response && response.status === "success") {
@@ -23,6 +29,7 @@ function onCCEditRequestSuccess(response) {
     }
 }
 
+/** Handle the response of syncing the CC policy. */
 function onCCPolicyRequestSuccess(response) {
     markAllStagesAsComplete();
     if (response && response.status === "success") {
@@ -35,6 +42,7 @@ function onCCPolicyRequestSuccess(response) {
     }
 }
 
+/** Whether the CC configuration differs from the saved one. */
 function checkForCCAssetChanges() {
     var preferences = window.ccPreferences || {};
     var defaultConfigureChecked = preferences.configured;
@@ -60,24 +68,25 @@ function checkForCCAssetChanges() {
     return false;
 }
 
-function checkFormValidity() {
+/**
+ * Return the problems preventing the configuration from being applied:
+ * when CC is enabled, all of its fields are required.
+ */
+function getFormProblems() {
+    var problems = [];
     var configureEl = document.getElementById("configure-cc");
-    var configureChecked = configureEl ? configureEl.checked : false;
-    if (!configureChecked) {
-        return true; // If CC is not configured, no need to validate fields
+    if (!configureEl || !configureEl.checked) {
+        return problems; // If CC is not configured, no need to validate fields
     }
     for (var i = 0; i < CC_ASSET_FIELD_IDS.length; i++) {
         var el = document.getElementById(CC_ASSET_FIELD_IDS[i]);
-        if (el) {
-            var currentValue = el.value.trim() || "";
-            if (currentValue.length === 0) {
-                return false; // If any configured field is empty, form is not valid
-            }
-        }
+        var label = document.querySelector("label[for='" + CC_ASSET_FIELD_IDS[i] + "']");
+        requireValue(problems, el, "Fill in " + (label ? label.textContent.trim() : "all the fields"));
     }
-    return true;
+    return problems;
 }
 
+/** Enable the Apply button when the configuration can be saved. */
 function checkCanApplyChanges() {
     var preferences = window.ccPreferences || {};
 
@@ -87,14 +96,16 @@ function checkCanApplyChanges() {
     var applyBtn = document.getElementById("apply-cc-asset-btn");
     if (applyBtn) {
         if (!hasChanges) {
+            showFormProblems(applyBtn, []);
             applyBtn.disabled = !canApplyWithoutChanges;
         }
         else {
-            applyBtn.disabled = !checkFormValidity();
+            applyBtn.disabled = !showFormProblems(applyBtn, getFormProblems());
         }
     }
 }
 
+/** Bind the CC configuration and policy forms. */
 function initCCAsset() {
     var form = document.getElementById("edit-cc-asset-form");
     if (form) {
@@ -102,6 +113,7 @@ function initCCAsset() {
         var configureEl = document.getElementById("configure-cc");
         var fieldsContainer = document.getElementById("edit-cc-asset-fields");
         if (configureEl && fieldsContainer) {
+            /** Show the CC fields only when CC is enabled. */
             function toggleFields() {
                 fieldsContainer.style.display = configureEl.checked ? "" : "none";
                 if (!configureEl.checked) fieldsContainer.classList.add("hidden");

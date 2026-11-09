@@ -1,5 +1,10 @@
+/*
+ * Benchmark registration page.
+ */
+
 var REDIRECT_BASE = "/benchmarks/ui/display/";
 
+/** Enable the Register button only when the form is valid, and show the user what is missing (see form_validation.js). */
 function checkBenchmarkFormValidity() {
     var nameEl = document.getElementById("name");
     var descEl = document.getElementById("description");
@@ -17,11 +22,27 @@ function checkBenchmarkFormValidity() {
     var evaluatorContainerValue = evalEl && evalEl.value ? Number(evalEl.value) : 0;
     var skipTestsValue = skipTestsEl && skipTestsEl.checked ? true : false;
     var noskipTestsValue = noSkipTestsEl && noSkipTestsEl.checked ? true: false;
-    var isValid = nameValue.length > 0 && descriptionValue.length > 0 && (noskipTestsValue ? referenceDatasetTarballUrlValue.length > 0 : (!referenceDatasetTarballUrlValue.length && skipTestsValue))  && dataPreparationContainerValue > 0 && referenceModelValue > 0 && evaluatorContainerValue > 0;
+
+    var problems = [];
+    if (!nameValue) problems.push({ field: nameEl, message: "Enter the benchmark name" });
+    if (!descriptionValue) problems.push({ field: descEl, message: "Enter a description" });
+    if (!skipTestsValue && !noskipTestsValue) {
+        problems.push({ field: null, message: "Choose whether to run the compatibility tests" });
+    } else if (noskipTestsValue && !referenceDatasetTarballUrlValue) {
+        problems.push({ field: urlEl, message: "Enter the reference dataset tarball URL (or skip the compatibility tests)" });
+    }
+    if (!(dataPreparationContainerValue > 0)) problems.push({ field: dataPrepEl, message: "Select the data preparation container" });
+    if (!(referenceModelValue > 0)) problems.push({ field: refModelEl, message: "Select the reference model" });
+    if (!(evaluatorContainerValue > 0)) problems.push({ field: evalEl, message: "Select the metrics container" });
+
     var btn = document.getElementById("register-benchmark-btn");
-    if (btn) btn.disabled = !isValid;
+    if (btn) btn.disabled = !showFormProblems(btn, problems);
 }
 
+/**
+ * Bind the registration form, and show the demo dataset URL input only when
+ * the compatibility tests are required.
+ */
 function init() {
     var form = document.getElementById("benchmark-register-form");
     if (form) {

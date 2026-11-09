@@ -1,16 +1,25 @@
+/*
+ * Asset registration page (local or remote asset).
+ */
+
 var REDIRECT_BASE = "/assets/ui/display/";
 
+/** Enable the Register button only when the form is valid, and show the user what is missing (see form_validation.js). */
 function checkAssetFormValidity() {
-    var nameVal = document.getElementById("name") ? document.getElementById("name").value.trim() : "";
+    var nameEl = document.getElementById("name");
     var isRemote = document.querySelector("input[name='asset_is_remote']:checked");
     var remoteVal = isRemote ? isRemote.value : "false";
-    var assetURL = document.getElementById("asset-url") ? document.getElementById("asset-url").value.trim() : "";
-    var assetPath = document.getElementById("asset-path") ? document.getElementById("asset-path").value.trim() : "";
-    var isValid = !!nameVal && (remoteVal === "true" ? assetURL.length > 0 : remoteVal === "false" && assetPath.length > 0);
+
+    var problems = [];
+    requireValue(problems, nameEl, "Enter the asset name");
+    if (remoteVal === "true") requireValue(problems, document.getElementById("asset-url"), "Enter the asset URL");
+    else requireValue(problems, document.getElementById("asset-path"), "Enter the asset path");
+
     var btn = document.getElementById("register-asset-btn");
-    if (btn) btn.disabled = !isValid;
+    if (btn) btn.disabled = !showFormProblems(btn, problems);
 }
 
+/** Bind the registration form, and switch between local and remote asset inputs. */
 function initAssetRegister() {
     var form = document.getElementById("asset-register-form");
     if (form) {

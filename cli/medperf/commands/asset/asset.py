@@ -5,6 +5,7 @@ from medperf.decorators import clean_except
 from medperf.entities.asset import Asset
 from medperf.commands.list import EntityList
 from medperf.commands.view import EntityView
+import medperf.help_texts as help_texts
 
 app = typer.Typer()
 
@@ -13,14 +14,12 @@ app = typer.Typer()
 @clean_except
 def list(
     unregistered: bool = typer.Option(
-        False, "--unregistered", help="Get unregistered assets"
+        False, "--unregistered", help=help_texts.Asset.ls_unregistered
     ),
-    mine: bool = typer.Option(False, "--mine", help="Get current-user assets"),
-    name: str = typer.Option(None, "--name", "-n", help="Filter out by asset Name"),
-    owner: int = typer.Option(None, "--owner", help="Filter by owner ID"),
-    state: str = typer.Option(
-        None, "--state", help="Filter by state (DEVELOPMENT/OPERATION)"
-    ),
+    mine: bool = typer.Option(False, "--mine", help=help_texts.Asset.ls_mine),
+    name: str = typer.Option(None, "--name", "-n", help=help_texts.Asset.name_filter),
+    owner: int = typer.Option(None, "--owner", help=help_texts.Common.owner_filter),
+    state: str = typer.Option(None, "--state", help=help_texts.Common.state_filter),
 ):
     """List assets"""
     EntityList.run(
@@ -37,28 +36,28 @@ def list(
 @app.command("view")
 @clean_except
 def view(
-    entity_id: Optional[int] = typer.Argument(None, help="Asset ID"),
+    entity_id: Optional[int] = typer.Argument(None, help=help_texts.Asset.id),
     format: str = typer.Option(
         "yaml",
         "-f",
         "--format",
-        help="Format to display contents. Available formats: [yaml, json]",
+        help=help_texts.Common.format,
     ),
     unregistered: bool = typer.Option(
         False,
         "--unregistered",
-        help="Display unregistered assets if asset ID is not provided",
+        help=help_texts.Asset.view_unregistered,
     ),
     mine: bool = typer.Option(
         False,
         "--mine",
-        help="Display current-user assets if asset ID is not provided",
+        help=help_texts.Asset.view_mine,
     ),
     output: str = typer.Option(
         None,
         "--output",
         "-o",
-        help="Output file to store contents. If not provided, the output will be displayed",
+        help=help_texts.Common.output,
     ),
 ):
     """Displays the information of one or more assets"""

@@ -5,6 +5,7 @@ from medperf.decorators import clean_except
 from medperf.utils import cleanup
 from medperf.storage.utils import move_storage
 from tabulate import tabulate
+import medperf.help_texts as help_texts
 
 app = typer.Typer()
 
@@ -24,7 +25,9 @@ def ls():
 
 @app.command("move")
 @clean_except
-def move(path: str = typer.Option(..., "--target", "-t", help="Target path")):
+def move(
+    path: str = typer.Option(..., "--target", "-t", help=help_texts.Storage.target_path)
+):
     """Moves all storage folders to a target base path. Folders include:
     Benchmarks, datasets, containers, results, tests, ...
 

@@ -1,9 +1,10 @@
-from medperf.exceptions import InvalidArgumentError
+from medperf.exceptions import CleanExit, InvalidArgumentError
 import pytest
 
 from medperf.commands.benchmark.update_associations_poilcy import (
     UpdateAssociationsPolicy,
 )
+from medperf.tests.mocks.benchmark import TestBenchmark
 
 
 @pytest.mark.parametrize("mode", ["", "allow", "false"])
@@ -185,3 +186,94 @@ def test_update_calls_comms_with_correct_body5(mocker, comms):
             "dataset_auto_approval_mode": "ALLOWLIST",
         },
     )
+
+
+PATCH_POLICY = "medperf.commands.benchmark.update_associations_poilcy.{}"
+
+
+def test_empty_allow_list_refused_when_saved_one_is_empty(mocker):
+    # Arrange
+    mocker.patch(
+        PATCH_POLICY.format("Benchmark.get"),
+        return_value=TestBenchmark(dataset_auto_approval_allow_list=[]),
+    )
+    obj = UpdateAssociationsPolicy(1, dataset_mode="ALLOWLIST", approved=True)
+    obj.dataset_emails = []
+
+    # Act & Assert
+    with pytest.raises(InvalidArgumentError):
+        obj.check_empty_allow_lists()
+
+
+@pytest.mark.parametrize("mode", ["ALLOWLIST", None])
+def test_emptying_allow_list_sets_mode_to_never(mocker, mode):
+    # Arrange
+    mocker.patch(
+        PATCH_POLICY.format("Benchmark.get"),
+        return_value=TestBenchmark(
+            model_auto_approval_mode="ALLOWLIST",
+            model_auto_approval_allow_list=["test@example.com"],
+        ),
+    )
+    obj = UpdateAssociationsPolicy(1, model_mode=mode, approved=True)
+    obj.model_emails = []
+
+    # Act
+    obj.check_empty_allow_lists()
+
+    # Assert
+    assert obj.model_mode == "NEVER"
+
+
+def test_emptying_allow_list_cancelled_if_not_approved(mocker):
+    # Arrange
+    mocker.patch(
+        PATCH_POLICY.format("Benchmark.get"),
+        return_value=TestBenchmark(dataset_auto_approval_allow_list=["a@example.com"]),
+    )
+    mocker.patch(PATCH_POLICY.format("approval_prompt"), return_value=False)
+    obj = UpdateAssociationsPolicy(1, dataset_mode="ALLOWLIST")
+    obj.dataset_emails = []
+
+    # Act & Assert
+    with pytest.raises(CleanExit):
+        obj.check_empty_allow_lists()
+
+
+@pytest.mark.parametrize("mode", ["NEVER", "ALWAYS"])
+def test_empty_allow_list_allowed_with_other_modes(mocker, mode):
+    # Arrange
+    mocker.patch(
+        PATCH_POLICY.format("Benchmark.get"),
+        return_value=TestBenchmark(dataset_auto_approval_allow_list=[]),
+    )
+    obj = UpdateAssociationsPolicy(1, dataset_mode=mode)
+    obj.dataset_emails = []
+
+    # Act
+    obj.check_empty_allow_lists()
+
+    # Assert
+    assert obj.dataset_mode == mode
+
+
+def test_allow_lists_not_checked_when_not_emptied(mocker):
+    # Arrange
+    spy = mocker.patch(PATCH_POLICY.format("Benchmark.get"))
+    obj = UpdateAssociationsPolicy(1, dataset_mode="ALLOWLIST")
+    obj.dataset_emails = ["test@example.com"]
+
+    # Act
+    obj.check_empty_allow_lists()
+
+    # Assert
+    spy.assert_not_called()
+
+
+def test_missing_model_emails_file_error_names_it(mocker, fs):
+    # Arrange
+    obj = UpdateAssociationsPolicy(1, model_emails_file="/missing_models.txt")
+
+    # Act & Assert
+    with pytest.raises(InvalidArgumentError, match="missing_models.txt"):
+        obj.validate()

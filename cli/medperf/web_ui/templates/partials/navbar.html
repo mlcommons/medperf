@@ -1,3 +1,4 @@
+{# Navigation bar: pages, evaluation/training mode switch, notifications, account menu and dark mode toggle. #}
 {% set path = request.url.path %}
 {% set ui_mode = request.app.state.ui_mode %}
 {% set is_training_mode = (ui_mode == request.app.state.TRAINING_MODE) %}
@@ -45,17 +46,29 @@
                     </div>
                 </div>
 
+                <button type="button" id="support-btn" class="nav-icon-btn p-2 rounded-lg inline-flex items-center justify-center w-10 h-10 cursor-pointer" title="Get support" aria-label="Get support">
+                    <i class="fas fa-life-ring text-xl" aria-hidden="true"></i>
+                </button>
+
                 <div class="relative" @click.outside="notifOpen = false">
                     <button type="button" @click="notifOpen = !notifOpen" class="nav-icon-btn relative p-2 rounded-lg cursor-pointer">
                         <i class="fa fa-bell text-xl" aria-hidden="true"></i>
                         <span id="notifications-count" class="absolute -top-0.5 -right-0.5 min-w-[1.25rem] h-5 px-1 bg-danger rounded-full flex items-center justify-center text-xs text-white {% if not unread_notifications %}hidden{% endif %}">0</span>
                     </button>
-                    <ul id="notifications-list" x-show="notifOpen" x-cloak x-transition class="absolute right-0 mt-2 w-96 min-w-[20rem] max-w-[min(24rem,100vw-2rem)] max-h-[70vh] overflow-y-auto overflow-x-hidden bg-card dark:bg-card rounded-xl shadow-xl border-2 border-border py-2 z-50 list-none"
+                    <div x-show="notifOpen" x-cloak x-transition class="absolute right-0 mt-2 w-96 min-w-[20rem] max-w-[min(24rem,100vw-2rem)] bg-card dark:bg-card rounded-xl shadow-xl border-2 border-border z-50 overflow-hidden"
                         style="display: none;">
-                        {% if not notifications %}
-                        <li class="px-4 py-3 text-muted-fg text-sm">No notifications yet</li>
-                        {% endif %}
-                    </ul>
+                        <div class="flex items-center justify-between gap-2 px-4 py-2 border-b border-border">
+                            <span class="font-semibold text-ink">Notifications</span>
+                            <button type="button" id="task-history-btn" class="btn btn-xs btn-secondary" @click="notifOpen = false" title="Logs of the most recent finished tasks">
+                                <i class="fas fa-history mr-1" aria-hidden="true"></i>Recent tasks
+                            </button>
+                        </div>
+                        <ul id="notifications-list" class="max-h-[70vh] overflow-y-auto overflow-x-hidden py-2 list-none">
+                            {% if not notifications %}
+                            <li class="px-4 py-3 text-muted-fg text-sm">No notifications yet</li>
+                            {% endif %}
+                        </ul>
+                    </div>
                 </div>
 
                 {% if logged_in %}

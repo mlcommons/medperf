@@ -1,15 +1,28 @@
+/*
+ * Streams the logs of the running task from the server (Server-Sent Events
+ * on /events) and displays them: stages list, log panel, messages, prompts
+ * and YAML output.
+ */
 
+/** Create a paragraph holding the given HTML. */
 function create_p(msg) {
     var p = document.createElement("p");
     p.innerHTML = msg;
     return p;
 }
 
+/** Smoothly scroll to the element matching a selector. */
 function scrollToElement(selector) {
     var el = document.querySelector(selector);
     if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
+/**
+ * Stream the events of the running task (window.taskId) and display them.
+ * With `streamOld`, the events already emitted are sent again first.
+ * Stops at the end of the task (calling window.onPromptComplete with its
+ * response) or when a prompt waits for the user's answer.
+ */
 function streamEvents(logPanel, stagesList, currentStageElement, streamOld) {
     var url = "/events?";
     url += streamOld ? "stream_old=true" : "stream_old=false";
@@ -43,10 +56,15 @@ function streamEvents(logPanel, stagesList, currentStageElement, streamOld) {
     };
 }
 
+/** Remove terminal color/style escape sequences from a message. */
 function cleanMsg(message) {
     return message.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, "");
 }
 
+/**
+ * Display one event (or chunk of log lines) of the running task, according
+ * to its type. Returns the stage element currently in progress.
+ */
 function handleEvents(event, logPanel, stagesList, currentStageElement) {
     if (event.kind === "chunk") {
         var lines = [];
@@ -66,8 +84,10 @@ function handleEvents(event, logPanel, stagesList, currentStageElement) {
             return currentStageElement;
         }
     }
+    // Messages may hold data from the server (e.g. a training plan written by
+    // another user): escape them so they are displayed as text, never run.
     if (event.type === "yaml") cleanMessage = event.message;
-    else cleanMessage = cleanMessage.replace("\n", "<br>");
+    else if (event.type !== "url") cleanMessage = escapeHtml(cleanMessage).replace(/\n/g, "<br>");
 
     var content = document.getElementById("content");
     var textContent = document.getElementById("text-content");
@@ -108,14 +128,18 @@ function handleEvents(event, logPanel, stagesList, currentStageElement) {
         scrollToElement("#prompt-container");
         window.isPromptReceived = true;
     } else if (event.type === "yaml") {
-        if (yamlContent) yamlContent.innerHTML = cleanMessage;
+        if (yamlContent) yamlContent.textContent = cleanMessage;
         if (yamlContainer) { yamlContainer.style.display = ""; yamlContainer.classList.remove("hidden"); }
         if (window.Prism && yamlContent) Prism.highlightElement(yamlContent);
         scrollToElement("#yaml-container");
     } else if (event.type === "url") {
         var a = document.createElement("a");
-        a.href = cleanMessage;
-        a.target = "_blank";
+        // Only web links are clickable, e.g. never a "javascript:" URL
+        if (/^https?:\/\//i.test(cleanMessage.trim())) {
+            a.href = cleanMessage;
+            a.target = "_blank";
+            a.rel = "noopener noreferrer";
+        }
         a.textContent = cleanMessage;
         a.className = "text-lg font-bold text-ink text-brand-accent hover:underline";
         if (content) content.appendChild(a);
@@ -129,8 +153,7 @@ function handleEvents(event, logPanel, stagesList, currentStageElement) {
     return currentStageElement;
 }
 
-var STAGE_SPINNER_CLASS = "inline-block w-5 h-5 flex-shrink-0 border-2 border-brand border-t-transparent dark:border-t-transparent rounded-full animate-spin";
-
+/** Add a stage (with a spinner) to the stages list of the running task. */
 function addNewStage(stageText, stagesList) {
     if (!stagesList) return null;
     var listItem = document.createElement("li");
@@ -147,6 +170,7 @@ function addNewStage(stageText, stagesList) {
     return listItem;
 }
 
+/** Replace the spinner of a stage by a check mark. */
 function markStageAsComplete(stageElement) {
     if (!stageElement) return;
     var spinner = stageElement.querySelector(".animate-spin");
@@ -161,6 +185,7 @@ function markStageAsComplete(stageElement) {
 
 var logNodes = [];
 
+/** Show the log panel section when the first log line arrives. */
 function showLogPanelSectionIfHidden() {
     var s = document.getElementById("log-panel-section");
     if (s && s.classList.contains("hidden")) {
@@ -169,6 +194,10 @@ function showLogPanelSectionIfHidden() {
     }
 }
 
+/**
+ * Append log lines to the log panel, keeping only the last
+ * window.maxLogMessages lines.
+ */
 function appendManyToLogPanel(messages, logPanel) {
     if (!messages || !messages.length || !logPanel) return;
     showLogPanelSectionIfHidden();
@@ -185,6 +214,10 @@ function appendManyToLogPanel(messages, logPanel) {
     logPanel.scrollTop = logPanel.scrollHeight;
 }
 
+/**
+ * Append a log line to the log panel, keeping only the last
+ * window.maxLogMessages lines.
+ */
 function appendToLogPanel(message, logPanel) {
     if (!logPanel) return;
     showLogPanelSectionIfHidden();
