@@ -38,6 +38,11 @@ class EncryptedKeyDetailSerializer(serializers.ModelSerializer):
         model = EncryptedKey
         fields = "__all__"
         read_only_fields = ["owner"]
+        # A list child has no instance. DRF's inferred conditional-unique
+        # validator would require the immutable certificate/container fields
+        # on partial updates. validate() only permits invalidation, and the
+        # database still enforces the conditional constraint atomically.
+        validators = []
 
     def validate(self, data):
         keys = list(data.keys())

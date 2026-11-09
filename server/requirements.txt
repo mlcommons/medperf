@@ -1,5 +1,5 @@
-django==4.2.26
-djangorestframework==3.14.0
+django==5.2.19
+djangorestframework==3.18.3
 drf-spectacular==0.27.1
 drf-spectacular-sidecar==2024.3.4
 django-storages[google]==1.14.2
@@ -12,5 +12,5 @@ whitenoise==6.6.0
 pyOpenSSL==25.3.0
 Werkzeug==3.0.6
 django-extensions==3.2.3
-djangorestframework-simplejwt==5.3.1
+djangorestframework-simplejwt==5.5.1
 django-filter==24.3
