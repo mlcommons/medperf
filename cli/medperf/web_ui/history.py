@@ -129,24 +129,31 @@ class WebUIHistoryStore:
             )
 
     def load_notifications(self) -> List[Notification]:
-        """Return the saved notifications, oldest first."""
-        with self._lock:
-            rows = self._db.execute(
-                "SELECT id, message, type, read, timestamp, url FROM notifications"
-                " WHERE profile = ? AND email = ? ORDER BY timestamp ASC",
-                self._scope(),
-            ).fetchall()
-        return [
-            Notification(
-                id=row[0],
-                message=row[1],
-                type=row[2],
-                read=bool(row[3]),
-                timestamp=row[4],
-                url=row[5],
-            )
-            for row in rows
-        ]
+        """Return the saved notifications, oldest first. Failures are only
+        logged (no notifications are returned), so that a storage problem
+        never breaks the web UI, e.g. a login that already succeeded.
+        """
+        try:
+            with self._lock:
+                rows = self._db.execute(
+                    "SELECT id, message, type, read, timestamp, url FROM notifications"
+                    " WHERE profile = ? AND email = ? ORDER BY timestamp ASC",
+                    self._scope(),
+                ).fetchall()
+            return [
+                Notification(
+                    id=row[0],
+                    message=row[1],
+                    type=row[2],
+                    read=bool(row[3]),
+                    timestamp=row[4],
+                    url=row[5],
+                )
+                for row in rows
+            ]
+        except Exception as e:
+            logger.exception(f"Failed to load notifications from history: {e}")
+            return []
 
     # Tasks
 
@@ -177,25 +184,31 @@ class WebUIHistoryStore:
             )
 
     def load_tasks(self) -> List[Dict]:
-        """Return the saved tasks, oldest first."""
-        with self._lock:
-            rows = self._db.execute(
-                "SELECT id, name, status, error, started_at, finished_at, logs"
-                " FROM tasks WHERE profile = ? AND email = ? ORDER BY finished_at ASC",
-                self._scope(),
-            ).fetchall()
-        return [
-            {
-                "id": row[0],
-                "name": row[1],
-                "status": row[2],
-                "error": row[3],
-                "started_at": row[4],
-                "finished_at": row[5],
-                "logs": json.loads(row[6]),
-            }
-            for row in rows
-        ]
+        """Return the saved tasks, oldest first. Failures are only logged (no
+        tasks are returned), like load_notifications.
+        """
+        try:
+            with self._lock:
+                rows = self._db.execute(
+                    "SELECT id, name, status, error, started_at, finished_at, logs"
+                    " FROM tasks WHERE profile = ? AND email = ? ORDER BY finished_at ASC",
+                    self._scope(),
+                ).fetchall()
+            return [
+                {
+                    "id": row[0],
+                    "name": row[1],
+                    "status": row[2],
+                    "error": row[3],
+                    "started_at": row[4],
+                    "finished_at": row[5],
+                    "logs": json.loads(row[6]),
+                }
+                for row in rows
+            ]
+        except Exception as e:
+            logger.exception(f"Failed to load tasks from history: {e}")
+            return []
 
     def _scope(self) -> Tuple[str, str]:
         return self.profile, self.email
