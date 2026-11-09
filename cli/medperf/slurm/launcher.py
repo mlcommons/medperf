@@ -273,8 +273,8 @@ class SlurmJob:
             self._sleep_streaming_logs(poll_interval)
 
     def _sleep_streaming_logs(self, poll_interval: int):
-        # Waits until the next status check while printing new log lines every second.
-        # Returns early if cancel() wakes it.
+        # Waits until the next status check while printing new log lines every
+        # LOG_STREAM_INTERVAL seconds. Returns early if cancel() wakes it.
         deadline = time.monotonic() + poll_interval
         while True:
             remaining = deadline - time.monotonic()
