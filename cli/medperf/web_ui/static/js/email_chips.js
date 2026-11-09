@@ -79,10 +79,7 @@ function setEmailChips(container, emails) {
  */
 function getSavedEmails(container) {
     if (!container || !container.getAttribute) return [];
-    var emails = [];
-    try { emails = JSON.parse(container.getAttribute("data-allowed-list") || "[]"); } catch (_) {}
-    // Anything but a list (e.g. "{}") means no emails: it must not break the page
-    return Array.isArray(emails) ? emails : [];
+    try { return JSON.parse(container.getAttribute("data-allowed-list") || "[]"); } catch (_) { return []; }
 }
 
 /** Create the chips of the emails saved in the container's `data-allowed-list`. */

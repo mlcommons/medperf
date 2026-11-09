@@ -106,11 +106,11 @@ function displayAlert(type, message, durationMs) {
     alertEl._alertTimeoutId = timeoutId;
 }
 
-/** Escape a text so it can be safely inserted as HTML. */
+/** Escape a text so it can be safely inserted as HTML, including in attribute values. */
 function escapeHtml(text) {
     var div = document.createElement("div");
     div.textContent = text;
-    return div.innerHTML;
+    return div.innerHTML.replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
 
 /** Remove an alert with its exit animation. */
