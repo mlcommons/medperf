@@ -7,6 +7,7 @@ var REDIRECT_BASE = "/datasets/ui/display/";
 /** Enable the Register button only when the form is valid, and show the user what is missing (see form_validation.js). */
 function checkDatasetFormValidity() {
     var benchmarkEl = document.getElementById("benchmark");
+    var prepContainerEl = document.getElementById("data-preparation-container");
     var nameEl = document.getElementById("name");
     var descEl = document.getElementById("description");
     var locationEl = document.getElementById("location");
@@ -16,6 +17,8 @@ function checkDatasetFormValidity() {
     if (window.ui_mode === window.evaluation_mode && benchmarkEl && !benchmarkEl.value) {
         problems.push({ field: benchmarkEl, message: "Select a benchmark" });
     }
+    // Only on the page in training mode, instead of the benchmark
+    requireValue(problems, prepContainerEl, "Select a data preparation container");
     requireValue(problems, nameEl, "Enter the dataset name");
     requireValue(problems, descEl, "Enter a description");
     requireValue(problems, locationEl, "Enter the dataset location");

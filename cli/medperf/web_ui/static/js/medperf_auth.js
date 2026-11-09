@@ -30,7 +30,8 @@ function init() {
     if (form) {
         form.addEventListener("submit", submitActionForm);
         const emailInput = document.getElementById("email");
-        if (emailInput) emailInput.addEventListener("keyup", checkLoginFormValidity);
+        // "input" also covers a saved email picked with the mouse, autofill and paste
+        if (emailInput) emailInput.addEventListener("input", checkLoginFormValidity);
     }
     checkLoginFormValidity();
 }
