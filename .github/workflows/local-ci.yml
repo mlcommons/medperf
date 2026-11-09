@@ -5,13 +5,14 @@ on: pull_request
 jobs:
   setup:
     name: local-deploy
-    runs-on: ubuntu-latest
+    # Singularity 3.10 predates C23; Ubuntu 26.04 defaults break its C build.
+    runs-on: ubuntu-24.04
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Set up Python 3.11
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v6
       with:
         python-version: '3.11'
 
