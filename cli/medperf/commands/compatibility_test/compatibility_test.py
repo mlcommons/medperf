@@ -22,7 +22,6 @@ def run(
     data_uid: str = typer.Option(
         None,
         "--data_uid",
-        "-d",
         help=help_texts.CompatibilityTest.data_uid,
     ),
     data_prep: str = typer.Option(

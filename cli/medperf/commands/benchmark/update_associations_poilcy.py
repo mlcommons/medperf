@@ -93,7 +93,7 @@ class UpdateAssociationsPolicy:
             )
         if self.model_emails_file and not os.path.isfile(self.model_emails_file):
             raise InvalidArgumentError(
-                f"File {self.dataset_emails_file} does not exist or is a directory"
+                f"File {self.model_emails_file} does not exist or is a directory"
             )
 
     def __read_emails_file(self, file):

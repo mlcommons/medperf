@@ -23,7 +23,7 @@ app = typer.Typer()
 @clean_except
 def run_test(
     mlcube_path: str = typer.Option(
-        ..., "--container", "-m", help=help_texts.Container.run_test_config
+        ..., "--container", help=help_texts.Container.run_test_config
     ),
     task: str = typer.Option(
         ..., "--task", "-t", help=help_texts.Container.run_test_task

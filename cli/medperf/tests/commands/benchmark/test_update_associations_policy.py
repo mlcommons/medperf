@@ -268,3 +268,12 @@ def test_allow_lists_not_checked_when_not_emptied(mocker):
 
     # Assert
     spy.assert_not_called()
+
+
+def test_missing_model_emails_file_error_names_it(mocker, fs):
+    # Arrange
+    obj = UpdateAssociationsPolicy(1, model_emails_file="/missing_models.txt")
+
+    # Act & Assert
+    with pytest.raises(InvalidArgumentError, match="missing_models.txt"):
+        obj.validate()
