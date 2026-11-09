@@ -60,6 +60,53 @@ def test_get_approval_raises_if_not_approved(mocker):
         ga.get_approval()
 
 
+@pytest.mark.parametrize("emails", [None, "", " "])
+def test_run_warns_about_all_data_owners_when_no_emails(mocker, emails):
+    # Arrange
+    spy = mocker.patch(PATCH_GRANTACCESS.format("approval_prompt"), return_value=False)
+
+    # Act
+    with pytest.raises(CleanExit):
+        GrantAccess.run(BENCHMARK_ID, MODEL_ID, allowed_emails=emails)
+
+    # Assert
+    assert "ALL eligible Data Owners" in spy.call_args[0][0]
+
+
+def test_run_does_not_warn_about_all_data_owners_with_emails(mocker):
+    # Arrange
+    spy = mocker.patch(PATCH_GRANTACCESS.format("approval_prompt"), return_value=False)
+
+    # Act
+    with pytest.raises(CleanExit):
+        GrantAccess.run(BENCHMARK_ID, MODEL_ID, allowed_emails=ALLOWED_EMAILS)
+
+    # Assert
+    assert "ALL eligible Data Owners" not in spy.call_args[0][0]
+
+
+@pytest.mark.parametrize("emails", [None, "", " "])
+def test_approve_no_email_filtering_asks_when_no_emails(mocker, emails):
+    # Arrange
+    spy = mocker.patch(PATCH_GRANTACCESS.format("approval_prompt"), return_value=False)
+
+    # Act & Assert
+    with pytest.raises(CleanExit):
+        GrantAccess.approve_no_email_filtering(BENCHMARK_ID, emails)
+    spy.assert_called_once()
+
+
+def test_approve_no_email_filtering_does_not_ask_with_emails(mocker):
+    # Arrange
+    spy = mocker.patch(PATCH_GRANTACCESS.format("approval_prompt"))
+
+    # Act
+    GrantAccess.approve_no_email_filtering(BENCHMARK_ID, ALLOWED_EMAILS)
+
+    # Assert
+    spy.assert_not_called()
+
+
 @pytest.mark.parametrize(
     "emails,expected",
     [

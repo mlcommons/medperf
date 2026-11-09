@@ -31,7 +31,11 @@
             <div class="email-container" id="allowed-email-list" data-allowed-list='[]'>
                 <input type="text" id="email-input" class="email-input w-full px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink mt-2 focus:outline-none focus:border-brand-accent" placeholder="{{ help_texts.WebUIPlaceholders.emails_input }}" {% if task_running %}disabled{% endif %}>
             </div>
-            <p class="text-sm text-muted-fg mt-2">{{ help_texts.Access.allowed_emails }}</p>
+            <div class="mt-2 p-3 rounded-xl bg-warning-muted border-2 border-warning">
+                <p class="text-warning-fg text-sm flex items-center font-bold">
+                    <i class="fas fa-exclamation-circle mr-2"></i>{{ help_texts.Access.allowed_emails }}
+                </p>
+            </div>
         </div>
         <div class="text-center">
             <button id="grant-access-btn" type="submit" class="btn btn-primary step-btn" {% if task_running %}disabled{% endif %}>Grant Access</button>
@@ -72,7 +76,11 @@
             <div class="email-container" id="allowed-email-list-auto" data-allowed-list='[]'>
                 <input type="text" name="emails" id="email-input-auto" class="email-input w-full px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink mt-2 focus:outline-none focus:border-brand-accent" placeholder="{{ help_texts.WebUIPlaceholders.emails_input }}" disabled>
             </div>
-            <p class="text-sm text-muted-fg mt-2">{{ help_texts.Access.allowed_emails }}</p>
+            <div class="mt-2 p-3 rounded-xl bg-warning-muted border-2 border-warning">
+                <p class="text-warning-fg text-sm flex items-center font-bold">
+                    <i class="fas fa-exclamation-circle mr-2"></i>{{ help_texts.Access.allowed_emails }}
+                </p>
+            </div>
         </div>
         <div id="auto-access-actions" class="text-center hidden">
             <button type="button" class="btn btn-info step-btn hidden" id="start-auto-access-btn" {% if task_running %}disabled{% endif %}>Start Automatic Access</button>

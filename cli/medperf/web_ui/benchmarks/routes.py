@@ -274,6 +274,7 @@ def update_associations_policy(
             dataset_emails=dataset_emails,
             model_mode=model_mode,
             model_emails=model_emails,
+            approved=True,
         )
     task.notify(
         success_message="Associations policy updated",
@@ -294,6 +295,7 @@ def update_committee_members(
         UpdateCommitteeMembers.run(
             benchmark_uid=benchmark_id,
             committee_emails=committee_emails,
+            approved=True,
         )
     task.notify(
         success_message="Committee members updated",

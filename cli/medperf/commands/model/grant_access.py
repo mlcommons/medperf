@@ -26,3 +26,7 @@ class GrantAccess:
             approved=approved,
             allowed_emails=allowed_emails,
         )
+
+    @classmethod
+    def approve_no_email_filtering(cls, benchmark_id: int, allowed_emails: str = None):
+        GrantContainerAccess.approve_no_email_filtering(benchmark_id, allowed_emails)

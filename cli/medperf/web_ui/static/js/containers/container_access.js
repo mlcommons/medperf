@@ -183,9 +183,11 @@ function init() {
                 if (!checkAccessForm()) return;
                 var benchEl = document.getElementById("benchmark");
                 var emailsEl = document.getElementById("form-emails");
+                var allowListArr = getEmailsList(document.getElementById("allowed-email-list"));
                 if (benchEl) document.getElementById("form-benchmark-id").value = benchEl.value;
-                if (emailsEl) emailsEl.value = getEmailsList(document.getElementById("allowed-email-list")).join(" ");
-                showConfirmModal(form, submitActionFormWithForm, form.getAttribute("data-confirm-message") || "continue?");
+                if (emailsEl) emailsEl.value = allowListArr.join(" ");
+                var message = emptyAllowListWarning(allowListArr, form.getAttribute("data-confirm-message") || "continue?");
+                showConfirmModal(form, submitActionFormWithForm, message);
             } else {
                 submitActionForm(e);
             }

@@ -5,7 +5,7 @@
  * container access). An email typed in an `.email-input` becomes a removable
  * "chip" when the user hits Enter, comma or space (or pastes a list of emails).
  * The chips are inserted before the input, inside its container, which is the
- * element passed to getEmailsList/setEmailChips/parseEmails.
+ * element passed to getEmailsList/setEmailChips/getSavedEmails/parseEmails.
  *
  * Depends on notifications.js (showToast).
  */
@@ -74,15 +74,21 @@ function setEmailChips(container, emails) {
 }
 
 /**
- * Create the chips of the emails saved in the container's `data-allowed-list`
- * attribute (a JSON list), e.g. the current allow list rendered by the server.
+ * Return the emails saved in the container's `data-allowed-list` attribute
+ * (a JSON list), e.g. the current allow list rendered by the server.
  */
-function parseEmails(container) {
-    if (!container || !container.getAttribute) return;
+function getSavedEmails(container) {
+    if (!container || !container.getAttribute) return [];
     var emails = [];
     try { emails = JSON.parse(container.getAttribute("data-allowed-list") || "[]"); } catch (_) {}
     // Anything but a list (e.g. "{}") means no emails: it must not break the page
-    setEmailChips(container, Array.isArray(emails) ? emails : []);
+    return Array.isArray(emails) ? emails : [];
+}
+
+/** Create the chips of the emails saved in the container's `data-allowed-list`. */
+function parseEmails(container) {
+    if (!container || !container.getAttribute) return;
+    setEmailChips(container, getSavedEmails(container));
 }
 
 /**

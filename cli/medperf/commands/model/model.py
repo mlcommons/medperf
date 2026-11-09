@@ -239,6 +239,7 @@ def auto_grant_access(
     The private model must have already been associated with the
     benchmark for this to take effect.
     """
+    GrantAccess.approve_no_email_filtering(benchmark_id, allowed_emails)
     interval_in_seconds = interval * 60
     while True:
         try:

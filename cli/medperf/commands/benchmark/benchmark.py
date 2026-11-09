@@ -239,6 +239,7 @@ def update_associations_policy(
         "--model_auto_approve_file",
         help=help_texts.Benchmark.model_auto_approve_file,
     ),
+    approval: bool = typer.Option(False, "-y", help=help_texts.Common.approval),
 ):
     """Updates the auto-approval policy of dataset and model associations of a benchmark"""
     UpdateAssociationsPolicy.run(
@@ -247,6 +248,7 @@ def update_associations_policy(
         dataset_emails_file=dataset_auto_approve_file,
         model_mode=model_auto_approve_mode,
         model_emails_file=model_auto_approve_file,
+        approved=approval,
     )
 
 
@@ -266,10 +268,12 @@ def update_committee_members(
         "--committee_emails",
         help=help_texts.Benchmark.committee_emails,
     ),
+    approval: bool = typer.Option(False, "-y", help=help_texts.Common.approval),
 ):
     """Updates the committee members for a benchmark"""
     UpdateCommitteeMembers.run(
         benchmark_uid,
         committee_emails_file=committee_emails_file,
         committee_emails=committee_emails,
+        approved=approval,
     )

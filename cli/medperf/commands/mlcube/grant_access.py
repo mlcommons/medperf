@@ -32,14 +32,26 @@ class GrantAccess:
         allowed_emails: a string containing space-separated list of emails
         """
         grantaccess = cls(benchmark_id, model_id, approved, allowed_emails)
-        grantaccess.get_approval()
         grantaccess.validate_allowed_emails()
+        grantaccess.get_approval()
         grantaccess.verify_certificate_authority()
         grantaccess.prepare_certificates_list()
         grantaccess.filter_certificates()
         grantaccess.verify_certificates()
         keys = grantaccess.generate_encrypted_keys_list()
         grantaccess.upload(keys)
+
+    @classmethod
+    def approve_no_email_filtering(cls, benchmark_id: int, allowed_emails: str = None):
+        """
+        Asks, before automatic grant access starts, for the approval of granting
+        access to ALL eligible Data Owners when no emails are given, since the
+        automatic runs don't ask.
+        """
+        grantaccess = cls(benchmark_id, None, allowed_emails=allowed_emails)
+        grantaccess.validate_allowed_emails()
+        if not grantaccess.allowed_emails:
+            grantaccess.get_approval()
 
     def __init__(
         self,
@@ -63,8 +75,8 @@ class GrantAccess:
         )
         if not self.allowed_emails:
             msg += (
-                "No allow list was provided, so ALL eligible Data Owners will "
-                "be granted access (no email filtering).\n"
+                "WARNING: No emails were given (the allow list is empty), so ALL "
+                "eligible Data Owners will be granted access (no email filtering).\n"
             )
 
         if not self.approved and not approval_prompt(msg):

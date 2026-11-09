@@ -5,24 +5,43 @@
 
 var REDIRECT_BASE = "/benchmarks/ui/display/";
 
-/** Confirmation message of the policy update, warning about empty allow lists. */
+/**
+ * Confirmation message of the policy update. An empty allow list auto-approves
+ * nobody: it is refused when the saved list is already empty, otherwise (the
+ * user is emptying it) the mode will be set to Never. Null when refused.
+ */
 function buildAssociationsPolicyConfirmMessage(message) {
-    var datasetModeEl = document.getElementById("dataset-auto-approve-mode");
-    var modelModeEl = document.getElementById("model-auto-approve-mode");
-    var warnings = [];
-    if (datasetModeEl && datasetModeEl.value === "ALLOWLIST") {
-        var datasetAllowListArr = getEmailsList(document.getElementById("dataset-allow-list-emails"));
-        if (!datasetAllowListArr.length) warnings.push("dataset");
+    var notes = [];
+    var kinds = ["dataset", "model"];
+    for (var i = 0; i < kinds.length; i++) {
+        var kind = kinds[i];
+        var modeEl = document.getElementById(kind + "-auto-approve-mode");
+        if (!modeEl || modeEl.value !== "ALLOWLIST") continue;
+        var listEl = document.getElementById(kind + "-allow-list-emails");
+        if (getEmailsList(listEl).length) continue;
+        if (!getSavedEmails(listEl).length) {
+            showErrorToast("The " + kind + " allow list is empty. Add at least one email, or choose another mode.");
+            return null;
+        }
+        notes.push("This will empty the " + kind + " allow list and set the " + kind + " auto approve mode to Never.");
     }
-    if (modelModeEl && modelModeEl.value === "ALLOWLIST") {
-        var modelAllowListArr = getEmailsList(document.getElementById("model-allow-list-emails"));
-        if (!modelAllowListArr.length) warnings.push("model");
+    if (!notes.length) return message;
+    return message + " <strong>" + notes.join(" ") + "</strong>";
+}
+
+/**
+ * Confirmation message of the committee members update. An empty list removes
+ * all the members: it is refused when the committee is already empty. Null
+ * when refused.
+ */
+function buildCommitteeMembersConfirmMessage(message) {
+    var listEl = document.getElementById("committee-members-emails");
+    if (getEmailsList(listEl).length) return message;
+    if (!getSavedEmails(listEl).length) {
+        showErrorToast("The committee members list is empty. Add at least one email.");
+        return null;
     }
-    if (!warnings.length) return message;
-    var listWord = warnings.length > 1 ? "allow lists are" : "allow list is";
-    return message + " <strong>Note: the " + warnings.join(" and ") + " " + listWord + " empty " +
-        "- no " + warnings.join("/") + " associations will be auto-approved until " +
-        "you add emails.</strong>";
+    return message + " <strong>This will remove all committee members.</strong>";
 }
 
 /** Handle the response of updating the associations policy. */
@@ -110,12 +129,13 @@ function initBenchmarkDetail() {
     var savePolicyBtn = document.getElementById("save-policy-btn");
     if (savePolicyBtn) savePolicyBtn.addEventListener("click", function (e) {
         var message = buildAssociationsPolicyConfirmMessage("update benchmark associations policy?");
-        showConfirmModal(e.currentTarget, updateAssociationsPolicy, message);
+        if (message !== null) showConfirmModal(e.currentTarget, updateAssociationsPolicy, message);
     });
 
     var saveCommitteeBtn = document.getElementById("save-committee-members-btn");
     if (saveCommitteeBtn) saveCommitteeBtn.addEventListener("click", function (e) {
-        showConfirmModal(e.currentTarget, updateCommitteeMembers, "update benchmark committee members?");
+        var message = buildCommitteeMembersConfirmMessage("update benchmark committee members?");
+        if (message !== null) showConfirmModal(e.currentTarget, updateCommitteeMembers, message);
     });
 
     if (datasetModeEl) datasetModeEl.dispatchEvent(new Event("change"));
