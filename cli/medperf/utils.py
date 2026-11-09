@@ -213,10 +213,24 @@ def untar(filepath: str, remove: bool = True, extract_to: str = None) -> str:
     logging.info(f"Uncompressing tar.gz at {filepath}")
     addpath = extract_to or str(Path(filepath).parent)
     try:
-        tar = tarfile.open(filepath)
-        tar.extractall(addpath)
-        tar.close()
-    except tarfile.ReadError as e:
+        with tarfile.open(filepath) as tar:
+            root = Path(addpath).resolve()
+            members = tar.getmembers()
+            # Validate before extraction, including on Python versions without
+            # tarfile's data filter. Resource archives need no links/devices.
+            for member in members:
+                target = (root / member.name).resolve()
+                if (
+                    Path(member.name).is_absolute()
+                    or (target != root and root not in target.parents)
+                    or not (member.isfile() or member.isdir())
+                ):
+                    raise tarfile.TarError(f"Unsafe archive member: {member.name}")
+            if hasattr(tarfile, "data_filter"):
+                tar.extractall(addpath, members=members, filter="data")
+            else:
+                tar.extractall(addpath, members=members)
+    except (tarfile.TarError, OSError) as e:
         raise ExecutionError("Cannot extract tar.gz file, " + e.__str__())
 
     # OS Specific issue: Mac Creates superfluous files with tarfile library
