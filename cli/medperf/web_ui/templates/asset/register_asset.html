@@ -55,13 +55,7 @@
         </div>
     </form>
 
-    {{ modal_macros.add_modal(
-        modal_id="folder-picker-modal",
-        modal_body='<ul id="folder-list" class="divide-y divide-border max-h-96 overflow-y-auto rounded-lg border border-border"></ul>',
-        modal_footer=True,
-        close_button='<button type="button" class="btn btn-sm btn-secondary" data-dismiss-modal="folder-picker-modal">Cancel</button>',
-        success_button='<button type="button" class="btn btn-sm btn-primary" id="select-folder-btn">Select</button>'
-    ) }}
+    {{ modal_macros.folder_picker_modal() }}
 
     {% include "partials/panel_container.html" %}
     {% include "partials/text_content_container.html" %}

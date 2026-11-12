@@ -656,3 +656,4 @@ class WebUIPlaceholders:
     security_token = "security token"
     # listings
     search = "Search by name…"
+    folder_filter = "Filter this folder by name…"
