@@ -21,7 +21,7 @@ function activateProfile(activateProfileBtn) {
     var form = document.getElementById("profiles-form");
     var formData = form ? new FormData(form) : new FormData();
     disableElements("#profiles-form select, #profiles-form button");
-    disableElements("#edit-config-form input, #edit-config-form button, #edit-config-form select");
+    disableElements(".profile-settings-form input, .profile-settings-form button, .profile-settings-form select");
     disableElements("#user-certificate button");
     ajaxRequest("/settings/activate_profile", "POST", formData, function (response) {
         if (response && response.status === "success") showReloadModal({ title: "Profile Activated Successfully", seconds: 3 });
@@ -43,12 +43,12 @@ function viewProfile(viewProfileBtn) {
     }, "Error viewing profile:");
 }
 
-/** Save the edited settings of the active profile. */
+/** Save the settings of the form holding the clicked Apply button. */
 function editProfile(editProfileBtn) {
-    var form = document.getElementById("edit-config-form");
+    var form = editProfileBtn.closest("form");
     var formData = form ? new FormData(form) : new FormData();
     disableElements("#profiles-form select, #profiles-form button");
-    disableElements("#edit-config-form input, #edit-config-form button, #edit-config-form select");
+    disableElements(".profile-settings-form input, .profile-settings-form button, .profile-settings-form select");
     disableElements("#user-certificate button");
     ajaxRequest("/settings/edit_profile", "POST", formData, function (response) {
         if (response && response.status === "success") showReloadModal({ title: "Profile Settings Edited Successfully", seconds: 3 });
@@ -56,22 +56,29 @@ function editProfile(editProfileBtn) {
     }, "Error editing profile:");
 }
 
-/** Enable the Apply button only if a setting of the active profile changed. */
-function checkForProfileEditChanges() {
-    var gpusEl = document.getElementById("gpus");
-    var platformEl = document.getElementById("platform");
-    var caEl = document.getElementById("ca");
-    var fingerprintEl = document.getElementById("fingerprint");
-    var gpusVal = gpusEl ? gpusEl.value : "";
-    var platformVal = platformEl ? platformEl.value : "";
-    var caVal = caEl ? caEl.value : "";
-    var fingerprintVal = fingerprintEl ? fingerprintEl.value : "";
-    var gpusChanged = gpusVal !== window.currentSettings.defaultGpus;
-    var platformChanged = platformVal !== window.currentSettings.defaultPlatform;
-    var caChanged = caVal !== window.currentSettings.defaultCA;
-    var fingerprintChanged = fingerprintVal !== window.currentSettings.defaultFingerprint;
-    var btn = document.getElementById("apply-profile-changes-btn");
-    if (btn) btn.disabled = !(gpusChanged || platformChanged || caChanged || fingerprintChanged);
+/** The values a settings form would submit, to detect changes. */
+function serializeSettingsForm(form) {
+    return new URLSearchParams(new FormData(form)).toString();
+}
+
+/** Enable a form's Apply button only if one of its settings changed. */
+function checkForProfileEditChanges(form) {
+    var btn = form.querySelector(".apply-settings-btn");
+    if (btn) btn.disabled = serializeSettingsForm(form) === form.dataset.initialValues;
+}
+
+/**
+ * Show the Slurm options when the Slurm switch is on, and the local options
+ * (platform) when it is off. Slurm always uses the singularity platform.
+ */
+function updateLauncherFields() {
+    var useSlurm = document.getElementById("use-slurm");
+    if (!useSlurm) return;
+    var slurm = useSlurm.checked;
+    document.getElementById("launcher").value = slurm ? "slurm" : "local";
+    document.getElementById("slurm-execution-fields").classList.toggle("hidden", !slurm);
+    document.getElementById("local-execution-fields").classList.toggle("hidden", slurm);
+    document.getElementById("launcher-mode").textContent = slurm ? "Slurm cluster" : "Local machine";
 }
 
 /**
@@ -99,17 +106,23 @@ function initSettings() {
     });
     var activateBtn = document.getElementById("activate-profile-btn");
     var viewBtn = document.getElementById("view-profile-btn");
-    var applyBtn = document.getElementById("apply-profile-changes-btn");
     var profileEl = document.getElementById("profile");
+    var useSlurm = document.getElementById("use-slurm");
     if (activateBtn) activateBtn.addEventListener("click", function (e) { showConfirmModal(e.currentTarget, activateProfile, "activate this profile?"); });
     if (viewBtn) viewBtn.addEventListener("click", function (e) { showConfirmModal(e.currentTarget, viewProfile, "view this profile?"); });
-    if (applyBtn) applyBtn.addEventListener("click", function (e) { showConfirmModal(e.currentTarget, editProfile, "edit this profile?"); });
     if (profileEl) profileEl.addEventListener("change", checkProfileMatch);
-    document.querySelectorAll("#gpus, #platform, #ca, #fingerprint").forEach(function (el) {
-        if (el) el.addEventListener("input", checkForProfileEditChanges);
+    if (useSlurm) useSlurm.addEventListener("change", updateLauncherFields);
+    updateLauncherFields();
+    document.querySelectorAll(".profile-settings-form").forEach(function (form) {
+        form.dataset.initialValues = serializeSettingsForm(form);
+        var check = function () { checkForProfileEditChanges(form); };
+        form.addEventListener("input", check);
+        form.addEventListener("change", check);
+        var applyBtn = form.querySelector(".apply-settings-btn");
+        if (applyBtn) applyBtn.addEventListener("click", function (e) { showConfirmModal(e.currentTarget, editProfile, "edit this profile?"); });
+        check();
     });
     checkProfileMatch();
-    checkForProfileEditChanges();
 }
 
 if (document.readyState === "loading") {

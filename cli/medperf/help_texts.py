@@ -580,6 +580,13 @@ class WebUITooltips:
     )
     # listings ({entities} is the listed entities, e.g. "benchmarks")
     mine_only = "Show only the {entities} you registered"
+    # settings
+    use_slurm = (
+        "Submit containers as Slurm batch jobs to run on the cluster's compute "
+        "nodes, instead of running them locally on this machine. Slurm jobs run "
+        "with Singularity/Apptainer"
+    )
+    slurm_platform = "The Slurm launcher only supports Singularity/Apptainer"
 
 
 class WebUIPlaceholders:
@@ -610,6 +617,21 @@ class WebUIPlaceholders:
         "https://www.example.com/container_additional_files.tar (Optional)"
     )
     container_decryption_key = "/home/user/container_decryption_key.key"
+    # settings
+    gpus = 'e.g. all, 0 or "device=0,2"'
+    platform = "docker or singularity"
+    slurm_partition = "e.g. booster (cluster default if empty)"
+    slurm_account = "e.g. my-project (cluster default if empty)"
+    slurm_time = "e.g. 02:00:00 (cluster default if empty)"
+    slurm_cpus_per_task = "e.g. 8 (cluster default if empty)"
+    slurm_mem = "e.g. 64G (cluster default if empty)"
+    slurm_gres = "e.g. gpu:4 (cluster default if empty)"
+    slurm_extra_args = "e.g. --qos=normal --reservation=my-res"
+    slurm_setup_commands = "e.g. module load Apptainer"
+    slurm_jobs_dir = "e.g. /scratch/my-project/slurm_jobs (logs storage if empty)"
+    slurm_node_arch = "e.g. aarch64 (this machine's architecture if empty)"
+    slurm_poll_interval = "e.g. 30"
+    slurm_accounting_grace = "e.g. 300"
     # assets
     asset_name = "Example Asset"
     asset_url = "https://www.example.com/asset_example.tar"
