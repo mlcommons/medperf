@@ -1,5 +1,5 @@
 container_type: DockerImage
-image: mlcommons/chestxray-tutorial-cnn:0.0.1
+image: mhmdk0/chestxray-tutorial-cnn:0.0.1
 tasks:
   infer:
     input_volumes:

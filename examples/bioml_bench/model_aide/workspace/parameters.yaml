@@ -1,0 +1,23 @@
+# The LLM, served by vLLM inside the container
+llm:
+  # folder in the additional files that holds the weights (see additional_files/download.sh)
+  weights: Qwen2.5-Coder-7B-Instruct
+  # the name AIDE asks vLLM for
+  served_name: qwen2.5-coder-7b-instruct
+  max_model_len: 32768
+  # share of the GPU memory vLLM may use
+  gpu_memory_utilization: 0.85
+  # seconds to wait for vLLM to load the model
+  startup_timeout: 1800
+  # more `vllm serve` options, e.g. ["--tensor-parallel-size", "4"]
+  extra_args: []
+
+# AIDE's settings. BioML-bench's agents/aide/config.yaml uses 2000 steps and a
+# 43200 s (12 h) limit; these are small, for a quick run
+aide:
+  steps: 20
+  # seconds for the whole run
+  time_limit: 3600
+  # seconds for each solution script
+  exec_timeout: 600
+  temperature: 0.5

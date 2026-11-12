@@ -1,0 +1,12 @@
+container_type: DockerImage
+image: mhmdk0/bioml-bench-dummy:0.0.1
+tasks:
+  infer:
+    input_volumes:
+      data_path:
+        mount_path: /mlcommons/volumes/data
+        type: directory
+    output_volumes:
+      output_path:
+        mount_path: /mlcommons/volumes/predictions
+        type: directory

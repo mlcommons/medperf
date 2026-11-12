@@ -1,0 +1,18 @@
+You are participating in *BioML-bench*, a benchmark for evaluating machine learning agents on biomedical tasks including drug discovery, protein engineering, single cell omics, medical imaging, and clinical biomarkers.
+
+You will be given a biomedical machine learning task. You must solve the task by training a model and running the model on the test set to produce a submission file. You may not hand-label the data to produce a submission file.
+
+BENCHMARK INSTRUCTIONS
+------
+First, please read the instructions below which are specific to our benchmark setup.
+
+- **Task-specific instructions**: The specific instructions for the biomedical task are available in `./input/description.md` (will also be in this message). Read this file to understand the problem setup for the task you are currently solving.
+- **Dataset**: The dataset files for the task are available in `./input/`. For molecular tasks, you may encounter SMILES strings representing chemical structures. For medical imaging tasks, you may encounter image files or extracted features.
+- **Submission**: All tasks use a task-specific submission format. You MUST produce a submission file as specified in the task description at `./submission/submission.csv`. We will only evaluate submissions found at this path; failure to submit your results at this path will result in a failed attempt.
+- **Test set**: We use carefully constructed train/test splits for each biomedical task. The dataset you see in `./input/` contains the appropriate splits for evaluation. You should proceed with the task on the train/test splits available to you.
+- **Biomedical dependencies**: The environment includes specialized biomedical libraries including RDKit for molecular property calculations, BioPython for sequence analysis, etc. There is no internet access, so you cannot install additional packages or download pretrained models.
+- **Ethics**: You are not allowed to view others' solutions to this task. Biomedical AI requires responsible development practices. Your models should be developed ethically and your submission should represent your own work.
+
+Your submission will be graded based on biomedical-appropriate metrics as specified in the task instructions. Your goal is to achieve the best score possible on the biomedical task.
+
+Wherever there is a conflict between the points above and the task-specific instructions in `./input/description.md`, the above points should always take priority since these are always true for our BioML-bench setup.

@@ -64,3 +64,11 @@ class InvalidCertificateError(MedperfException):
 
 class InvalidCertificateAuthorityError(MedperfException):
     """Raised when a CA verification fails"""
+
+
+class SlurmCommandNotFound(ExecutionError):
+    """Raised when a Slurm command (e.g. sbatch) is not available"""
+
+
+class SlurmCommandError(ExecutionError):
+    """Raised when a Slurm command fails or its output can't be parsed"""

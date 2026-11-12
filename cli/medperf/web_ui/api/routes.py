@@ -75,6 +75,29 @@ def stop_task(
     return {"status": "ok"}
 
 
+def _list_directory(path: str, with_files: bool):
+    """The directories (and files if with_files) inside a path: directories
+    first, then files, each sorted by name with hidden ones last."""
+    try:
+        names = os.listdir(path)
+    except PermissionError:
+        raise HTTPException(status_code=403, detail="Permission denied")
+
+    folders = []
+    files = []
+    for name in names:
+        item_path = os.path.join(path, name)
+        if os.path.isdir(item_path):
+            folders.append({"name": name, "path": item_path, "type": "dir"})
+        elif with_files:
+            files.append({"name": name, "path": item_path, "type": "file"})
+
+    def sort_key(item):
+        return (item["name"].startswith("."), item["name"].lower())
+
+    return sorted(folders, key=sort_key) + sorted(files, key=sort_key)
+
+
 # TODO: close with token and list in documentation
 @router.post("/browse", response_class=JSONResponse)
 def browse_directory(
@@ -92,29 +115,7 @@ def browse_directory(
     if not os.path.exists(full_path) or not os.path.isdir(full_path):
         raise HTTPException(status_code=404, detail="Directory not found")
 
-    # List directories inside the path and sort them
-    sorted_folders = []
-    sorted_files = []
-    for item in os.listdir(full_path):
-        item_path = os.path.join(full_path, item)
-        if os.path.isdir(item_path):
-            sorted_folders.append(item)
-        else:
-            if with_files:
-                sorted_files.append(item)
-
-    sorted_folders.sort(key=lambda x: (x.startswith("."), x.lower()))
-    sorted_files.sort(key=lambda x: (x.startswith("."), x.lower()))
-
-    sorted_items = sorted_folders + sorted_files
-
-    folders = []
-    for item in sorted_items:
-        item_path = os.path.join(full_path, item)
-        if os.path.isdir(item_path):
-            folders.append({"name": item, "path": item_path, "type": "dir"})
-        else:
-            folders.append({"name": item, "path": item_path, "type": "file"})
+    folders = _list_directory(full_path, with_files)
 
     # Add the parent directory
     parent = os.path.dirname(full_path) if full_path != base_dir else base_dir

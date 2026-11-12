@@ -144,6 +144,71 @@ def configurable(func: Callable) -> Callable:
             "--gpus",
             help=help_texts.GlobalOptions.gpus,
         ),
+        launcher: str = typer.Option(
+            config.launcher,
+            "--launcher",
+            help=help_texts.GlobalOptions.launcher,
+        ),
+        slurm_partition: str = typer.Option(
+            config.slurm_partition,
+            "--slurm-partition",
+            help=help_texts.GlobalOptions.slurm_partition,
+        ),
+        slurm_account: str = typer.Option(
+            config.slurm_account,
+            "--slurm-account",
+            help=help_texts.GlobalOptions.slurm_account,
+        ),
+        slurm_time: str = typer.Option(
+            config.slurm_time,
+            "--slurm-time",
+            help=help_texts.GlobalOptions.slurm_time,
+        ),
+        slurm_cpus_per_task: int = typer.Option(
+            config.slurm_cpus_per_task,
+            "--slurm-cpus-per-task",
+            help=help_texts.GlobalOptions.slurm_cpus_per_task,
+        ),
+        slurm_mem: str = typer.Option(
+            config.slurm_mem,
+            "--slurm-mem",
+            help=help_texts.GlobalOptions.slurm_mem,
+        ),
+        slurm_gres: str = typer.Option(
+            config.slurm_gres,
+            "--slurm-gres",
+            help=help_texts.GlobalOptions.slurm_gres,
+        ),
+        slurm_extra_args: str = typer.Option(
+            config.slurm_extra_args,
+            "--slurm-extra-args",
+            help=help_texts.GlobalOptions.slurm_extra_args,
+        ),
+        slurm_setup_commands: str = typer.Option(
+            config.slurm_setup_commands,
+            "--slurm-setup-commands",
+            help=help_texts.GlobalOptions.slurm_setup_commands,
+        ),
+        slurm_jobs_dir: str = typer.Option(
+            config.slurm_jobs_dir,
+            "--slurm-jobs-dir",
+            help=help_texts.GlobalOptions.slurm_jobs_dir,
+        ),
+        slurm_node_arch: str = typer.Option(
+            config.slurm_node_arch,
+            "--slurm-node-arch",
+            help=help_texts.GlobalOptions.slurm_node_arch,
+        ),
+        slurm_poll_interval: int = typer.Option(
+            config.slurm_poll_interval,
+            "--slurm-poll-interval",
+            help=help_texts.GlobalOptions.slurm_poll_interval,
+        ),
+        slurm_accounting_grace: int = typer.Option(
+            config.slurm_accounting_grace,
+            "--slurm-accounting-grace",
+            help=help_texts.GlobalOptions.slurm_accounting_grace,
+        ),
         cleanup: bool = typer.Option(
             config.cleanup,
             "--cleanup/--no-cleanup",
@@ -230,6 +295,71 @@ def add_inline_parameters(func: Callable) -> Callable:
             config.shm_size,
             "--shm-size",
             help=help_texts.GlobalOptions.shm_size,
+        ),
+        launcher: str = typer.Option(
+            config.launcher,
+            "--launcher",
+            help=help_texts.GlobalOptions.launcher,
+        ),
+        slurm_partition: str = typer.Option(
+            config.slurm_partition,
+            "--slurm-partition",
+            help=help_texts.GlobalOptions.slurm_partition,
+        ),
+        slurm_account: str = typer.Option(
+            config.slurm_account,
+            "--slurm-account",
+            help=help_texts.GlobalOptions.slurm_account,
+        ),
+        slurm_time: str = typer.Option(
+            config.slurm_time,
+            "--slurm-time",
+            help=help_texts.GlobalOptions.slurm_time,
+        ),
+        slurm_cpus_per_task: int = typer.Option(
+            config.slurm_cpus_per_task,
+            "--slurm-cpus-per-task",
+            help=help_texts.GlobalOptions.slurm_cpus_per_task,
+        ),
+        slurm_mem: str = typer.Option(
+            config.slurm_mem,
+            "--slurm-mem",
+            help=help_texts.GlobalOptions.slurm_mem,
+        ),
+        slurm_gres: str = typer.Option(
+            config.slurm_gres,
+            "--slurm-gres",
+            help=help_texts.GlobalOptions.slurm_gres,
+        ),
+        slurm_extra_args: str = typer.Option(
+            config.slurm_extra_args,
+            "--slurm-extra-args",
+            help=help_texts.GlobalOptions.slurm_extra_args,
+        ),
+        slurm_setup_commands: str = typer.Option(
+            config.slurm_setup_commands,
+            "--slurm-setup-commands",
+            help=help_texts.GlobalOptions.slurm_setup_commands,
+        ),
+        slurm_jobs_dir: str = typer.Option(
+            config.slurm_jobs_dir,
+            "--slurm-jobs-dir",
+            help=help_texts.GlobalOptions.slurm_jobs_dir,
+        ),
+        slurm_node_arch: str = typer.Option(
+            config.slurm_node_arch,
+            "--slurm-node-arch",
+            help=help_texts.GlobalOptions.slurm_node_arch,
+        ),
+        slurm_poll_interval: int = typer.Option(
+            config.slurm_poll_interval,
+            "--slurm-poll-interval",
+            help=help_texts.GlobalOptions.slurm_poll_interval,
+        ),
+        slurm_accounting_grace: int = typer.Option(
+            config.slurm_accounting_grace,
+            "--slurm-accounting-grace",
+            help=help_texts.GlobalOptions.slurm_accounting_grace,
         ),
         cleanup: bool = typer.Option(
             config.cleanup,

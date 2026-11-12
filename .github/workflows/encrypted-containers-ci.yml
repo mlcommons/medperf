@@ -29,6 +29,8 @@ jobs:
           wget https://github.com/sylabs/singularity/releases/download/v3.10.0/singularity-ce-3.10.0.tar.gz
           tar -xzvf singularity-ce-3.10.0.tar.gz
           cd singularity-ce-3.10.0
+          export CFLAGS="-std=gnu17"
+          export CGO_CFLAGS="-std=gnu17"
           ./mconfig
           cd builddir
           make

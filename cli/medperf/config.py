@@ -292,6 +292,25 @@ container_loglevel = None
 mlcube_configure_timeout = None
 mlcube_inspect_timeout = None
 
+# Launcher config: where the container command is executed.
+# "local" runs it as a child process (default). "slurm" submits it as a Slurm
+# batch job and waits for it (singularity/apptainer platform only).
+launcher = "local"
+slurm_partition = None
+slurm_account = None
+slurm_time = None  # Slurm time format, e.g. "02:00:00" or "1-00:00:00"
+slurm_cpus_per_task = None
+slurm_mem = None  # e.g. "64G"
+slurm_gres = None  # e.g. "gpu:4"
+slurm_extra_args = None  # extra sbatch options, e.g. "--qos=normal"
+slurm_setup_commands = None  # shell lines run in the job before the container
+slurm_jobs_dir = None  # defaults to <logs_storage>/slurm_jobs
+slurm_node_arch = None  # compute nodes' CPU architecture; defaults to this node's
+slurm_poll_interval = 30  # seconds between job status checks
+slurm_accounting_grace = 300  # seconds to tolerate a job missing from squeue/sacct
+slurm_command_timeout = 60  # seconds before a squeue/sacct/sbatch call is abandoned
+slurm_jobs_dirname = "slurm_jobs"
+
 # Other
 loglevel = "debug"
 logs_backup_count = 100
@@ -327,6 +346,19 @@ inline_parameters = [
     "shm_size",
     "cleanup",
     "container_loglevel",
+    "launcher",
+    "slurm_partition",
+    "slurm_account",
+    "slurm_time",
+    "slurm_cpus_per_task",
+    "slurm_mem",
+    "slurm_gres",
+    "slurm_extra_args",
+    "slurm_setup_commands",
+    "slurm_jobs_dir",
+    "slurm_node_arch",
+    "slurm_poll_interval",
+    "slurm_accounting_grace",
 ]
 configurable_parameters = [
     "loglevel",
@@ -339,6 +371,19 @@ configurable_parameters = [
     "gpus",
     "cleanup",
     "container_loglevel",
+    "launcher",
+    "slurm_partition",
+    "slurm_account",
+    "slurm_time",
+    "slurm_cpus_per_task",
+    "slurm_mem",
+    "slurm_gres",
+    "slurm_extra_args",
+    "slurm_setup_commands",
+    "slurm_jobs_dir",
+    "slurm_node_arch",
+    "slurm_poll_interval",
+    "slurm_accounting_grace",
     "server",
     "certificate",
     "auth_class",

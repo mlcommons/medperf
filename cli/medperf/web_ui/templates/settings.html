@@ -29,16 +29,63 @@
             </div>
         </form>
 
-        <div id="edit-config-container" class="mt-8 hidden">
-            <form id="edit-config-form" class="bg-card dark:bg-card rounded-2xl p-6 shadow-lg border-2 border-border-brand dark:border-border space-y-6">
-                <div class="flex flex-col sm:flex-row sm:items-center gap-4">
-                    <label for="gpus" class="sm:w-48 font-semibold text-secondary">GPUs</label>
-                    <input type="text" id="gpus" name="gpus" class="flex-1 max-w-md px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink" value="{{ default_gpus }}" {% if task_running %}disabled{% endif %}>
+        {% macro setting_input(name, label, value, tooltip, placeholder="", type="text") %}
+        <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+            <label for="{{ name }}" class="sm:w-48 font-semibold text-secondary">{{ label }}</label>
+            <div class="flex flex-1 max-w-md items-center">
+                <input type="{{ type }}" id="{{ name }}" name="{{ name }}" {% if type == "number" %}min="1"{% endif %} class="flex-1 min-w-0 px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:border-brand-accent" value="{{ value if value is not none else '' }}" placeholder="{{ placeholder }}" {% if task_running %}disabled{% endif %}>
+                <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ tooltip }}"><i class="fas fa-info-circle text-lg"></i></span>
+            </div>
+        </div>
+        {% endmacro %}
+
+        <div id="edit-config-container" class="mt-8 hidden space-y-8">
+            <form id="execution-settings-form" class="profile-settings-form bg-card dark:bg-card rounded-2xl p-6 shadow-lg border-2 border-border-brand dark:border-border space-y-6">
+                <h3 class="text-lg font-bold text-ink">Container Execution</h3>
+                <input type="hidden" id="launcher" name="launcher" value="{{ default_launcher }}">
+                <div class="flex items-center gap-4">
+                    <label class="relative inline-flex items-center cursor-pointer" for="use-slurm">
+                        <input type="checkbox" id="use-slurm" class="sr-only peer" {% if default_launcher == "slurm" %}checked{% endif %} {% if task_running %}disabled{% endif %}>
+                        <div class="relative w-14 h-7 bg-muted-strong peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-subtle rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-brand"></div>
+                        <span class="ml-4 text-secondary font-semibold">Run on Slurm</span>
+                    </label>
+                    <span class="inline-flex items-center tooltip-icon text-brand-accent" title="{{ help_texts.WebUITooltips.use_slurm }}"><i class="fas fa-info-circle text-lg"></i></span>
+                    <span id="launcher-mode" class="text-sm text-muted-fg" data-testid="launcher-mode">{{ "Slurm cluster" if default_launcher == "slurm" else "Local machine" }}</span>
                 </div>
-                <div class="flex flex-col sm:flex-row sm:items-center gap-4">
-                    <label for="platform" class="sm:w-48 font-semibold text-secondary">Platform</label>
-                    <input type="text" id="platform" name="platform" class="flex-1 max-w-md px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink" value="{{ default_platform }}" {% if task_running %}disabled{% endif %}>
+                {{ setting_input("gpus", "GPUs", default_gpus, help_texts.GlobalOptions.gpus, help_texts.WebUIPlaceholders.gpus) }}
+                <div id="local-execution-fields" class="space-y-6 {% if default_launcher == 'slurm' %}hidden{% endif %}">
+                    {{ setting_input("platform", "Platform", default_platform, help_texts.GlobalOptions.platform, help_texts.WebUIPlaceholders.platform) }}
                 </div>
+                <div id="slurm-execution-fields" class="space-y-6 {% if default_launcher != 'slurm' %}hidden{% endif %}">
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+                        <span class="sm:w-48 font-semibold text-secondary">Platform</span>
+                        <div class="flex flex-1 max-w-md items-center">
+                            <span class="flex-1 px-4 py-3 rounded-xl border-2 border-border dark:border-border bg-muted dark:bg-card-muted text-secondary">singularity</span>
+                            <span class="inline-flex items-center px-3 tooltip-icon text-brand-accent" title="{{ help_texts.WebUITooltips.slurm_platform }}"><i class="fas fa-info-circle text-lg"></i></span>
+                        </div>
+                    </div>
+                    {% macro slurm_input(name, label) %}
+                    {{ setting_input(name, label, slurm_settings[name], help_texts.GlobalOptions[name], help_texts.WebUIPlaceholders[name], "number" if name in slurm_int_fields else "text") }}
+                    {% endmacro %}
+                    {% for name, label in slurm_fields %}
+                    {{ slurm_input(name, label) }}
+                    {% endfor %}
+                    <details>
+                        <summary class="cursor-pointer select-none font-semibold text-brand-accent">Advanced Slurm options</summary>
+                        <div class="space-y-6 mt-6">
+                            {% for name, label in slurm_advanced_fields %}
+                            {{ slurm_input(name, label) }}
+                            {% endfor %}
+                        </div>
+                    </details>
+                </div>
+                <div class="flex justify-center pt-4">
+                    <button type="button" id="apply-execution-changes-btn" class="apply-settings-btn btn btn-primary disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed" disabled>Apply Changes</button>
+                </div>
+            </form>
+
+            <form id="ca-settings-form" class="profile-settings-form bg-card dark:bg-card rounded-2xl p-6 shadow-lg border-2 border-border-brand dark:border-border space-y-6">
+                <h3 class="text-lg font-bold text-ink">Certificate Authority Settings</h3>
                 <div class="flex flex-col sm:flex-row sm:items-center gap-4">
                     <label for="ca" class="sm:w-48 font-semibold text-secondary">Certificate Authority</label>
                     <select name="ca" id="ca" class="flex-1 max-w-md px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink" {% if not logged_in or task_running %}disabled{% endif %}>
@@ -53,7 +100,7 @@
                     <input type="text" id="fingerprint" name="fingerprint" class="flex-1 max-w-md px-4 py-3 rounded-xl border-2 border-border-strong dark:border-border dark:bg-card-muted dark:text-ink" {% if not logged_in or task_running %}disabled{% endif %} value="{% if not logged_in %}Log in to change fingerprint{% else %}{{ default_fingerprint }}{% endif %}">
                 </div>
                 <div class="flex justify-center pt-4">
-                    <button type="button" id="apply-profile-changes-btn" class="btn btn-primary disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed" disabled>Apply Changes</button>
+                    <button type="button" id="apply-ca-changes-btn" class="apply-settings-btn btn btn-primary disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed" disabled>Apply Changes</button>
                 </div>
             </form>
         </div>
@@ -130,11 +177,7 @@
 <script src="{{ url_for('static', path='js/cc_operator.js') }}"></script>
 <script>
     window.currentSettings = {
-        activeProfile: "{{ profiles.active_profile_name }}",
-        defaultGpus: "{{ default_gpus }}",
-        defaultPlatform: "{{ default_platform }}",
-        defaultCA: "{{ default_ca }}",
-        defaultFingerprint: "{{ default_fingerprint }}"
+        activeProfile: "{{ profiles.active_profile_name }}"
     };
 </script>
 <script src="{{ url_for('static', path='js/settings.js') }}"></script>
