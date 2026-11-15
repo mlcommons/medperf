@@ -115,6 +115,33 @@ class GlobalOptions:
     shm_size = """
         Only for Docker. See the --shm-size argument
         of docker run: https://docs.docker.com/engine/containers/run/"""
+    launcher = """
+        Where container tasks are executed [local | slurm].\n
+        - local: run the container as a child process of MedPerf.\n
+        - slurm: submit the container as a Slurm batch job and wait for it.
+        Requires --platform singularity."""
+    slurm_partition = "Slurm partition for submitted jobs (sbatch --partition)"
+    slurm_account = "Slurm account/budget for submitted jobs (sbatch --account)"
+    slurm_time = "Wall-time limit for submitted jobs (sbatch --time), e.g. 02:00:00"
+    slurm_cpus_per_task = "CPUs for the container process (sbatch --cpus-per-task)"
+    slurm_mem = "Memory per node for submitted jobs (sbatch --mem), e.g. 64G"
+    slurm_gres = "Generic resources for submitted jobs (sbatch --gres), e.g. gpu:4"
+    slurm_extra_args = 'Additional sbatch options, e.g. "--qos=normal --constraint=x"'
+    slurm_setup_commands = "Shell commands run inside the job before the container starts"
+    slurm_jobs_dir = (
+        "Directory for job scripts and logs. Must be on a filesystem shared with "
+        "compute nodes. Defaults to ~/.medperf_logs/slurm_jobs"
+    )
+    slurm_node_arch = (
+        "CPU architecture of the compute nodes (e.g. aarch64, x86_64). Container "
+        "images are checked against it before submission. Defaults to the "
+        "architecture of the machine running MedPerf"
+    )
+    slurm_poll_interval = "Seconds between Slurm job status checks"
+    slurm_accounting_grace = (
+        "Seconds to keep waiting for a job that has left the queue but has no "
+        "accounting record or exit code file yet"
+    )
     cleanup = "Whether to clean up temporary MedPerf storage after execution"
     certificate_authority_id = "Certificate Authority ID to configure the client with"
     certificate_authority_fingerprint = (
@@ -553,6 +580,13 @@ class WebUITooltips:
     )
     # listings ({entities} is the listed entities, e.g. "benchmarks")
     mine_only = "Show only the {entities} you registered"
+    # settings
+    use_slurm = (
+        "Submit containers as Slurm batch jobs to run on the cluster's compute "
+        "nodes, instead of running them locally on this machine. Slurm jobs run "
+        "with Singularity/Apptainer"
+    )
+    slurm_platform = "The Slurm launcher only supports Singularity/Apptainer"
 
 
 class WebUIPlaceholders:
@@ -583,6 +617,21 @@ class WebUIPlaceholders:
         "https://www.example.com/container_additional_files.tar (Optional)"
     )
     container_decryption_key = "/home/user/container_decryption_key.key"
+    # settings
+    gpus = 'e.g. all, 0 or "device=0,2"'
+    platform = "docker or singularity"
+    slurm_partition = "e.g. booster (cluster default if empty)"
+    slurm_account = "e.g. my-project (cluster default if empty)"
+    slurm_time = "e.g. 02:00:00 (cluster default if empty)"
+    slurm_cpus_per_task = "e.g. 8 (cluster default if empty)"
+    slurm_mem = "e.g. 64G (cluster default if empty)"
+    slurm_gres = "e.g. gpu:4 (cluster default if empty)"
+    slurm_extra_args = "e.g. --qos=normal --reservation=my-res"
+    slurm_setup_commands = "e.g. module load Apptainer"
+    slurm_jobs_dir = "e.g. /scratch/my-project/slurm_jobs (logs storage if empty)"
+    slurm_node_arch = "e.g. aarch64 (this machine's architecture if empty)"
+    slurm_poll_interval = "e.g. 30"
+    slurm_accounting_grace = "e.g. 300"
     # assets
     asset_name = "Example Asset"
     asset_url = "https://www.example.com/asset_example.tar"
@@ -607,3 +656,4 @@ class WebUIPlaceholders:
     security_token = "security token"
     # listings
     search = "Search by name…"
+    folder_filter = "Filter this folder by name…"

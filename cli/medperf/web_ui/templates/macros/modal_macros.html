@@ -5,12 +5,13 @@
     modal_class="",
     modal_footer=False,
     close_button="",
-    success_button=""
+    success_button="",
+    modal_size="max-w-lg"
 ) %}
 <div class="fixed inset-0 z-50 hidden overflow-y-auto" id="{{ modal_id }}" tabindex="-1" aria-labelledby="{{ modal_id }}-title" aria-hidden="true" role="dialog" aria-modal="true">
     <div class="fixed inset-0 bg-black/50"></div>
     <div class="flex min-h-full items-center justify-center p-4">
-        <div class="relative rounded-2xl shadow-xl w-full max-w-lg mx-auto bg-card dark:bg-card border-2 border-border-brand dark:border-border {{ modal_class }}">
+        <div class="relative rounded-2xl shadow-xl w-full {{ modal_size }} mx-auto bg-card dark:bg-card border-2 border-border-brand dark:border-border {{ modal_class }}">
             <div class="flex items-center justify-between p-6 border-b border-border">
                 <h2 class="text-xl font-bold text-ink" id="{{ modal_id }}-title"></h2>
             </div>
@@ -26,4 +27,24 @@
         </div>
     </div>
 </div>
+{% endmacro %}
+
+{# The folder/file picker of the "Browse" buttons, driven by folder_browsing.js. #}
+{% macro folder_picker_modal() %}
+{% set body %}
+<div class="relative mb-3">
+    <label for="folder-filter" class="sr-only">Filter the folder content</label>
+    <input type="search" id="folder-filter" placeholder="{{ help_texts.WebUIPlaceholders.folder_filter }}" autocomplete="off" class="w-full text-base py-2 pl-10 pr-3 rounded-xl border border-border-strong dark:border-border dark:bg-card-muted dark:text-ink focus:outline-none focus:ring-2 focus:ring-brand-accent/30 focus:border-brand-accent">
+    <span class="pointer-events-none absolute inset-y-0 left-0 flex w-10 items-center justify-center text-muted-fg"><i class="fas fa-search text-sm" aria-hidden="true"></i></span>
+</div>
+<ul id="folder-list" class="divide-y divide-border max-h-[50vh] overflow-y-auto rounded-lg border border-border"></ul>
+{% endset %}
+{{ add_modal(
+    modal_id="folder-picker-modal",
+    modal_body=body,
+    modal_footer=True,
+    close_button='<button type="button" class="btn btn-sm btn-secondary" data-dismiss-modal="folder-picker-modal">Cancel</button>',
+    success_button='<button type="button" class="btn btn-sm btn-primary" id="select-folder-btn">Select</button>',
+    modal_size="max-w-3xl"
+) }}
 {% endmacro %}

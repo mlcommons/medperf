@@ -16,8 +16,10 @@ from .singularity_utils import (
     get_singularity_executable_props,
     craft_singularity_run_command,
     convert_docker_image_to_sif,
+    get_sif_architecture,
 )
 from medperf.encryption import SymmetricEncryption
+from medperf.slurm import run_in_slurm
 
 import os
 from medperf import config
@@ -123,6 +125,8 @@ class SingularityRunner(Runner):
         self.parser.check_task_schema(task)
         run_args = self.parser.get_run_args(task)
         check_allowed_run_args(run_args)
+        if config.launcher == "slurm":
+            self._check_slurm_compatible(task, ports, disable_network)
 
         run_args["task"] = task
 
@@ -137,6 +141,12 @@ class SingularityRunner(Runner):
         if isinstance(gpus, list) and not self._supports_nvccli():
             raise InvalidArgumentError(
                 "Cannot choose specific gpus with the current singularity version."
+            )
+        if isinstance(gpus, list) and config.launcher == "slurm":
+            raise InvalidArgumentError(
+                "Cannot choose specific gpus with the slurm launcher: device IDs are "
+                "assigned by Slurm on the compute node. Use --gpus=all and request "
+                "GPUs with --slurm-gres."
             )
 
         # Add volumes
@@ -285,11 +295,43 @@ class SingularityRunner(Runner):
             remove_path(decrypted_archive_file, sensitive=True)
             cleanup_singularity_cache(self.executable)
 
+    def _check_slurm_compatible(self, task, ports, disable_network):
+        if ports:
+            raise InvalidArgumentError(
+                f"Task '{task}' publishes network ports, which is not supported with "
+                "the slurm launcher. Run it with '--launcher local'."
+            )
+        if not disable_network:
+            config.ui.print_warning(
+                f"Task '{task}' needs network access. Compute nodes on some clusters "
+                "have no outbound network. If it fails, run it with "
+                "'--launcher local'."
+            )
+
     def _invoke_run(self, image, run_args, timeout, output_logs):
         run_args["image"] = image
         task = run_args.pop("task")
 
         # Run
-        command = craft_singularity_run_command(run_args, self.executable)
+        container_env = {}
+        command = craft_singularity_run_command(
+            run_args, self.executable, env_out=container_env
+        )
+        if config.launcher == "slurm":
+            # The image was downloaded/converted on this host; only the container
+            # run itself is submitted to a compute node.
+            logging.debug("Submitting singularity container to Slurm")
+            run_in_slurm(
+                command,
+                timeout=timeout,
+                output_logs=output_logs,
+                task=task,
+                env=container_env,
+                paths_to_check=[image],
+                gpu_enabled="--nv" in command,
+                image=image,
+                image_arch=get_sif_architecture(image, self.executable),
+            )
+            return
         logging.debug("Running singulairty container")
         run_command(command, timeout, output_logs, task=task)

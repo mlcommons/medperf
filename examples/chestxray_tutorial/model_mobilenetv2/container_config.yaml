@@ -1,5 +1,5 @@
 container_type: DockerImage
-image: mlcommons/chestxray-tutorial-mobilenetv2:0.0.1
+image: mlcommons/chestxray-tutorial-mobilenetv2:0.0.2
 tasks:
   infer:
     input_volumes:

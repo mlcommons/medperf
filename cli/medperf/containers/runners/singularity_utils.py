@@ -2,8 +2,10 @@ from medperf.exceptions import ExecutionError, CommunicationError
 from medperf import config
 
 import os
+import re
 import requests
 import semver
+import subprocess
 from .docker_utils import volumes_to_cli_args as docker_volumes_to_cli_args
 import shlex
 from medperf.utils import run_command
@@ -99,8 +101,14 @@ def volumes_to_cli_args(input_volumes: dict, output_volumes: dict):
     return ["--bind" if arg == "--volume" else arg for arg in args]
 
 
-def craft_singularity_run_command(run_args: dict, executable: str):
+def craft_singularity_run_command(
+    run_args: dict, executable: str, env_out: dict = None
+):
+    # env_out collects the container env vars set in os.environ, for running the
+    # command in another environment (a Slurm job)
     logging.debug(f"Crafting command from run args: {run_args}")
+    if env_out is None:
+        env_out = {}
     command = [executable, "run", "-eC"]
 
     # The following option is not relevant to singularity.
@@ -121,6 +129,7 @@ def craft_singularity_run_command(run_args: dict, executable: str):
         if isinstance(gpus, list):
             command.extend(["--nvccli", "-c", "--writable-tmpfs"])
             os.environ["NVIDIA_VISIBLE_DEVICES"] = ",".join(gpus)
+            env_out["NVIDIA_VISIBLE_DEVICES"] = ",".join(gpus)
 
     run_args.pop("shm_size", None)
     # NOTE: No shm size config for singularity:
@@ -129,6 +138,7 @@ def craft_singularity_run_command(run_args: dict, executable: str):
     env_dict = run_args.pop("environment", {})
     for key, val in env_dict.items():
         os.environ[f"SINGULARITYENV_{key}"] = val
+        env_out[f"SINGULARITYENV_{key}"] = val
 
     network = run_args.pop("network", None)
     if network == "none":
@@ -192,3 +202,27 @@ def cleanup_singularity_cache(singularity_executable):
         run_command(command)
     except ExecutionError:
         config.ui.print_warning("WARNING: Failed to clean singularity cache.")
+
+
+def get_sif_architecture(image: str, singularity_executable: str, timeout: int = 60):
+    # Returns e.g. "amd64" or "arm64", or None if unknown. subprocess is used instead
+    # of run_command, which would echo the output to the user and raise on failure.
+    command = [singularity_executable, "sif", "list", image]
+    logging.debug(f"Reading SIF architecture: {command}")
+    try:
+        result = subprocess.run(
+            command, capture_output=True, text=True, timeout=timeout, check=False
+        )
+    except (OSError, subprocess.TimeoutExpired) as e:
+        logging.debug(f"Could not read SIF architecture: {e}")
+        return None
+    if result.returncode != 0:
+        logging.debug(f"sif list failed: {result.stderr.strip()}")
+        return None
+    # The root filesystem partition is listed as e.g. "FS (Squashfs/*System/amd64)"
+    match = re.search(r"FS \([^/)]*/\*System/([A-Za-z0-9_]+)\)", result.stdout)
+    if match is None:
+        match = re.search(r"FS \([^/)]*/[^/)]*/([A-Za-z0-9_]+)\)", result.stdout)
+    arch = match.group(1) if match else None
+    logging.debug(f"SIF architecture of {image}: {arch}")
+    return arch
