@@ -1,5 +1,5 @@
 container_type: DockerImage
-image: mhmdk0/chestxray-tutorial-metrics:0.0.1
+image: mhmdk0/chestxray-tutorial-metrics:0.0.2
 tasks:
   evaluate:
     input_volumes:
