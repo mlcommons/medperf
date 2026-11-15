@@ -1,5 +1,5 @@
 container_type: DockerImage
-image: mhmdk0/chestxray-tutorial-prep:0.0.2
+image: mlcommons/chestxray-tutorial-prep:0.0.2
 tasks:
   prepare:
     run_args:
