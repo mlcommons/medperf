@@ -1,4 +1,4 @@
-from typing import List, Dict, Union, Callable
+from typing import List, Dict, Union, Callable, Optional
 from abc import ABC
 import logging
 import os
@@ -77,7 +77,7 @@ class Entity(ABC):
 
     @classmethod
     def all(
-        cls: Type[EntityType], unregistered: bool = False, filters: dict = {}
+        cls: Type[EntityType], unregistered: bool = False, filters: Optional[dict] = None
     ) -> List[EntityType]:
         """Gets a list of all instances of the respective entity.
         Whether the list is local or remote depends on the implementation.
@@ -90,6 +90,7 @@ class Entity(ABC):
         Returns:
             List[Entity]: a list of entities.
         """
+        filters = {} if filters is None else dict(filters)
         logging.info(f"Retrieving all {cls.get_type()} entities")
         if unregistered:
             if filters:
@@ -260,11 +261,12 @@ class Entity(ABC):
         raise NotImplementedError
 
     @classmethod
-    def get_count(cls: Type[EntityType], filters: dict = {}) -> int:
+    def get_count(cls: Type[EntityType], filters: Optional[dict] = None) -> int:
         """Returns the count of items in the entity
         Returns:
             int: count of items
         """
+        filters = {} if filters is None else dict(filters)
         logging.info(f"Retrieving the count of {cls.get_type()} entities")
         user_data = get_medperf_user_data()
         is_owner = "owner" in filters and filters["owner"] == user_data["id"]

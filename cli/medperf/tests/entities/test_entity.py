@@ -97,6 +97,39 @@ class TestAll:
         assert self.unregistered_ids == retrieved_ids
 
 
+@pytest.mark.parametrize("operation", ["all", "get_count"])
+@pytest.mark.parametrize("explicit_filters", [False, True])
+def test_entity_filters_can_be_reused(mocker, operation, explicit_filters):
+    requested = {"owner": 7} if explicit_filters else {}
+    incoming = requested.copy()
+    seen_filters = []
+    seen_owners = []
+    result = [] if operation == "all" else 5
+
+    def backend(*, filters, **kwargs):
+        seen_filters.append(filters.copy())
+        seen_owners.append(kwargs.get("is_owner"))
+        filters["limit"] = 1
+        return result
+
+    if operation == "all":
+        mocker.patch.object(Dataset, "remote_prefilter", return_value=backend)
+    else:
+        mocker.patch.object(Dataset, "get_comms_counter", return_value=backend)
+        mocker.patch(
+            "medperf.entities.interface.get_medperf_user_data", return_value={"id": 7}
+        )
+
+    query = getattr(Dataset, operation)
+    kwargs = {"filters": incoming} if explicit_filters else {}
+    assert query(**kwargs) == result
+    assert query(**kwargs) == result
+    assert seen_filters == [requested, requested]
+    assert incoming == requested
+    if operation == "get_count":
+        assert seen_owners == [explicit_filters, explicit_filters]
+
+
 @pytest.mark.parametrize(
     "setup",
     [
