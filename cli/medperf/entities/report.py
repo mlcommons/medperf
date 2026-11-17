@@ -1,5 +1,5 @@
 import hashlib
-from typing import List
+from typing import List, Optional
 
 import medperf.config as config
 from medperf.entities.interface import Entity
@@ -68,10 +68,12 @@ class TestReport(Entity):
         self.results = results
 
     @classmethod
-    def all(cls, unregistered: bool = False, filters: dict = {}) -> List["TestReport"]:
+    def all(
+        cls, unregistered: bool = False, filters: Optional[dict] = None
+    ) -> List["TestReport"]:
         assert unregistered, "Reports are only unregistered"
-        assert filters == {}, "Reports cannot be filtered"
-        return super().all(unregistered=True, filters={})
+        assert filters is None or filters == {}, "Reports cannot be filtered"
+        return super().all(unregistered=True)
 
     @classmethod
     def get(
