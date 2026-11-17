@@ -65,6 +65,13 @@ If using Docker, make sure [you can run Docker as a non-root user.](https://docs
     pip install -e ./cli
     ```
 
+    If pip reports `resolution-too-deep`, [install uv](https://docs.astral.sh/uv/getting-started/installation/)
+    and activate your Python 3.11 environment. Run this command from the repository root.
+
+    ```bash
+    uv pip install -e ./cli
+    ```
+
 4. Verify the installation:
 
     ```bash
