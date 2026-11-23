@@ -124,7 +124,7 @@ def test_auth_get_calls_authorized_request(mocker, server):
     server._REST__auth_get(url)
 
     # Assert
-    spy.called_once_with(url, requests.get)
+    spy.assert_called_once_with(url, requests.get)
 
 
 def test_auth_post_calls_authorized_request(mocker, server):
@@ -136,7 +136,7 @@ def test_auth_post_calls_authorized_request(mocker, server):
     server._REST__auth_post(url)
 
     # Assert
-    spy.called_once_with(url, requests.post)
+    spy.assert_called_once_with(url, requests.post)
 
 
 @pytest.mark.parametrize("req_type", ["get", "post"])

@@ -70,7 +70,7 @@ class TestGetFiles:
         # Assert
         for file in self.run_files_paths:
             assert os.path.exists(file)
-        assert spy.called_once()
+        spy.assert_called_once()
 
 
 @pytest.mark.parametrize("destroy_key", [True, False])
