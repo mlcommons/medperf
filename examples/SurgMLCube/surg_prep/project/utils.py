@@ -85,7 +85,7 @@ class LabelsParser:
 
     def check_csv_txt_structure(file):
         """Checks the structure of the .txt or .csv file. It should be
-        two columns seperated by "," or "\\t".
+        two columns separated by "," or "\\t".
 
         Args:
             file (str): The file name.

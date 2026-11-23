@@ -47,7 +47,7 @@ class IsCommitteeMember(BasePermission):
         return benchmark.committee_members.filter(id=request.user.id).exists()
 
 
-# TODO: check effciency / database costs
+# TODO: check efficiency / database costs
 class IsAssociatedDatasetOwner(BasePermission):
     def has_permission(self, request, view):
         pk = view.kwargs.get("pk", None)

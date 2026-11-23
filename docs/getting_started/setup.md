@@ -25,7 +25,7 @@ For this tutorial, you should spawn a local MedPerf server for the MedPerf clien
     sh setup-dev-server.sh
     ```
 
-The local MedPerf server now is ready to recieve requests. You can always stop the server by pressing `CTRL`+`C` in the terminal where you ran the server.
+The local MedPerf server now is ready to receive requests. You can always stop the server by pressing `CTRL`+`C` in the terminal where you ran the server.
 
 After that, you will be configuring the MedPerf client to communicate with the local MedPerf server. Make sure you continue following the instructions in a new terminal.
 
@@ -66,7 +66,7 @@ This command will modify the `platform` parameter of the currently activated pro
 
 ## What's Next?
 
-The local MedPerf server now is ready to recieve requests, and the MedPerf client is ready to communicate. Depending on your role, you can follow these hands-on tutorials:
+The local MedPerf server now is ready to receive requests, and the MedPerf client is ready to communicate. Depending on your role, you can follow these hands-on tutorials:
 
 - [How a benchmark committee can create and submit a benchmark.](benchmark_owner_demo.md)
 

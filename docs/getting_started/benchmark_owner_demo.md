@@ -9,7 +9,7 @@ hide:
 ---
 ![Overview](../tutorial_images/overview.png){class="tutorial-sticky-image-content"}
 
-# Hands-on Tutorial for Bechmark Committee
+# Hands-on Tutorial for Benchmark Committee
 
 {% set prep_container = assets_path+"data_preparator/container_config.yaml" %}
 {% set prep_params = assets_path+"data_preparator/workspace/parameters.yaml" %}
@@ -60,7 +60,7 @@ Now that you have the three containers and the demo data, you will learn how to 
 
 ## 3. Host the Demo Dataset
 
-The demo dataset should be packaged in a specific way as a compressed tarball file. The folder stucture in the workspace currently looks like the following:
+The demo dataset should be packaged in a specific way as a compressed tarball file. The folder structure in the workspace currently looks like the following:
 
 ```text
 .

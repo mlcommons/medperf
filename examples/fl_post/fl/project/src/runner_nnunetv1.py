@@ -127,7 +127,7 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
             if k not in seen_keys:
                 seen_keys.append(k)
             else:
-                raise ValueError(f"\nKey {k} apears at least twice!!!!/n")
+                raise ValueError(f"\nKey {k} appears at least twice!!!!/n")
             new_state[k] = torch.from_numpy(tensor_dict[k].copy()).to(device)
         checkpoint_dict['state_dict'] = new_state
         
@@ -274,7 +274,7 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         allowing dynamic weighting by storing recent appropriate weights in class attributes.
 
         Returns:
-            int: The number of training examples, weighted by how much of the task got completed, then cast to int to satisy proto schema
+            int: The number of training examples, weighted by how much of the task got completed, then cast to int to satisfy proto schema
         """
         if not task_name:
             return self.data_loader.get_train_data_size()
@@ -291,7 +291,7 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         allowing dynamic weighting by storing recent appropriate weights in class attributes.
 
         Returns:
-            int: The number of training examples, weighted by how much of the task got completed, then cast to int to satisy proto schema
+            int: The number of training examples, weighted by how much of the task got completed, then cast to int to satisfy proto schema
         """
         if not task_name:
             return self.data_loader.get_valid_data_size()

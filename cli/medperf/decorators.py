@@ -35,7 +35,7 @@ def clean_except(func: Callable) -> Callable:
             pretty_error(str(e))
             sys.exit(1)
         except Exception as e:
-            logging.error("An unexpected error occured. Terminating.")
+            logging.error("An unexpected error occurred. Terminating.")
             logging.exception(e)
             raise e
         finally:

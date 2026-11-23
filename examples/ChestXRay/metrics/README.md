@@ -23,7 +23,7 @@ git fetch origin pull/3/head:cubes && git checkout cubes
 cd ./cubes/metrics/mlcube
 ```
 
-## Cube configuraiton
+## Cube configuration
 You can adjust the `parameters.yaml` file to your needs. This file specifies the following key-value pairs used for model evaluation:
 - `metrics`: a list of metrics to be used for evaluation
 - `label columns`: a list of columns that are shared by both the ground-truth and predictions files. This are the columns that the metrics will be executed on.

@@ -52,10 +52,10 @@ class DataPreparation:
             if an unsupported file type is encountered.
         """
         for filename in os.listdir(self.data_path):
-            extenstion = get_file_extention(filename)
+            extension = get_file_extention(filename)
             file = os.path.join(self.data_path, filename)
 
-            if extenstion in self.supported_video_extensions:
+            if extension in self.supported_video_extensions:
                 self.supported_videos_paths.append(file)
             else:
                 print(f"Warning: Unrecognized video file type: {file}")
@@ -67,10 +67,10 @@ class DataPreparation:
             if an unsupported file type is encountered.
         """
         for filename in os.listdir(self.labels_path):
-            extenstion = get_file_extention(filename)
+            extension = get_file_extention(filename)
             file = os.path.join(self.labels_path, filename)
 
-            if extenstion in self.supported_labels_paths_extensions:
+            if extension in self.supported_labels_paths_extensions:
                 self.supported_labels_paths.append(file)
             else:
                 print(f"Warning: Unrecognized label file type: {file}")
@@ -85,8 +85,8 @@ class DataPreparation:
                 }
         
         Warns:
-            if multiple video files of the same name but different extenstions were encountered,
-            if multiple labels files of the same name but different extenstions were encountered,
+            if multiple video files of the same name but different extensions were encountered,
+            if multiple labels files of the same name but different extensions were encountered,
             if a video file has no associated labels file,
             if a labels file has no associated video file.
 

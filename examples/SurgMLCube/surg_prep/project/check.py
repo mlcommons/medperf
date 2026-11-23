@@ -80,7 +80,7 @@ class SanityChecks:
                             header1, header2 = line.strip().split(",")
                         except ValueError:
                             raise AssertionError(
-                                "csv files are supposed to have two columns seperated by a comma"
+                                "csv files are supposed to have two columns separated by a comma"
                             )
 
                         assert (
@@ -95,7 +95,7 @@ class SanityChecks:
                         frame_path, label = line.strip().split(",")
                     except ValueError:
                         raise AssertionError(
-                            "csv files are supposed to have two columns seperated by a comma"
+                            "csv files are supposed to have two columns separated by a comma"
                         )
 
                     frame_path = os.path.join(self.data_path, frame_path.strip())
@@ -115,7 +115,7 @@ class SanityChecks:
                     ), f"labels are supposed to be integers between 0 and {num_labels}"
 
         # TODO: assert frames are sampled according to fps
-        print("Prepared data sucessfully passed all tests")
+        print("Prepared data successfully passed all tests")
 
 
 if __name__ == "__main__":

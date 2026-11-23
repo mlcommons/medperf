@@ -35,7 +35,7 @@ class DatasetDetailSerializer(serializers.ModelSerializer):
         #       such a constraint can only be violated by updating the state.
         #       updating the generated_uid while state is OPERATION is already
         #       not allowed.
-        # NOTE: This is written explicitely although the constraint is also
+        # NOTE: This is written explicitly although the constraint is also
         #       defined in models.py. The reason is that DRF doesn't translate
         #       uniqueness constraint correctly, causing a 500 server error
         #       if the check was left to be done by the database.

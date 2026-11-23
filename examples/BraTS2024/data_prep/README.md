@@ -38,7 +38,7 @@ BraTS-Path/
 
 where:
 * `*.png` are data given to model MLCubes to make their inference
-* `labels.csv` are the classfication labels
+* `labels.csv` are the classification labels
 
 ## Example prepared datasets
 

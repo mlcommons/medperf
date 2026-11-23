@@ -47,7 +47,7 @@ def get_memory_usage():
 def get_disk_usage():
     try:
         # Get disk usage
-        # We are intereseted in home storage, and storage where medperf assets
+        # We are interested in home storage, and storage where medperf assets
         # are saved. We currently assume all of them are together always, including
         # the datasets folder.
         paths_of_interest = [os.environ["HOME"], str(config.datasets_folder)]

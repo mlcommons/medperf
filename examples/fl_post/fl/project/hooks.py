@@ -21,7 +21,7 @@ def collaborator_pre_training_hook(
     os.symlink(labels_path, f"{workspace_folder}/labels", target_is_directory=True)
 
     # this function returns metadata (model weights and config file) to be distributed out of band
-    # evan should use this without stuff to overwrite/sync so that it produces the correct metdata
+    # evan should use this without stuff to overwrite/sync so that it produces the correct metadata
     # when evan runs, init_model_path, init_model_info_path should be None
     # plans_path should also be None (the returned thing will point to where it lives so that it will be synced with others)
 

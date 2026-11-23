@@ -26,7 +26,7 @@ cd ./cubes/xrv_models/mlcube
 ## Get the data
 The dataset should be retrieved and prepared following the TorchXRayVision Data Preparation Cube instructions. Then, copy the `data` folder from that cube's workspace into this one. Alternatively, you can run all of this cube's tasks pointing to the data preparation cube's workspace by adding the `--workspace=<path_to_workspace>` CLI argument.
 
-## Cube configuraiton
+## Cube configuration
 You can define what model to use inside the `parameters.yaml` file. The name of each model follows the library's naming convention.
 
 ## Run cube on a local machine with Docker runner

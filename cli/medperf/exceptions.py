@@ -11,7 +11,7 @@ class CommunicationRetrievalError(CommunicationError):
 
 
 class CommunicationRequestError(CommunicationError):
-    """Raised when the communication interface can't handle a request appropiately"""
+    """Raised when the communication interface can't handle a request appropriately"""
 
 
 class CommunicationAuthenticationError(CommunicationError):

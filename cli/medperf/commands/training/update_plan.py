@@ -64,7 +64,7 @@ class UpdatePlan:
         )
         cube = Cube.get(uid)
         cube.download_run_files()
-        self.ui.print(f"> Contaier '{name}' download complete")
+        self.ui.print(f"> Container '{name}' download complete")
         return cube
 
     def update_plan(self):

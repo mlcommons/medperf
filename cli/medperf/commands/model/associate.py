@@ -20,7 +20,7 @@ class AssociateModel:
         Args:
             model_uid (int): UID of model MLCube
             benchmark_uid (int): UID of benchmark
-            approved (bool): Skip validation step. Defualts to False
+            approved (bool): Skip validation step. Defaults to False
         """
         comms = config.comms
         ui = config.ui

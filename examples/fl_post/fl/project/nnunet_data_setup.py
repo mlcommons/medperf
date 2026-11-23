@@ -184,7 +184,7 @@ def split_by_timed_subjects(subject_to_timestamps, percent_train, split_seed, ra
             best_val_subjects = val_subjects
             best_percent_train = percent_train_estimate
     if verbose:
-        print(f"\n#########\n Split was performed by timed subject and an error of {abs(best_percent_train - percent_train)} was acheived in the percent train target.")
+        print(f"\n#########\n Split was performed by timed subject and an error of {abs(best_percent_train - percent_train)} was achieved in the percent train target.")
     train_subject_to_timestamps = {subject: subject_to_timestamps[subject] for subject in best_train_subjects}
     val_subject_to_timestamps = {subject: subject_to_timestamps[subject] for subject in best_val_subjects}
     return train_subject_to_timestamps, val_subject_to_timestamps
@@ -220,7 +220,7 @@ def write_splits_file(subject_to_timestamps, percent_train, split_logic, split_s
     with open(splits_fpath, 'wb') as f:
         pkl.dump(new_folds, f)
 
-    # Making an extra copy to test that things are not overwriten later
+    # Making an extra copy to test that things are not overwritten later
     with open(POSTOPP_splits_fpath, 'wb') as f:
         pkl.dump(new_folds, f)
 
@@ -310,13 +310,13 @@ def setup_fl_data(postopp_pardir,
     init_model_path(str)            : Path to the initial model
     init_model_info_path(str)       : Path to the initial model info (pkl) file
     cuda_device(str)                : Device to perform training ('cpu' or 'cuda')
-    overwrite_nnunet_datadirs(bool) : Allows for overwriting past instances of NNUnet data directories using the task numbers from first_three_digit_task_num to that plus one less than number of insitutions.
+    overwrite_nnunet_datadirs(bool) : Allows for overwriting past instances of NNUnet data directories using the task numbers from first_three_digit_task_num to that plus one less than number of institutions.
     split_seed (int)                : Base seed for seeds used for the random number generators within the split logic
     plans_path(str)                 : Path to the training plans (pkl)
-    percent_train(float)            : What percentage of timestamped subjects to attempt dedicate to train versus val. Will be only approximately acheived in general since
+    percent_train(float)            : What percentage of timestamped subjects to attempt dedicate to train versus val. Will be only approximately achieved in general since
                                       all timestamps associated with the same subject need to land exclusively in either train or val.
     split_logic(str)                : Determines how the percent_train is computed. Choices are: 'by_subject' and 'by_subject_time_pair'.
-    fold(str)                       :   Fold to train on, can be a sting indicating an int, or can be 'all'
+    fold(str)                       :   Fold to train on, can be a string indicating an int, or can be 'all'
     timestamp_selection(str)        : Determines which timestamps are used for each subject. Can be 'earliest', 'latest', or 'all'
     verbose(bool)                   : Debugging output if True.
 
@@ -389,7 +389,7 @@ def setup_fl_data(postopp_pardir,
                                                             cuda_device=cuda_device)
     
     if not plans_path:
-        # In this case we have created an initial model with this data, so running preprocesssing again in order to create a 'pretrained' plan similar to what other collaborators will create with our initial plan
+        # In this case we have created an initial model with this data, so running preprocessing again in order to create a 'pretrained' plan similar to what other collaborators will create with our initial plan
         subprocess.run(["nnUNet_plan_and_preprocess",  "-t",  f"{three_digit_task_num}", "-pl3d", "ExperimentPlanner3D_v21_Pretrained", "-overwrite_plans", f"{col_paths['plans_path']}", "-overwrite_plans_identifier", "POSTOPP", "--verify_dataset_integrity", "-no_pp"])
         # Now coying the collaborator paths above to a new location that uses the pretrained planner that will be shared across federation
         new_col_paths = {}

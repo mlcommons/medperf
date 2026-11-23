@@ -52,8 +52,8 @@ class PyTorchCheckpointTaskRunner(TaskRunner):
 
         # TODO: Understand why "weights-only"
 
-        # TODO: Both 'CONTINUE_GLOBAL' and 'RESET' could be suported here too (currently RESET throws an exception related to a 
-        # missmatch in size coming from the momentum buffer and other stuff either in the model or optimizer)
+        # TODO: Both 'CONTINUE_GLOBAL' and 'RESET' could be supported here too (currently RESET throws an exception related to a 
+        # mismatch in size coming from the momentum buffer and other stuff either in the model or optimizer)
         self.opt_treatment = 'CONTINUE_LOCAL'
         
         if device not in ['cpu', 'cuda']:
@@ -188,7 +188,7 @@ class PyTorchCheckpointTaskRunner(TaskRunner):
 
     def _set_optimizer_state(self, derived_opt_state_dict, checkpoint_dict):
         """Set the optimizer state.
-        # TODO: Refactor this, we will sparate the custom aspect of the checkpoint dict from the more general code 
+        # TODO: Refactor this, we will separate the custom aspect of the checkpoint dict from the more general code 
 
         Args:
             derived_opt_state_dict(bool)    : flattened optimizer state dict
@@ -236,7 +236,7 @@ class PyTorchCheckpointTaskRunner(TaskRunner):
 
     def _read_opt_state_from_checkpoint(self, checkpoint_dict):
         """Read the optimizer state from the checkpoint dict and put in tensor dict format.
-        # TODO: Refactor this, we will sparate the custom aspect of the checkpoint dict from the more general code 
+        # TODO: Refactor this, we will separate the custom aspect of the checkpoint dict from the more general code 
         """
 
         opt_state_dict = deepcopy(checkpoint_dict['optimizer_state_dict'])

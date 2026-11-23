@@ -200,7 +200,7 @@ class DataPreparation:
                     mounts=prepare_mounts,
                 )
         except Exception as e:
-            # Inform the server that a failure occured
+            # Inform the server that a failure occurred
             report_sender.stop("failed")
             raise e
         except KeyboardInterrupt as e:
@@ -344,7 +344,7 @@ class DataPreparation:
 
     def send_report(self, report_metadata):
         # Since we don't actually need concurrency, let's have
-        # this logic under a lock (and prevent any possibly unforseen
+        # this logic under a lock (and prevent any possibly unforeseen
         # problem, such as async dataset.write)
         with self._lock:
             return self._send_report(report_metadata)

@@ -18,7 +18,7 @@ class SanityChecks:
         assert len(open(ans).read().strip().split("\n")) == len(
             open(nums).read().strip().split("\n")
         )
-        print("Prepared data sucessfully passed all tests")
+        print("Prepared data successfully passed all tests")
 
 
 if __name__ == "__main__":

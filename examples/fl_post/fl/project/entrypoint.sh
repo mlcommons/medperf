@@ -10,7 +10,7 @@ else
         echo "cuda 12 failed. Trying with cuda 11.8"
         /cuda118/bin/python -c "$PYTHONSCRIPT"
         if [ "$?" -ne "0" ]; then
-            echo "No suppored cuda version satisfies the machine driver. Exiting."
+            echo "No supported cuda version satisfies the machine driver. Exiting."
             exit 1
         else
             echo "cuda 11.8 seems to be working. Will use cuda 11.8"

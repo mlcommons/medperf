@@ -104,7 +104,7 @@ def main(postopp_pardir,
     split_seed(int)                 : base rng seed used in split logic
     network(str)                    : NNUnet network to be used
     network_trainer(str)            : NNUnet network trainer to be used
-    fold(str)                       : Fold to train on, can be a sting indicating an int, or can be 'all'
+    fold(str)                       : Fold to train on, can be a string indicating an int, or can be 'all'
     local_plans_identifier(str)     : Used in the plans file naming for collaborators that will be performing local training to produce a pretrained model.
     shared_plans_identifier(str)    : Used in the plans file naming for the shared plan distributed across the federation.
     overwrite_nnunet_datadirs(str)  : Allows overwriting NNUnet directories for given task number and name.
@@ -209,7 +209,7 @@ if __name__ == '__main__':
             '--fold',
             type=str,
             default='0',
-            help="Fold to train on, can be a sting indicating an int, or can be 'all'.")
+            help="Fold to train on, can be a string indicating an int, or can be 'all'.")
         argparser.add_argument(
             '--timestamp_selection',
             type=str,
@@ -223,11 +223,11 @@ if __name__ == '__main__':
         argparser.add_argument(
             '--overwrite_nnunet_datadirs',
             action='store_true',
-            help="Allows overwriting NNUnet directories with task numbers from first_three_digit_task_num to that plus one les than number of insitutions.")
+            help="Allows overwriting NNUnet directories with task numbers from first_three_digit_task_num to that plus one les than number of institutions.")
         argparser.add_argument(
             '--verbose',
             action='store_true',
-            help="Print debuging information.")    
+            help="Print debugging information.")    
 
         args = argparser.parse_args()
 

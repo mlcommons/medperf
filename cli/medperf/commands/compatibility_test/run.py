@@ -33,10 +33,10 @@ class CompatibilityTestExecution:
         - the benchmark's metrics cube is used
 
         Overriding benchmark's components:
-        - The data preparation, model, and metrics cubes can be overriden by specifying a cube either
+        - The data preparation, model, and metrics cubes can be overridden by specifying a cube either
         as an integer (registered) or a path (local). The path can refer either to the mlcube config
         file or to the mlcube directory containing the mlcube config file.
-        - Instead of using the demo dataset of the benchmark, The input raw data can be overriden by providing:
+        - Instead of using the demo dataset of the benchmark, The input raw data can be overridden by providing:
             - a demo dataset url and its hash
             - data path and labels path
         - A prepared dataset can be directly used. In this case the data preparator cube is never used.
@@ -210,7 +210,7 @@ class CompatibilityTestExecution:
         self.report = TestReport(**report_data)
 
     def cached_results(self):
-        """checks the existance of, and retrieves if possible, the compatibility test
+        """checks the existence of, and retrieves if possible, the compatibility test
         result. This method is called prior to the test execution.
 
         Returns:
@@ -225,7 +225,7 @@ class CompatibilityTestExecution:
         except InvalidArgumentError:
             return
         logging.info(f"Existing report {uid} was detected.")
-        logging.info("The compatibilty test will not be re-executed.")
+        logging.info("The compatibility test will not be re-executed.")
         return report.results
 
     def execute(self):

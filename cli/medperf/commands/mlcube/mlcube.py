@@ -306,7 +306,7 @@ def auto_grant_access(
     ),
 ):
     """
-    This command will run the 'grant_access' command every 5 minutes indefinetely.
+    This command will run the 'grant_access' command every 5 minutes indefinitely.
     To stop this command, press CTRL+C. The time interval for checking for new data
     owners may be customized by using the -i flag.
     Allows all currently registered Data Owners in a given benchmark to access
