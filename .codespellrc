@@ -1,0 +1,8 @@
+[codespell]
+# Ref: https://github.com/codespell-project/codespell#using-a-config-file
+skip = .git,.git-meta,.gitignore,.gitattributes,.*cache,.venv,.tox,.eggs,*.egg-info,__pycache__,*.pdf,*.svg,*.css,*.min.*,*.bin,.npm,*/i18n/*,*/build/*,.codespellrc
+check-hidden = true
+# Ignore embedded images in notebooks, and "PUTing" (as in HTTP PUT)
+ignore-regex = ^\s*"image/\S+": ".*|\bPUTing\b
+# ans - variable and file name (ans.csv, ans.txt) for "answers" in examples/tests
+ignore-words-list = ans

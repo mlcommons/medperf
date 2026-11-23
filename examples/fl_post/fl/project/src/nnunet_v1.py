@@ -237,7 +237,7 @@ def train_nnunet(actual_max_num_epochs,
             # new training without pretraine weights, do nothing
             pass
 
-    # we want latest checkoint only (not best or any intermediate) 
+    # we want latest checkpoint only (not best or any intermediate) 
     trainer.save_final_checkpoint = (
         True  # whether or not to save the final checkpoint
     )

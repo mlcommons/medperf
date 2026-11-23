@@ -44,7 +44,7 @@ Currently, based on most commonly used data formats and structures, the MLCube s
 
 ### Supported ```.txt``` and ```.csv``` File Structure:
 
-A file should be of two data columns seperated by a delimiter with a header line:
+A file should be of two data columns separated by a delimiter with a header line:
 
 ```
 <column-title>  <delimiter>     <column-title>

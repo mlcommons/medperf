@@ -83,7 +83,7 @@ class Entity(ABC):
         Whether the list is local or remote depends on the implementation.
 
         Args:
-            unregistered (bool, optional): Wether to retrieve only unregistered local entities. Defaults to False.
+            unregistered (bool, optional): Whether to retrieve only unregistered local entities. Defaults to False.
             filters (dict, optional): key-value pairs specifying filters to apply to the list of entities.
 
 
@@ -145,7 +145,7 @@ class Entity(ABC):
         valid_only: bool = True,
     ) -> EntityType:
         """Gets an instance of the respective entity.
-        Wether this requires only local read or remote calls depends
+        Whether this requires only local read or remote calls depends
         on the implementation.
 
         Args:

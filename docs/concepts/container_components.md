@@ -7,7 +7,7 @@ Once you have built a container ready for MedPerf, you need to host its code (i.
 The container image should be hosted in a container registry, like Docker Hub. If it is a file (e.g., a docker archive or a singularity SIF image file), it should be hosted somewhere on the cloud ([see hosting files](./hosting_files.md))
 
 !!! note Note 1
-    While there is the option of hosting the singularity image directly, it is highly recommended to use a container registry for accessability and usability purposes. MedPerf also has mechanisms for converting containers for other container runners, like Docker to Singularity.
+    While there is the option of hosting the singularity image directly, it is highly recommended to use a container registry for accessibility and usability purposes. MedPerf also has mechanisms for converting containers for other container runners, like Docker to Singularity.
 
 !!! note Note 2
     Docker Images can be on any docker container registry, not necessarily on Docker Hub.

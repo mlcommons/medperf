@@ -24,7 +24,7 @@ Testing is focused on the actions that are not expected to happen, and focuses l
 
 Each test class should inherit from `MedPerfTest`, which sets up the local authentication and provides utils to create assets (users, datasets, mlcubes, ...)
 
-Each test class contains at least one test function. Both test classes and test class functions can be parameterized. **Each instance of a parameterized test is run independantly**; a new fresh database is used and the class's `SetUp` method is called prior to each test execution.
+Each test class contains at least one test function. Both test classes and test class functions can be parameterized. **Each instance of a parameterized test is run independently**; a new fresh database is used and the class's `SetUp` method is called prior to each test execution.
 
 ### Running tests
 

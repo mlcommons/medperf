@@ -181,7 +181,7 @@ class Inference:
                 writer.writerow([frame_path, label, pred])
 
     def run(self):
-        """ Runs inference on each video and stores the predicitons."""
+        """ Runs inference on each video and stores the predictions."""
 
         num_vids = len(self.datasets)
         for i in range(num_vids):
@@ -198,7 +198,7 @@ if __name__ == "__main__":
     try:
         tf.config.set_visible_devices(tf.config.list_physical_devices("GPU")[0], "GPU")
     except IndexError:
-        tf.print("WARNING: no GPU was detected. Runnning on CPU.")
+        tf.print("WARNING: no GPU was detected. Running on CPU.")
     parser = argparse.ArgumentParser()
 
     parser.add_argument(

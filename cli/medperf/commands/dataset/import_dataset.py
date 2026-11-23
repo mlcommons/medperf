@@ -86,7 +86,7 @@ class ImportDataset:
         # It'll also compare the imported dataset and the original dataset (IDs)
         root_archive_folder = self.tarfiles
 
-        # Checking yaml file existance
+        # Checking yaml file existence
         archive_config = os.path.join(
             root_archive_folder, config.archive_config_filename
         )

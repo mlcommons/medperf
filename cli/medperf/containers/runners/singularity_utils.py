@@ -175,7 +175,7 @@ def convert_docker_image_to_sif(
         output_sif,
         f"{protocol}://{docker_image}",
     ]
-    logging.debug("Runnning docker to singularity conversion command")
+    logging.debug("Running docker to singularity conversion command")
     run_command(command, timeout=timeout)
 
 

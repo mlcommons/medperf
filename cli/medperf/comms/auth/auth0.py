@@ -99,7 +99,7 @@ class Auth0(Auth):
             polling_interval (float): number of seconds to wait between each two polling requests
 
         Returns:
-            json_res (dict): the response of the successful request, containg the access/refresh tokens pair
+            json_res (dict): the response of the successful request, containing the access/refresh tokens pair
             token_issued_at (float): the timestamp when the access token was issued
         """
         url = f"https://{self.domain}/oauth/token"
@@ -128,7 +128,7 @@ class Auth0(Auth):
 
     def __check_token_email(self, id_token_payload, email):
         """Checks if the email provided by the user in the terminal matches the
-        email found in the recieved id token."""
+        email found in the received id token."""
         email_in_token = id_token_payload["email"]
         if email.lower() != email_in_token:
             raise CommunicationError(

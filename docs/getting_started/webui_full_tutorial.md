@@ -248,7 +248,7 @@ Click on the `prepare` button in your dataset page.
 
 ### Set dataset into operational mode
 
-After running preparation, click on the `set opertional` button to mark your dataset as ready for benchmarking. This will also upload some statistics calculated on the dataset according to the benchmark owner's requirement. For the benchmark of this tutorial, the statistics will be the number of cases and the label counts.
+After running preparation, click on the `set operational` button to mark your dataset as ready for benchmarking. This will also upload some statistics calculated on the dataset according to the benchmark owner's requirement. For the benchmark of this tutorial, the statistics will be the number of cases and the label counts.
 
 ![Dataset Owner Sets Dataset to Operational Mode](../images/webui/dataset_set_operational.png)
 

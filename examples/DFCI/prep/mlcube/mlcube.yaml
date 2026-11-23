@@ -1,5 +1,5 @@
 name: DFCI-prep
-description: prep cube for pancreas segmenation datasets
+description: prep cube for pancreas segmentation datasets
 authors:
  - {name: "DFCI"}
 

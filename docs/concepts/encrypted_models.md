@@ -88,7 +88,7 @@ Then click the `grant access` button.
 
 ### Auto-give access
 
-Recall that giving access to a data owner means that the MedPerf client will encypt your decryption key using the data owner's public key (i.e., certificate). It may not be practical to wait for each data owner to create their certificates before you grant access, and also, you may not want to make data owners wait until you click grant access.
+Recall that giving access to a data owner means that the MedPerf client will encrypt your decryption key using the data owner's public key (i.e., certificate). It may not be practical to wait for each data owner to create their certificates before you grant access, and also, you may not want to make data owners wait until you click grant access.
 
 For this reason, you can use the automatic grant access feature, where the MedPerf client will automatically check for new authorized data owners who obtained their certificates, and grant them access. You can specify the frequency of checks.
 

@@ -440,8 +440,8 @@ def can_review(subject):
 
 
 def get_finalized_tumor_path(subject: str, dset_path: str) -> str:
-    """Get's the path to the finalized tumor path based solely on the
-    subject identifier and data path. Works regardless of wether the subject is in
+    """Gets the path to the finalized tumor path based solely on the
+    subject identifier and data path. Works regardless of whether the subject is in
     that stage or the folder being pointed to exists or not.
 
     Args:

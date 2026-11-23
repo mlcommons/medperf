@@ -92,7 +92,7 @@ def list(
         None, "--model", "-m", help="Get results for a given model"
     ),
     dataset: int = typer.Option(
-        None, "--dataset", "-d", help="Get reuslts for a given dataset"
+        None, "--dataset", "-d", help="Get results for a given dataset"
     ),
 ):
     """List results"""

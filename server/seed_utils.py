@@ -87,7 +87,7 @@ class Server:
             return res
         if out_field:
             if out_field not in res:
-                sys.exit(out_field + "not in reponse" + resp.text)
+                sys.exit(out_field + "not in response" + resp.text)
             else:
                 return res[out_field]
 
@@ -181,7 +181,7 @@ def create_benchmark(api_server, benchmark_owner_token, assets_path):
 
     evaluator_container_config = load_container_config(assets_path, "metrics")
     evaluator_parameters_config = load_parameters_config(assets_path, "metrics")
-    # Create a Data evalutor MLCube by Benchmark Owner
+    # Create a Data evaluator MLCube by Benchmark Owner
     data_evaluator_mlcube = api_server.request(
         "/mlcubes/",
         "POST",

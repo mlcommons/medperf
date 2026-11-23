@@ -248,7 +248,7 @@ def approval_prompt(msg: str) -> bool:
         msg (str): What message to ask the user for approval.
 
     Returns:
-        bool: Wether the user explicitly approved or not.
+        bool: Whether the user explicitly approved or not.
     """
     logging.info("Prompting for user's approval")
     ui = config.ui

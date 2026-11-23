@@ -26,11 +26,11 @@ RESULT_CONFIG
     bucket_name: name of the bucket
     output_result_path: path in the bucket
     results_encryption_key_path: path in the bucket
-RESULT_COLLECTOR (string: b64encoded public key of the reciever)
+RESULT_COLLECTOR (string: b64encoded public key of the receiver)
 
 EXPECTED_DATA_HASH (string: hash of the data folders)
 EXPECTED_MODEL_HASH (string: hash of the model tar file)
-EXPECTED_RESULT_COLLECTOR_HASH (string: hash of b64encoded public key of the reciever)
+EXPECTED_RESULT_COLLECTOR_HASH (string: hash of b64encoded public key of the receiver)
 
     --attribute-condition="assertion.swname == 'CONFIDENTIAL_SPACE' \
         && 'STABLE' in assertion.submods.confidential_space.support_attributes"
