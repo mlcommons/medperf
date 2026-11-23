@@ -142,7 +142,7 @@ def configurable(func: Callable) -> Callable:
         cleanup: bool = typer.Option(
             config.cleanup,
             "--cleanup/--no-cleanup",
-            help="Wether to clean up temporary medperf storage after execution",
+            help="Whether to clean up temporary medperf storage after execution",
         ),
         certificate_authority_id: int = typer.Option(
             config.certificate_authority_id,

@@ -181,7 +181,7 @@ class PyTorchCheckpointTaskRunner(TaskRunner):
         """
         Gets model and potentially optimizer state dict key names
         args:
-        with_opt_vars(bool) : Wether or not to get the optimizer key names 
+        with_opt_vars(bool) : Whether or not to get the optimizer key names 
         """
         state = self.get_tensor_dict(with_opt_vars=with_opt_vars)
         return state.keys()

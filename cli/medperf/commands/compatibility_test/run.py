@@ -33,7 +33,7 @@ class CompatibilityTestExecution:
         - the benchmark's metrics cube is used
 
         Overriding benchmark's components:
-        - The data prepration, model, and metrics cubes can be overriden by specifying a cube either
+        - The data preparation, model, and metrics cubes can be overriden by specifying a cube either
         as an integer (registered) or a path (local). The path can refer either to the mlcube config
         file or to the mlcube directory containing the mlcube config file.
         - Instead of using the demo dataset of the benchmark, The input raw data can be overriden by providing:

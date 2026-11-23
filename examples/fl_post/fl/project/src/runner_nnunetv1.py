@@ -121,7 +121,7 @@ class PyTorchNNUNetCheckpointTaskRunner(PyTorchCheckpointTaskRunner):
         checkpoint_dict = self.load_checkpoint(checkpoint_path=self.checkpoint_path_load, map_location=device)
         epoch = checkpoint_dict['epoch']
         new_state = {}
-        # grabbing keys from the checkpoint state dict, poping from the tensor_dict
+        # grabbing keys from the checkpoint state dict, popping from the tensor_dict
         seen_keys = []
         for k in checkpoint_dict['state_dict']:
             if k not in seen_keys:

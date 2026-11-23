@@ -106,7 +106,7 @@ class REST(Comms):
             num_elements (int, optional): The desired number of elements to be retrieved. Defaults to None.
             page_size (int, optional): Starting page size. Defaults to config.default_page_size.
             start_limit (int, optional): The starting position for element retrieval. Defaults to 0.
-            binary_reduction (bool, optional): Wether to handle errors by halfing the page size. Defaults to False.
+            binary_reduction (bool, optional): Whether to handle errors by halfing the page size. Defaults to False.
 
         Returns:
             List[dict]: A list of dictionaries representing the retrieved elements.
