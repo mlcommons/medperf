@@ -9,8 +9,10 @@ llm:
   gpu_memory_utilization: 0.85
   # seconds to wait for vLLM to load the model
   startup_timeout: 1800
-  # more `vllm serve` options, e.g. ["--tensor-parallel-size", "4"]
-  extra_args: []
+  # more `vllm serve` options, e.g. ["--tensor-parallel-size", "4"]. AIDE's
+  # review step forces a function call, which vLLM only accepts with a tool-call
+  # parser: hermes is Qwen2.5's; another LLM may need another one
+  extra_args: ["--enable-auto-tool-choice", "--tool-call-parser", "hermes"]
 
 # AIDE's settings. BioML-bench's agents/aide/config.yaml uses 2000 steps and a
 # 43200 s (12 h) limit; these are small, for a quick run

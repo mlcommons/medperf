@@ -71,7 +71,7 @@ The container runs without network access, like every MedPerf container.
 
 `model_aide/workspace/parameters.yaml` sets the LLM (weights folder, context length, GPU memory share, extra `vllm serve` options) and AIDE's limits. They are small by default, for a quick run: 20 steps and 1 hour, where BioML-bench used 2000 steps and 12 hours.
 
-The weights are not in the image. `model_aide/workspace/additional_files/download.sh` downloads Qwen2.5-Coder-7B-Instruct (about 15 GB, Apache 2.0) from Hugging Face. To use another LLM, download it to a folder there and set `llm.weights` to that folder.
+The weights are not in the image. `model_aide/workspace/additional_files/download.sh` downloads Qwen2.5-Coder-7B-Instruct (about 15 GB, Apache 2.0) from Hugging Face. To use another LLM, download it to a folder there and set `llm.weights` to that folder, and `--tool-call-parser` in `llm.extra_args` to that LLM's parser in vLLM: AIDE's review step forces a function call, which vLLM refuses without one.
 
 AIDE's solutions run on the CPUs, with scikit-learn, LightGBM, XGBoost, RDKit, PyTorch (CPU build) and others. The GPU runs the LLM.
 
