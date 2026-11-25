@@ -13,6 +13,7 @@ from medperf.exceptions import (
 )
 import yaml
 from watchdog.observers import Observer
+from watchdog.observers.polling import PollingObserver
 from watchdog.events import FileSystemEventHandler
 from threading import Timer, Lock
 
@@ -55,7 +56,12 @@ class ReportSender:
         report_metadata = {"execution_status": "started"}
         self.preparation.send_report(report_metadata)
 
-        self.observer = Observer()
+        if config.launcher == "slurm":
+            # inotify does not see writes made by compute nodes to a shared
+            # filesystem, so poll the report file instead.
+            self.observer = PollingObserver()
+        else:
+            self.observer = Observer()
         self.report_handler = ReportHandler(self.preparation)
         self.observer.schedule(self.report_handler, self.preparation.dataset.path)
         self.observer.start()

@@ -33,6 +33,7 @@ nav:
   - Encrypted Models: concepts/encrypted_models.md
   - Certificates: concepts/certificates.md
   - Confidential Computing: concepts/confidential_computing.md
+  - Running on Slurm (HPC): concepts/slurm.md
   #  - Benchmark Associations: concepts/associations.md
   #  - Model Priority: concepts/priorities.md
   #  - Running Specific Models: concepts/single_run.md

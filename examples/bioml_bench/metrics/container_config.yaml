@@ -1,0 +1,21 @@
+container_type: DockerImage
+image: mhmdk0/bioml-bench-metrics:0.0.1
+tasks:
+  evaluate:
+    input_volumes:
+      predictions:
+        mount_path: /mlcommons/volumes/predictions
+        type: directory
+      labels:
+        mount_path: /mlcommons/volumes/labels
+        type: directory
+      parameters_file:
+        mount_path: /mlcommons/volumes/parameters/parameters_file.yaml
+        type: file
+      additional_files:
+        mount_path: /mlcommons/volumes/additional_files
+        type: directory
+    output_volumes:
+      output_path:
+        mount_path: /mlcommons/volumes/results/results.yaml
+        type: file

@@ -1,0 +1,24 @@
+# versions from BioML-bench's uv.lock
+appdirs==1.4.4
+beautifulsoup4==4.13.4
+datamol==0.12.5
+diskcache==5.6.3
+fsspec==2025.7.0
+lxml==6.0.0
+numpy==2.2.6
+pandas==2.3.1
+polaris-lib==0.13.0
+py7zr==1.0.0
+pyarrow==17.0.0
+PyYAML==6.0.2
+rdkit==2025.3.5
+requests==2.32.4
+scikit-learn==1.7.1
+scipy==1.16.1
+sqlalchemy==1.4.54
+tenacity==9.1.2
+tqdm==4.67.1
+zarr==2.18.7
+# dependencies of numcodecs, which is installed separately on arm64
+deprecated==1.2.18
+msgpack==1.1.1

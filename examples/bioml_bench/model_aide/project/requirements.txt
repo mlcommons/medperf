@@ -1,0 +1,31 @@
+# AIDE's runtime dependencies (its own pins, where they work on Python 3.12)
+anthropic==0.34.1
+backoff==2.2.1
+black==24.3.0
+coolname==2.2.0
+dataclasses-json==0.6.7
+funcy==2.0
+genson==1.3.0
+google-generativeai==0.8.2
+httpx==0.27.2
+humanize==4.8.0
+igraph==0.11.6
+jsonschema==4.19.2
+omegaconf==2.3.0
+openai==1.48.0
+rich==13.7.0
+shutup==0.2.0
+# the entrypoint
+PyYAML==6.0.2
+# libraries for the agent's solutions (torch is the CPU build: the GPU runs the LLM)
+numpy==2.2.6
+pandas==2.3.1
+scipy==1.16.1
+scikit-learn==1.7.1
+lightgbm==4.6.0
+xgboost-cpu==3.0.4
+rdkit==2025.3.5
+biopython==1.85
+statsmodels==0.14.5
+matplotlib==3.10.5
+torch==2.7.1

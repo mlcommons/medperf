@@ -1,0 +1,8 @@
+# Packages that polaris-lib 0.13.0 requires, changed because they have no
+# Linux arm64 wheel:
+# - fastpdb is left out (a marker that is never true); the image provides a
+#   stand-in, see fastpdb/__init__.py
+# - numcodecs 0.15 is left out on arm64 only; the image installs conda-forge's
+#   arm64 build of the same version instead, see install_conda_package.py
+fastpdb; python_version < "0"
+numcodecs[msgpack]==0.15.1; platform_machine != "aarch64"

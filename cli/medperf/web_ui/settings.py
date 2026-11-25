@@ -28,6 +28,56 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+# Slurm options editable in the settings page, in display order. The first
+# ones are shown directly, the others under "Advanced Slurm options".
+SLURM_FIELDS = [
+    ("slurm_account", "Account"),
+    ("slurm_partition", "Partition"),
+    ("slurm_time", "Time Limit"),
+    ("slurm_cpus_per_task", "CPUs per Task"),
+    ("slurm_mem", "Memory"),
+    ("slurm_gres", "Generic Resources"),
+    ("slurm_extra_args", "Extra sbatch Options"),
+]
+SLURM_ADVANCED_FIELDS = [
+    ("slurm_setup_commands", "Setup Commands"),
+    ("slurm_jobs_dir", "Jobs Directory"),
+    ("slurm_node_arch", "Node Architecture"),
+    ("slurm_poll_interval", "Poll Interval (seconds)"),
+    ("slurm_accounting_grace", "Accounting Grace (seconds)"),
+]
+# Integer options: optional ones are unset when empty, required ones are not
+SLURM_OPTIONAL_INT_FIELDS = {"slurm_cpus_per_task"}
+SLURM_REQUIRED_INT_FIELDS = {"slurm_poll_interval", "slurm_accounting_grace"}
+
+
+def _parse_slurm_field(name: str, value: str):
+    """Convert a Slurm option from the settings form to its profile value.
+    An empty value unsets the option (the cluster's default applies)."""
+    value = value.strip()
+    if name in SLURM_OPTIONAL_INT_FIELDS | SLURM_REQUIRED_INT_FIELDS:
+        if not value and name in SLURM_OPTIONAL_INT_FIELDS:
+            return None
+        if not value.isdigit() or int(value) < 1:
+            raise InvalidArgumentError(f"{name} must be a positive integer")
+        return int(value)
+    return value or None
+
+
+def _launcher_args(launcher: str, slurm_form: dict):
+    """Profile settings for the launcher chosen in the settings page. The
+    Slurm launcher only supports singularity, so it also sets the platform."""
+    if launcher not in ("local", "slurm"):
+        raise InvalidArgumentError(f"Invalid launcher: {launcher}")
+    args = {"launcher": launcher}
+    if launcher == "slurm":
+        args["platform"] = "singularity"
+    # The execution form always sends all Slurm fields, and FastAPI turns the
+    # empty ones into None: those were cleared by the user.
+    for name, value in slurm_form.items():
+        args[name] = _parse_slurm_field(name, value or "")
+    return args
+
 
 @router.get("/", response_class=HTMLResponse)
 def settings_ui(request: Request, current_user: bool = Depends(check_user_ui)):
@@ -60,6 +110,14 @@ def settings_ui(request: Request, current_user: bool = Depends(check_user_ui)):
             "profiles": config_p,
             "default_gpus": config.gpus if config.gpus else "0",
             "default_platform": config.platform,
+            "default_launcher": config.launcher,
+            "slurm_fields": SLURM_FIELDS,
+            "slurm_advanced_fields": SLURM_ADVANCED_FIELDS,
+            "slurm_int_fields": SLURM_OPTIONAL_INT_FIELDS | SLURM_REQUIRED_INT_FIELDS,
+            "slurm_settings": {
+                name: getattr(config, name)
+                for name, _ in SLURM_FIELDS + SLURM_ADVANCED_FIELDS
+            },
             "cas": cas,
             "default_ca": config.certificate_authority_id,
             "default_fingerprint": config.certificate_authority_fingerprint,
@@ -103,26 +161,48 @@ def activate_profile(
 def edit_profile(
     gpus: str = Form(None),
     platform: str = Form(None),
+    launcher: str = Form(None),
+    slurm_account: str = Form(None),
+    slurm_partition: str = Form(None),
+    slurm_time: str = Form(None),
+    slurm_cpus_per_task: str = Form(None),
+    slurm_mem: str = Form(None),
+    slurm_gres: str = Form(None),
+    slurm_extra_args: str = Form(None),
+    slurm_setup_commands: str = Form(None),
+    slurm_jobs_dir: str = Form(None),
+    slurm_node_arch: str = Form(None),
+    slurm_poll_interval: str = Form(None),
+    slurm_accounting_grace: str = Form(None),
     ca: int = Form(None),
     fingerprint: str = Form(None),
     current_user: bool = Depends(check_user_api),
 ):
-    if platform is None:
-        platform = config.platform
-    if gpus is None:
-        gpus = config.gpus
-    if ca is None:
-        ca = config.certificate_authority_id
-    if fingerprint is None:
-        fingerprint = config.certificate_authority_fingerprint
-
-    args = {
+    slurm_form = {
+        "slurm_account": slurm_account,
+        "slurm_partition": slurm_partition,
+        "slurm_time": slurm_time,
+        "slurm_cpus_per_task": slurm_cpus_per_task,
+        "slurm_mem": slurm_mem,
+        "slurm_gres": slurm_gres,
+        "slurm_extra_args": slurm_extra_args,
+        "slurm_setup_commands": slurm_setup_commands,
+        "slurm_jobs_dir": slurm_jobs_dir,
+        "slurm_node_arch": slurm_node_arch,
+        "slurm_poll_interval": slurm_poll_interval,
+        "slurm_accounting_grace": slurm_accounting_grace,
+    }
+    # Each settings form sends only its own fields; the others are kept.
+    fields = {
         "gpus": gpus,
         "platform": platform,
         "certificate_authority_id": ca,
         "certificate_authority_fingerprint": fingerprint,
     }
+    args = {name: value for name, value in fields.items() if value is not None}
     try:
+        if launcher is not None:
+            args.update(_launcher_args(launcher, slurm_form))
         set_profile_args(args)
         initialize(for_webui=True)
         return {"status": "success", "error": ""}
