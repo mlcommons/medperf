@@ -182,14 +182,30 @@ def run(
     port: int = typer.Option(8100, "--port", help=help_texts.WebUI.port),
 ):
     """Runs a local web UI"""
+    import sys
     import uvicorn
+    from uvicorn.main import STARTUP_FAILURE
+    from medperf.slurm import cancel_all_jobs
+
+    class Server(uvicorn.Server):
+        def handle_exit(self, sig, frame):
+            # On Ctrl+C or SIGTERM. Tasks run in worker threads, which the signal
+            # doesn't reach, and uvicorn waits for them: cancel their Slurm jobs so
+            # they end now instead of being left running on the cluster.
+            cancel_all_jobs()
+            super().handle_exit(sig, frame)
 
     host = "127.0.0.1"
     web_app.state.host_props = {"host": host, "port": port}
 
-    uvicorn.run(
+    server_config = uvicorn.Config(
         web_app,
         host=host,
         port=port,
         log_level=config.loglevel,
     )
+    server = Server(server_config)
+    server.run()
+    # as uvicorn.run() does, e.g. when the port is taken
+    if not server.started:
+        sys.exit(STARTUP_FAILURE)

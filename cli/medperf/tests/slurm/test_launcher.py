@@ -436,6 +436,56 @@ def test_run_in_slurm_cancels_job_when_monitoring_stops(mocker, submit, ui, exce
     assert "infer" not in config.running_containers
 
 
+@pytest.fixture
+def stopping():
+    yield
+    launcher._stopping.clear()
+
+
+def test_cancel_all_jobs_cancels_only_slurm_jobs(mocker, job, stopping):
+    # Arrange
+    cancel = mocker.patch(PATCH_LAUNCHER.format("commands.cancel"), return_value=True)
+    local = mocker.Mock()
+    mocker.patch.dict(config.running_containers, {"infer": job, "train": local}, clear=True)
+
+    # Act
+    launcher.cancel_all_jobs()
+
+    # Assert
+    cancel.assert_called_once()
+    assert job.cancel_requested
+    local.killpg.assert_not_called()
+
+
+def test_run_in_slurm_submits_nothing_after_cancel_all_jobs(mocker, submit, ui, stopping):
+    # Arrange
+    launcher.cancel_all_jobs()
+
+    # Act & Assert
+    with pytest.raises(ExecutionError, match="stopping"):
+        launcher.run_in_slurm(COMMAND, task="infer")
+    submit.assert_not_called()
+
+
+def test_job_submitted_during_cancel_all_jobs_is_cancelled(mocker, submit, ui, stopping):
+    # Arrange
+    def submit_while_stopping(*args):
+        launcher._stopping.set()
+        return JobRef("200")
+
+    submit.side_effect = submit_while_stopping
+    cancel = mocker.patch(PATCH_LAUNCHER.format("commands.cancel"), return_value=True)
+    mocker.patch(
+        PATCH_LAUNCHER.format("commands.query_status"), return_value=JobStatus("CANCELLED")
+    )
+
+    # Act & Assert
+    with pytest.raises(ExecutionError, match="cancelled by MedPerf"):
+        launcher.run_in_slurm(COMMAND, task="infer")
+    cancel.assert_called_once()
+    assert cancel.call_args[0][0].job_id == "200"
+
+
 def test_run_in_slurm_does_not_submit_invalid_resources(mocker, submit, ui):
     config.slurm_time = "two hours"
     with pytest.raises(Exception, match="Invalid Slurm time"):

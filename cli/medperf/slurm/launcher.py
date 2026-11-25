@@ -47,6 +47,9 @@ LOG_STREAM_INTERVAL = 2
 # output and the log would arrive in bursts. Container configs can override this.
 DEFAULT_CONTAINER_ENV = {"SINGULARITYENV_PYTHONUNBUFFERED": "1"}
 
+# Set by cancel_all_jobs() when MedPerf is stopping: no new jobs are submitted.
+_stopping = threading.Event()
+
 
 def get_jobs_dir() -> str:
     base = config.slurm_jobs_dir or os.path.join(
@@ -249,6 +252,9 @@ class SlurmJob:
         poll_interval = max(1, int(config.slurm_poll_interval))
         self._missing_since = None
         self._seen = False
+        if _stopping.is_set():
+            # cancel_all_jobs() ran while this job was being submitted
+            self.cancel()
 
         while True:
             status = commands.query_status(self.job)
@@ -379,6 +385,16 @@ def _warn_about_configuration(job_dir: str, paths: List[str], gpu_enabled: bool)
         )
 
 
+def cancel_all_jobs():
+    # Cancels the jobs MedPerf is waiting for, and stops new ones from being
+    # submitted. Used when the web UI server stops: its tasks run in worker threads,
+    # which Ctrl+C doesn't interrupt, so their jobs would be left running.
+    _stopping.set()
+    for job in list(config.running_containers.values()):
+        if isinstance(job, SlurmJob):
+            job.cancel()
+
+
 def run_in_slurm(
     command: List[str],
     timeout: int = None,
@@ -390,6 +406,8 @@ def run_in_slurm(
     image: str = None,
     image_arch: str = None,
 ) -> str:
+    if _stopping.is_set():
+        raise ExecutionError("MedPerf is stopping: no new Slurm jobs are submitted")
     commands.check_slurm_available()
     check_image_architecture(image, image_arch)
     directives = resource_directives(
